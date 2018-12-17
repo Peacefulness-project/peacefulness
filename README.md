@@ -1,2 +1,2 @@
 # code-one
-First iteration of code
+First iteration of a great code.
