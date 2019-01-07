@@ -13,23 +13,23 @@ exec(open("Classes.py").read())
 ### CREATION OF THE ENVIRONMENT
 '''Here we create the different entitites (producer, consumer, storage, conversion points)... 
 ... which we want to simulate'''
-GrandTruc= World() # Creation of the world, which serves as a background for our grid
+grand_truc = World() # Creation of the world, which serves as a background for our grid
 
     ### Declaration of consumers
-Bidule1= Consumer(0)
-Bidule2= Consumer(0)
+lumiere = NonSchedulable('LVelec')
+chauffage = Heating('LVelec')
 
     ### Declaration of producers
-Reseau= Producer(0)
+PV = PV()
 
 
     ### Addition of the entities to the world
 '''pas fait directement car on prevoit cluster'''
-GrandTruc.add(Reseau)
-GrandTruc.add( [Bidule1, Bidule2])
+grand_truc.add(PV)
+grand_truc.add([lumiere, chauffage])
 
 '''test pour verififier que tout se passe bien'''
-print(GrandTruc.EntityList[1].Priority,GrandTruc.EntityList[2].Priority)
+print(grand_truc.entity_list[1].priority,grand_truc.entity_list[2].priority)
 
 ### RESOLUTION or "moulinette magique"
 ''' Here we call the supervisor, which regulates our virtual grid'''
