@@ -2,39 +2,42 @@
 import os
 import numpy as np # pour les tableaux
 import math as mt # pour la capacité infinie du reseau
+'''import Classes
+import Supervisor
+import EntitiesGenerator
+import Utilities'''
 
-
-### INSTANTIATION OF CLASSES
 exec(open("Classes.py").read())
-
-###PARAMETERS
+exec(open("Utilities.py").read())
+exec(open("Supervisor.py").read())
+exec(open("EntitiesGenerator.py").read())
 
 
 ### CREATION OF THE ENVIRONMENT
 '''Here we create the different entitites (producer, consumer, storage, conversion points)... 
 ... which we want to simulate'''
-grand_truc = World() # Creation of the world, which serves as a background for our grid
+maison = World(3)  # Creation of the world, which serves as a background for our grid
+
 
     ### Declaration of consumers
-lumiere = NonSchedulable('LVelec')
-chauffage = Heating('LVelec')
+lumiere = Baseload('Low Voltage electricity')
+chauffage = Heating('Low Voltage electricity')
+
 
     ### Declaration of producers
-PV = PV()
-
+PV1 = PV()
+Grid = MainGrid('Low Voltage electricity')
 
     ### Addition of the entities to the world
 '''pas fait directement car on prevoit cluster'''
-grand_truc.add(PV)
-grand_truc.add([lumiere, chauffage])
+maison.add([PV1, Grid])
+maison.add([lumiere, chauffage])
+
 
 '''test pour verififier que tout se passe bien'''
-print(grand_truc.entity_list[1].priority,grand_truc.entity_list[2].priority)
 
-### RESOLUTION or "moulinette magique"
+
+
+### RESOLUTION
 ''' Here we call the supervisor, which regulates our virtual grid'''
-exec(open("Supervisor.py").read())
-
-### POST-PROCESSING
-'''Here we write files containing the history and the overview of the simulation'''
-'''je ne sais pas si on doit vraiment le detacher du superviseur'''
+supervisor(maison, strat_test)
