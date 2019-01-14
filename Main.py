@@ -1,6 +1,5 @@
 ### IMPORT
 import os
-import numpy as np # pour les tableaux
 import math as mt # pour la capacité infinie du reseau
 '''import Classes
 import Supervisor
@@ -15,7 +14,7 @@ exec(open("EntitiesGenerator.py").read())
 
 ### CREATION OF THE ENVIRONMENT
 '''Here we create the different entitites (producer, consumer, storage, conversion points)... 
-... which we want to simulate'''
+... we want to simulate'''
 maison = World(3)  # Creation of the world, which serves as a background for our grid
 
 
@@ -29,13 +28,10 @@ PV1 = PV()
 Grid = MainGrid('Low Voltage electricity')
 
     ### Addition of the entities to the world
-'''pas fait directement car on prevoit cluster'''
 maison.add([PV1, Grid])
 maison.add([lumiere, chauffage])
 
-
-'''test pour verififier que tout se passe bien'''
-
+'''tests pour verififier que tout se passe bien'''
 
 
 ### RESOLUTION

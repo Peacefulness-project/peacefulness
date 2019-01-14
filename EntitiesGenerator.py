@@ -12,7 +12,7 @@ def create_Baseload(N):
 
 
 def load_Baseload(entity,timestep):
-    conso = [42, 69, 42]
+    conso = [42, 69, 42]  # consommation de test
     entity.energy = conso[timestep]
 
 # Heating

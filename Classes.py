@@ -11,7 +11,7 @@ class World:
         self.entity_list = list()  # a list containing all the actors of the environment
         self.temperature = 0 # outdoor temperature in °C
 
-    def add(self, entity):  # method adding entities in the environment
+    def add(self, entity):  # method adding a list of entities in the environment
         if type(entity) != list:
             entity = [entity]
         [self.entity_list.append(element) for element in entity]
