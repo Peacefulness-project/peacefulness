@@ -10,7 +10,7 @@ def supervisor(world, strategy):
 
     while world.current_time < world.time_limit:
 
-        world.read()  # updating consumers and producers data
+        world.update()  # updating consumers and producers data
 
         # calling the chosen strategy to solve the time step
         results_timestep = strategy(world)
@@ -45,7 +45,7 @@ def strat_test(world):  # a strategy which objective is only to test our program
     for nat in NATURE:
         intermediate_table[nat] = [0,  # asked energy
                                    0,  # proposed energy
-                                   0  # presence of the grid
+                                   0   # presence of the grid
                                    ]
 
         results_timestep[nat] = [0,  # asked energy
@@ -55,14 +55,15 @@ def strat_test(world):  # a strategy which objective is only to test our program
                                  0   # energy given by the grid (<0 means energy has been sold to the grid)
                                  ]
 
-    for element in world.entity_list:  # balance of energy, sum of offer and demand
-        if type(element) in CONS:
-            intermediate_table[element.nature][0] += element.energy
-        elif type(element) in PROD:
-            if type(element) != MainGrid:
-                intermediate_table[element.nature][1] += element.energy
+    for key in world.entity_dict:  # balance of energy, sum of offer and demand
+        entity = world.entity_dict[key]
+        if type(entity) in CONS:
+            intermediate_table[entity.nature][0] += entity.energy
+        elif type(entity) in PROD:
+            if type(entity) != MainGrid:
+                intermediate_table[entity.nature][1] += entity.energy
             else:
-                intermediate_table[element.nature][2] = 1  # It means there is a grid
+                intermediate_table[entity.nature][2] = 1  # It means there is a grid
 
     print('for the time step', world.current_time, ':')
     for nat in NATURE:

@@ -6,32 +6,51 @@ import Supervisor
 import EntitiesGenerator
 import Utilities'''
 
-exec(open("Classes.py").read())
-exec(open("Utilities.py").read())
+exec(open("MainClasses.py").read())
+exec(open("Consumers.py").read())
+exec(open("Producers.py").read())
+#exec(open("Utilities.py").read())
 exec(open("Supervisor.py").read())
-exec(open("EntitiesGenerator.py").read())
+#exec(open("EntitiesGenerator.py").read())
 
 
-### CREATION OF THE ENVIRONMENT
-'''Here we create the different entitites (producer, consumer, storage, conversion points)... 
-... we want to simulate'''
-maison = World(3)  # Creation of the world, which serves as a background for our grid
+### INITIALIZATION
+
+# The following variables are lists
+CONS = []  # list of different types of consumers
+PROD = []  # list of different types of producers
+# STOR = []
+# TRAN = []
+NATURE = []  # list of different natures of energy
+
+# Creation of the environment
+maison = World(3)  # Creation of 'world', which serves as a background for our grid
+
+patate = dict()
+Entity.create(3, patate, 'patate', 'tartiflette')
+
+# Declaration of consumers
+lumiere = dict()
+Baseload.create(4, lumiere, 'lumiere', 'LVelec')
+chauffage = dict()
+Heating.create(1, chauffage, 'chauffage', 'gas')
+
+# Declaration of producers
+petits_panneaux = dict()
+PV.create(3, petits_panneaux, 'petits_panneaux', 'LVelec')
+
+# Addition of the entities to the world
+maison.add(lumiere)
+maison.add(chauffage)
+maison.add(petits_panneaux)
 
 
-    ### Declaration of consumers
-lumiere = Baseload('Low Voltage electricity')
-chauffage = Heating('Low Voltage electricity')
-
-
-    ### Declaration of producers
-PV1 = PV()
-Grid = MainGrid('Low Voltage electricity')
-
-    ### Addition of the entities to the world
-maison.add([PV1, Grid])
-maison.add([lumiere, chauffage])
-
-'''tests pour verififier que tout se passe bien'''
+'''tests pour verifier que tout se passe bien'''
+print(CONS)
+print(PROD)
+print(NATURE)
+print(maison.entity_dict)
+print(type(maison.entity_dict['lumiere_0']))
 
 
 ### RESOLUTION
