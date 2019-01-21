@@ -1,58 +1,70 @@
-### IMPORT
-import os
-import math as mt # pour la capacité infinie du reseau
-'''import Classes
-import Supervisor
-import EntitiesGenerator
-import Utilities'''
-
-exec(open("MainClasses.py").read())
-exec(open("Consumers.py").read())
-exec(open("Producers.py").read())
-#exec(open("Utilities.py").read())
-exec(open("Supervisor.py").read())
-#exec(open("EntitiesGenerator.py").read())
 
 
-### INITIALIZATION
+from common.Core import World
 
-# The following variables are lists
-CONS = []  # list of different types of consumers
-PROD = []  # list of different types of producers
-# STOR = []
-# TRAN = []
-NATURE = []  # list of different natures of energy
+from common.Catalog import Catalog
 
-# Creation of the environment
-maison = World(3)  # Creation of 'world', which serves as a background for our grid
+from common.lib.DummyEntity import DummyConsumer, DummyProducer
 
-patate = dict()
-Entity.create(3, patate, 'patate', 'tartiflette')
-
-# Declaration of consumers
-lumiere = dict()
-Baseload.create(4, lumiere, 'lumiere', 'LVelec')
-chauffage = dict()
-Heating.create(1, chauffage, 'chauffage', 'gas')
-
-# Declaration of producers
-petits_panneaux = dict()
-PV.create(3, petits_panneaux, 'petits_panneaux', 'LVelec')
-
-# Addition of the entities to the world
-maison.add(lumiere)
-maison.add(chauffage)
-maison.add(petits_panneaux)
+from common.Datalogger import Datalogger
 
 
-'''tests pour verifier que tout se passe bien'''
-print(CONS)
-print(PROD)
-print(NATURE)
-print(maison.entity_dict)
-print(type(maison.entity_dict['lumiere_0']))
+
+data = Catalog()
+data.add("Version","0.0")
 
 
-### RESOLUTION
-''' Here we call the supervisor, which regulates our virtual grid'''
-supervisor(maison, strat_test)
+# Creation of the world
+world = World("Earth", data)
+
+world.catalog.print_debug()
+
+print(world)
+
+
+e1 = DummyConsumer("Essai")
+c1 = DummyProducer("Toto")
+
+print(e1)
+print(c1)
+
+world.catalog.print_debug()
+
+
+world.add(e1)
+world.add(c1)
+
+logger = Datalogger(world.catalog, "essai.txt",2)
+logger2 = Datalogger(world.catalog, "essai2.txt",20)
+
+
+world.catalog.add("Toto",12)
+world.catalog.add("Lolo",14)
+
+world.catalog.print_debug()
+
+logger.add("time")
+logger.add_all()
+
+
+logger2.add("time")
+logger2.add("Toto")
+
+
+for i in range(0,100,1):
+    world.catalog.set("time",i)
+    print(i)
+    logger.process(i)
+    logger2.process(i)
+
+
+
+print(world)
+
+
+
+
+
+
+
+
