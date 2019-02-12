@@ -1,6 +1,7 @@
 # Declaration of core classes
 import datetime
 from common.Catalog import Catalog
+from tools.Utilities import little_separation, middle_separation, big_separation
 
 
 # The environment is the container of all entities.
@@ -16,7 +17,6 @@ class World:
             catalog = Catalog()
         self._catalog = catalog
         # at least, the catalog contains the name of the world and the current time step
-        # est-ce qu'on limite a un world par catalogue ?
         self._catalog.add("world.name", self._name)
         self._catalog.add("time", 0)
 
@@ -51,7 +51,6 @@ class World:
     # ##########################################################################################
 
     def next(self):  # method incrementing the time step
-        # on mettra les donnees a jour ici
         self.current_time += 1
 
     def update(self):  # method extracting data for the current timestep
@@ -68,7 +67,8 @@ class World:
         return self._catalog
 
     def __str__(self):
-        return f'WORLD = {self._name} : {len(self._consumers)} consumers and {len(self._producers)} producers'
+        return big_separation + f'\nWORLD = {self._name} : {len(self._consumers)} consumers and ' \
+            f'{len(self._producers)} producers'
 
 
 # Root class for all elements constituting our environment
@@ -108,7 +108,7 @@ class Entity:
         return self._name
 
     def __str__(self):
-        return f"Entity {self.name} of type {self.__class__.__name__}"
+        return middle_separation + f"\nEntity {self.name} of type {self.__class__.__name__}"
 
 
 # Consumer entity

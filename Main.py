@@ -17,7 +17,6 @@
 # ==================================================================================================================
 
 
-
 from common.Core import World
 
 from common.Catalog import Catalog
@@ -25,7 +24,6 @@ from common.Catalog import Catalog
 from common.lib.DummyEntity import DummyConsumer, DummyProducer
 
 from common.Datalogger import Datalogger
-
 
 # Creation of a data catalog
 data = Catalog()
@@ -36,7 +34,7 @@ data.add("Version", "0.0")
 # a world needs a name and a data catalog
 world = World("Earth", data)
 
-world.catalog.print_debug()
+world.catalog.print_debug()  # displays the content of he catalog
 
 print(world)
 
@@ -46,10 +44,10 @@ print(world)
 e1 = DummyConsumer("Essai")
 c1 = DummyProducer("Toto")
 
-print(e1)
-print(c1)
+print(e1)  # displays the name and the type of the entity
+print(c1)  # displays the name and the type of the entity
 
-world.catalog.print_debug()
+world.catalog.print_debug()  # displays the content of he catalog
 
 # Addition of our entities to our world
 world.add(e1)
@@ -58,23 +56,24 @@ world.add(c1)
 world.catalog.add("Toto", 12)
 world.catalog.add("Lolo", 14)
 
-world.catalog.print_debug()
+world.catalog.print_debug()  # displays the content of he catalog
 
 # Creation of the dataloggers, which write desired data in a file
 # A datalogger needs a catalog, a filename and, optionally, a writing frequency
-logger = Datalogger(world.catalog, "essai.txt", 2)
-logger2 = Datalogger(world.catalog, "essai2.txt", 20)
 
-logger.add("time")
+# the first logger writes all the available data at each turn
+logger = Datalogger(world.catalog, "essai.txt", 2)
 logger.add_all()
 
+# the second logger writes only time and Toto every 20 turns
+logger2 = Datalogger(world.catalog, "essai2.txt", 20)
 logger2.add("time")
 logger2.add("Toto")
 
 
-for i in range(0, 100, 1):
+for i in range(0, 100, 1):  # a little test to verify that dataloggers work
     world.catalog.set("time", i)
-    logger.process(i)
-    logger2.process(i)
+    logger.process(i)  # process = do what you have to
+    logger2.process(i)  # process = do what you have to
 
-print(world)
+print(world)  # gives the name of the world and the quantity of producers and consumers
