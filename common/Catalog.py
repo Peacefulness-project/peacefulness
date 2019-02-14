@@ -35,12 +35,12 @@ class Catalog:
         return self._data.keys()
 
     def __str__(self):  # calling our catalog will return the number of items
-        return middle_separation + f"Calalog : {len(self._data)} items"
+        return middle_separation + f"\nCatalog : {len(self._data)} items"
 
     def print_debug(self):  # print_debug returns the number of items and the keys with
         # their values
         print(big_separation)
-        print(f"Calalog : {len(self._data)} items")
+        print(f"Catalog : {len(self._data)} items")
         print(little_separation)
         for key in self._data:
             print(f"{key} = {self.get(key)}")

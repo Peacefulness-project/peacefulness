@@ -25,6 +25,8 @@ from common.lib.DummyEntity import DummyConsumer, DummyProducer
 
 from common.Datalogger import Datalogger
 
+from tools.DataProcessingFunctions import dummy_data_function
+
 # Creation of a data catalog
 data = Catalog()
 data.add("Version", "0.0")
@@ -64,11 +66,17 @@ world.catalog.print_debug()  # displays the content of he catalog
 # the first logger writes all the available data at each turn
 logger = Datalogger(world.catalog, "essai.txt", 2)
 logger.add_all()
+logger.add("Toto", "sum", "Somme_test")
+logger.add(["Toto", "time"], "min")
+logger.add(["Toto", "time"], "max")
 
 # the second logger writes only time and Toto every 20 turns
 logger2 = Datalogger(world.catalog, "essai2.txt", 20)
 logger2.add("time")
 logger2.add("Toto")
+logger2.add(["time", "Toto"], "mean", "moyenne_test")
+logger2.add_operation("dummy", dummy_data_function, "just to test")
+logger2.add("time", "dummy")
 
 
 for i in range(0, 100, 1):  # a little test to verify that dataloggers work

@@ -1,36 +1,16 @@
 # This sheet regroups little things used to simplify the rest of the program
 
 
-# The following variables are booleans used to test easily the nature of an entity
-CONS = [Baseload, Heating]
-PROD = [PV, WindTurbine, MainGrid]
-# STOR
-# TRAN
-
-
 # List of energy natures
-NATURE = ["Low Voltage electricity", "gas"]
+# NATURE = ["Low Voltage electricity", "gas"]
+
+# normalized separations
+little_separation = "---------------------------------------------------------"
+middle_separation = "\n---------------------------------------------------------"
+big_separation = "\n========================================================="
 
 
-# The following functions update the attributes of each entity at the beginning of a timestep
-def read_Baseload(entity, timestep):
-    load_Baseload(entity, timestep)
-
-
-def read_Heating(entity, timestep):
-    load_Heating(entity, timestep)
-
-
-def read_MainGrid(entity, timestep):
-    load_MainGrid(entity, timestep)
-
-
-def read_PV(entity, timestep):
-    load_PV(entity, timestep)
-
-
-def read_WindTurbine(entity, timestep):
-    load_WindTurbine(entity, timestep)
-
-def read_MainGrid(entity, timestep):
-    load_MainGrid(entity, timestep)
+def list_to_str(dummy_list):  # transform a data list into a string writable in a file
+    dummy_list = [str(element) for element in dummy_list]  # transforms a list into a
+    # string of several words...
+    return "\t".join(dummy_list)  # ... separated by a tabulation

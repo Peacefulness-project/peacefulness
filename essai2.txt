@@ -1,6 +1,6 @@
-time	Toto	
-0	12	
-20	12	
-40	12	
-60	12	
-80	12	
+_time	_Toto	moyenne_test	dummy_time	
+0	12	6.0	just to test	
+20	12	16.0	just to test	
+40	12	26.0	just to test	
+60	12	36.0	just to test	
+80	12	46.0	just to test	
