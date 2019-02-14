@@ -1,9 +1,5 @@
 # This sheet regroups little things used to simplify the rest of the program
 
-
-# List of energy natures
-# NATURE = ["Low Voltage electricity", "gas"]
-
 # normalized separations
 little_separation = "---------------------------------------------------------"
 middle_separation = "\n---------------------------------------------------------"

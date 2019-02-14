@@ -7,7 +7,7 @@ from tools.Utilities import little_separation, middle_separation, big_separation
 # The environment is the container of all entities.
 class World:
 
-    def __init__(self, name=None, catalog=None):
+    def __init__(self, name=None, catalog=None, timestep_value=3600, time_limit=24):
         if name:
             self._name = name
         else:  # By default, world is named after the date
@@ -20,9 +20,10 @@ class World:
         self._catalog.add("world.name", self._name)
         self._catalog.add("time", 0)
 
-        self.current_time = 0  # current time step of the simulation
-        self.time_limit = 0  # latest time step of the simulation
-
+        self.timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
+        self.current_time = 0  # current time step of the simulation (in number of iterations)
+        self.time_limit = time_limit  # latest time step of the simulation (in number of iterations)
+        self._catalog.add("physicaltime", 0)
 
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
@@ -76,7 +77,7 @@ class World:
     # ##########################################################################################
 
     def next(self):  # method incrementing the time step
-        self.current_time += 1
+        self.current_time += 60
 
     def update(self):  # method extracting data for the current timestep
         pass
