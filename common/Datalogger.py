@@ -5,8 +5,9 @@ from tools.DataProcessingFunctions import *
 
 class Datalogger:
 
-    def __init__(self, catalog, filename, period=0):
-        self._catalog = catalog  # catalog from which data are extracted
+    def __init__(self, name, filename, period=0):
+        self._name = name
+        self._catalog = None  # catalog from which data are extracted
         self._filename = filename
         self._period = period  # frequency of writing in the file
         self._data_dict = dict()  # this dictionary associates keys with the
@@ -52,7 +53,7 @@ class Datalogger:
 # Writing in the file
 # ##########################################################################################
 
-    def process(self, time):  # write data at the given frequency
+    def launch(self, time):  # write data at the given frequency
         if time >= self._next_time:  # data is saved only if the current time is a
             # multiple of the defined period
             if time == 0:  # initialization of the file
@@ -94,6 +95,13 @@ class Datalogger:
 
     def function(self, operation):
         return self._data_dict[operation][2]
+
+    def set_catalog(self, catalog):
+        self._catalog = catalog
+
+    @property
+    def name(self):
+        return self._name
 
 
 # Exception

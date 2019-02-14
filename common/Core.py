@@ -23,8 +23,12 @@ class World:
         self.current_time = 0  # current time step of the simulation
         self.time_limit = 0  # latest time step of the simulation
 
+
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
+
+        self._daemons = dict()  # dict containing the producers
+        self._loggers = dict()  # dict containing the producers
 
         self._used_name = []  # to check name unicity
 
@@ -44,7 +48,28 @@ class World:
             raise WorldException(f"Unable to add entity {entity.name}")
 
         self._used_name.append(entity.name)  # adding the name to the list of used names
-        entity.register(self.catalog)  # registering of the entity in the catalog
+        entity._catalog = self._catalog
+        entity.register()  # registering of the entity in the catalog
+
+
+    def register_daemon(self,deamon):  # link a daemon with a world (and its catalog)
+        if deamon.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{deamon.name} already in use")
+
+        deamon.set_catalog(self._catalog)   # linking the daemon with the catlaog of world
+        self._daemons[deamon.name]=deamon  # registering the daemon in the dedicated dictionary
+        self._used_name.append(deamon.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def register_datalogger(self, datalogger):
+        if datalogger.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{datalogger.name} already in use")
+
+        datalogger.set_catalog(self._catalog)
+        self._loggers[datalogger.name]=datalogger
+        self._used_name.append(datalogger.name)  # adding the name to the list of used names
+
+
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -82,6 +107,8 @@ class Entity:
 
         self._name = name
 
+        self._catalog = None
+
 #        if nature not in NATURE:  # if it is a new nature of energy
 #            NATURE.append(nature)  # it is added to the list of different natures of energy
 
@@ -89,11 +116,15 @@ class Entity:
     # Dynamic behaviour
     # ##########################################################################################
 
-    def register(self, catalog):
+    def register(self):
         # Add published data to the catalog
         pass
 
-    def update(self, world):
+    def init(self):
+        # Add published data to the catalog
+        pass
+
+    def update(self):
         pass
 
 #    def create(cls, n, dict_name, base_of_name, nature):
@@ -134,7 +165,15 @@ class Consumer(Entity):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self, world):
+    def register(self):
+        # Add published data to the catalog
+        pass
+
+    def init(self):
+        # Add published data to the catalog
+        pass
+
+    def update(self):
         pass
 
     # ##########################################################################################
@@ -164,7 +203,15 @@ class Producer(Entity):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self, world):
+    def register(self):
+        # Add published data to the catalog
+        pass
+
+    def init(self):
+        # Add published data to the catalog
+        pass
+
+    def update(self):
         pass
 
     # ##########################################################################################
