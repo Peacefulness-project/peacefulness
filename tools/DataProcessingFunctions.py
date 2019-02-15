@@ -1,7 +1,9 @@
 # Predefinite data-processing function:
 # The following functions are basics function for data processing
 # They can serve as examples for yours
+
 import numpy as np
+
 
 def identity(dict_content, catalog):
     result_list = []

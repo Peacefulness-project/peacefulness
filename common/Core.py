@@ -7,7 +7,7 @@ from tools.Utilities import little_separation, middle_separation, big_separation
 # The environment is the container of all entities.
 class World:
 
-    def __init__(self, name=None, catalog=None, timestep_value=3600, time_limit=24):
+    def __init__(self, name=None, catalog=None, subworld=0, timestep_value=3600, time_limit=24):
         if name:
             self._name = name
         else:  # By default, world is named after the date
@@ -16,20 +16,25 @@ class World:
         if not catalog:  # By default, a catalog is created and named "catalog"
             catalog = Catalog()
         self._catalog = catalog
-        # at least, the catalog contains the name of the world and the current time step
-        self._catalog.add("world.name", self._name)
-        self._catalog.add("time", 0)
+        # self._catalog.add("world.name", self._name)
 
-        self.timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
-        self.current_time = 0  # current time step of the simulation (in number of iterations)
-        self.time_limit = time_limit  # latest time step of the simulation (in number of iterations)
-        self._catalog.add("physicaltime", 0)
+        self._is_subworld = subworld  # a boolean indicating if this world is a subworld
+        # Some tasks are performed only by the main world, like incrementing time
+
+        self._timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
+        self._current_time = 0  # current time step of the simulation (in number of iterations)
+        self._time_limit = time_limit  # latest time step of the simulation (in number of iterations)
+        if self._is_subworld == 0:
+                self._catalog.add("physical_time", 0)
+                self._catalog.add("simulation_time", 0)
+
+        self._subworlds = dict()  # dict containing the subworlds
 
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
 
         self._daemons = dict()  # dict containing the producers
-        self._loggers = dict()  # dict containing the producers
+        self._dataloggers = dict()  # dict containing the producers
 
         self._used_name = []  # to check name unicity
 
@@ -52,32 +57,45 @@ class World:
         entity._catalog = self._catalog
         entity.register()  # registering of the entity in the catalog
 
+    def register_daemon(self, daemon):  # link a daemon with a world (and its catalog)
+        if daemon.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{daemon.name} already in use")
 
-    def register_daemon(self,deamon):  # link a daemon with a world (and its catalog)
-        if deamon.name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{deamon.name} already in use")
-
-        deamon.set_catalog(self._catalog)   # linking the daemon with the catlaog of world
-        self._daemons[deamon.name]=deamon  # registering the daemon in the dedicated dictionary
-        self._used_name.append(deamon.name)  # adding the name to the list of used names
+        daemon.set_catalog(self._catalog)   # linking the daemon with the catlaog of world
+        self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
+        self._used_name.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_datalogger(self, datalogger):
         if datalogger.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        datalogger.set_catalog(self._catalog)
-        self._loggers[datalogger.name]=datalogger
+        datalogger._catalog = self._catalog
+        self._dataloggers[datalogger.name] = datalogger
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
 
-
+    def add_subworld(self, name):
+        self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
-    def next(self):  # method incrementing the time step
-        self.current_time += 60
+    def next(self):  # method incrementing the time step and calling dataloggers and daemons
+        for key in self._dataloggers:
+            self._dataloggers[key].launch(self._current_time)
+
+        for key in self._daemons:
+            self._daemons[key].launch(self._current_time)
+
+        if self._is_subworld == 0:  # only the main world is allowed to change physical time
+            physical_time = self._catalog.get("physical_time") + self._timestep_value  # new value of physical time
+            self._catalog.set("physical_time", physical_time)  # updating the value of physical time
+
+        self._current_time += 1  # updating the simulation time
+
+        for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
+            self._subworlds[subworld].next()
 
     def update(self):  # method extracting data for the current timestep
         pass

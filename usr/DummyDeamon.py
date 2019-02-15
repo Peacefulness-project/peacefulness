@@ -1,4 +1,4 @@
-from common.Deamon import Deamon
+from common.Daemon import Deamon
 
 
 class DummyDeamon(Deamon):
@@ -6,9 +6,9 @@ class DummyDeamon(Deamon):
         super().__init__(name, period)
 
     def init(self):
-        self._catalog.add("tick",0)
+        self._catalog.add("tick", 0)
 
     def process(self):
         tick = self.catalog.get("tick")
-        self.catalog.set("tick",tick+1)
+        self.catalog.set("tick", tick+1)
 
