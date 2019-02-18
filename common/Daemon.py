@@ -5,23 +5,20 @@ class Deamon:
     def __init__(self, name, period=0):
 
         if name is None:
-            raise DeamonException("Il faut un nom au démon")
+            raise DaemonException("Daemon needs a name")
 
         self._name = name
-        self._catalog = None
-        self._period = period
+        self._catalog = None  # catalog from which data is extracted
+        # linked to the catalog of a world later
+        self._period = period  # period between 2 activations
 
-        self._next_time = 0
+        self._next_time = 0  # next time step for activation
 
-    @property
-    def catalog(self):
-        return self._catalog
+# ##########################################################################################
+# Activation
+# ##########################################################################################
 
-    @property
-    def name(self):
-        return self._name
-
-    def launch(self, time):  # write data at the given frequency
+    def launch(self, time):  # modify the catalog at the given period
         if time == 0:
             self.init();
 
@@ -35,14 +32,21 @@ class Deamon:
     def process(self):
         pass
 
+# ##########################################################################################
+# Utilities
+# ##########################################################################################
 
+    @property
+    def catalog(self):  # shortcut for read-only
+        return self._catalog
 
-    def set_catalog(self, catalog):
-        self._catalog = catalog
+    @property
+    def name(self):  # shortcut for read-only
+        return self._name
 
 
 # Exception
-class DeamonException(Exception):
+class DaemonException(Exception):
     def __init__(self, message):
         super().__init__(message)
 

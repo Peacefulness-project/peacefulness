@@ -24,17 +24,17 @@ class World:
         self._timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
         self._current_time = 0  # current time step of the simulation (in number of iterations)
         self._time_limit = time_limit  # latest time step of the simulation (in number of iterations)
-        if self._is_subworld == 0:
-                self._catalog.add("physical_time", 0)
-                self._catalog.add("simulation_time", 0)
+        if self._is_subworld == 0:  # physical and simulation time can't have multiple entries in the catalog
+                self._catalog.add("physical_time", 0)  # physical time in seconds, not used for the moment
+                self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
         self._subworlds = dict()  # dict containing the subworlds
 
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
 
-        self._daemons = dict()  # dict containing the producers
-        self._dataloggers = dict()  # dict containing the producers
+        self._daemons = dict()  # dict containing the daemons
+        self._dataloggers = dict()  # dict containing the dataloggers
 
         self._used_name = []  # to check name unicity
 
@@ -54,38 +54,39 @@ class World:
             raise WorldException(f"Unable to add entity {entity.name}")
 
         self._used_name.append(entity.name)  # adding the name to the list of used names
-        entity._catalog = self._catalog
+        entity._catalog = self._catalog  # linking the catalog to the entity
         entity.register()  # registering of the entity in the catalog
 
     def register_daemon(self, daemon):  # link a daemon with a world (and its catalog)
         if daemon.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{daemon.name} already in use")
 
-        daemon.set_catalog(self._catalog)   # linking the daemon with the catlaog of world
+        daemon._catalog = self._catalog   # linking the daemon with the catlaog of world
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
         self._used_name.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def register_datalogger(self, datalogger):
+    def register_datalogger(self, datalogger):  # link a datalogger with a world (and its catalog)
         if datalogger.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        datalogger._catalog = self._catalog
-        self._dataloggers[datalogger.name] = datalogger
+        datalogger._catalog = self._catalog   # linking the datalogger with the catlaog of world
+        self._dataloggers[datalogger.name] = datalogger  # registering the daemon in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
 
-    def add_subworld(self, name):
+    def add_subworld(self, name):  # create a new world ruled by the present world
         self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
+        # The subworld inherits the catalog, the timestep value and the time limit from the "world in chief"
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
     def next(self):  # method incrementing the time step and calling dataloggers and daemons
-        for key in self._dataloggers:
+        for key in self._dataloggers:  # activation of the dataloggers
             self._dataloggers[key].launch(self._current_time)
 
-        for key in self._daemons:
+        for key in self._daemons:  # activation of the daemons
             self._daemons[key].launch(self._current_time)
 
         if self._is_subworld == 0:  # only the main world is allowed to change physical time
@@ -96,6 +97,7 @@ class World:
 
         for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
             self._subworlds[subworld].next()
+            # soit on fait ca, soit on incremente un "simulation_time" dans le catalogue
 
     def update(self):  # method extracting data for the current timestep
         pass
@@ -107,7 +109,7 @@ class World:
     # ##########################################################################################
 
     @property
-    def catalog(self):
+    def catalog(self):  # shortcut for read-only
         return self._catalog
 
     def __str__(self):
@@ -126,7 +128,7 @@ class Entity:
 
         self._name = name
 
-        self._catalog = None
+        self._catalog = None  # added later
 
 #        if nature not in NATURE:  # if it is a new nature of energy
 #            NATURE.append(nature)  # it is added to the list of different natures of energy
@@ -154,7 +156,7 @@ class Entity:
     # ##########################################################################################
 
     @property
-    def name(self):
+    def name(self):  # shortcut for read-only
         return self._name
 
     def __str__(self):
@@ -176,9 +178,6 @@ class Consumer(Entity):
         # the higher it is, the higher is the chance of being served
         self.max_energy = self.energy  # the maximal energy the system can sustain
         # params eco, socio, etc
-
-#        if type(self) not in CONS:  # if it is a new type of consumer
-#           CONS.append(type(self))  # it is added to the list
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -213,7 +212,6 @@ class Producer(Entity):
 
     def __init__(self, name):
         super().__init__(name)
-        # params eco, socio, etc
 
 #      if type(self) not in PROD:  # if it is a new type of consumer
 #          PROD.append(type(self))  # it is added to the list

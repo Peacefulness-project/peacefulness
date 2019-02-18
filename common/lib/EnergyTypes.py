@@ -2,6 +2,9 @@
 
 NATURE = ["LVE", "HVH", "MVH", "LVH", "NG", "H2"]
 
-# LVE: low voltage electricity
-# HVH: high vapor heat (temperature around 90°C)
-
+# LVE: Low Voltage Electricity
+# HVH: High Vapor Heat (temperature around 90°C)
+# MVH: Medium Vapor Heat
+# LVH: Low Vapor Heat
+# NG: Natural Gas
+# H2: Hydrogen
