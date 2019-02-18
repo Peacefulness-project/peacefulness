@@ -17,7 +17,6 @@
 # ==================================================================================================================
 
 
-
 from common.Core import World
 
 from common.Catalog import Catalog
@@ -26,10 +25,16 @@ from common.lib.DummyEntity import DummyConsumer, DummyProducer
 
 from common.Datalogger import Datalogger
 
-from tools.DataProcessingFunctions import dummy_data_function
+from common.CaseDirectory import CaseDirectory
 
-from usr.DummyDeamon import DummyDeamon
+# from tools.DataProcessingFunctions import dummy_data_function
 
+from usr.DummyDeamon import DummyDaemon
+
+
+# Creation of the case directory
+directory = CaseDirectory("/home/timothe/Documents/Cas")  # /!\ that's my personal path !
+directory.create()
 
 # Creation of a data catalog
 data = Catalog()
@@ -74,23 +79,22 @@ world.add_subworld("PaysDesMerveilles")  # linking the subworld with the world
 logger = Datalogger("log2", "essai.txt", 2)
 world.register_datalogger(logger)  # linking the datalogger with the world
 logger.add_all()
+logger.set_path(directory)
 
 # the second logger writes only time and Toto every 20 turns
 logger2 = Datalogger("log10", "essai2.txt", 20, 1)
 world.register_datalogger(logger2)  # linking the datalogger with the world
 logger2.add("simulation_time")
 logger2.add("Toto")
+logger2.set_path(directory)
 
 # first daemon
-dem = DummyDeamon("MonDemonDeMidi", 10)
+dem = DummyDaemon("MonDemonDeMidi", 10)
 
 world.register_daemon(dem)  # linking the daemon with the world
 
 
 for i in range(0, 100, 1):  # a little test to verify that dataloggers work
-    # logger.launch(i)  # process = do what you have to
-    # logger2.launch(i)  # process = do what you have to
-    # dem.launch(i)
     world.next()  # activates the daemons, the dataloggers and manages time
 
 print(world)  # gives the name of the world and the quantity of producers and consumers

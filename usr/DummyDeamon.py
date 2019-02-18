@@ -1,7 +1,7 @@
-from common.Daemon import Deamon
+from common.Daemon import Daemon
 
 
-class DummyDeamon(Deamon):
+class DummyDaemon(Daemon):
     def __init__(self, name, period):
         super().__init__(name, period)
 

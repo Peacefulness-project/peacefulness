@@ -73,6 +73,7 @@ class World:
         datalogger._catalog = self._catalog   # linking the datalogger with the catlaog of world
         self._dataloggers[datalogger.name] = datalogger  # registering the daemon in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
 
     def add_subworld(self, name):  # create a new world ruled by the present world
         self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
@@ -89,11 +90,13 @@ class World:
         for key in self._daemons:  # activation of the daemons
             self._daemons[key].launch(self._current_time)
 
+        self._current_time += 1  # updating the simulation time
+
         if self._is_subworld == 0:  # only the main world is allowed to change physical time
             physical_time = self._catalog.get("physical_time") + self._timestep_value  # new value of physical time
             self._catalog.set("physical_time", physical_time)  # updating the value of physical time
 
-        self._current_time += 1  # updating the simulation time
+            self._catalog.set("simulation_time", self._current_time)
 
         for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
             self._subworlds[subworld].next()

@@ -22,6 +22,8 @@ class Datalogger:
         self._buffer = dict()  # dict which stores data between each period of registering
         # allows to report info such as mean, min and max between two periods
 
+        self._path = None
+
         # # initially, 5 operations are defined:
         # self._data_dict[""] = [[], [], identity]  # this basic operation
         # # returns the raw value
@@ -41,7 +43,9 @@ class Datalogger:
     def add(self, name):  # add 1 key of the catalog to
         # the datalogger
         self._list.append(name)  # creates an entry in the buffer if needed
-        self._buffer[name] = []  # creates an entry in the buffer if needed
+        if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
+            # it allows to return the mean, the min and the max
+            self._buffer[name] = []  # creates an entry in the buffer
 
         # if operation not in self._data_dict:  # checking if the operation already exists
         #     raise DataLoggerException(f"operation {name} does not exist")
@@ -55,7 +59,9 @@ class Datalogger:
         # the datalogger
         for name in self._catalog.keys:
             self._list.append(name)  # creates an entry in the buffer if needed
-            self._buffer[name] = []  # creates an entry in the buffer if needed
+            if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
+                # it allows to return the mean, the min and the max
+                self._buffer[name] = []  # creates an entry in the buffer if needed
             # self.headers(operation).append(header)
             # self.keys(operation).append(name)
 
@@ -63,6 +69,9 @@ class Datalogger:
     #     if operation in self._data_dict:  # checking if the operation already exists
     #         raise DataLoggerException(f"operation {operation} already exists")
     #     self._data_dict[operation] = [[], [], function, complement]
+
+    def set_path(self, case_directory):  # set the path for the exported files
+        self._path = case_directory._path
 
 # ##########################################################################################
 # Data processing
@@ -84,9 +93,8 @@ class Datalogger:
 
     def launch(self, time):  # write data at the given frequency
         if self._period > 1:
-            for key in self._list:  # bouger ce test dans .add, remplacer par parcours des cles de self.buffer
-                if type(self._catalog.get(key)) == float:  # if the key is a number
-                    self._buffer[key].append(self._catalog.get(key))  # it is added to the buffer
+            for key in self._buffer: # for all relevant keys
+                    self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
         if time >= self._next_time:  # data is saved only if the current time is a
             # multiple of the defined period
             if time == 0:  # initialization of the file
@@ -96,7 +104,7 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _save(self):  # write all the chosen data in the catalog on a line
-        file = open(self._filename, 'a+')
+        file = open(f"{self._path}/outputs/{self._filename}", 'a+')
         # for operation in self._data_dict:
         #     if self.headers(operation) != []:
         #                 processed_data = self.function(operation)(self._data_dict[operation], self._catalog)
@@ -117,7 +125,7 @@ class Datalogger:
         file.close()
 
     def _save_header(self):  # create the headers of the column
-        file = open(self._filename, 'w')
+        file = open(f"{self._path}/outputs/{self._filename}", 'w')
         # for operation in self._data_dict:
         #     for i in range(len(self.headers(operation))):  # for each piece of data, the
         #         # corresponding is written in the file as a column header
@@ -128,12 +136,12 @@ class Datalogger:
 
         for name in self._list:
             file.write(f"{name}\t")
-            if (type(self._catalog.get(name)) == float) and (self._period > 1):  # bouger ce test dans .add, remplacer par parcours de cles de self.buffer
+            if name in self._buffer:
                 file.write(f"Mean_{name}\t"
                            f"Min_{name}\t"
                            f"Max_{name}\t")
-                if self._sum:  # if sum is enabled, write 
-                    file.write(f"sum_{name}\t")
+                if self._sum:  # if sum is enabled, add it to the file
+                    file.write(f"Sum_{name}\t")
         file.write("\n")
         file.close()
 

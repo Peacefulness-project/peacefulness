@@ -1,6 +1,7 @@
 from common.Catalog import Catalog
 
-class Deamon:
+
+class Daemon:
 
     def __init__(self, name, period=0):
 
@@ -20,9 +21,9 @@ class Deamon:
 
     def launch(self, time):  # modify the catalog at the given period
         if time == 0:
-            self.init();
+            self.init()
 
-        if time >= self._next_time:  # data is saved only if the current time is a
+        if time >= self._next_time:  # data is saved only if the current time is a multiple of the period
             self.process()
             self._next_time += self._period
 
