@@ -2,6 +2,7 @@
 import datetime
 from common.Catalog import Catalog
 from tools.Utilities import little_separation, middle_separation, big_separation
+from common.lib.EnergyTypes import Nature
 
 
 # The environment is the container of all entities.
@@ -28,7 +29,10 @@ class World:
                 self._catalog.add("physical_time", 0)  # physical time in seconds, not used for the moment
                 self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
-        self._subworlds = dict()  # dict containing the subworlds
+        # objects contained by world
+        self._subworlds = dict()  # dict containing the subworlds, not used today
+        self._clusters = dict()  # a mono-energy sub-environment which favours intern resolution
+        self._agent = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
@@ -38,6 +42,12 @@ class World:
 
         self._used_name = []  # to check name unicity
 
+        self._natures = []  # all energy types of the entities in world, potentially obsolete
+
+        # initialization of a vector nature, which gathers all the keys
+        nature = Nature()
+        self._catalog.add("Natures", nature.keys)
+
     # ##########################################################################################
     # Entity management
     # ##########################################################################################
@@ -46,9 +56,9 @@ class World:
         if entity.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{entity.name} already in use")
 
-        if isinstance(entity, Consumer):  # If entity is a consumer...
+        if isinstance(entity, Consumption):  # If entity is a consumer...
             self._consumers[entity.name] = entity  # ... it is put in a dedicated dict
-        elif isinstance(entity, Producer):  # If entity is a producer...
+        elif isinstance(entity, Production):  # If entity is a producer...
             self._producers[entity.name] = entity  # ... it is put in a dedicated dict
         else:
             raise WorldException(f"Unable to add entity {entity.name}")
@@ -61,7 +71,7 @@ class World:
         if daemon.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{daemon.name} already in use")
 
-        daemon._catalog = self._catalog   # linking the daemon with the catlaog of world
+        daemon._catalog = self._catalog   # linking the daemon with the catalog of world
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
         self._used_name.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -70,7 +80,7 @@ class World:
         if datalogger.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        datalogger._catalog = self._catalog   # linking the datalogger with the catlaog of world
+        datalogger._catalog = self._catalog   # linking the datalogger with the catalog of world
         self._dataloggers[datalogger.name] = datalogger  # registering the daemon in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -84,7 +94,8 @@ class World:
     # ##########################################################################################
 
     def next(self):  # method incrementing the time step and calling dataloggers and daemons
-        for key in self._dataloggers:  # activation of the dataloggers
+        for key in self._dataloggers:  # activation of the dataloggers, they must be called before the daemons,
+            # who may have an impact on data
             self._dataloggers[key].launch(self._current_time)
 
         for key in self._daemons:  # activation of the daemons
@@ -100,12 +111,16 @@ class World:
 
         for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
             self._subworlds[subworld].next()
-            # soit on fait ca, soit on incremente un "simulation_time" dans le catalogue
 
     def update(self):  # method extracting data for the current timestep
-        pass
-        # for entity in self.entity_dict:
-        #     self.entity_dict[entity].update(self)
+        for key in self._subworlds:  # subworlds are called recursively
+            self._subworlds[key].update()
+
+        for key in self._consumers:
+            self._consumers[key].update()
+
+        for key in self._producers:
+            self._producers[key].update()
 
     # ##########################################################################################
     # Utility
@@ -124,24 +139,24 @@ class World:
 class Entity:
 
     def __init__(self, name, nature=''):
-        self.nature = nature  # only entities of same nature can interact
-        self.energy = 0  # the quantity of energy the system asks/proposes
-        self.min_energy = 0  # the minimal energy asked/delivered by the system
-        self.price = 0  # the price announced by the system
+        self._nature = nature  # only entities of same nature can interact
+        self._energy = 0  # the quantity of energy the system asks/proposes
+        self._min_energy = 0  # the minimal energy asked/delivered by the system
+        self._price = 0  # the price announced by the system
 
         self._name = name
 
-        self._catalog = None  # added later
+        self._cluster = None  # the cluster the entity belongs to
+        self._agent = None  # the agent represents the owner of the entity
 
-#        if nature not in NATURE:  # if it is a new nature of energy
-#            NATURE.append(nature)  # it is added to the list of different natures of energy
+        self._catalog = None  # added later
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
     def register(self):
-        # Add published data to the catalog
+        # Add the entity to the catalog
         pass
 
     def init(self):
@@ -151,8 +166,11 @@ class Entity:
     def update(self):
         pass
 
-#    def create(cls, n, dict_name, base_of_name, nature):
-#        pass
+    def mass_create(cls, n, name, world):
+        # a class method allowing to create several instance of a same class
+        pass
+
+    mass_create = classmethod(mass_create)
 
     # ##########################################################################################
     # Utility
@@ -168,18 +186,17 @@ class Entity:
 
 # Consumer entity
 # They correspond to one engine (one dishwasher e.g) with the same profile
-class Consumer(Entity):
+class Consumption(Entity):
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, nature):
+        super().__init__(name, nature)
 
-        self.priority = 0  # the higher the priority, the higher the chance of...
-
-        #  ...being satisfied in the current time step
-        self.interruptibility = 0  # 1 means the system can be switched off while working
-        self.dissatisfaction = 0  # dissatisfaction accounts for the energy not delivered immediately
+        self._priority = 0  # the higher the priority, the higher the chance of
+        # being satisfied in the current time step
+        self._interruptibility = 0  # 1 means the system can be switched off while working
+        self._dissatisfaction = 0  # dissatisfaction accounts for the energy not delivered immediately
         # the higher it is, the higher is the chance of being served
-        self.max_energy = self.energy  # the maximal energy the system can sustain
+        self._max_energy = self._energy  # the maximal energy the system can sustain
         # params eco, socio, etc
 
     # ##########################################################################################
@@ -187,7 +204,7 @@ class Consumer(Entity):
     # ##########################################################################################
 
     def register(self):
-        # Add published data to the catalog
+        # Add the entity to the catalog
         pass
 
     def init(self):
@@ -197,24 +214,24 @@ class Consumer(Entity):
     def update(self):
         pass
 
+    def mass_create(cls, n, name, world):
+        # a class method allowing to create several instance of a same class
+        pass
+
+    mass_create = classmethod(mass_create)
+
     # ##########################################################################################
     # Utility
     # ##########################################################################################
 
 
-#    def create(cls, n, dict_name, base_of_name, nature):
-#        Entity.create(n, dict_name, base_of_name, nature)
-
-#    create = classmethod(create)
-
-
 # Production entity
 # They correspond to a group of plants of same nature (an eolian park e.g)
 # The main grid is considered as a producer
-class Producer(Entity):
+class Production(Entity):
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, nature):
+        super().__init__(name, nature)
 
 #      if type(self) not in PROD:  # if it is a new type of consumer
 #          PROD.append(type(self))  # it is added to the list
@@ -224,7 +241,7 @@ class Producer(Entity):
     # ##########################################################################################
 
     def register(self):
-        # Add published data to the catalog
+        # Add the entity to the catalog
         pass
 
     def init(self):
@@ -234,15 +251,15 @@ class Producer(Entity):
     def update(self):
         pass
 
+    def mass_create(cls, n, name, world):
+        # a class method allowing to create several instance of a same class
+        pass
+
+    mass_create = classmethod(mass_create)
+
     # ##########################################################################################
     # Utility
     # ##########################################################################################
-
-
-#    def create(cls, n, dict_name, base_of_name, nature):
-#       Entity.create(n, dict_name, base_of_name, nature)
-
-#    create = classmethod(create)
 
 
 # Plus tard
@@ -252,5 +269,10 @@ class Producer(Entity):
 
 # Exception
 class WorldException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class EntityException(Exception):
     def __init__(self, message):
         super().__init__(message)

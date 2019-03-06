@@ -7,9 +7,12 @@ Erwin:
 	Faire profils de consommation (et aussi de production tant qu'on y est)
 
 Timothe:
-	Reflechir sur gestion plusieurs natures
+	Creer classe cluster
+	Creer classe agent
+	Refaire la creation de cas en tant que sous-domaine de world
+	Refaire gestion du temps
+	Commenter abondamment
 
 Non attribue:
-        Creer un superviseur (structure, role exact)
-	Preparer interactions entre worlds (+- commence)
+    Creer un superviseur
 

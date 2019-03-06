@@ -1,59 +1,57 @@
-from common.Core import Consumer, Producer
+from common.Core import Consumption, Production
 
 
-class DummyConsumer(Consumer):
+class DummyConsumption(Consumption):
 
     def __init__(self, name):
-        super().__init__(name)
+        super().__init__(name, "LVE")
 
 # ##########################################################################################
 # Entity management
 # ##########################################################################################
 
-#   def create(cls, n, dict_name, base_of_name, nature):
-#       Consumer.create(n, dict_name, base_of_name, nature)
-#
-#       for i in range(n):
-#           name = base_of_name + '_' + str(i)
-#           dict_name[name] = cls(nature)
-#
-#   create = classmethod(create)
+    def mass_create(cls, n, name, world):
+        for i in range(n):
+            entity_name = f"{name}_{str(i)}"
+            entity = DummyConsumption(entity_name)
+            world.add(entity)
+
+    mass_create = classmethod(mass_create)
 
 # ##########################################################################################
 # Dynamic behaviour
 # ##########################################################################################
 
-    def update(self, world):  # update the data to the current time step
-        print("Update")
+    def update(self):  # update the data to the current time step
+        self._energy = 1
 
     def register(self):  # create a key in our catalog, without assigning a value
-        self._catalog.add(f"{self.name}.priority", None)
+        self._catalog.add(f"{self._name}.priority", None)
 
 
-class DummyProducer(Producer):
+class DummyProduction(Production):
 
     def __init__(self, name):
-        super().__init__(name)
+        super().__init__(name, "LVE")
 
 # ##########################################################################################
 # Entity management
 # ##########################################################################################
 
-#    def create(cls, n, dict_name, base_of_name, nature):
-#        Consumer.create(n, dict_name, base_of_name, nature)
-#
-#        for i in range(n):
-#           name = base_of_name + '_' + str(i)
-#           dict_name[name] = cls(nature)
-#
-#   create = classmethod(create)
+    def mass_create(cls, n, name, world):
+        for i in range(n):
+            entity_name = f"{name}_{str(i)}"
+            entity = DummyProduction(entity_name)
+            world.add(entity)
+
+    mass_create = classmethod(mass_create)
 
 # ##########################################################################################
 # Dynamic behaviour
 # ##########################################################################################
 
-    def update(self, world):  # update the data to the current time step
-        print("Update")
+    def update(self):  # update the data to the current time step
+        self._energy = 1
 
     def register(self):  # create a key in our catalog, without assigning a value
-        self._catalog.add(f"{self.name}.price", None)
+        self._catalog.add(f"{self._name}.price", None)

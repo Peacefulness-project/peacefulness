@@ -1,10 +1,20 @@
 # List of energy natures
 
-NATURE = ["LVE", "HVH", "MVH", "LVH", "NG", "H2"]
 
-# LVE: Low Voltage Electricity
-# HVH: High Vapor Heat (temperature around 90°C)
-# MVH: Medium Vapor Heat
-# LVH: Low Vapor Heat
-# NG: Natural Gas
-# H2: Hydrogen
+class Nature:  # this class contains the different natures
+
+    def __init__(self):
+        self._dict = dict()  # a dictionary indexing all types of nature
+        self._dict["LVE"] = "Low Voltage Electricity"
+        self._dict["HVH"] = "High Vapor Heat (temperature around 90°C)"
+        self._dict["MVH"] = "Medium Vapor Heat"
+        self._dict["LVH"] = "Low Vapor Heat"
+        self._dict["NG"] = "Natural Gas"
+        self._dict["H2"] = "Hydrogen"
+
+    def add(self, key, description=''):  # allows to add manually an energy type
+        self._dict[key] = description
+
+    @property
+    def keys(self):  # a shortcut allowing to get a list of energy types faster
+        return self._dict.keys()

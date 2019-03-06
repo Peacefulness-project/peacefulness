@@ -21,7 +21,7 @@ from common.Core import World
 
 from common.Catalog import Catalog
 
-from common.lib.DummyEntity import DummyConsumer, DummyProducer
+from common.lib.DummyEntity import DummyConsumption, DummyProduction
 
 from common.Datalogger import Datalogger
 
@@ -29,11 +29,12 @@ from common.CaseDirectory import CaseDirectory
 
 # from tools.DataProcessingFunctions import dummy_data_function
 
-from usr.DummyDeamon import DummyDaemon
+from usr.DummyDaemon import DummyDaemon
 
+from usr.DummySupervisor import DummySupervisor
 
 # Creation of the case directory
-directory = CaseDirectory("/home/timothe/Documents/Cas")  # /!\ that's my personal path !
+directory = CaseDirectory("./Results")
 directory.create()
 
 # Creation of a data catalog
@@ -52,8 +53,8 @@ print(world)
 # Creation of our entities
 # They need at least a name
 # Later, some more specific entities could resquire more information
-e1 = DummyConsumer("Essai")
-c1 = DummyProducer("Toto")
+e1 = DummyConsumption("Essai")
+c1 = DummyProduction("Toto")
 
 print(e1)  # displays the name and the type of the entity
 print(c1)  # displays the name and the type of the entity
@@ -70,7 +71,8 @@ world.catalog.add("Lolo", 14.)
 
 world.catalog.print_debug()  # displays the content of he catalog
 
-world.add_subworld("PaysDesMerveilles")  # linking the subworld with the world
+DummyConsumption.mass_create(10, "conso", world)  # creation of ten dummy consumers
+DummyProduction.mass_create(10, "prod", world)  # creation of ten dummy producers
 
 # Creation of the dataloggers, which write desired data in a file
 # A datalogger needs a catalog, a filename and, optionally, a writing frequency
@@ -93,9 +95,7 @@ dem = DummyDaemon("MonDemonDeMidi", 10)
 
 world.register_daemon(dem)  # linking the daemon with the world
 
-
 for i in range(0, 100, 1):  # a little test to verify that dataloggers work
     world.next()  # activates the daemons, the dataloggers and manages time
 
 print(world)  # gives the name of the world and the quantity of producers and consumers
-
