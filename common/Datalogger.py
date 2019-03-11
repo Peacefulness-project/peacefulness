@@ -52,7 +52,6 @@ class Datalogger:
         # self.headers(operation).append(header)
         # self.keys(operation).append(name)
 
-
 # methode pour enlever les donnees ? pour simplifier quand on veut tout sauf une ou deux lignes ?
 
     def add_all(self):  # add all keys from the catalog to

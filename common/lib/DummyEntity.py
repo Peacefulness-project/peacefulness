@@ -55,3 +55,4 @@ class DummyProduction(Production):
 
     def register(self):  # create a key in our catalog, without assigning a value
         self._catalog.add(f"{self._name}.price", None)
+

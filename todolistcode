@@ -7,11 +7,9 @@ Erwin:
 	Faire profils de consommation (et aussi de production tant qu'on y est)
 
 Timothe:
-	Creer classe cluster
-	Creer classe agent
-	Refaire la creation de cas en tant que sous-domaine de world
-	Refaire gestion du temps
 	Commenter abondamment
+	creer une possibilite de sauvegarder un monde
+	refaire proprement distinctions entre attributs et entrees du catalogue (entrees multiples)
 
 Non attribue:
     Creer un superviseur

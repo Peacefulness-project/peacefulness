@@ -31,7 +31,11 @@ from common.CaseDirectory import CaseDirectory
 
 from usr.DummyDaemon import DummyDaemon
 
-from usr.DummySupervisor import DummySupervisor
+# from usr.DummySupervisor import DummySupervisor
+
+from common.Agent import Agent
+
+from common.Cluster import Cluster
 
 # Creation of the case directory
 directory = CaseDirectory("./Results")
@@ -73,6 +77,21 @@ world.catalog.print_debug()  # displays the content of he catalog
 
 DummyConsumption.mass_create(10, "conso", world)  # creation of ten dummy consumers
 DummyProduction.mass_create(10, "prod", world)  # creation of ten dummy producers
+
+# ##############################################################################################
+
+# definition of an agent
+maison_gibout = Agent("maison Gibout")
+maison_gibout.set_contract("LVE", "contrat classique")
+world.add_agent(maison_gibout)
+
+# definition of a cluster
+cluster_franquet = Cluster("cluster Franquet", "LVE")
+world.add_cluster(cluster_franquet)
+
+
+world.catalog.print_debug()  # displays the content of he catalog
+# ##############################################################################################
 
 # Creation of the dataloggers, which write desired data in a file
 # A datalogger needs a catalog, a filename and, optionally, a writing frequency

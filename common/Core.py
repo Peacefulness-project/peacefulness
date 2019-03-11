@@ -3,8 +3,12 @@ import datetime
 from common.Catalog import Catalog
 from tools.Utilities import little_separation, middle_separation, big_separation
 from common.lib.EnergyTypes import Nature
+from common.Agent import Agent
+from common.Cluster import Cluster
 
 
+# ##############################################################################################
+# ##############################################################################################
 # The environment is the container of all entities.
 class World:
 
@@ -19,20 +23,19 @@ class World:
         self._catalog = catalog
         # self._catalog.add("world.name", self._name)
 
-        self._is_subworld = subworld  # a boolean indicating if this world is a subworld
-        # Some tasks are performed only by the main world, like incrementing time
+        # self._is_subworld = subworld  # a boolean indicating if this world is a subworld
+        # # Some tasks are performed only by the main world, like incrementing time
 
         self._timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
         self._current_time = 0  # current time step of the simulation (in number of iterations)
         self._time_limit = time_limit  # latest time step of the simulation (in number of iterations)
-        if self._is_subworld == 0:  # physical and simulation time can't have multiple entries in the catalog
-                self._catalog.add("physical_time", 0)  # physical time in seconds, not used for the moment
-                self._catalog.add("simulation_time", 0)  # simulation time in iterations
+        self._catalog.add("physical_time", 0)  # physical time in seconds, not used for the moment
+        self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
         # objects contained by world
-        self._subworlds = dict()  # dict containing the subworlds, not used today
-        self._clusters = dict()  # a mono-energy sub-environment which favours intern resolution
-        self._agent = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        # self._subworlds = dict()  # dict containing the subworlds, not used today
+        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
+        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
         self._consumers = dict()  # dict containing the consumers
         self._producers = dict()  # dict containing the producers
@@ -49,7 +52,7 @@ class World:
         self._catalog.add("Natures", nature.keys)
 
     # ##########################################################################################
-    # Entity management
+    # Construction
     # ##########################################################################################
 
     def add(self, entity):  # method adding one entity to the world
@@ -81,13 +84,31 @@ class World:
             raise WorldException(f"{datalogger.name} already in use")
 
         datalogger._catalog = self._catalog   # linking the datalogger with the catalog of world
-        self._dataloggers[datalogger.name] = datalogger  # registering the daemon in the dedicated dictionary
+        self._dataloggers[datalogger.name] = datalogger  # registering the cluster in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def add_subworld(self, name):  # create a new world ruled by the present world
-        self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
-        # The subworld inherits the catalog, the timestep value and the time limit from the "world in chief"
+    def add_cluster(self, cluster):
+        if cluster._name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{cluster._name} already in use")
+
+        cluster.add_catalog(self._catalog)  # linking the cluster with the catalog of world
+        self._clusters[cluster._name] = cluster  # registering the cluster in the dedicated dictionary
+        self._used_name.append(cluster._name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def add_agent(self, agent):
+        if agent._name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{agent._name} already in use")
+
+        agent.add_catalog(self._catalog)   # linking the agent with the catalog of world
+        self._agents[agent._name] = agent  # registering the agent in the dedicated dictionary
+        self._used_name.append(agent._name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    # def add_subworld(self, name):  # create a new world ruled by the present world
+    #     self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
+    #     # The subworld inherits the catalog, the timestep value and the time limit from the "world in chief"
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -103,18 +124,16 @@ class World:
 
         self._current_time += 1  # updating the simulation time
 
-        if self._is_subworld == 0:  # only the main world is allowed to change physical time
-            physical_time = self._catalog.get("physical_time") + self._timestep_value  # new value of physical time
-            self._catalog.set("physical_time", physical_time)  # updating the value of physical time
+        physical_time = self._catalog.get("physical_time") + self._timestep_value  # new value of physical time
+        self._catalog.set("physical_time", physical_time)  # updating the value of physical time
+        self._catalog.set("simulation_time", self._current_time)
 
-            self._catalog.set("simulation_time", self._current_time)
-
-        for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
-            self._subworlds[subworld].next()
+        # for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
+        #     self._subworlds[subworld].next()
 
     def update(self):  # method extracting data for the current timestep
-        for key in self._subworlds:  # subworlds are called recursively
-            self._subworlds[key].update()
+        # for key in self._subworlds:  # subworlds are called recursively
+        #     self._subworlds[key].update()
 
         for key in self._consumers:
             self._consumers[key].update()
@@ -135,10 +154,12 @@ class World:
             f'{len(self._producers)} producers'
 
 
+# ##############################################################################################
+# ##############################################################################################
 # Root class for all elements constituting our environment
 class Entity:
 
-    def __init__(self, name, nature=''):
+    def __init__(self, name, nature):
         self._nature = nature  # only entities of same nature can interact
         self._energy = 0  # the quantity of energy the system asks/proposes
         self._min_energy = 0  # the minimal energy asked/delivered by the system
@@ -152,7 +173,7 @@ class Entity:
         self._catalog = None  # added later
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Initialization
     # ##########################################################################################
 
     def register(self):
@@ -163,14 +184,30 @@ class Entity:
         # Add published data to the catalog
         pass
 
-    def update(self):
-        pass
+    def link_cluster(self, cluster):  # link an entity with a cluster
+        if self._nature == cluster._nature:
+            self._cluster = cluster._name
+        else:
+            raise EntityException(f"cluster and entity must have the same nature")
+
+    def link_agent(self, agent_name):  # link an entity with an agent
+        if f"{agent_name}.{self._nature}" in self._catalog.keys():
+            self._agent = agent_name
+        else:
+            raise EntityException(f"no {self._nature} in {agent_name}")
 
     def mass_create(cls, n, name, world):
         # a class method allowing to create several instance of a same class
         pass
 
     mass_create = classmethod(mass_create)
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
+
+    def update(self):
+        pass
 
     # ##########################################################################################
     # Utility
@@ -183,7 +220,8 @@ class Entity:
     def __str__(self):
         return middle_separation + f"\nEntity {self.name} of type {self.__class__.__name__}"
 
-
+# ##############################################################################################
+# ##############################################################################################
 # Consumer entity
 # They correspond to one engine (one dishwasher e.g) with the same profile
 class Consumption(Entity):
@@ -225,6 +263,8 @@ class Consumption(Entity):
     # ##########################################################################################
 
 
+# ##############################################################################################
+# ##############################################################################################
 # Production entity
 # They correspond to a group of plants of same nature (an eolian park e.g)
 # The main grid is considered as a producer
