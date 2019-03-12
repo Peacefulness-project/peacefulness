@@ -36,5 +36,6 @@ class Agent:
         for nature in self._contract:  # for each nature present, a entry is added in the catalog
             self._catalog.add(f"{self._name}.{nature}", self._contract[nature])
 
-        self._catalog.add(f"{self._name}.dissatisfaction", 0)  # a indicator of the effort supported by this agent
+        self._catalog.add(f"{self._name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy
+        # not delivered immediately. The higher it is, the higher is the chance of being served
         self._catalog.add(f"{self._name}.money", 0)  # the money earned or spent by the agent during the current round

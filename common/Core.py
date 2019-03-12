@@ -12,7 +12,7 @@ from common.Cluster import Cluster
 # The environment is the container of all entities.
 class World:
 
-    def __init__(self, name=None, catalog=None, subworld=0, timestep_value=3600, time_limit=24):
+    def __init__(self, name=None, catalog=None, timestep_value=3600, time_limit=24):
         if name:
             self._name = name
         else:  # By default, world is named after the date
@@ -26,10 +26,9 @@ class World:
         # self._is_subworld = subworld  # a boolean indicating if this world is a subworld
         # # Some tasks are performed only by the main world, like incrementing time
 
-        self._timestep_value = timestep_value    # value of the timestep used during the simulation (in second)
-        self._current_time = 0  # current time step of the simulation (in number of iterations)
+        self._timestep_value = timestep_value  # value of the timestep used during the simulation (in second)
         self._time_limit = time_limit  # latest time step of the simulation (in number of iterations)
-        self._catalog.add("physical_time", 0)  # physical time in seconds, not used for the moment
+        self._catalog.add("physical_time", 0)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
         # objects contained by world
@@ -37,8 +36,8 @@ class World:
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
-        self._consumers = dict()  # dict containing the consumers
-        self._producers = dict()  # dict containing the producers
+        self._consumptions = dict()  # dict containing the consumers
+        self._productions = dict()  # dict containing the producers
 
         self._daemons = dict()  # dict containing the daemons
         self._dataloggers = dict()  # dict containing the dataloggers
@@ -60,9 +59,9 @@ class World:
             raise WorldException(f"{entity.name} already in use")
 
         if isinstance(entity, Consumption):  # If entity is a consumer...
-            self._consumers[entity.name] = entity  # ... it is put in a dedicated dict
+            self._consumptions[entity.name] = entity  # ... it is put in a dedicated dict
         elif isinstance(entity, Production):  # If entity is a producer...
-            self._producers[entity.name] = entity  # ... it is put in a dedicated dict
+            self._productions[entity.name] = entity  # ... it is put in a dedicated dict
         else:
             raise WorldException(f"Unable to add entity {entity.name}")
 
@@ -88,7 +87,7 @@ class World:
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def add_cluster(self, cluster):
+    def add_cluster(self, cluster):  # links the entity with a cluster
         if cluster._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{cluster._name} already in use")
 
@@ -97,7 +96,7 @@ class World:
         self._used_name.append(cluster._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def add_agent(self, agent):
+    def add_agent(self, agent):  # links the entity with an agent
         if agent._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{agent._name} already in use")
 
@@ -106,40 +105,102 @@ class World:
         self._used_name.append(agent._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
+    def link_cluster(self, cluster, entity_list):  # link an entity with a cluster
+        if isinstance(entity_list, str):  # if entity is not a list
+            entity_list = [entity_list]  # it is transformed into a list
+            # This operation allows to pass list of entities or single entities
+
+        for key in entity_list:
+            if key in self._consumptions:
+                entity = self._consumptions[key]
+            elif key in self._productions:
+                entity = self._productions[key]
+            else:
+                raise WorldException(f"{key} is not an entity")
+
+            if entity._nature == self._clusters[cluster]._nature:
+                entity._cluster = cluster
+            else:
+                raise EntityException(f"cluster and entity must have the same nature")
+
+    def link_agent(self, agent, entity_list):  # link an entity with an agent
+        if isinstance(entity_list, str):  # if entity is not a list
+            entity_list = [entity_list]  # it is transformed into a list
+            # This operation allows to pass list of entities or single entities
+
+        for key in entity_list:
+            if key in self._consumptions:
+                entity = self._consumptions[key]
+            elif key in self._productions:
+                entity = self._productions[key]
+            else:
+                raise WorldException(f"{key} is not an entity")
+
+            if f"{agent}.{entity._nature}" in self._catalog.keys:
+                entity._agent = agent
+            else:
+                raise EntityException(f"no {entity._nature} in {agent}")
+
     # def add_subworld(self, name):  # create a new world ruled by the present world
     #     self._subworlds[name] = World(name, self._catalog, 1, self._timestep_value, self._time_limit)
     #     # The subworld inherits the catalog, the timestep value and the time limit from the "world in chief"
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def check(self):  # a method checking if the world has been well defined
+
+        problem = False
+
+        # checking if each entity has an agent
+        for consumption in self._consumptions:
+            consumption = self._consumptions[consumption]
+            if consumption._agent is None:
+                print(f"    /!\\ consumption {consumption._name} has no agent")
+                problem = True
+        
+        for production in self._productions:
+            production = self._productions[production]
+            if production._agent is None:
+                print(f"    /!\\ production {production._name} has no agent")
+                problem = True
+        
+        if problem:
+            raise WorldException("All entities must have an agent")
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
     def next(self):  # method incrementing the time step and calling dataloggers and daemons
+        # it is called after the resolution of the round
+
+        current_time = self._catalog.get("simulation_time")
+
         for key in self._dataloggers:  # activation of the dataloggers, they must be called before the daemons,
             # who may have an impact on data
-            self._dataloggers[key].launch(self._current_time)
+            self._dataloggers[key].launch()
 
         for key in self._daemons:  # activation of the daemons
-            self._daemons[key].launch(self._current_time)
-
-        self._current_time += 1  # updating the simulation time
+            self._daemons[key].launch()
 
         physical_time = self._catalog.get("physical_time") + self._timestep_value  # new value of physical time
         self._catalog.set("physical_time", physical_time)  # updating the value of physical time
-        self._catalog.set("simulation_time", self._current_time)
+        self._catalog.set("simulation_time", current_time + 1)
 
         # for subworld in self._subworlds:   # for each subworld, the current time will be increased by one
         #     self._subworlds[subworld].next()
 
-    def update(self):  # method extracting data for the current timestep
+    def update(self):  # method updating data to the current timestep
         # for key in self._subworlds:  # subworlds are called recursively
         #     self._subworlds[key].update()
 
-        for key in self._consumers:
-            self._consumers[key].update()
+        for key in self._consumptions:
+            self._consumptions[key].update()
 
-        for key in self._producers:
-            self._producers[key].update()
+        for key in self._productions:
+            self._productions[key].update()
 
     # ##########################################################################################
     # Utility
@@ -150,8 +211,8 @@ class World:
         return self._catalog
 
     def __str__(self):
-        return big_separation + f'\nWORLD = {self._name} : {len(self._consumers)} consumers and ' \
-            f'{len(self._producers)} producers'
+        return big_separation + f'\nWORLD = {self._name} : {len(self._consumptions)} consumers and ' \
+            f'{len(self._productions)} producers'
 
 
 # ##############################################################################################
@@ -161,11 +222,8 @@ class Entity:
 
     def __init__(self, name, nature):
         self._nature = nature  # only entities of same nature can interact
-        self._energy = 0  # the quantity of energy the system asks/proposes
-        self._min_energy = 0  # the minimal energy asked/delivered by the system
-        self._price = 0  # the price announced by the system
 
-        self._name = name
+        self._name = name  # the name which serve as root in the catalog entries
 
         self._cluster = None  # the cluster the entity belongs to
         self._agent = None  # the agent represents the owner of the entity
@@ -176,38 +234,34 @@ class Entity:
     # Initialization
     # ##########################################################################################
 
-    def register(self):
-        # Add the entity to the catalog
+    def register_entity(self):  # make the initialization operations undoable without a catalog
+        self._catalog.add(f"{self._name}.energy", 0)  # writes directly in the catalog the energy
+        self._catalog.add(f"{self._name}.min_energy", 0)  # writes directly in the catalog the minimum energy
+        self._catalog.add(f"{self._name}.price", 0)  # writes directly in the catalog the price
+
+    def register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
         # Add published data to the catalog
         pass
 
-    def link_cluster(self, cluster):  # link an entity with a cluster
-        if self._nature == cluster._nature:
-            self._cluster = cluster._name
-        else:
-            raise EntityException(f"cluster and entity must have the same nature")
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
 
-    def link_agent(self, agent_name):  # link an entity with an agent
-        if f"{agent_name}.{self._nature}" in self._catalog.keys():
-            self._agent = agent_name
-        else:
-            raise EntityException(f"no {self._nature} in {agent_name}")
+    def update(self):  # method updating data to the current timestep
+        pass
+
+    # ##########################################################################################
+    # Class method
+    # ##########################################################################################
 
     def mass_create(cls, n, name, world):
         # a class method allowing to create several instance of a same class
         pass
 
     mass_create = classmethod(mass_create)
-
-    # ##########################################################################################
-    # Dynamic behaviour
-    # ##########################################################################################
-
-    def update(self):
-        pass
 
     # ##########################################################################################
     # Utility
@@ -220,6 +274,7 @@ class Entity:
     def __str__(self):
         return middle_separation + f"\nEntity {self.name} of type {self.__class__.__name__}"
 
+
 # ##############################################################################################
 # ##############################################################################################
 # Consumer entity
@@ -229,34 +284,43 @@ class Consumption(Entity):
     def __init__(self, name, nature):
         super().__init__(name, nature)
 
-        self._priority = 0  # the higher the priority, the higher the chance of
-        # being satisfied in the current time step
         self._interruptibility = 0  # 1 means the system can be switched off while working
-        self._dissatisfaction = 0  # dissatisfaction accounts for the energy not delivered immediately
-        # the higher it is, the higher is the chance of being served
-        self._max_energy = self._energy  # the maximal energy the system can sustain
         # params eco, socio, etc
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Initialization
     # ##########################################################################################
 
-    def register(self):
-        # Add the entity to the catalog
+    def register_consumption(self):  # make the initialization operations undoable without a catalog and
+        # relevant for class consumption
+        self.register_entity()  # make the operations relevant for all kind of entities
+
+        self._catalog.add(f"{self._name}.priority", 1)  # the higher the priority, the higher the chance of
+        # being satisfied in the current time step
+
+    def register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
         # Add published data to the catalog
         pass
 
-    def update(self):
-        pass
+    # ##########################################################################################
+    # Class method
+    # ##########################################################################################
 
     def mass_create(cls, n, name, world):
         # a class method allowing to create several instance of a same class
         pass
 
     mass_create = classmethod(mass_create)
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
+
+    def update(self):  # method updating data to the current timestep
+        pass
 
     # ##########################################################################################
     # Utility
@@ -277,25 +341,36 @@ class Production(Entity):
 #          PROD.append(type(self))  # it is added to the list
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Initialization
     # ##########################################################################################
 
-    def register(self):
-        # Add the entity to the catalog
+    def register_production(self):  # make the initialization operations undoable without a catalog and
+        # relevant for class production
+        self.register_entity()  # make the operations relevant for all kind of entities
+
+    def register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
         # Add published data to the catalog
         pass
 
-    def update(self):
-        pass
+    # ##########################################################################################
+    # Class method
+    # ##########################################################################################
 
     def mass_create(cls, n, name, world):
         # a class method allowing to create several instance of a same class
         pass
 
     mass_create = classmethod(mass_create)
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
+
+    def update(self):  # method updating data to the current timestep
+        pass
 
     # ##########################################################################################
     # Utility

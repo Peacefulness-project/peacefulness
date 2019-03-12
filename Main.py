@@ -69,10 +69,6 @@ world.catalog.print_debug()  # displays the content of he catalog
 world.add(e1)  # linking the consumer with the world
 world.add(c1)  # linking the producer with the world
 
-world.catalog.add("Le chef", "Erwin!")
-world.catalog.add("Toto", 12.)
-world.catalog.add("Lolo", 14.)
-
 world.catalog.print_debug()  # displays the content of he catalog
 
 DummyConsumption.mass_create(10, "conso", world)  # creation of ten dummy consumers
@@ -80,15 +76,17 @@ DummyProduction.mass_create(10, "prod", world)  # creation of ten dummy producer
 
 # ##############################################################################################
 
+# definition of a cluster
+cluster_franquet = Cluster("cluster Franquet", "LVE")
+world.add_cluster(cluster_franquet)
+world.link_cluster("cluster Franquet", ["Essai", "Toto"])
+
 # definition of an agent
 maison_gibout = Agent("maison Gibout")
 maison_gibout.set_contract("LVE", "contrat classique")
 world.add_agent(maison_gibout)
-
-# definition of a cluster
-cluster_franquet = Cluster("cluster Franquet", "LVE")
-world.add_cluster(cluster_franquet)
-
+world.link_agent("maison Gibout", world._productions)
+world.link_agent("maison Gibout", world._consumptions)
 
 world.catalog.print_debug()  # displays the content of he catalog
 # ##############################################################################################
@@ -106,7 +104,6 @@ logger.set_path(directory)
 logger2 = Datalogger("log10", "essai2.txt", 20, 1)
 world.register_datalogger(logger2)  # linking the datalogger with the world
 logger2.add("simulation_time")
-logger2.add("Toto")
 logger2.set_path(directory)
 
 # first daemon
@@ -114,6 +111,7 @@ dem = DummyDaemon("MonDemonDeMidi", 10)
 
 world.register_daemon(dem)  # linking the daemon with the world
 
+world.check()
 for i in range(0, 100, 1):  # a little test to verify that dataloggers work
     world.next()  # activates the daemons, the dataloggers and manages time
 

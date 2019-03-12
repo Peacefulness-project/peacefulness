@@ -36,9 +36,9 @@ class Datalogger:
 
         self._next_time = 0  # next time step for which data will be written
 
-# ##########################################################################################
-# Initialization
-# ##########################################################################################
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
 
     def add(self, name):  # add 1 key of the catalog to
         # the datalogger
@@ -52,7 +52,7 @@ class Datalogger:
         # self.headers(operation).append(header)
         # self.keys(operation).append(name)
 
-# methode pour enlever les donnees ? pour simplifier quand on veut tout sauf une ou deux lignes ?
+    # methode pour enlever les donnees ? pour simplifier quand on veut tout sauf une ou deux lignes ?
 
     def add_all(self):  # add all keys from the catalog to
         # the datalogger
@@ -72,9 +72,9 @@ class Datalogger:
     def set_path(self, case_directory):  # set the path for the exported files
         self._path = case_directory._path
 
-# ##########################################################################################
-# Data processing
-# ##########################################################################################
+    # ##########################################################################################
+    # Data processing
+    # ##########################################################################################
 
     def data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
         processed_data = list()
@@ -86,17 +86,21 @@ class Datalogger:
     def data_sum(self, name):  # if enabled, return the sum of the value over the time
         return sum(self._buffer[name])
 
-# ##########################################################################################
-# Writing in the file
-# ##########################################################################################
+    # ##########################################################################################
+    # Writing in the file
+    # ##########################################################################################
 
-    def launch(self, time):  # write data at the given frequency
+    def launch(self):  # write data at the given frequency
+
+        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
+        # to be called or not
+
         if self._period > 1:
             for key in self._buffer: # for all relevant keys
                     self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
-        if time >= self._next_time:  # data is saved only if the current time is a
+        if current_time >= self._next_time:  # data is saved only if the current time is a
             # multiple of the defined period
-            if time == 0:  # initialization of the file
+            if current_time == 0:  # initialization of the file
                 self._save_header()  # name of each piece of data is written at the top of
                 # the file
             self._save()  # writes the data in the file
@@ -144,9 +148,9 @@ class Datalogger:
         file.write("\n")
         file.close()
 
-# ##########################################################################################
-# Utilities
-# ##########################################################################################
+    # ##########################################################################################
+    # Utilities
+    # ##########################################################################################
 
     # def headers(self, operation=""):
     #     return self._data_dict[operation][0]

@@ -15,15 +15,19 @@ class Daemon:
 
         self._next_time = 0  # next time step for activation
 
-# ##########################################################################################
-# Activation
-# ##########################################################################################
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
 
-    def launch(self, time):  # modify the catalog at the given period
-        if time == 0:
+    def launch(self):  # modify the catalog at the given period
+
+        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
+        # to be called or not
+
+        if current_time == 0:
             self.init()
 
-        if time >= self._next_time:  # data is saved only if the current time is a multiple of the period
+        if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period
             self.process()
             self._next_time += self._period
 
@@ -33,9 +37,9 @@ class Daemon:
     def process(self):
         pass
 
-# ##########################################################################################
-# Utilities
-# ##########################################################################################
+    # ##########################################################################################
+    # Utilities
+    # ##########################################################################################
 
     @property
     def catalog(self):  # shortcut for read-only

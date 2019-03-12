@@ -6,9 +6,23 @@ class DummyConsumption(Consumption):
     def __init__(self, name):
         super().__init__(name, "LVE")
 
-# ##########################################################################################
-# Entity management
-# ##########################################################################################
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def register(self):  # make the initialization operations undoable without a catalog
+        self.register_consumption()  # make the operations relevant for all kind of consumption points
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
+
+    def update(self):  # update the data to the current time step
+        self._catalog.set(f"{self._name}.energy", 1)
+
+    # ##########################################################################################
+    # Class method
+    # ##########################################################################################
 
     def mass_create(cls, n, name, world):
         for i in range(n):
@@ -18,25 +32,29 @@ class DummyConsumption(Consumption):
 
     mass_create = classmethod(mass_create)
 
-# ##########################################################################################
-# Dynamic behaviour
-# ##########################################################################################
-
-    def update(self):  # update the data to the current time step
-        self._energy = 1
-
-    def register(self):  # create a key in our catalog, without assigning a value
-        self._catalog.add(f"{self._name}.priority", None)
-
 
 class DummyProduction(Production):
 
     def __init__(self, name):
         super().__init__(name, "LVE")
 
-# ##########################################################################################
-# Entity management
-# ##########################################################################################
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def register(self):  # make the initialization operations undoable without a catalog
+        self.register_production()  # make the operations relevant for all kind of production points
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
+
+    def update(self):  # update the data to the current time step
+        self._catalog.set(f"{self._name}.energy", 1)
+
+    # ##########################################################################################
+    # Class method
+    # ##########################################################################################
 
     def mass_create(cls, n, name, world):
         for i in range(n):
@@ -45,14 +63,4 @@ class DummyProduction(Production):
             world.add(entity)
 
     mass_create = classmethod(mass_create)
-
-# ##########################################################################################
-# Dynamic behaviour
-# ##########################################################################################
-
-    def update(self):  # update the data to the current time step
-        self._energy = 1
-
-    def register(self):  # create a key in our catalog, without assigning a value
-        self._catalog.add(f"{self._name}.price", None)
 
