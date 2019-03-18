@@ -22,35 +22,17 @@ class Datalogger:
         self._buffer = dict()  # dict which stores data between each period of registering
         # allows to report info such as mean, min and max between two periods
 
-        self._path = None
-
-        # # initially, 5 operations are defined:
-        # self._data_dict[""] = [[], [], identity]  # this basic operation
-        # # returns the raw value
-        # self._data_dict["sum"] = [[], [], sum_over_time, []]  # sum a value over the
-        # # time. first list = headers, second list = keys to sum, third list = current sum
-        # # /!\ sums only at each period
-        # self._data_dict["mean"] = [[], [], mean]  # make the mean between the specified keys
-        # self._data_dict["min"] = [[], [], data_min]
-        # self._data_dict["max"] = [[], [], data_max]
-
         self._next_time = 0  # next time step for which data will be written
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def add(self, name):  # add 1 key of the catalog to
-        # the datalogger
+    def add(self, name):  # add 1 key of the catalog to the datalogger
         self._list.append(name)  # creates an entry in the buffer if needed
         if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
-
-        # if operation not in self._data_dict:  # checking if the operation already exists
-        #     raise DataLoggerException(f"operation {name} does not exist")
-        # self.headers(operation).append(header)
-        # self.keys(operation).append(name)
 
     # methode pour enlever les donnees ? pour simplifier quand on veut tout sauf une ou deux lignes ?
 
@@ -61,16 +43,6 @@ class Datalogger:
             if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
                 # it allows to return the mean, the min and the max
                 self._buffer[name] = []  # creates an entry in the buffer if needed
-            # self.headers(operation).append(header)
-            # self.keys(operation).append(name)
-
-    # def add_operation(self, operation, function, complement=None):
-    #     if operation in self._data_dict:  # checking if the operation already exists
-    #         raise DataLoggerException(f"operation {operation} already exists")
-    #     self._data_dict[operation] = [[], [], function, complement]
-
-    def set_path(self, case_directory):  # set the path for the exported files
-        self._path = case_directory._path
 
     # ##########################################################################################
     # Data processing
@@ -107,11 +79,7 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _save(self):  # write all the chosen data in the catalog on a line
-        file = open(f"{self._path}/outputs/{self._filename}", 'a+')
-        # for operation in self._data_dict:
-        #     if self.headers(operation) != []:
-        #                 processed_data = self.function(operation)(self._data_dict[operation], self._catalog)
-        #                 file.write(f"{list_to_str(processed_data)}\t")
+        file = open(f"{self._catalog.get('path')}/outputs/{self._filename}", 'a+')
 
         for key in self._list:
             file.write(f"{self._catalog.get(key)}\t")
@@ -128,14 +96,7 @@ class Datalogger:
         file.close()
 
     def _save_header(self):  # create the headers of the column
-        file = open(f"{self._path}/outputs/{self._filename}", 'w')
-        # for operation in self._data_dict:
-        #     for i in range(len(self.headers(operation))):  # for each piece of data, the
-        #         # corresponding is written in the file as a column header
-        #         if self.headers(operation)[i] is "":
-        #             file.write(f"{operation}_{str(self.keys(operation)[i])}\t")
-        #         else:
-        #             file.write(f"{self.headers(operation)[i]}\t")
+        file = open(f"{self._catalog.get('path')}/outputs/{self._filename}", 'w')
 
         for name in self._list:
             file.write(f"{name}\t")
@@ -151,15 +112,6 @@ class Datalogger:
     # ##########################################################################################
     # Utilities
     # ##########################################################################################
-
-    # def headers(self, operation=""):
-    #     return self._data_dict[operation][0]
-    #
-    # def keys(self, operation=""):
-    #     return self._data_dict[operation][1]
-    #
-    # def function(self, operation):
-    #     return self._data_dict[operation][2]
 
     @property
     def name(self):  # shortcut for read-only

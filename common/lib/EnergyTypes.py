@@ -1,7 +1,9 @@
-# List of energy natures
+# List of energy
+# This class is just a dictionary containing the different nature of energy
+# A representative of this class is created for each world
 
 
-class Nature:  # this class contains the different natures
+class NatureList:  # this class contains the different natures
 
     def __init__(self):
         self._dict = dict()  # a dictionary indexing all types of nature
@@ -11,6 +13,8 @@ class Nature:  # this class contains the different natures
         self._dict["LVH"] = "Low Vapor Heat"
         self._dict["NG"] = "Natural Gas"
         self._dict["H2"] = "Hydrogen"
+
+        self._catalog = None
 
     def add(self, key, description=''):  # allows to add manually an energy type
         self._dict[key] = description

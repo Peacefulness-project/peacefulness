@@ -8,7 +8,8 @@ Erwin:
 
 Timothe:
 	Commenter abondamment
-	Creer une possibilite de sauvegarder un monde dans input
+	Definir format du temps physique et rajouter une "start_date" dans TimeManager
+	Creer une possibilite de sauvegarder un monde dans input (dans longtemps)
 
 Non attribue:
     Creer un superviseur

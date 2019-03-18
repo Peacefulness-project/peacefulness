@@ -1,4 +1,5 @@
-# A catalog is an object containing all the data needed
+# The catalog is the object containing all the data needed
+# Data need to appear in the catalog to be exported
 from tools.Utilities import little_separation, middle_separation, big_separation
 
 
