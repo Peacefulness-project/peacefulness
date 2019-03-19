@@ -39,7 +39,7 @@ class DummySupervisor(Supervisor):
 
             self.stress_calculus()  # calculate a set of values representing the grid "stress" at each level
 
-            self.arbitrage()  # using the stress and the properties of the consumers and of the producers,
+            self.arbitrage()  # using the stress and the properties of the consumptions and of the productions,
             # the supervisor arbitrates the delivery of energy
 
             self._world.next()  # update both physical and simulation time, and call dataloggers and daemons

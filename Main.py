@@ -23,63 +23,75 @@ from common.Core import World
 
 from common.Catalog import Catalog
 
-from common.lib.DummyDevice import DummyConsumption, DummyProduction
-
-from common.Datalogger import Datalogger
-
 from common.CaseDirectory import CaseDirectory
 
 from common.TimeManager import TimeManager
 
-from common.lib.EnergyTypes import NatureList
+from common.lib.NatureList import NatureList
 
-from usr.DummyDaemon import DummyDaemon
+from common.lib.DummyDevice import DummyConsumption, DummyProduction
+
+from common.Cluster import Cluster
 
 from common.Agent import Agent
 
-from common.Cluster import Cluster
+from common.Datalogger import Datalogger
+
+from usr.DummyDaemon import DummyDaemon
 
 
 # ##############################################################################################
 # Creation of the world
+# a world <=> a case, it contains all the model
 # a world needs just a name
 world = World("Earth")  # creation
 
 
 # ##############################################################################################
 # Creation of a data catalog
+# this object is a dictionary where goes all data needing to be seen by several objects
 data = Catalog()  # creation
 data.add("Version", "0.0")  # General information
 world.set_catalog(data)  # registration
 
-world.catalog.print_debug()  # displays the content of he catalog
+world.catalog.print_debug()  # displays the content of the catalog
 print(world)
 
 
 # ##############################################################################################
 # Case Directory
+# this object manages the creation of a directory dedicated to the file
 directory = CaseDirectory("./Results")  # creation
 world.set_directory(directory)  # registration
 
 
 # ##############################################################################################
 # Time Manager
-time_manager = TimeManager()  # creation
+# this object manages the two times (physical and iteration)
+# it needs a start date, the value of an iteration in s and the total number of iterations
+time_manager = TimeManager(3600, 24)  # creation
 world.set_time_manager(time_manager)  # registration
 
 
 # ##############################################################################################
 # Nature list
+# this object defines the different natures present in world
+# some are predefined but it is possible to create user-defined natures
 nature = NatureList()  # creation of a nature
-nature.add("Orgone", "mysterious organic energy")  # Optional addition of new energy natures
+nature.add("Orgone", "mysterious organic energy")  # Optional addition of a new energy nature
 world.set_natures(nature)  # registration
 
 
 # ##############################################################################################
 # Devices
+# these objects regroup production, consumption, storage and transformation devices
+# they at least need a name and a nature
+# some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
+
 # creation of our devices
 e1 = DummyConsumption("Essai")  # creation of a consumption point
 c1 = DummyProduction("Toto")  # creation of a production point
+# the nature of these dummy devices is defined durng the construction of the objects
 
 print(e1)  # displays the name and the type of the device
 print(c1)  # displays the name and the type of the device
@@ -102,6 +114,7 @@ DummyProduction.mass_create(10, "prod", world)  # creation and registration of 1
 
 # ##############################################################################################
 # Cluster
+# this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 cluster_general = Cluster("cluster general", "LVE")  # creation of a cluster
 world.register_cluster(cluster_general)  # registration
@@ -110,24 +123,31 @@ world.link_cluster("cluster general", ["Essai", "Toto"])  # link between the clu
 
 # ##############################################################################################
 # Agent
+# this object represents the owner of devices
+# all devices need an agent
 pollueur1 = Agent("pollueur 1")  # creation of an agent
+world.register_agent(pollueur1)  # registration
+
 pollueur1.set_contract("LVE", "contrat classique")  # definition of a contract
 
-world.register_agent(pollueur1)  # registration
 world.link_agent("pollueur 1", world._productions)  # link between the agent and devices
 world.link_agent("pollueur 1", world._consumptions)  # link between the agent and devices
-
+# here, as it is only a demonstration, we link all our devices with the same agent
 
 # ##############################################################################################
 # Dataloggers
-# dataloggers need 3 arguments: a name, a file name and a period of activation
+# this object is in charge of exporting data into files at a given iteration frequency
 
+# dataloggers need at least 3 arguments: a name, a file name and a period of activation
 # the first logger writes all the available data at each turn
-logger = Datalogger("log2", "essai.txt", 2)  # creation
+logger = Datalogger("log2", "essai.txt", 1)  # creation
 world.register_datalogger(logger)  # registration
 logger.add_all()  # this datalogger exports all the data available in the catalog
 
 # the second logger writes only time and Toto every 20 turns
+# as it is not activated for each turn, it will return, for each numerical data,
+# the mean, the min and the max between two activations
+# the 4th argument is a boolean: if it is true, the datalogger will integrate the data between two activations
 logger2 = Datalogger("log10", "essai2.txt", 20, 1)  # creation
 world.register_datalogger(logger2)  # registration
 logger2.add("simulation_time")  # this datalogger exports only the current iteration
@@ -135,6 +155,9 @@ logger2.add("simulation_time")  # this datalogger exports only the current itera
 
 # ##############################################################################################
 # Daemons
+# this object updates entries of the catalog which do not belong to any other object
+# as an example, it can update some meteorological data
+
 # daemons need 2 arguments: a name and a period of activation
 dem = DummyDaemon("MonDemonDeMidi", 10)  # creation
 world.register_daemon(dem)  # registration
@@ -142,10 +165,11 @@ world.register_daemon(dem)  # registration
 
 # ##############################################################################################
 # Work in progress
+# here begins the supervision, which is not implemented yet
 
 world.check()  # check if everything is fine in world definition
 
 for i in range(0, 100, 1):  # a little test to verify that everything goes well
     world.next()  # activates the daemons, the dataloggers and the time manager
 
-print(world)  # gives the name of the world and the quantity of producers and consumers
+print(world)  # gives the name of the world and the quantity of productions and consumptions

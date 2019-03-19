@@ -10,7 +10,12 @@ class TimeManager:
         self._time_limit = time_limit  # latest time step of the simulation (in number of iterations)
         self._catalog = None
 
-    def update_time(self):
+    def add_catalog(self, catalog):  # add a catalog
+        self._catalog = catalog
+        self._catalog.add("physical_time", self._start_date)  # physical time in seconds
+        self._catalog.add("simulation_time", 0)  # simulation time in iterations
+
+    def update_time(self):  # update the time entries in the catalog to the next iteration step
 
         current_time = self._catalog.get("simulation_time")
 
@@ -18,7 +23,3 @@ class TimeManager:
         self._catalog.set("physical_time", physical_time)  # updating the value of physical time
         self._catalog.set("simulation_time", current_time + 1)
 
-    def add_catalog(self, catalog):
-        self._catalog = catalog
-        self._catalog.add("physical_time", self._start_date)  # physical time in seconds
-        self._catalog.add("simulation_time", 0)  # simulation time in iterations

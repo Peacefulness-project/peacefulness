@@ -2,7 +2,7 @@
 import datetime
 from common.Catalog import Catalog
 from tools.Utilities import little_separation, middle_separation, big_separation
-from common.lib.EnergyTypes import NatureList
+from common.lib.NatureList import NatureList
 from common.Agent import Agent
 from common.Cluster import Cluster
 from common.CaseDirectory import CaseDirectory
@@ -24,20 +24,20 @@ class World:
         else:  # By default, world is named after the date
             self._name = f"Unnamed ({datetime.datetime.now()})"
 
-        self._catalog = None
+        self._catalog = None  # data catalog which gathers all data
 
-        self._time_manager = None
+        self._time_manager = None  # object which manages time
 
-        self._case_directory = None
+        self._case_directory = None  # object which manages the result directory
 
-        self._natures = None
+        self._natures = None  # object which lists the nature present in world
 
         # dictionaries contained by world
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
-        self._consumptions = dict()  # dict containing the consumers
-        self._productions = dict()  # dict containing the producers
+        self._consumptions = dict()  # dict containing the consumptions
+        self._productions = dict()  # dict containing the productions
 
         self._daemons = dict()  # dict containing the daemons
         self._dataloggers = dict()  # dict containing the dataloggers
@@ -55,7 +55,7 @@ class World:
 
     def set_directory(self, case_directory):  # definition of a case directory and creation of the directory
         self._case_directory = case_directory
-        self._case_directory._catalog = self._catalog  # linking the case_directory with the catalog of world
+        self._case_directory.add_catalog(self._catalog)  # linking the case_directory with the catalog of world
         case_directory.create()  # create the directory and publish its path in the catalog
 
     def set_time_manager(self, time_manager):  # definition of a time manager
@@ -110,7 +110,7 @@ class World:
             elif key in self._productions:
                 device = self._productions[key]
             else:
-                raise WorldException(f"{key} is not an device")
+                raise WorldException(f"{key} is not a device")
 
             if device._nature == self._clusters[cluster]._nature:
                 device._cluster = cluster
@@ -139,7 +139,7 @@ class World:
         if datalogger.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        datalogger._catalog = self._catalog   # linking the datalogger with the catalog of world
+        datalogger.add_catalog(self._catalog)   # linking the datalogger with the catalog of world
         self._dataloggers[datalogger.name] = datalogger  # registering the cluster in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing

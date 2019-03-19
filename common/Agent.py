@@ -25,16 +25,11 @@ class Agent:
     #         self._catalog.add(f"{self._name}.{nature}")
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
-        self._contract[nature] = contract
-
-        if self._catalog is not None:  # if the catalog is defined, a new entry is created
-            self._catalog.set(f"{self._name}.{nature}", contract)
+        self._contract[nature] = contract  # add a key in the contract dictionary
+        self._catalog.add(f"{self._name}.{nature}", contract)  # add an entry in the catalog to make it public
 
     def add_catalog(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
-
-        for nature in self._contract:  # for each nature present, a entry is added in the catalog
-            self._catalog.add(f"{self._name}.{nature}", self._contract[nature])
 
         self._catalog.add(f"{self._name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy
         # not delivered immediately. The higher it is, the higher is the chance of being served

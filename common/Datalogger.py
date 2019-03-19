@@ -3,6 +3,7 @@
 # from tools.DataProcessingFunctions import *
 
 import numpy as np
+from tools.Utilities import adapt_path
 
 
 class Datalogger:
@@ -28,8 +29,12 @@ class Datalogger:
     # Initialization
     # ##########################################################################################
 
+    def add_catalog(self, catalog):  # add a catalog
+        self._catalog = catalog
+
     def add(self, name):  # add 1 key of the catalog to the datalogger
         self._list.append(name)  # creates an entry in the buffer if needed
+
         if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
@@ -40,6 +45,7 @@ class Datalogger:
         # the datalogger
         for name in self._catalog.keys:
             self._list.append(name)  # creates an entry in the buffer if needed
+
             if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
                 # it allows to return the mean, the min and the max
                 self._buffer[name] = []  # creates an entry in the buffer if needed
@@ -68,10 +74,11 @@ class Datalogger:
         # to be called or not
 
         if self._period > 1:
-            for key in self._buffer: # for all relevant keys
+            for key in self._buffer:  # for all relevant keys
                     self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
         if current_time >= self._next_time:  # data is saved only if the current time is a
             # multiple of the defined period
+
             if current_time == 0:  # initialization of the file
                 self._save_header()  # name of each piece of data is written at the top of
                 # the file
@@ -79,7 +86,7 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _save(self):  # write all the chosen data in the catalog on a line
-        file = open(f"{self._catalog.get('path')}/outputs/{self._filename}", 'a+')
+        file = open(adapt_path([self._catalog.get('path'), "outputs", self._filename]), 'a+')
 
         for key in self._list:
             file.write(f"{self._catalog.get(key)}\t")
@@ -96,10 +103,11 @@ class Datalogger:
         file.close()
 
     def _save_header(self):  # create the headers of the column
-        file = open(f"{self._catalog.get('path')}/outputs/{self._filename}", 'w')
+        file = open(adapt_path([self._catalog.get('path'), "outputs", self._filename]), 'a+')
 
         for name in self._list:
             file.write(f"{name}\t")
+
             if name in self._buffer:
                 file.write(f"Mean_{name}\t"
                            f"Min_{name}\t"

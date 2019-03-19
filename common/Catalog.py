@@ -12,7 +12,7 @@ class Catalog:
     # Data management
     # ##########################################################################################
 
-    def add(self, name, val=None):  # add a key in our catalog, value is an option
+    def add(self, name, val=None):  # add a key in our catalog, value is optional
         if name in self._data:  # checking if the key already exists
             raise CatalogException(f"key {name} already exists")
         self._data[name] = val
@@ -38,8 +38,7 @@ class Catalog:
     def __str__(self):  # calling our catalog will return the number of items
         return middle_separation + f"\nCatalog : {len(self._data)} items"
 
-    def print_debug(self):  # print_debug returns the number of items and the keys with
-        # their values
+    def print_debug(self):  # print_debug returns the number of items and the keys with their values
         print(big_separation)
         print(f"Catalog : {len(self._data)} items")
         print(little_separation)
