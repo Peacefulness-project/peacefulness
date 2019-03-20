@@ -10,14 +10,14 @@ class DummyConsumption(Consumption):
     # Initialization
     # ##########################################################################################
 
-    def register(self):  # make the initialization operations undoable without a catalog
-        self.register_consumption()  # make the operations relevant for all kind of consumption points
+    def _register(self):  # make the initialization operations undoable without a catalog
+        self._register_consumption()  # make the operations relevant for all kind of consumption points
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self):  # update the data to the current time step
+    def _update(self):  # update the data to the current time step
         self._catalog.set(f"{self._name}.energy", 1)
 
     # ##########################################################################################
@@ -42,14 +42,14 @@ class DummyProduction(Production):
     # Initialization
     # ##########################################################################################
 
-    def register(self):  # make the initialization operations undoable without a catalog
-        self.register_production()  # make the operations relevant for all kind of production points
+    def _register(self):  # make the initialization operations undoable without a catalog
+        self._register_production()  # make the operations relevant for all kind of production points
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self):  # update the data to the current time step
+    def _update(self):  # update the data to the current time step
         self._catalog.set(f"{self._name}.energy", 1)
 
     # ##########################################################################################

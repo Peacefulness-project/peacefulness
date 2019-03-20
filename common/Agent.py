@@ -28,7 +28,7 @@ class Agent:
         self._contract[nature] = contract  # add a key in the contract dictionary
         self._catalog.add(f"{self._name}.{nature}", contract)  # add an entry in the catalog to make it public
 
-    def add_catalog(self, catalog):  # add a catalog and create relevant entries
+    def _add_catalog(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
         self._catalog.add(f"{self._name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy

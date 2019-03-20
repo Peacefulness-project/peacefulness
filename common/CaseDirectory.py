@@ -22,6 +22,6 @@ class CaseDirectory:
 
         self._catalog.add("path", self._path)
 
-    def add_catalog(self, catalog):  # add a catalog
+    def _add_catalog(self, catalog):  # add a catalog
         self._catalog = catalog
 

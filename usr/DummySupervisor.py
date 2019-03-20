@@ -33,7 +33,7 @@ class DummySupervisor(Supervisor):
     def process(self):
 
         for i in range(self._world._time_limit):
-            self._world.update()  # update all the data of entities
+            self._world._update()  # update all the data of entities
 
             self.make_balance()  # make the energy balance for each world and subworld
 
@@ -42,7 +42,7 @@ class DummySupervisor(Supervisor):
             self.arbitrage()  # using the stress and the properties of the consumptions and of the productions,
             # the supervisor arbitrates the delivery of energy
 
-            self._world.next()  # update both physical and simulation time, and call dataloggers and daemons
+            self._world._next()  # update both physical and simulation time, and call dataloggers and daemons
 
     def stress_calculus(self, world=None):  # calculus of the stress for each level of subworld
         if not world:  # if no world is given, the main world is the default value

@@ -55,12 +55,12 @@ class World:
 
     def set_directory(self, case_directory):  # definition of a case directory and creation of the directory
         self._case_directory = case_directory
-        self._case_directory.add_catalog(self._catalog)  # linking the case_directory with the catalog of world
+        self._case_directory._add_catalog(self._catalog)  # linking the case_directory with the catalog of world
         case_directory.create()  # create the directory and publish its path in the catalog
 
     def set_time_manager(self, time_manager):  # definition of a time manager
         self._time_manager = time_manager
-        self._time_manager.add_catalog(self._catalog)  # linking the time_manager with the catalog of world
+        self._time_manager._add_catalog(self._catalog)  # linking the time_manager with the catalog of world
 
     def set_natures(self, nature):  # definition of natures dictionary
         self._natures = nature
@@ -79,13 +79,13 @@ class World:
 
         self._used_name.append(device.name)  # adding the name to the list of used names
         device._catalog = self._catalog  # linking the catalog to the device
-        device.register()  # registering of the device in the catalog
+        device._register()  # registering of the device in the catalog
 
     def register_cluster(self, cluster):  # links the device with a cluster
         if cluster._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{cluster._name} already in use")
 
-        cluster.add_catalog(self._catalog)  # linking the cluster with the catalog of world
+        cluster._add_catalog(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster._name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_name.append(cluster._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -94,7 +94,7 @@ class World:
         if agent._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{agent._name} already in use")
 
-        agent.add_catalog(self._catalog)   # linking the agent with the catalog of world
+        agent._add_catalog(self._catalog)   # linking the agent with the catalog of world
         self._agents[agent._name] = agent  # registering the agent in the dedicated dictionary
         self._used_name.append(agent._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -139,7 +139,7 @@ class World:
         if datalogger.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        datalogger.add_catalog(self._catalog)   # linking the datalogger with the catalog of world
+        datalogger._add_catalog(self._catalog)   # linking the datalogger with the catalog of world
         self._dataloggers[datalogger.name] = datalogger  # registering the cluster in the dedicated dictionary
         self._used_name.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -157,7 +157,7 @@ class World:
     # Initialization
     # ##########################################################################################
 
-    def check(self):  # a method checking if the world has been well defined
+    def _check(self):  # a method checking if the world has been well defined
         # 3 things are necessary for world which are not created when it is defined:
         # the time manager, the case directory and the ownership of an entity
 
@@ -190,25 +190,25 @@ class World:
     # Dynamic behaviour
     # ##########################################################################################
 
-    def next(self):  # method incrementing the time step and calling dataloggers and daemons
+    def _next(self):  # method incrementing the time step and calling dataloggers and daemons
         # it is called after the resolution of the round
 
         for key in self._dataloggers:  # activation of the dataloggers, they must be called before the daemons,
             # who may have an impact on data
-            self._dataloggers[key].launch()
+            self._dataloggers[key]._launch()
 
         for key in self._daemons:  # activation of the daemons
-            self._daemons[key].launch()
+            self._daemons[key]._launch()
 
-        self._time_manager.update_time()
+        self._time_manager._update_time()
 
-    def update(self):  # method updating data to the current timestep
+    def _update(self):  # method updating data to the current timestep
 
         for key in self._consumptions:
-            self._consumptions[key].update()
+            self._consumptions[key]._update()
 
         for key in self._productions:
-            self._productions[key].update()
+            self._productions[key]._update()
 
     # ##########################################################################################
     # Utility
@@ -242,13 +242,13 @@ class Device:
     # Initialization
     # ##########################################################################################
 
-    def register_device(self):  # make the initialization operations undoable without a catalog
+    def _register_device(self):  # make the initialization operations undoable without a catalog
         # and relevant for all devices
         self._catalog.add(f"{self._name}.energy", 0)  # writes directly in the catalog the energy
         self._catalog.add(f"{self._name}.min_energy", 0)  # writes directly in the catalog the minimum energy
         self._catalog.add(f"{self._name}.price", 0)  # writes directly in the catalog the price
 
-    def register(self):  # make the initialization operations undoable without a catalog
+    def _register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
@@ -259,7 +259,7 @@ class Device:
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self):  # method updating data to the current timestep
+    def _update(self):  # method updating data to the current timestep
         pass
 
     # ##########################################################################################
@@ -300,14 +300,14 @@ class Consumption(Device):
     # Initialization
     # ##########################################################################################
 
-    def register_consumption(self):  # make the initialization operations undoable without a catalog and
+    def _register_consumption(self):  # make the initialization operations undoable without a catalog and
         # relevant for class consumption
-        self.register_device()  # make the operations relevant for all kind of entities
+        self._register_device()  # make the operations relevant for all kind of entities
 
         self._catalog.add(f"{self._name}.priority", 1)  # the higher the priority, the higher the chance of
         # being satisfied in the current time step
 
-    def register(self):  # make the initialization operations undoable without a catalog
+    def _register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
@@ -328,7 +328,7 @@ class Consumption(Device):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self):  # method updating data to the current timestep
+    def _update(self):  # method updating data to the current timestep
         pass
 
     # ##########################################################################################
@@ -349,11 +349,11 @@ class Production(Device):
     # Initialization
     # ##########################################################################################
 
-    def register_production(self):  # make the initialization operations undoable without a catalog and
+    def _register_production(self):  # make the initialization operations undoable without a catalog and
         # relevant for class production
-        self.register_device()  # make the operations relevant for all kind of entities
+        self._register_device()  # make the operations relevant for all kind of entities
 
-    def register(self):  # make the initialization operations undoable without a catalog
+    def _register(self):  # make the initialization operations undoable without a catalog
         pass
 
     def init(self):
@@ -374,7 +374,7 @@ class Production(Device):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def update(self):  # method updating data to the current timestep
+    def _update(self):  # method updating data to the current timestep
         pass
 
     # ##########################################################################################

@@ -3,6 +3,7 @@
 # from tools.DataProcessingFunctions import *
 
 import numpy as np
+
 from tools.Utilities import adapt_path
 
 
@@ -29,7 +30,7 @@ class Datalogger:
     # Initialization
     # ##########################################################################################
 
-    def add_catalog(self, catalog):  # add a catalog
+    def _add_catalog(self, catalog):  # add a catalog
         self._catalog = catalog
 
     def add(self, name):  # add 1 key of the catalog to the datalogger
@@ -38,8 +39,6 @@ class Datalogger:
         if (type(self._catalog.get(name)) == float) and (self._period > 1):  # numeric keys are added to a buffer
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
-
-    # methode pour enlever les donnees ? pour simplifier quand on veut tout sauf une ou deux lignes ?
 
     def add_all(self):  # add all keys from the catalog to
         # the datalogger
@@ -54,21 +53,21 @@ class Datalogger:
     # Data processing
     # ##########################################################################################
 
-    def data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
+    def _data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
         processed_data = list()
         processed_data.append(np.mean(self._buffer[key]))  # mean
         processed_data.append(min(self._buffer[key]))  # min
         processed_data.append(max(self._buffer[key]))  # max
         return processed_data
 
-    def data_sum(self, name):  # if enabled, return the sum of the value over the time
+    def _data_sum(self, name):  # if enabled, return the sum of the value over the time
         return sum(self._buffer[name])
 
     # ##########################################################################################
     # Writing in the file
     # ##########################################################################################
 
-    def launch(self):  # write data at the given frequency
+    def _launch(self):  # write data at the given frequency
 
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
         # to be called or not
@@ -91,13 +90,13 @@ class Datalogger:
         for key in self._list:
             file.write(f"{self._catalog.get(key)}\t")
             if (type(self._catalog.get(key)) == float) and (self._period > 1):
-                processed_data = self.data_processing(key)  # = [mean, min, max]
+                processed_data = self._data_processing(key)  # = [mean, min, max]
                 file.write(f"{processed_data[0]}\t"  # saves the mean
                            f"{processed_data[1]}\t"  # saves the min
                            f"{processed_data[2]}\t"  # saves the max
                            )
                 if self._sum:  # if sum is enabled, write the sum of the data over the time
-                    file.write(f"{self.data_sum(key)}\t")
+                    file.write(f"{self._data_sum(key)}\t")
             self._buffer[key] = []  # Reinitialization of the buffer
         file.write("\n")
         file.close()

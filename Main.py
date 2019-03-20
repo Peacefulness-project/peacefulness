@@ -26,6 +26,7 @@ from common.Catalog import Catalog
 from common.CaseDirectory import CaseDirectory
 
 from common.TimeManager import TimeManager
+import datetime
 
 from common.lib.NatureList import NatureList
 
@@ -69,7 +70,8 @@ world.set_directory(directory)  # registration
 # Time Manager
 # this object manages the two times (physical and iteration)
 # it needs a start date, the value of an iteration in s and the total number of iterations
-time_manager = TimeManager(3600, 24)  # creation
+start_date = datetime.datetime.now()  # a start date in the datetime format
+time_manager = TimeManager(start_date, 1, 24)  # creation
 world.set_time_manager(time_manager)  # registration
 
 
@@ -167,9 +169,10 @@ world.register_daemon(dem)  # registration
 # Work in progress
 # here begins the supervision, which is not implemented yet
 
-world.check()  # check if everything is fine in world definition
+world._check()  # check if everything is fine in world definition
 
 for i in range(0, 100, 1):  # a little test to verify that everything goes well
-    world.next()  # activates the daemons, the dataloggers and the time manager
+    world._next()  # activates the daemons, the dataloggers and the time manager
 
+world.catalog.print_debug()  # displays the content of the catalog
 print(world)  # gives the name of the world and the quantity of productions and consumptions

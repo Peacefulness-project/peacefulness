@@ -15,5 +15,5 @@ class Cluster:
     # Initialization
     # ##########################################################################################
 
-    def add_catalog(self, catalog):  # add a catalog and create relevant entries
+    def _add_catalog(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
