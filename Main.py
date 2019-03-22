@@ -28,9 +28,15 @@ from common.CaseDirectory import CaseDirectory
 from common.TimeManager import TimeManager
 import datetime
 
+from common.Supervisor import Supervisor
+
 from common.lib.NatureList import NatureList
 
 from common.lib.DummyDevice import DummyConsumption, DummyProduction
+
+from common.ExternalGrid import ExternalGrid
+
+from common.LocalGrid import LocalGrid
 
 from common.Cluster import Cluster
 
@@ -76,6 +82,12 @@ world.set_time_manager(time_manager)  # registration
 
 
 # ##############################################################################################
+# Supervisor
+# this object is in charge of the calculus
+supervisor = Supervisor("Erwin")
+world.set_supervisor(supervisor)
+
+# ##############################################################################################
 # Nature list
 # this object defines the different natures present in world
 # some are predefined but it is possible to create user-defined natures
@@ -115,12 +127,28 @@ DummyProduction.mass_create(10, "prod", world)  # creation and registration of 1
 
 
 # ##############################################################################################
+# Local grid
+# this object
+little_elec_grid = LocalGrid("Enedis", "LVE")  # creation
+world.register_local_grid(little_elec_grid)  # registration
+
+
+# ##############################################################################################
+# External grid
+# this object represents grids outside world which interact with it
+great_elec_grid = ExternalGrid("RTE", "LVE")  # creation
+world.register_external_grid(great_elec_grid)  # registration
+world.link_local_grid("Enedis", "RTE")  # link between the external grid and a local grid
+
+
+# ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 cluster_general = Cluster("cluster general", "LVE")  # creation of a cluster
 world.register_cluster(cluster_general)  # registration
 world.link_cluster("cluster general", ["Essai", "Toto"])  # link between the cluster and devices
+world.link_local_grid("Enedis", "cluster general")  # link between the local grid and the cluster
 
 
 # ##############################################################################################
@@ -135,6 +163,10 @@ pollueur1.set_contract("LVE", "contrat classique")  # definition of a contract
 world.link_agent("pollueur 1", world._productions)  # link between the agent and devices
 world.link_agent("pollueur 1", world._consumptions)  # link between the agent and devices
 # here, as it is only a demonstration, we link all our devices with the same agent
+
+world.link_local_grid("Enedis", world._productions)  # link between the local grid and all productions
+world.link_local_grid("Enedis", world._consumptions)  # link between the local grid and all consumptions
+
 
 # ##############################################################################################
 # Dataloggers

@@ -6,10 +6,9 @@ from common.Catalog import Catalog
 
 class Supervisor:  # generic class supervisor
 
-    def __init__(self, name, world):
+    def __init__(self, name):
         self._name = name
-        self._world = world
-        self._catalog = world.catalog
+        self._catalog = None
 
     # ##########################################################################################
     # Initialization
@@ -25,6 +24,9 @@ class Supervisor:  # generic class supervisor
         for nature in world._natures:
             self._catalog.add(f"{world._name}_{nature}_consumer_balance", 0)
             self._catalog.add(f"{world._name}_{nature}_producer_balance", 0)
+
+    def _add_catalog(self, catalog):  # add a catalog
+        self._catalog = catalog
 
     # ##########################################################################################
     # Dynamic behaviour

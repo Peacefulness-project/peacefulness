@@ -3,6 +3,8 @@ import datetime
 from common.Catalog import Catalog
 from tools.Utilities import little_separation, middle_separation, big_separation
 from common.lib.NatureList import NatureList
+from common.ExternalGrid import ExternalGrid
+from common.LocalGrid import LocalGrid
 from common.Agent import Agent
 from common.Cluster import Cluster
 from common.CaseDirectory import CaseDirectory
@@ -32,12 +34,17 @@ class World:
 
         self._natures = None  # object which lists the nature present in world
 
-        # dictionaries contained by world
-        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        self.supervisor = None  # object which performs the calculus
 
+        # dictionaries contained by world
         self._consumptions = dict()  # dict containing the consumptions
         self._productions = dict()  # dict containing the productions
+
+        self._local_grid = dict()  #
+        self._external_grid = dict()  #
+
+        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
+        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
         self._daemons = dict()  # dict containing the daemons
         self._dataloggers = dict()  # dict containing the dataloggers
@@ -66,6 +73,10 @@ class World:
         self._natures = nature
         self._catalog.add("Natures", nature.keys)
 
+    def set_supervisor(self, supervisor):  # definition of the supervisor
+        self.supervisor = supervisor
+        self.supervisor._add_catalog(self._catalog)
+
     def register_device(self, device):  # method adding one device to the world
         if device.name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{device.name} already in use")
@@ -80,6 +91,24 @@ class World:
         self._used_name.append(device.name)  # adding the name to the list of used names
         device._catalog = self._catalog  # linking the catalog to the device
         device._register()  # registering of the device in the catalog
+
+    def register_local_grid(self, local_grid):
+        if local_grid._name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{local_grid._name} already in use")
+
+        local_grid._add_catalog(self._catalog)  # linking the local grid with the catalog of world
+        self._local_grid[local_grid._name] = local_grid  # registering the local grid in the dedicated dictionary
+        self._used_name.append(local_grid._name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def register_external_grid(self, external_grid):
+        if external_grid._name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{external_grid._name} already in use")
+
+        external_grid._add_catalog(self._catalog)  # linking the external grid with the catalog of world
+        self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated dictionary
+        self._used_name.append(external_grid._name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
 
     def register_cluster(self, cluster):  # links the device with a cluster
         if cluster._name in self._used_name:  # checking if the name is already used
@@ -99,10 +128,33 @@ class World:
         self._used_name.append(agent._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def link_cluster(self, cluster, device_list):  # link an device with a cluster
+    def link_local_grid(self, grid, object_list):  # link a local grid with another object
+        # It can be a device, a cluster or an external grid of the same nature of energy
+        if isinstance(object_list, str):  # if the object is not a list
+            object_list = [object_list]  # it is transformed into a list
+            # This operation allows to pass list of entities or single entities
+
+        for key in object_list:
+            if key in self._consumptions:
+                object = self._consumptions[key]
+            elif key in self._productions:
+                object = self._productions[key]
+            elif key in self._external_grid:
+                object = self._external_grid[key]
+            elif key in self._clusters:
+                object = self._clusters[key]
+            else:
+                raise WorldException(f"{key} is not defined")
+
+            if object._nature == self._local_grid[grid]._nature:
+                object._grid = grid
+            else:
+                raise DeviceException(f"no {object._nature} in {grid}")
+
+    def link_cluster(self, cluster, device_list):  # link a device with a cluster
         if isinstance(device_list, str):  # if device is not a list
             device_list = [device_list]  # it is transformed into a list
-            # This operation allows to pass list of entities or single entities
+            # This operation allows to pass list of devices or single devices
 
         for key in device_list:
             if key in self._consumptions:
@@ -114,13 +166,15 @@ class World:
 
             if device._nature == self._clusters[cluster]._nature:
                 device._cluster = cluster
+                device._grid = self._clusters[cluster]._grid  # the grid of the cluster is necessarily the grid
+                # of each device on it (else they could not exchange)
             else:
                 raise DeviceException(f"cluster and device must have the same nature")
 
-    def link_agent(self, agent, device_list):  # link an device with an agent
+    def link_agent(self, agent, device_list):  # link a device with an agent
         if isinstance(device_list, str):  # if device is not a list
             device_list = [device_list]  # it is transformed into a list
-            # This operation allows to pass list of entities or single entities
+            # This operation allows to pass list of devices or single devices
 
         for key in device_list:
             if key in self._consumptions:
@@ -128,7 +182,7 @@ class World:
             elif key in self._productions:
                 device = self._productions[key]
             else:
-                raise WorldException(f"{key} is not an device")
+                raise WorldException(f"{key} is not a device")
 
             if f"{agent}.{device._nature}" in self._catalog.keys:
                 device._agent = agent
@@ -158,9 +212,10 @@ class World:
     # ##########################################################################################
 
     def _check(self):  # a method checking if the world has been well defined
-        # 3 things are necessary for world which are not created when it is defined:
-        # the time manager, the case directory and the ownership of an entity
+        # 4 things are necessary for world to be correctly defined:
+        # the time manager, the case directory, the nature list and the supervisor
 
+        # first, we check the 4 necessary objects:
         # checking if a time manager is defined
         if self._time_manager is None:
             raise WorldException(f"A time manager is needed")
@@ -169,22 +224,39 @@ class World:
         if self._case_directory is None:
             raise WorldException(f"A case directory is needed")
 
-        # checking if each device has an agent
+        # checking if a nature list is defined
+        if self._natures is None:
+            raise WorldException(f"A nature list is needed")
+        
+        # checking if a supervisor is defined
+        if self.supervisor is None:
+            raise WorldException(f"A supervisor is needed")
+
+        # then, we call the check methods relatives to each object
+        # checking if each device has an agent and a grid
         problem = False  # it allows to print every absence before raising an error
         for consumption in self._consumptions:
             consumption = self._consumptions[consumption]
             if consumption._agent is None:
                 print(f"    /!\\ consumption {consumption._name} has no agent")
                 problem = True
-        
+
+            if consumption._grid is None:
+                print(f"    /!\\ consumption {consumption._name} has no grid")
+                problem = True
+
         for production in self._productions:
             production = self._productions[production]
             if production._agent is None:
                 print(f"    /!\\ production {production._name} has no agent")
                 problem = True
-        
+
+            if production._grid is None:
+                print(f"    /!\\ production {production._name} has no grid")
+                problem = True
+
         if problem:
-            raise WorldException("All entities must have an agent")
+            raise WorldException("All devices must have an agent and a grid")
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -233,6 +305,7 @@ class Device:
 
         self._name = name  # the name which serve as root in the catalog entries
 
+        self._grid = None  # the grid the device belongs to
         self._cluster = None  # the cluster the device belongs to
         self._agent = None  # the agent represents the owner of the device
 
@@ -244,9 +317,9 @@ class Device:
 
     def _register_device(self):  # make the initialization operations undoable without a catalog
         # and relevant for all devices
-        self._catalog.add(f"{self._name}.energy", 0)  # writes directly in the catalog the energy
-        self._catalog.add(f"{self._name}.min_energy", 0)  # writes directly in the catalog the minimum energy
-        self._catalog.add(f"{self._name}.price", 0)  # writes directly in the catalog the price
+        self._catalog.add(f"{self._name}.energy", 0)  # write directly in the catalog the energy
+        self._catalog.add(f"{self._name}.min_energy", 0)  # write directly in the catalog the minimum energy
+        self._catalog.add(f"{self._name}.price", 0)  # write directly in the catalog the price
 
     def _register(self):  # make the initialization operations undoable without a catalog
         pass
