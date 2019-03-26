@@ -83,9 +83,13 @@ world.set_time_manager(time_manager)  # registration
 
 # ##############################################################################################
 # Supervisor
-# this object is in charge of the calculus
-supervisor = Supervisor("Erwin")
+# this object contains just the path to  your supervisor script and a brief description of what it does
+supervisor = Supervisor("glaDOS", "DummySupervisorMain.py")
+supervisor.description = "this supervisor is a really basic one. It just serves as a " \
+                         "skeleton/example for your (more) clever supervisor."
+
 world.set_supervisor(supervisor)
+
 
 # ##############################################################################################
 # Nature list
@@ -201,10 +205,5 @@ world.register_daemon(dem)  # registration
 # Work in progress
 # here begins the supervision, which is not implemented yet
 
-world._check()  # check if everything is fine in world definition
+world.start()
 
-for i in range(0, 100, 1):  # a little test to verify that everything goes well
-    world._next()  # activates the daemons, the dataloggers and the time manager
-
-world.catalog.print_debug()  # displays the content of the catalog
-print(world)  # gives the name of the world and the quantity of productions and consumptions

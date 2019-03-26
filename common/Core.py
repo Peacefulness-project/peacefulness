@@ -1,7 +1,8 @@
 # Declaration of core classes
 import datetime
 from common.Catalog import Catalog
-from tools.Utilities import little_separation, middle_separation, big_separation
+from tools.Utilities import little_separation, middle_separation, big_separation, adapt_path
+from copy import deepcopy
 from common.lib.NatureList import NatureList
 from common.ExternalGrid import ExternalGrid
 from common.LocalGrid import LocalGrid
@@ -40,8 +41,8 @@ class World:
         self._consumptions = dict()  # dict containing the consumptions
         self._productions = dict()  # dict containing the productions
 
-        self._local_grid = dict()  #
-        self._external_grid = dict()  #
+        self._local_grid = dict()  # grids interns to world
+        self._external_grid = dict()  # grids external to world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
@@ -75,7 +76,6 @@ class World:
 
     def set_supervisor(self, supervisor):  # definition of the supervisor
         self.supervisor = supervisor
-        self.supervisor._add_catalog(self._catalog)
 
     def register_device(self, device):  # method adding one device to the world
         if device.name in self._used_name:  # checking if the name is already used
@@ -106,7 +106,8 @@ class World:
             raise WorldException(f"{external_grid._name} already in use")
 
         external_grid._add_catalog(self._catalog)  # linking the external grid with the catalog of world
-        self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated dictionary
+        self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated
+        # dictionary
         self._used_name.append(external_grid._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -227,7 +228,7 @@ class World:
         # checking if a nature list is defined
         if self._natures is None:
             raise WorldException(f"A nature list is needed")
-        
+
         # checking if a supervisor is defined
         if self.supervisor is None:
             raise WorldException(f"A supervisor is needed")
@@ -258,41 +259,47 @@ class World:
         if problem:
             raise WorldException("All devices must have an agent and a grid")
 
-    # ##########################################################################################
-    # Dynamic behaviour
-    # ##########################################################################################
+    def start(self):
 
-    def _next(self):  # method incrementing the time step and calling dataloggers and daemons
-        # it is called after the resolution of the round
+        self._check()  # check if everything is fine in world definition
 
-        for key in self._dataloggers:  # activation of the dataloggers, they must be called before the daemons,
-            # who may have an impact on data
-            self._dataloggers[key]._launch()
+        world = self
+        catalog = self._catalog
 
-        for key in self._daemons:  # activation of the daemons
-            self._daemons[key]._launch()
+        path = adapt_path(["usr", "supervisors", self.supervisor._filename])
 
-        self._time_manager._update_time()
-
-    def _update(self):  # method updating data to the current timestep
-
-        for key in self._consumptions:
-            self._consumptions[key]._update()
-
-        for key in self._productions:
-            self._productions[key]._update()
+        exec(open(path).read())
 
     # ##########################################################################################
     # Utility
     # ##########################################################################################
 
     @property
+    def name(self):  # shortcut for read-only
+        return self._name
+
+    @property
     def catalog(self):  # shortcut for read-only
         return self._catalog
+
+    @property
+    def time_limit(self):  # shortcut for read-only
+        return self._time_manager._time_limit
+
+    @property
+    def natures(self):  # shortcut for read-only
+        return self._natures.keys
 
     def __str__(self):
         return big_separation + f'\nWORLD = {self._name} : {len(self._consumptions)} consumers and ' \
             f'{len(self._productions)} producers'
+
+    def duplicate(cls, old_world, new_world_name):  # not functional yet
+        new_world = deepcopy(old_world)
+        new_world._name = new_world_name
+        return new_world
+
+    duplicate = classmethod(duplicate)
 
 
 # ##############################################################################################
@@ -352,6 +359,10 @@ class Device:
     @property
     def name(self):  # shortcut for read-only
         return self._name
+
+    @property
+    def nature(self):  # shortcut for read-only
+        return self._nature
 
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
