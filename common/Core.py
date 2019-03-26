@@ -29,23 +29,23 @@ class World:
 
         self._catalog = None  # data catalog which gathers all data
 
-        self._time_manager = None  # object which manages time
-
         self._case_directory = None  # object which manages the result directory
 
         self._natures = None  # object which lists the nature present in world
 
         self.supervisor = None  # object which performs the calculus
 
+        self._time_manager = None  # object which manages time
+        
         # dictionaries contained by world
-        self._consumptions = dict()  # dict containing the consumptions
-        self._productions = dict()  # dict containing the productions
-
         self._local_grid = dict()  # grids interns to world
         self._external_grid = dict()  # grids external to world
 
-        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
+
+        self._consumptions = dict()  # dict containing the consumptions
+        self._productions = dict()  # dict containing the productions
 
         self._daemons = dict()  # dict containing the daemons
         self._dataloggers = dict()  # dict containing the dataloggers
@@ -66,10 +66,6 @@ class World:
         self._case_directory._add_catalog(self._catalog)  # linking the case_directory with the catalog of world
         case_directory.create()  # create the directory and publish its path in the catalog
 
-    def set_time_manager(self, time_manager):  # definition of a time manager
-        self._time_manager = time_manager
-        self._time_manager._add_catalog(self._catalog)  # linking the time_manager with the catalog of world
-
     def set_natures(self, nature):  # definition of natures dictionary
         self._natures = nature
         self._catalog.add("Natures", nature.keys)
@@ -77,20 +73,9 @@ class World:
     def set_supervisor(self, supervisor):  # definition of the supervisor
         self.supervisor = supervisor
 
-    def register_device(self, device):  # method adding one device to the world
-        if device.name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{device.name} already in use")
-
-        if isinstance(device, Consumption):  # If device is a consumer...
-            self._consumptions[device.name] = device  # ... it is put in a dedicated dict
-        elif isinstance(device, Production):  # If device is a producer...
-            self._productions[device.name] = device  # ... it is put in a dedicated dict
-        else:
-            raise WorldException(f"Unable to add device {device.name}")
-
-        self._used_name.append(device.name)  # adding the name to the list of used names
-        device._catalog = self._catalog  # linking the catalog to the device
-        device._register()  # registering of the device in the catalog
+    def set_time_manager(self, time_manager):  # definition of a time manager
+        self._time_manager = time_manager
+        self._time_manager._add_catalog(self._catalog)  # linking the time_manager with the catalog of world
 
     def register_local_grid(self, local_grid):
         if local_grid._name in self._used_name:  # checking if the name is already used
@@ -104,20 +89,17 @@ class World:
     def register_external_grid(self, external_grid):
         if external_grid._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{external_grid._name} already in use")
+        
+        # checking if the grid is defined correctly
+        if external_grid._grid not in self._local_grid:  # if the specified grid does not exist
+            raise DeviceException(f"{external_grid._grid} does not exist")
+        elif external_grid.nature != self._local_grid[external_grid._grid]._nature:  # if the natures are not the sames
+            raise DeviceException(f"{external_grid._grid} is {self._local_grid[external_grid._grid]._nature}, not {external_grid.nature}")
 
         external_grid._add_catalog(self._catalog)  # linking the external grid with the catalog of world
         self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated
         # dictionary
         self._used_name.append(external_grid._name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing
-
-    def register_cluster(self, cluster):  # links the device with a cluster
-        if cluster._name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{cluster._name} already in use")
-
-        cluster._add_catalog(self._catalog)  # linking the cluster with the catalog of world
-        self._clusters[cluster._name] = cluster  # registering the cluster in the dedicated dictionary
-        self._used_name.append(cluster._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_agent(self, agent):  # links the device with an agent
@@ -129,66 +111,56 @@ class World:
         self._used_name.append(agent._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def link_local_grid(self, grid, object_list):  # link a local grid with another object
-        # It can be a device, a cluster or an external grid of the same nature of energy
-        if isinstance(object_list, str):  # if the object is not a list
-            object_list = [object_list]  # it is transformed into a list
-            # This operation allows to pass list of entities or single entities
+    def register_cluster(self, cluster):  # links the device with a cluster
+        if cluster._name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{cluster._name} already in use")
 
-        for key in object_list:
-            if key in self._consumptions:
-                object = self._consumptions[key]
-            elif key in self._productions:
-                object = self._productions[key]
-            elif key in self._external_grid:
-                object = self._external_grid[key]
-            elif key in self._clusters:
-                object = self._clusters[key]
-            else:
-                raise WorldException(f"{key} is not defined")
+        # checking if the grid is defined correctly
+        if cluster._grid not in self._local_grid:  # if the specified grid does not exist
+            raise DeviceException(f"{cluster._grid} does not exist")
+        elif cluster.nature != self._local_grid[cluster._grid]._nature:  # if the natures are not the sames
+            raise DeviceException(f"{cluster._grid} is {self._local_grid[cluster._grid]._nature}, not {cluster.nature}")
+        
+        cluster._add_catalog(self._catalog)  # linking the cluster with the catalog of world
+        self._clusters[cluster._name] = cluster  # registering the cluster in the dedicated dictionary
+        self._used_name.append(cluster._name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
 
-            if object._nature == self._local_grid[grid]._nature:
-                object._grid = grid
-            else:
-                raise DeviceException(f"no {object._nature} in {grid}")
+    def register_device(self, device):  # method adding one device to the world
+        if device.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{device.name} already in use")
 
-    def link_cluster(self, cluster, device_list):  # link a device with a cluster
-        if isinstance(device_list, str):  # if device is not a list
-            device_list = [device_list]  # it is transformed into a list
-            # This operation allows to pass list of devices or single devices
+        # checking if the grid is defined correctly
+        if device._grid not in self._local_grid:  # if the specified grid does not exist
+            raise DeviceException(f"{device._grid} does not exist")
+        elif device.nature != self._local_grid[device._grid]._nature:  # if the natures are not the sames
+            raise DeviceException(f"{device._grid} is {self._local_grid[device._grid]._nature}, not {device.nature}")
 
-        for key in device_list:
-            if key in self._consumptions:
-                device = self._consumptions[key]
-            elif key in self._productions:
-                device = self._productions[key]
-            else:
-                raise WorldException(f"{key} is not a device")
+        # checking if the agent is defined correctly
+        if device._agent not in self._agents:  # if the specified agent does not exist
+            raise DeviceException(f"{device._agent} does not exist")
+        elif f"{device._agent}.{device._nature}" not in self._catalog.keys:  # if the agent does not include the
+            # nature of the device
+            raise DeviceException(f"{device._agent} has no contracts for nature {device.nature}")
 
-            if device._nature == self._clusters[cluster]._nature:
-                device._cluster = cluster
-                device._grid = self._clusters[cluster]._grid  # the grid of the cluster is necessarily the grid
-                # of each device on it (else they could not exchange)
-            else:
-                raise DeviceException(f"cluster and device must have the same nature")
+        # checking if the cluster is defined correctly
+        if device._cluster is not None:
+            if device._cluster not in self._clusters:  # if the specified cluster does not exist
+                raise DeviceException(f"{device._cluster} does not exist")
+            elif device.nature != self._clusters[device._cluster]._nature:  # if the natures are not the sames
+                raise DeviceException(f"{device._cluster} is {self._clusters[device._cluster]._nature}, "
+                                      f"not {device.nature}")
 
-    def link_agent(self, agent, device_list):  # link a device with an agent
-        if isinstance(device_list, str):  # if device is not a list
-            device_list = [device_list]  # it is transformed into a list
-            # This operation allows to pass list of devices or single devices
+        if isinstance(device, Consumption):  # If device is a consumer...
+            self._consumptions[device.name] = device  # ... it is put in a dedicated dict
+        elif isinstance(device, Production):  # If device is a producer...
+            self._productions[device.name] = device  # ... it is put in a dedicated dict
+        else:
+            raise WorldException(f"Unable to add device {device.name}")
 
-        for key in device_list:
-            if key in self._consumptions:
-                device = self._consumptions[key]
-            elif key in self._productions:
-                device = self._productions[key]
-            else:
-                raise WorldException(f"{key} is not a device")
-
-            if f"{agent}.{device._nature}" in self._catalog.keys:
-                device._agent = agent
-            else:
-                raise DeviceException(f"no {device._nature} in {agent}")
+        self._used_name.append(device.name)  # adding the name to the list of used names
+        device._catalog = self._catalog  # linking the catalog to the device
+        device._register()  # registering of the device in the catalog
 
     def register_datalogger(self, datalogger):  # link a datalogger with a world (and its catalog)
         if datalogger.name in self._used_name:  # checking if the name is already used
@@ -232,32 +204,6 @@ class World:
         # checking if a supervisor is defined
         if self.supervisor is None:
             raise WorldException(f"A supervisor is needed")
-
-        # then, we call the check methods relatives to each object
-        # checking if each device has an agent and a grid
-        problem = False  # it allows to print every absence before raising an error
-        for consumption in self._consumptions:
-            consumption = self._consumptions[consumption]
-            if consumption._agent is None:
-                print(f"    /!\\ consumption {consumption._name} has no agent")
-                problem = True
-
-            if consumption._grid is None:
-                print(f"    /!\\ consumption {consumption._name} has no grid")
-                problem = True
-
-        for production in self._productions:
-            production = self._productions[production]
-            if production._agent is None:
-                print(f"    /!\\ production {production._name} has no agent")
-                problem = True
-
-            if production._grid is None:
-                print(f"    /!\\ production {production._name} has no grid")
-                problem = True
-
-        if problem:
-            raise WorldException("All devices must have an agent and a grid")
 
     def start(self):
 
@@ -307,14 +253,14 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, nature):
+    def __init__(self, name, nature, grid_name, agent_name, cluster_name=None):
         self._nature = nature  # only entities of same nature can interact
 
         self._name = name  # the name which serve as root in the catalog entries
 
-        self._grid = None  # the grid the device belongs to
-        self._cluster = None  # the cluster the device belongs to
-        self._agent = None  # the agent represents the owner of the device
+        self._grid = grid_name  # the grid the device belongs to
+        self._cluster = cluster_name  # the cluster the device belongs to
+        self._agent = agent_name  # the agent represents the owner of the device
 
         self._catalog = None  # added later
 
@@ -346,7 +292,7 @@ class Device:
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world):
+    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
         # a class method allowing to create several instance of a same class
         pass
 
@@ -374,8 +320,8 @@ class Device:
 # They correspond to one engine (one dishwasher e.g)
 class Consumption(Device):
 
-    def __init__(self, name, nature):
-        super().__init__(name, nature)
+    def __init__(self, name, nature, grid_name, agent_name, cluster_name=None):
+        super().__init__(name, nature, grid_name, agent_name, cluster_name)
 
         self._interruptibility = 0  # 1 means the system can be switched off while working
         # params eco, socio, etc
@@ -402,7 +348,7 @@ class Consumption(Device):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world):
+    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
         # a class method allowing to create several instance of a same class
         pass
 
@@ -426,8 +372,8 @@ class Consumption(Device):
 # They correspond to a group of plants of same nature (an eolian park e.g)
 class Production(Device):
 
-    def __init__(self, name, nature):
-        super().__init__(name, nature)
+    def __init__(self, name, nature, grid_name, agent_name, cluster_name=None):
+        super().__init__(name, nature, grid_name, agent_name, cluster_name)
 
     # ##########################################################################################
     # Initialization
@@ -448,7 +394,7 @@ class Production(Device):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world):
+    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
         # a class method allowing to create several instance of a same class
         pass
 

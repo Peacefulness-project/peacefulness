@@ -3,8 +3,8 @@ from common.Core import Consumption, Production
 
 class DummyConsumption(Consumption):
 
-    def __init__(self, name):
-        super().__init__(name, "LVE")
+    def __init__(self, name, grid_name, agent_name, cluster_name=None):
+        super().__init__(name, "LVE", grid_name, agent_name, cluster_name)
 
     # ##########################################################################################
     # Initialization
@@ -24,10 +24,10 @@ class DummyConsumption(Consumption):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world):
+    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
         for i in range(n):
             entity_name = f"{name}_{str(i)}"
-            entity = DummyConsumption(entity_name)
+            entity = DummyConsumption(entity_name, grid_name, agent_name, cluster_name)
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)
@@ -35,8 +35,8 @@ class DummyConsumption(Consumption):
 
 class DummyProduction(Production):
 
-    def __init__(self, name):
-        super().__init__(name, "LVE")
+    def __init__(self, name, grid_name, agent_name, cluster_name=None):
+        super().__init__(name, "LVE", grid_name, agent_name, cluster_name)
 
     # ##########################################################################################
     # Initialization
@@ -56,10 +56,10 @@ class DummyProduction(Production):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world):
+    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
         for i in range(n):
             entity_name = f"{name}_{str(i)}"
-            entity = DummyProduction(entity_name)
+            entity = DummyProduction(entity_name, grid_name, agent_name, cluster_name)
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)

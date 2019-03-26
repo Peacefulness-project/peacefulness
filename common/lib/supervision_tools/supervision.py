@@ -70,10 +70,10 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
 #     for nature in world.natures:
 #         cons = catalog.get(f"{world.name}_{nature}_consumer_balance")
 #         prod = catalog.get(f"{world.name}_{nature}_producer_balance")
-
-        # world._stress[world.name][nature] = cons/prod - prod/cons  # this function has the following behavior:
-        # cons/prod --> +inf ==> stress --> +inf
-        # cons/prod  =  1    ==> stress  =  1
-        # cons/prod --> 0    ==> stress --> -inf
-        # but it has no other meaning
-
+#
+#         world._stress[world.name][nature] = cons/prod - prod/cons  # this function has the following behavior:
+#         # cons/prod --> +inf ==> stress --> +inf
+#         # cons/prod  =  1    ==> stress  =  1
+#         # cons/prod --> 0    ==> stress --> -inf
+#         # but it has no other meaning
+#
