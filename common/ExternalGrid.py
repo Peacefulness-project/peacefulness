@@ -23,4 +23,10 @@ class ExternalGrid:
     def _add_catalog(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
 
+    @property
+    def nature(self):  # shortcut for read-only
+        return self._nature
