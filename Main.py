@@ -25,22 +25,22 @@ from common.Catalog import Catalog
 
 from common.CaseDirectory import CaseDirectory
 
+from common.TimeManager import TimeManager
+import datetime
+
 from common.Supervisor import Supervisor
 
 from common.lib.NatureList import NatureList
 
-from common.TimeManager import TimeManager
-import datetime
+from common.lib.DummyDevice import DummyConsumption, DummyProduction
 
 from common.ExternalGrid import ExternalGrid
 
 from common.LocalGrid import LocalGrid
 
-from common.Agent import Agent
-
 from common.Cluster import Cluster
 
-from common.lib.DummyDevice import DummyConsumption, DummyProduction
+from common.Agent import Agent
 
 from common.Datalogger import Datalogger
 
@@ -73,14 +73,19 @@ world.set_directory(directory)  # registration
 
 
 # ##############################################################################################
+# Time Manager
+# this object manages the two times (physical and iteration)
+# it needs a start date, the value of an iteration in s and the total number of iterations
+start_date = datetime.datetime.now()  # a start date in the datetime format
+time_manager = TimeManager(start_date, 1, 24)  # creation
+world.set_time_manager(time_manager)  # registration
+
+
+# ##############################################################################################
 # Supervisor
-# this object contains just the path to  your supervisor script and a brief description of what it does
-supervisor = Supervisor("glaDOS", "DummySupervisorMain.py")
-supervisor.description = "this supervisor is a really basic one. It just serves as a " \
-                         "skeleton/example for your (more) clever supervisor."
-
+# this object is in charge of the calculus
+supervisor = Supervisor("Erwin")
 world.set_supervisor(supervisor)
-
 
 # ##############################################################################################
 # Nature list
@@ -92,56 +97,15 @@ world.set_natures(nature)  # registration
 
 
 # ##############################################################################################
-# Time Manager
-# this object manages the two times (physical and iteration)
-# it needs a start date, the value of an iteration in s and the total number of iterations
-start_date = datetime.datetime.now()  # a start date in the datetime format
-time_manager = TimeManager(start_date, 1, 24)  # creation
-world.set_time_manager(time_manager)  # registration
-
-
-# ##############################################################################################
-# Local grid
-# this object
-little_elec_grid = LocalGrid("Enedis", "LVE")  # creation
-world.register_local_grid(little_elec_grid)  # registration
-
-
-# ##############################################################################################
-# External grid
-# this object represents grids outside world which interact with it
-great_elec_grid = ExternalGrid("RTE", "LVE", "Enedis")  # creation
-world.register_external_grid(great_elec_grid)  # registration
-
-
-# ##############################################################################################
-# Agent
-# this object represents the owner of devices
-# all devices need an agent
-pollueur1 = Agent("pollueur 1")  # creation of an agent
-world.register_agent(pollueur1)  # registration
-
-pollueur1.set_contract("LVE", "contrat classique")  # definition of a contract
-
-
-# ##############################################################################################
-# Cluster
-# this object is a collection of devices wanting to isolate themselves as much as they can
-# clusters need 2 arguments: a name and a nature of energy
-cluster_general = Cluster("cluster general", "LVE")  # creation of a cluster
-world.register_cluster(cluster_general)  # registration
-
-
-# ##############################################################################################
 # Devices
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-e1 = DummyConsumption("Essai", "Enedis", "pollueur 1", "cluster general")  # creation of a consumption point
-c1 = DummyProduction("Toto", "Enedis", "pollueur 1", "cluster general")  # creation of a production point
-# the nature of these dummy devices is LVE by definition
+e1 = DummyConsumption("Essai")  # creation of a consumption point
+c1 = DummyProduction("Toto")  # creation of a production point
+# the nature of these dummy devices is defined durng the construction of the objects
 
 print(e1)  # displays the name and the type of the device
 print(c1)  # displays the name and the type of the device
@@ -158,10 +122,50 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, "Enedis", "pollueur 1")  # creation and registration of
-# 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, "Enedis", "pollueur 1")  # creation and registration of
-# 10 dummy productions
+DummyConsumption.mass_create(10, "conso", world)  # creation and registration of 10 dummy consumptions
+DummyProduction.mass_create(10, "prod", world)  # creation and registration of 10 dummy productions
+
+
+# ##############################################################################################
+# Local grid
+# this object
+little_elec_grid = LocalGrid("Enedis", "LVE")  # creation
+world.register_local_grid(little_elec_grid)  # registration
+
+
+# ##############################################################################################
+# External grid
+# this object represents grids outside world which interact with it
+great_elec_grid = ExternalGrid("RTE", "LVE")  # creation
+world.register_external_grid(great_elec_grid)  # registration
+world.link_local_grid("Enedis", "RTE")  # link between the external grid and a local grid
+
+
+# ##############################################################################################
+# Cluster
+# this object is a collection of devices wanting to isolate themselves as much as they can
+# clusters need 2 arguments: a name and a nature of energy
+cluster_general = Cluster("cluster general", "LVE")  # creation of a cluster
+world.register_cluster(cluster_general)  # registration
+world.link_cluster("cluster general", ["Essai", "Toto"])  # link between the cluster and devices
+world.link_local_grid("Enedis", "cluster general")  # link between the local grid and the cluster
+
+
+# ##############################################################################################
+# Agent
+# this object represents the owner of devices
+# all devices need an agent
+pollueur1 = Agent("pollueur 1")  # creation of an agent
+world.register_agent(pollueur1)  # registration
+
+pollueur1.set_contract("LVE", "contrat classique")  # definition of a contract
+
+world.link_agent("pollueur 1", world._productions)  # link between the agent and devices
+world.link_agent("pollueur 1", world._consumptions)  # link between the agent and devices
+# here, as it is only a demonstration, we link all our devices with the same agent
+
+world.link_local_grid("Enedis", world._productions)  # link between the local grid and all productions
+world.link_local_grid("Enedis", world._consumptions)  # link between the local grid and all consumptions
 
 
 # ##############################################################################################
@@ -197,5 +201,10 @@ world.register_daemon(dem)  # registration
 # Work in progress
 # here begins the supervision, which is not implemented yet
 
-world.start()
+world._check()  # check if everything is fine in world definition
 
+for i in range(0, 100, 1):  # a little test to verify that everything goes well
+    world._next()  # activates the daemons, the dataloggers and the time manager
+
+world.catalog.print_debug()  # displays the content of the catalog
+print(world)  # gives the name of the world and the quantity of productions and consumptions
