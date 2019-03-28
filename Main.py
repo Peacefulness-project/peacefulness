@@ -118,18 +118,18 @@ world.register_external_grid(great_elec_grid)  # registration
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
-pollueur1 = Agent("pollueur 1")  # creation of an agent
-world.register_agent(pollueur1)  # registration
+james_bond = Agent("James Bond")  # creation of an agent
+world.register_agent(james_bond)  # registration
 
-pollueur1.set_contract("LVE", "contrat classique")  # definition of a contract
+james_bond.set_contract("LVE", "contrat classique")  # definition of a contract
 
 
 # ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
-cluster_general = Cluster("cluster general", "LVE", "Enedis")  # creation of a cluster
-world.register_cluster(cluster_general)  # registration
+general_cluster = Cluster("general cluster", "LVE", "Enedis")  # creation of a cluster
+world.register_cluster(general_cluster)  # registration
 
 
 # ##############################################################################################
@@ -139,8 +139,8 @@ world.register_cluster(cluster_general)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-e1 = DummyConsumption("Essai", "Enedis", "pollueur 1", "cluster general")  # creation of a consumption point
-c1 = DummyProduction("Toto", "Enedis", "pollueur 1", "cluster general")  # creation of a production point
+e1 = DummyConsumption("Essai", "Enedis", "James Bond", "general cluster")  # creation of a consumption point
+c1 = DummyProduction("Toto", "Enedis", "James Bond", "general cluster")  # creation of a production point
 # the nature of these dummy devices is LVE by definition
 
 print(e1)  # displays the name and the type of the device
@@ -158,9 +158,9 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, "Enedis", "pollueur 1")  # creation and registration of
+DummyConsumption.mass_create(10, "conso", world, "Enedis", "James Bond")  # creation and registration of
 # 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, "Enedis", "pollueur 1")  # creation and registration of
+DummyProduction.mass_create(10, "prod", world, "Enedis", "James Bond")  # creation and registration of
 # 10 dummy productions
 
 
