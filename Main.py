@@ -19,18 +19,15 @@
 
 # ##############################################################################################
 # Importations
+import datetime
+
 from common.Core import World
 
 from common.Catalog import Catalog
 
-from common.CaseDirectory import CaseDirectory
-
 from common.Supervisor import Supervisor
 
 from common.lib.NatureList import NatureList
-
-from common.TimeManager import TimeManager
-import datetime
 
 from common.ExternalGrid import ExternalGrid
 
@@ -66,10 +63,9 @@ print(world)
 
 
 # ##############################################################################################
-# Case Directory
-# this object manages the creation of a directory dedicated to the file
-directory = CaseDirectory("./Results")  # creation
-world.set_directory(directory)  # registration
+# Definition of the path to the files
+pathExport = "./Results"  #
+world.set_directory(pathExport)  # registration
 
 
 # ##############################################################################################
@@ -78,7 +74,6 @@ world.set_directory(directory)  # registration
 supervisor = Supervisor("glaDOS", "DummySupervisorMain.py")
 supervisor.description = "this supervisor is a really basic one. It just serves as a " \
                          "skeleton/example for your (more) clever supervisor."
-
 world.set_supervisor(supervisor)
 
 
@@ -96,14 +91,14 @@ world.set_natures(nature)  # registration
 # this object manages the two times (physical and iteration)
 # it needs a start date, the value of an iteration in s and the total number of iterations
 start_date = datetime.datetime.now()  # a start date in the datetime format
-time_manager = TimeManager(start_date, 1, 24)  # creation
-world.set_time_manager(time_manager)  # registration
+world.set_time_manager(start_date, 1, 24)  # dslkfjqsdkljfhqsdkljfhqsdlkjfhqsdlkjfhqz jklhqdskljfhqsdk jhf TRAVAILLE UN PEU ! registration
 
 
 # ##############################################################################################
 # Local grid
 # this object
-little_elec_grid = LocalGrid("Enedis", "LVE")  # creation
+nameDitrisElec = "Enedis"
+little_elec_grid = LocalGrid(nameDitrisElec, "LVE")  # creation
 world.register_local_grid(little_elec_grid)  # registration
 
 

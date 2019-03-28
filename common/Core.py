@@ -1,15 +1,16 @@
 # Declaration of core classes
+# ##############################################################################################
+# Native packages
 import datetime
-from common.Catalog import Catalog
-from tools.Utilities import little_separation, middle_separation, big_separation, adapt_path
+import os
 from copy import deepcopy
+# Current packages
+from common.Catalog import Catalog
 from common.lib.NatureList import NatureList
-from common.ExternalGrid import ExternalGrid
 from common.LocalGrid import LocalGrid
 from common.Agent import Agent
 from common.Cluster import Cluster
-from common.CaseDirectory import CaseDirectory
-from common.TimeManager import TimeManager
+from tools.Utilities import little_separation, middle_separation, big_separation, adapt_path
 
 
 # ##############################################################################################
@@ -29,14 +30,14 @@ class World:
 
         self._catalog = None  # data catalog which gathers all data
 
-        self._case_directory = None  # object which manages the result directory
-
         self._natures = None  # object which lists the nature present in world
 
         self.supervisor = None  # object which performs the calculus
 
-        self._time_manager = None  # object which manages time
-        
+        # Time management
+        self._timestep_value = None # value of the timestep used during the simulation (in hours)
+        self._time_limit = None # latest time step of the simulation (in number of iterations)
+
         # dictionaries contained by world
         self._local_grid = dict()  # grids interns to world
         self._external_grid = dict()  # grids external to world
@@ -61,10 +62,17 @@ class World:
     def set_catalog(self, catalog):  # definition of a catalog
         self._catalog = catalog
 
-    def set_directory(self, case_directory):  # definition of a case directory and creation of the directory
-        self._case_directory = case_directory
-        self._case_directory._add_catalog(self._catalog)  # linking the case_directory with the catalog of world
-        case_directory.create()  # create the directory and publish its path in the catalog
+    def set_directory(self, path):  # definition of a case directory and creation of the directory
+        instant_date = datetime.datetime.now()  # get the current time
+        instant_date = instant_date.strftime("%d_%m_%Y-%H_%M_%S")  # the directory is named after the date
+
+        path = adapt_path([path, f"Case_{instant_date}"])  # path is the root for all files relative to the case
+
+        os.makedirs(path)
+        os.makedirs(adapt_path([path, "inputs"]))
+        os.makedirs(adapt_path([path, "outputs"]))
+
+        self._catalog.add("path", path)
 
     def set_natures(self, nature):  # definition of natures dictionary
         self._natures = nature
@@ -73,15 +81,19 @@ class World:
     def set_supervisor(self, supervisor):  # definition of the supervisor
         self.supervisor = supervisor
 
-    def set_time_manager(self, time_manager):  # definition of a time manager
-        self._time_manager = time_manager
-        self._time_manager._add_catalog(self._catalog)  # linking the time_manager with the catalog of world
+    def set_time_manager(self, start_date=datetime.datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
+        self._catalog.add("physical_time", start_date)  # physical time in seconds
+        self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
+        self._timestep_value = datetime.timedelta(hours=timestep_value)
+        self._time_limit = time_limit
+
+    # dsfqsdlkfjqsdlkfj
     def register_local_grid(self, local_grid):
         if local_grid._name in self._used_name:  # checking if the name is already used
             raise WorldException(f"{local_grid._name} already in use")
 
-        local_grid._add_catalog(self._catalog)  # linking the local grid with the catalog of world
+        local_grid._register(self._catalog)  # linking the local grid with the catalog of world
         self._local_grid[local_grid._name] = local_grid  # registering the local grid in the dedicated dictionary
         self._used_name.append(local_grid._name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -96,7 +108,7 @@ class World:
         elif external_grid.nature != self._local_grid[external_grid._grid]._nature:  # if the natures are not the sames
             raise DeviceException(f"{external_grid._grid} is {self._local_grid[external_grid._grid]._nature}, not {external_grid.nature}")
 
-        external_grid._add_catalog(self._catalog)  # linking the external grid with the catalog of world
+        external_grid._register(self._catalog)
         self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated
         # dictionary
         self._used_name.append(external_grid._name)  # adding the name to the list of used names
@@ -186,16 +198,19 @@ class World:
 
     def _check(self):  # a method checking if the world has been well defined
         # 4 things are necessary for world to be correctly defined:
-        # the time manager, the case directory, the nature list and the supervisor
+        # 1/ the time manager,
+        # 2/ the case directory,
+        # 3/ the nature list,
+        # 4/ the supervisor
 
-        # first, we check the 4 necessary objects:
+        # first, we check the presence of the necessary objects:
         # checking if a time manager is defined
-        if self._time_manager is None:
+        if "physical_time" not in self.catalog.keys or "simulation_time" not in self.catalog.keys:
             raise WorldException(f"A time manager is needed")
 
-        # checking if a case directory is defined
-        if self._case_directory is None:
-            raise WorldException(f"A case directory is needed")
+        # checking if a path is defined
+        if "path" not in self.catalog.keys:
+            raise WorldException(f"A path is specified for the results files")
 
         # checking if a nature list is defined
         if self._natures is None:
@@ -204,6 +219,15 @@ class World:
         # checking if a supervisor is defined
         if self.supervisor is None:
             raise WorldException(f"A supervisor is needed")
+
+        # secondly, we check and correct the redundancies
+        # removing unused natures
+        used_natures = list()
+        for key in self._local_grid:
+            nature = self._local_grid[key].nature
+            if nature not in used_natures:
+                used_natures.append(nature)
+        self._natures.purge(used_natures)
 
     def start(self):
 
@@ -215,6 +239,22 @@ class World:
         path = adapt_path(["usr", "supervisors", self.supervisor._filename])
 
         exec(open(path).read())
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    ##########################################################################################
+
+    def _update_time(self):  # update the time entries in the catalog to the next iteration step
+
+        current_time = self._catalog.get("simulation_time")
+
+        physical_time = self._catalog.get("physical_time")
+        physical_time += self._timestep_value  # new value of physical time
+
+        self._catalog.set("physical_time", physical_time)  # updating the value of physical time
+        self._catalog.set("simulation_time", current_time + 1)
+
+
 
     # ##########################################################################################
     # Utility
@@ -230,7 +270,7 @@ class World:
 
     @property
     def time_limit(self):  # shortcut for read-only
-        return self._time_manager._time_limit
+        return self._time_limit
 
     @property
     def natures(self):  # shortcut for read-only
@@ -277,12 +317,8 @@ class Device:
     def _register(self):  # make the initialization operations undoable without a catalog
         pass
 
-    def init(self):
-        # Add published data to the catalog
-        pass
-
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     # ##########################################################################################
 
     def _update(self):  # method updating data to the current timestep

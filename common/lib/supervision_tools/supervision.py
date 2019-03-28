@@ -41,7 +41,7 @@ def end_round(world):  # method incrementing the time step and calling datalogge
     for key in world._daemons:  # activation of the daemons
         world._daemons[key]._launch()
 
-    world._time_manager._update_time()
+    world._update_time()
 
 
 def make_balance(world, catalog):  # sum the needs and the production for the world

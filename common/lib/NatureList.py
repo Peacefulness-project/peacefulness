@@ -16,8 +16,19 @@ class NatureList:  # this class contains the different natures
 
         self._catalog = None
 
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
     def add(self, key, description=''):  # allows to add manually an energy type
         self._dict[key] = description
+
+    def purge(self, used_natures): # TODO !!!!
+        pass
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
 
     @property
     def keys(self):  # a shortcut allowing to get a list of energy types faster
