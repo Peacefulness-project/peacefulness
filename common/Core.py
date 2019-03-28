@@ -223,10 +223,20 @@ class World:
         # secondly, we check and correct the redundancies
         # removing unused natures
         used_natures = list()
-        for key in self._local_grid:
-            nature = self._local_grid[key].nature
+
+        # we concatenate all the the objects having a nature in one dict
+        global_dict = dict(self._local_grid)
+        global_dict.update(self._external_grid)
+        global_dict.update(self._clusters)
+        global_dict.update(self._productions)
+        global_dict.update(self._consumptions)
+
+        # then we create a list containing all the effectively used natures
+        for key in global_dict:
+            nature = global_dict[key].nature
             if nature not in used_natures:
                 used_natures.append(nature)
+
         self._natures.purge(used_natures)
 
     def start(self):
