@@ -1,7 +1,7 @@
 # List of energy
 # This class is just a dictionary containing the different nature of energy
 # A representative of this class is created for each world
-
+from copy import deepcopy
 
 class NatureList:  # this class contains the different natures
 
@@ -23,8 +23,15 @@ class NatureList:  # this class contains the different natures
     def add(self, key, description=''):  # allows to add manually an energy type
         self._dict[key] = description
 
-    def purge(self, used_natures): # TODO !!!!
-        pass
+    def purge(self, used_natures):  # remove unused keys
+        # as we can't remove keys in a dictionary we are reading, we have to create a secondary dictionary, which will
+        # be read without modification
+        keys_to_remove = list()
+        for key in self._dict:
+            if key not in used_natures:
+                keys_to_remove.append(key)
+        for key in keys_to_remove:
+            self._dict.pop(key)
 
     # ##########################################################################################
     # Utility
