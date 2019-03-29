@@ -10,8 +10,8 @@ class ExternalGrid:
     def __init__(self, name, nature, local_grid):
         self._name = name  # the name of the grid
         self._nature = nature  # the nature of energy in the grid, only one
-        self._grid = local_grid  # the local grid it is connected with
 
+        self._grid = local_grid  # the local grid it is connected with
         self._price = 0  # the price or stress or whatever to represent the grid will to deliver or absorb energy
 
         self._catalog = None  # the catalog in which some data are stored
@@ -21,11 +21,18 @@ class ExternalGrid:
     # ##########################################################################################
 
     def _register(self, catalog):  # add a catalog and create relevant entries
-        self._add_catalog(catalog)
+        self._add_catalog(catalog)  # link the local grid with the catalog of world
         self._catalog.add(f"{self._name}.price", self._price)
 
-    def _add_catalog(self, catalog):
+    def _add_catalog(self, catalog):  # link the local grid with the catalog of world
         self._catalog = catalog
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    ############################################################################################
+
+    def _update(self):
+        pass
 
     # ##########################################################################################
     # Utility

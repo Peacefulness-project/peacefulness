@@ -3,6 +3,7 @@
 # A representative of this class is created for each world
 from copy import deepcopy
 
+
 class NatureList:  # this class contains the different natures
 
     def __init__(self):
@@ -13,8 +14,6 @@ class NatureList:  # this class contains the different natures
         self._dict["LVH"] = "Low Vapor Heat"
         self._dict["NG"] = "Natural Gas"
         self._dict["H2"] = "Hydrogen"
-
-        self._catalog = None
 
     # ##########################################################################################
     # Initialization

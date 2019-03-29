@@ -9,16 +9,17 @@ class Cluster:
     def __init__(self, name, nature, grid):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the cluster
-        self._catalog = None  # the catalog in which some data are stored
 
         self._grid = grid  # the local grid the cluster is connected with
+
+        self._catalog = None  # the catalog in which some data are stored
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _add_catalog(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog
+    def _register(self, catalog):  # add a catalog and create relevant entries
+        self._catalog = catalog  # linking the local grid with the catalog of world
 
     # ##########################################################################################
     # Utility

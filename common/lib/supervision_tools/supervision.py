@@ -30,6 +30,11 @@ def start_round(world):  # method updating data to the current timestep
     # for key in world._storage:
     #     world._storage[key]._update()
 
+    for key in world._external_grid:
+        world._external_grid[key]._update()
+
+    for key in world._agents:
+        world._agents[key]._update()
 
 def end_round(world):  # method incrementing the time step and calling dataloggers and daemons
     # it is called after the resolution of the round
@@ -64,16 +69,19 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
         catalog.set(f"{world.name}_{nature}_production_balance", balance[nature][1])
 
 
-# WIP
-# def stress_calculus(world, catalog):  # calculus of the stress for each local grid
-#
-#     for nature in world.natures:
-#         cons = catalog.get(f"{world.name}_{nature}_consumer_balance")
-#         prod = catalog.get(f"{world.name}_{nature}_producer_balance")
-#
-#         world._stress[world.name][nature] = cons/prod - prod/cons  # this function has the following behavior:
-#         # cons/prod --> +inf ==> stress --> +inf
-#         # cons/prod  =  1    ==> stress  =  1
-#         # cons/prod --> 0    ==> stress --> -inf
-#         # but it has no other meaning
-#
+def stress_calculus(world, catalog):  # calculus of the stress for each local grid
+
+    stress = dict()  # dictionary containing the stress for each different nature of energy
+
+    for nature in world.natures:
+        cons = catalog.get(f"{world.name}_{nature}_consumption_balance")
+        prod = catalog.get(f"{world.name}_{nature}_production_balance")
+
+        stress[nature] = cons/prod - prod/cons  # this function has the following behavior:
+        # cons/prod --> +inf ==> stress --> +inf
+        # cons/prod  =  1    ==> stress  =  1
+        # cons/prod --> 0    ==> stress --> -inf
+        # but it has no other meaning
+
+        return stress
+

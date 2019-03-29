@@ -10,8 +10,8 @@ class DummyConsumption(Consumption):
     # Initialization
     # ##########################################################################################
 
-    def _register(self):  # make the initialization operations undoable without a catalog
-        self._register_consumption()  # make the operations relevant for all kind of consumption points
+    def _register(self, catalog):  # make the initialization operations undoable without a catalog
+        self._register_consumption(catalog)  # make the operations relevant for all kind of consumption points
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -42,8 +42,8 @@ class DummyProduction(Production):
     # Initialization
     # ##########################################################################################
 
-    def _register(self):  # make the initialization operations undoable without a catalog
-        self._register_production()  # make the operations relevant for all kind of production points
+    def _register(self, catalog):  # make the initialization operations undoable without a catalog
+        self._register_production(catalog)  # make the operations relevant for all kind of production points
 
     # ##########################################################################################
     # Dynamic behaviour

@@ -30,7 +30,7 @@ class Datalogger:
     # Initialization
     # ##########################################################################################
 
-    def _add_catalog(self, catalog):  # add a catalog
+    def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
     def add(self, name):  # add 1 key of the catalog to the datalogger
@@ -40,8 +40,7 @@ class Datalogger:
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
 
-    def add_all(self):  # add all keys from the catalog to
-        # the datalogger
+    def add_all(self):  # add all keys from the catalog to the datalogger
         for name in self._catalog.keys:
             self._list.append(name)  # creates an entry in the buffer if needed
 
@@ -79,8 +78,7 @@ class Datalogger:
             # multiple of the defined period
 
             if current_time == 0:  # initialization of the file
-                self._save_header()  # name of each piece of data is written at the top of
-                # the file
+                self._save_header()  # name of each piece of data is written at the top of the file
             self._save()  # writes the data in the file
             self._next_time += self._period  # calculates the next period of writing
 

@@ -23,8 +23,9 @@ class Daemon:
     # Initialization
     # ##########################################################################################
 
-    def _add_catalog(self, catalog):  # add a catalog
+    def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
+        self._init()  # create relevant entries in the catalog
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -34,9 +35,6 @@ class Daemon:
 
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
         # to be called or not
-
-        if current_time == 0:
-            self._init()
 
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period
             self._process()

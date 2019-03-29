@@ -18,10 +18,7 @@ class LocalGrid:
     # ##########################################################################################
 
     def _register(self, catalog):  # add a catalog and create relevant entries
-        self._add_catalog(catalog)
-
-    def _add_catalog(self, catalog):
-        self._catalog = catalog
+        self._catalog = catalog  # link the local grid with the catalog of world
 
     # ##########################################################################################
     # Utility

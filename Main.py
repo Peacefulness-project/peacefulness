@@ -43,12 +43,18 @@ from common.Datalogger import Datalogger
 
 from usr.DummyDaemon import DummyDaemon
 
+# ##############################################################################################
+# Minimum
+# the following objects are necessary for the simulation to be performed
+# you need exactly one object of each type
+# ##############################################################################################
 
 # ##############################################################################################
 # Creation of the world
 # a world <=> a case, it contains all the model
 # a world needs just a name
-world = World("Earth")  # creation
+name_world = "Earth"
+world = World(name_world)  # creation
 
 
 # ##############################################################################################
@@ -69,12 +75,13 @@ world.set_directory(pathExport)  # registration
 
 
 # ##############################################################################################
-# Supervisor
+# Supervisor --> il est en stand-by
 # this object contains just the path to  your supervisor script and a brief description of what it does
-supervisor = Supervisor("glaDOS", "DummySupervisorMain.py")
+name_supervisor = "glaDOS"
+supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py")
 supervisor.description = "this supervisor is a really basic one. It just serves as a " \
                          "skeleton/example for your (more) clever supervisor."
-world.set_supervisor(supervisor)
+world.register_supervisor(supervisor)
 
 
 # ##############################################################################################
@@ -91,40 +98,51 @@ world.set_natures(nature)  # registration
 # this object manages the two times (physical and iteration)
 # it needs a start date, the value of an iteration in s and the total number of iterations
 start_date = datetime.datetime.now()  # a start date in the datetime format
-world.set_time_manager(start_date, 1, 24)  # dslkfjqsdkljfhqsdkljfhqsdlkjfhqsdlkjfhqz jklhqdskljfhqsdk jhf TRAVAILLE UN PEU ! registration
+world.set_time_manager(start_date, 1, 24)  #
 
+# ##############################################################################################
+# Model
+# the following objects are the one describing the case studied
+# you need at least one local grid and one agent to create a device
+# no matter the type, you can create as much objects as you want
+# ##############################################################################################
 
 # ##############################################################################################
 # Local grid
-# this object
-nameDitrisElec = "Enedis"
-little_elec_grid = LocalGrid(nameDitrisElec, "LVE")  # creation
-world.register_local_grid(little_elec_grid)  # registration
+# this object represents the grids inside wolrd
+# it allows to define who is able to exchange with who
+name_local_grid_elec = "Enedis"
+local_grid_elec = LocalGrid(name_local_grid_elec, "LVE")  # creation
+world.register_local_grid(local_grid_elec)  # registration
 
 
 # ##############################################################################################
 # External grid
 # this object represents grids outside world which interact with it
-great_elec_grid = ExternalGrid("RTE", "LVE", "Enedis")  # creation
-world.register_external_grid(great_elec_grid)  # registration
+name_external_grid = "RTE"
+external_grid_elec = ExternalGrid(name_external_grid, "LVE", name_local_grid_elec)  # creation
+world.register_external_grid(external_grid_elec)  # registration
 
 
 # ##############################################################################################
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
-james_bond = Agent("James Bond")  # creation of an agent
-world.register_agent(james_bond)  # registration
+name_agent = "James Bond"
+agent = Agent(name_agent)  # creation of an agent
+world.register_agent(agent)  # registration
 
-james_bond.set_contract("LVE", "contrat classique")  # definition of a contract
+name_elec_contract = "contrat classique"
+agent.set_contract("LVE", name_elec_contract)  # definition of a contract
 
 
 # ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
-general_cluster = Cluster("general cluster", "LVE", "Enedis")  # creation of a cluster
-world.register_cluster(general_cluster)  # registration
+name_cluster = "general cluster"
+cluster = Cluster(name_cluster, "LVE", name_local_grid_elec)  # creation of a cluster
+world.register_cluster(cluster)  # registration
 
 
 # ##############################################################################################
@@ -134,8 +152,8 @@ world.register_cluster(general_cluster)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-e1 = DummyConsumption("Essai", "Enedis", "James Bond", "general cluster")  # creation of a consumption point
-c1 = DummyProduction("Toto", "Enedis", "James Bond", "general cluster")  # creation of a production point
+e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, name_cluster)  # creation of a consumption point
+c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, name_cluster)  # creation of a production point
 # the nature of these dummy devices is LVE by definition
 
 print(e1)  # displays the name and the type of the device
@@ -153,9 +171,9 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, "Enedis", "James Bond")  # creation and registration of
+DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent)  # creation and registration of
 # 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, "Enedis", "James Bond")  # creation and registration of
+DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent)  # creation and registration of
 # 10 dummy productions
 
 
