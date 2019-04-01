@@ -37,11 +37,11 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from common.lib.DummyDevice import DummyConsumption, DummyProduction
+from usr.Devices.DummyDevice import DummyConsumption, DummyProduction
 
 from common.Datalogger import Datalogger
 
-from usr.DummyDaemon import DummyDaemon
+from usr.Daemons.DummyDaemon import DummyDaemon
 
 # ##############################################################################################
 # Minimum
@@ -89,7 +89,8 @@ world.register_supervisor(supervisor)
 # this object defines the different natures present in world
 # some are predefined but it is possible to create user-defined natures
 nature = NatureList()  # creation of a nature
-nature.add("Orgone", "mysterious organic energy")  # Optional addition of a new energy nature
+name_new_nature = "Orgone"
+nature.add(name_new_nature, "mysterious organic energy")  # Optional addition of a new energy nature
 world.set_natures(nature)  # registration
 
 

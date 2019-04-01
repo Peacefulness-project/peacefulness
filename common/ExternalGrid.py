@@ -28,7 +28,7 @@ class ExternalGrid:
         self._catalog = catalog
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     ############################################################################################
 
     def _update(self):
@@ -42,3 +42,6 @@ class ExternalGrid:
     def nature(self):  # shortcut for read-only
         return self._nature
 
+    @property
+    def name(self):  # shortcut for read-only
+        return self._name

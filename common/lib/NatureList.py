@@ -22,7 +22,7 @@ class NatureList:  # this class contains the different natures
     def add(self, key, description=''):  # allows to add manually an energy type
         self._dict[key] = description
 
-    def purge(self, used_natures):  # remove unused keys
+    def purge_unused(self, used_natures):  # remove unused keys
         # as we can't remove keys in a dictionary we are reading, we have to create a secondary dictionary, which will
         # be read without modification
         keys_to_remove = list()

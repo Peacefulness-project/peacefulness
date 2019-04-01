@@ -41,8 +41,8 @@ class World:
         self._time_limit = None  # latest time step of the simulation (in number of iterations)
 
         # dictionaries contained by world
-        self._local_grid = dict()  # grids interns to world
-        self._external_grid = dict()  # grids external to world
+        self._local_grids = dict()  # grids interns to world
+        self._external_grids = dict()  # grids external to world
 
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
@@ -98,64 +98,64 @@ class World:
 
     # the following methods concern objects modeling a case
     def register_local_grid(self, local_grid):  # method connecting one local grid to the world
-        if local_grid._name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{local_grid._name} already in use")
+        if local_grid.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{local_grid.name} already in use")
 
         if isinstance(local_grid, LocalGrid) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
         local_grid._register(self._catalog)  # add a catalog to local grid and create relevant entries
-        self._local_grid[local_grid._name] = local_grid  # registering the local grid in the dedicated dictionary
-        self._used_name.append(local_grid._name)  # adding the name to the list of used names
+        self._local_grids[local_grid.name] = local_grid  # registering the local grid in the dedicated dictionary
+        self._used_name.append(local_grid.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_external_grid(self, external_grid):  # method connecting one external grid to the world
-        if external_grid._name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{external_grid._name} already in use")
+        if external_grid.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{external_grid.name} already in use")
 
         if isinstance(external_grid, ExternalGrid) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
         
         # checking if the grid is defined correctly
-        if external_grid._grid not in self._local_grid:  # if the specified grid does not exist
+        if external_grid._grid not in self._local_grids:  # if the specified grid does not exist
             raise WorldException(f"{external_grid._grid} does not exist")
-        elif external_grid.nature != self._local_grid[external_grid._grid]._nature:  # if the natures are not the sames
-            raise WorldException(f"{external_grid._grid} is {self._local_grid[external_grid._grid]._nature}, not {external_grid.nature}")
+        elif external_grid.nature != self._local_grids[external_grid._grid]._nature:  # if the natures are not the sames
+            raise WorldException(f"{external_grid._grid} is {self._local_grids[external_grid._grid]._nature}, not {external_grid.nature}")
 
         external_grid._register(self._catalog)  # add a catalog to external grid and create relevant entries
-        self._external_grid[external_grid._name] = external_grid  # registering the external grid in the dedicated
+        self._external_grids[external_grid.name] = external_grid  # registering the external grid in the dedicated
         # dictionary
-        self._used_name.append(external_grid._name)  # adding the name to the list of used names
+        self._used_name.append(external_grid.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_agent(self, agent):  # method connecting one agent to the world
-        if agent._name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{agent._name} already in use")
+        if agent.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{agent.name} already in use")
 
         if isinstance(agent, Agent) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
         agent._register(self._catalog)   # linking the agent with the catalog of world
-        self._agents[agent._name] = agent  # registering the agent in the dedicated dictionary
-        self._used_name.append(agent._name)  # adding the name to the list of used names
+        self._agents[agent.name] = agent  # registering the agent in the dedicated dictionary
+        self._used_name.append(agent.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_cluster(self, cluster):  # method connecting one cluster to the world
-        if cluster._name in self._used_name:  # checking if the name is already used
-            raise WorldException(f"{cluster._name} already in use")
+        if cluster.name in self._used_name:  # checking if the name is already used
+            raise WorldException(f"{cluster.name} already in use")
 
         if isinstance(cluster, Cluster) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
         # checking if the grid is defined correctly
-        if cluster._grid not in self._local_grid:  # if the specified grid does not exist
+        if cluster._grid not in self._local_grids:  # if the specified grid does not exist
             raise WorldException(f"{cluster._grid} does not exist")
-        elif cluster.nature != self._local_grid[cluster._grid]._nature:  # if the natures are not the sames
-            raise WorldException(f"{cluster._grid} is {self._local_grid[cluster._grid]._nature}, not {cluster.nature}")
+        elif cluster.nature != self._local_grids[cluster._grid]._nature:  # if the natures are not the sames
+            raise WorldException(f"{cluster._grid} is {self._local_grids[cluster._grid]._nature}, not {cluster.nature}")
         
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
-        self._clusters[cluster._name] = cluster  # registering the cluster in the dedicated dictionary
-        self._used_name.append(cluster._name)  # adding the name to the list of used names
+        self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
+        self._used_name.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_device(self, device):  # method connecting one device to the world
@@ -166,10 +166,10 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         # checking if the grid is defined correctly
-        if device._grid not in self._local_grid:  # if the specified grid does not exist
+        if device._grid not in self._local_grids:  # if the specified grid does not exist
             raise WorldException(f"{device._grid} does not exist")
-        elif device.nature != self._local_grid[device._grid]._nature:  # if the natures are not the sames
-            raise WorldException(f"{device._grid} is {self._local_grid[device._grid]._nature}, not {device.nature}")
+        elif device.nature != self._local_grids[device._grid]._nature:  # if the natures are not the sames
+            raise WorldException(f"{device._grid} is {self._local_grids[device._grid]._nature}, not {device.nature}")
 
         # checking if the agent is defined correctly
         if device._agent not in self._agents:  # if the specified agent does not exist
@@ -262,22 +262,22 @@ class World:
 
         # secondly, we check and correct the redundancies
         # removing unused natures (it saves time as the natures list is browsed several times)
-        used_natures = list()
+        used_natures = list()  # this list gathers all the nature types present in our world
 
-        # we concatenate all the the objects having a nature in one dict
-        aggregated_dict = dict(self._local_grid)
-        aggregated_dict.update(self._external_grid)
+        # concatenation of all the the objects having a nature in one dict
+        aggregated_dict = dict(self._local_grids)
+        aggregated_dict.update(self._external_grids)
         aggregated_dict.update(self._clusters)
         aggregated_dict.update(self._productions)
         aggregated_dict.update(self._consumptions)
 
-        # then we create a list containing all the effectively used natures
+        # loop which fills used_natures
         for key in aggregated_dict:
             nature = aggregated_dict[key].nature
             if nature not in used_natures:
                 used_natures.append(nature)
 
-        self._natures.purge(used_natures)  # a method which removes the natures not present in used_natures
+        self._natures.purge_unused(used_natures)  # a method which removes the natures not present in used_natures
 
     def start(self):
 
@@ -291,7 +291,7 @@ class World:
         exec(open(path).read())
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     ############################################################################################
 
     def _update_time(self):  # update the time entries in the catalog to the next iteration step
@@ -328,12 +328,43 @@ class World:
         return big_separation + f'\nWORLD = {self._name} : {len(self._consumptions)} consumers and ' \
             f'{len(self._productions)} producers'
 
-    def duplicate(cls, old_world, new_world_name):  # not functional yet
-        new_world = deepcopy(old_world)
-        new_world._name = new_world_name
-        return new_world
+    # shortcuts to access the dictionaries
 
-    duplicate = classmethod(duplicate)
+    @property
+    def local_grids(self):  # shortcut for read-only
+        return self._local_grids
+
+    @property
+    def external_grids(self):  # shortcut for read-only
+        return self._external_grids
+
+    @property
+    def agents(self):  # shortcut for read-only
+        return self._agents
+
+    @property
+    def clusters(self):  # shortcut for read-only
+        return self._clusters
+
+    @property
+    def consumptions(self):  # shortcut for read-only
+        return self._consumptions
+
+    @property
+    def productions(self):  # shortcut for read-only
+        return self._productions
+
+    @property
+    def daemons(self):  # shortcut for read-only
+        return self._daemons
+
+    @property
+    def dataloggers(self):  # shortcut for read-only
+        return self._dataloggers
+
+    @property
+    def supervisors(self):  # shortcut for read-only
+        return self._supervisors
 
 
 # ##############################################################################################
@@ -366,6 +397,9 @@ class Device:
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
         pass
 
+    def _user_register(self):  # where users put device-specific behaviors
+        pass
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -395,6 +429,18 @@ class Device:
     def nature(self):  # shortcut for read-only
         return self._nature
 
+    @property
+    def agent(self):  # shortcut for read-only
+        return self._agent
+
+    @property
+    def cluster(self):  # shortcut for read-only
+        return self._cluster
+
+    @property
+    def grid(self):  # shortcut for read-only
+        return self._grid
+
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
 
@@ -423,10 +469,10 @@ class Consumption(Device):
         # being satisfied in the current time step
 
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
+        self._register_consumption(catalog)
         pass
 
-    def init(self):
-        # Add published data to the catalog
+    def _user_register(self):  # where users put device-specific behaviors
         pass
 
     # ##########################################################################################
@@ -440,7 +486,7 @@ class Consumption(Device):
     mass_create = classmethod(mass_create)
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     # ##########################################################################################
 
     def _update(self):  # method updating data to the current timestep
@@ -469,10 +515,10 @@ class Production(Device):
         self._register_device(catalog)  # make the operations relevant for all kind of entities
 
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
+        self._register_production(catalog)
         pass
 
-    def init(self):
-        # Add published data to the catalog
+    def _user_register(self):  # where users put device-specific behaviors
         pass
 
     # ##########################################################################################
@@ -486,7 +532,7 @@ class Production(Device):
     mass_create = classmethod(mass_create)
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     # ##########################################################################################
 
     def _update(self):  # method updating data to the current timestep

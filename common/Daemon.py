@@ -25,10 +25,10 @@ class Daemon:
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
-        self._init()  # create relevant entries in the catalog
+        self._user_register()  # create relevant entries in the catalog
 
     # ##########################################################################################
-    # Dynamic behaviour
+    # Dynamic behavior
     # ##########################################################################################
 
     def _launch(self):  # modify the catalog at the given period
@@ -40,7 +40,7 @@ class Daemon:
             self._process()
             self._next_time += self._period
 
-    def _init(self):  # where are defined specific entries in the catalog
+    def _user_register(self):  # where are defined user-specific entries in the catalog
         pass
 
     def _process(self):  # where the catalog entries are modified

@@ -29,6 +29,9 @@ class Cluster:
     def nature(self):  # shortcut for read-only
         return self._nature
 
+    @property
+    def name(self):  # shortcut for read-only
+        return self._name
 
 
 
