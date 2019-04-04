@@ -153,7 +153,8 @@ world.register_cluster(cluster)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, name_cluster)  # creation of a consumption point
+consumptionInputFile="usr/Devices/DummyLoadProfile.input"
+e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, consumptionInputFile, name_cluster)  # creation of a consumption point
 c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, name_cluster)  # creation of a production point
 # the nature of these dummy devices is LVE by definition
 
@@ -172,7 +173,7 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent)  # creation and registration of
+DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent, consumptionInputFile)  # creation and registration of
 # 10 dummy consumptions
 DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent)  # creation and registration of
 # 10 dummy productions

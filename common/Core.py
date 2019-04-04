@@ -455,6 +455,7 @@ class Consumption(Device):
         super().__init__(name, nature, grid_name, agent_name, cluster_name)
 
         self._interruptibility = 0  # 1 means the system can be switched off while working
+        self._completeness = 0; #
         # params eco, socio, etc
 
     # ##########################################################################################
@@ -470,7 +471,7 @@ class Consumption(Device):
 
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
         self._register_consumption(catalog)
-        pass
+        self._user_register()
 
     def _user_register(self):  # where users put device-specific behaviors
         pass
@@ -516,7 +517,7 @@ class Production(Device):
 
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
         self._register_production(catalog)
-        pass
+        self._user_register()
 
     def _user_register(self):  # where users put device-specific behaviors
         pass
