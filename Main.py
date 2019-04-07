@@ -37,7 +37,7 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.DummyDevice import DummyConsumption, DummyProduction
+from usr.Devices.DummyDevice import DummyConsumption, DummyShiftableConsumption, DummyProduction
 
 from common.Datalogger import Datalogger
 
@@ -53,7 +53,7 @@ from usr.Daemons.DummyDaemon import DummyDaemon
 # Creation of the world
 # a world <=> a case, it contains all the model
 # a world needs just a name
-name_world = "Earth"
+name_world = "Disc World"
 world = World(name_world)  # creation
 
 
@@ -153,9 +153,13 @@ world.register_cluster(cluster)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-consumptionInputFile="usr/Devices/DummyLoadProfile.input"
-e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, consumptionInputFile, name_cluster)  # creation of a consumption point
-c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, name_cluster)  # creation of a production point
+consumption_input_file = "usr/Datafiles/DummyBaseloadProfile.input"
+e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, consumption_input_file, name_cluster)  # creation of a consumption point
+production_input_file = "usr/Datafiles/DummyProductionProfile.input"
+c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, production_input_file, name_cluster)  # creation of a production point
+shiftable_consumption_input_file = "usr/Datafiles/DummyShiftingLoadProfile.input"
+e2 = DummyShiftableConsumption("Paul", name_local_grid_elec, name_agent, shiftable_consumption_input_file, name_cluster)  # creation of a consumption point
+
 # the nature of these dummy devices is LVE by definition
 
 print(e1)  # displays the name and the type of the device
@@ -165,6 +169,7 @@ world.catalog.print_debug()  # displays the content of the catalog
 # registration of our devices
 # note that the same method is used for all kind of devices
 world.register_device(e1)  # registration of a consumption device
+world.register_device(e2)  # registration of a consumption device
 world.register_device(c1)  # registration of a production device
 
 world.catalog.print_debug()  # displays the content of the catalog
@@ -173,10 +178,10 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent, consumptionInputFile)  # creation and registration of
-# 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent)  # creation and registration of
-# 10 dummy productions
+DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent, consumption_input_file)
+# creation and registration of 10 dummy consumptions
+DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent, production_input_file)
+# creation and registration of 10 dummy productions
 
 
 # ##############################################################################################

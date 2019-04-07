@@ -1,8 +1,8 @@
-from common.Core import Consumer
+from common.Core import Consumption
 
 
 # This subclass corresponds to heating and cooling devices
-class Heating(Consumer):
+class Heating(Consumption):
 
     def __init__(self, name):
         super().__init__(name)

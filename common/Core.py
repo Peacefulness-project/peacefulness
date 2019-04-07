@@ -3,7 +3,6 @@
 # Native packages
 import datetime
 import os
-from copy import deepcopy
 # Current packages
 from common.Catalog import Catalog
 from common.lib.NatureList import NatureList
