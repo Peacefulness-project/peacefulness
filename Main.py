@@ -37,7 +37,7 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.DummyDevice import DummyConsumption, DummyShiftableConsumption, DummyProduction
+from usr.Devices.DummyDevice import DummyConsumption, DummyShiftableConsumption, DummyAdjustableConsumption, DummyProduction
 
 from common.Datalogger import Datalogger
 
@@ -99,7 +99,9 @@ world.set_natures(nature)  # registration
 # this object manages the two times (physical and iteration)
 # it needs a start date, the value of an iteration in s and the total number of iterations
 start_date = datetime.datetime.now()  # a start date in the datetime format
-world.set_time_manager(start_date, 1, 24)  #
+world.set_time_manager(start_date,  # time management: start date
+                       1,  # value of a time step ( in hours)
+                       24)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -154,11 +156,17 @@ world.register_cluster(cluster)  # registration
 
 # creation of our devices
 consumption_input_file = "usr/Datafiles/DummyBaseloadProfile.input"
-e1 = DummyConsumption("Essai", name_local_grid_elec, name_agent, consumption_input_file, name_cluster)  # creation of a consumption point
+e1 = DummyConsumption("Essai", 1, name_local_grid_elec, name_agent, consumption_input_file, name_cluster)  # creation of a consumption point
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
 c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, production_input_file, name_cluster)  # creation of a production point
 shiftable_consumption_input_file = "usr/Datafiles/DummyShiftingLoadProfile.input"
-e2 = DummyShiftableConsumption("Paul", name_local_grid_elec, name_agent, shiftable_consumption_input_file, name_cluster)  # creation of a consumption point
+
+# shiftable device
+shiftable_consumption_input_file = "usr/Datafiles/DummyShiftingLoadProfile.input"
+e2 = DummyShiftableConsumption("Dishwasher", 1, name_local_grid_elec, name_agent, shiftable_consumption_input_file, name_cluster)  # creation of a consumption point
+# adjustable device
+adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
+e3 = DummyAdjustableConsumption("Heating", 1, name_local_grid_elec, name_agent, adjustable_consumption_input_file, name_cluster)  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -170,6 +178,7 @@ world.catalog.print_debug()  # displays the content of the catalog
 # note that the same method is used for all kind of devices
 world.register_device(e1)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
+world.register_device(e3)  # registration of a consumption device
 world.register_device(c1)  # registration of a production device
 
 world.catalog.print_debug()  # displays the content of the catalog
@@ -178,7 +187,7 @@ world.catalog.print_debug()  # displays the content of the catalog
 # this method is user-defined for each specific device
 # it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, name_local_grid_elec, name_agent, consumption_input_file)
+DummyConsumption.mass_create(10, "conso", 1, world, name_local_grid_elec, name_agent, consumption_input_file)
 # creation and registration of 10 dummy consumptions
 DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent, production_input_file)
 # creation and registration of 10 dummy productions

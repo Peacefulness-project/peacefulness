@@ -4,17 +4,13 @@
 import random as rnd
 
 
-file = open("../../usr/Datafiles/DummyShiftableLoadProfile.input", "w")
+file = open("../../usr/Datafiles/DummyAdjustableLoadProfile.input", "w")
 
 
 for i in range(rnd.randint(50, 365)):
 
-    # early start date
+    # start date
     rand_time = rnd.randint(0, 8759)
-    file.write(f"{rand_time}  ")
-
-    # last start date
-    rand_time += rnd.randint(0, 10)
     file.write(f"{rand_time}  ")
 
     # consumption during use

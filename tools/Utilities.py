@@ -1,5 +1,6 @@
 # This sheet regroups little things used to simplify the rest of the program
 import os
+import numpy as np
 
 # normalized separations
 little_separation = "---------------------------------------------------------"
@@ -27,3 +28,18 @@ def adapt_path(blocks):  # this function allows to choose / or \ in a path accor
         string += blocks[len(blocks) - 1]
 
     return string
+
+
+def check_zero_one(list_or_array):
+
+    for element in list_or_array:
+        if isinstance(element, list) or isinstance(element, np.ndarray):
+            check_zero_one(element)
+        elif not isinstance(element, float):
+            raise Exception("the list must contain only floats")
+        else:
+            if element < 0 or element > 1:
+                print(element)
+                raise Exception("all elements must belong to [0;1]")
+
+

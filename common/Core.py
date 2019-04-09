@@ -450,11 +450,11 @@ class Device:
 # They correspond to one engine (one dishwasher e.g)
 class Consumption(Device):
 
-    def __init__(self, name, nature, grid_name, agent_name, cluster_name=None):
+    def __init__(self, name, nature, max_energy, grid_name, agent_name, cluster_name=None):
         super().__init__(name, nature, grid_name, agent_name, cluster_name)
 
         self._interruptibility = 0  # 1 means the system can be switched off while working
-        self._completeness = 0; #
+        self.max_energy = max_energy  # the maximum energy the device can receive
         # params eco, socio, etc
 
     # ##########################################################################################
@@ -479,7 +479,7 @@ class Consumption(Device):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, world, grid_name, agent_name, cluster_name=None):
+    def mass_create(cls, n, name, max_energy, world, grid_name, agent_name, cluster_name=None):
         # a class method allowing to create several instance of a same class
         pass
 
