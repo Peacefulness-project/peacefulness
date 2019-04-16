@@ -12,11 +12,6 @@ def initialize(world, catalog):  # initialization of the supervisor by adding en
         catalog.add(f"{world.name}_{nature}_consumption_balance", 0)
         catalog.add(f"{world.name}_{nature}_production_balance", 0)
 
-    # for local grids
-    for name in world.local_grids:
-        catalog.add(f"{name}_consumption_balance", 0)
-        catalog.add(f"{name}_production_balance", 0)
-
     # for agents
     for nature in world.natures:  # these entries correspond to the balance made for each nature
         for name in world.agents:
@@ -35,20 +30,8 @@ def initialize(world, catalog):  # initialization of the supervisor by adding en
 
 def start_round(world):  # function updating data to the current timestep
 
-    for key in world.consumptions:
-        world._consumptions[key]._update()
-
-    for key in world.productions:
-        world._productions[key]._update()
-
-    # for key in world._transformers:
-    #     world._transformers[key]._update()
-    #
-    # for key in world._storage:
-    #     world._storage[key]._update()
-
-    for key in world.external_grids:
-        world._external_grids[key]._update()
+    for key in world.devices:
+        world._devices[key]._update()
 
     for key in world.agents:
         world._agents[key]._update()
@@ -56,6 +39,9 @@ def start_round(world):  # function updating data to the current timestep
 
 def end_round(world):  # function incrementing the time step and calling dataloggers and daemons
     # it is called after the resolution of the round
+
+    for key in world.devices:
+        world._devices[key].react()
 
     for key in world.dataloggers:  # activation of the dataloggers, they must be called before the daemons,
         # who may have an impact on data
@@ -71,7 +57,6 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
 
     # the following variable will account the sums of energy
     world_balance = dict()  # balance for each energy type in world
-    local_grid_balance = dict()  # balance for one local grid
     agent_balance = dict()  # balance for each energy type for one agent
     cluster_balance = dict()  # balance for one cluster
 
@@ -81,9 +66,6 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
         world_balance[nature] = [0, 0]
         agent_balance[nature] = dict()
 
-    for name in world.local_grids:
-        local_grid_balance[name] = [0, 0]
-
     for nature in world.natures:
         for name in world.agents:
             agent_balance[nature][name] = [0, 0]
@@ -92,32 +74,27 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
         cluster_balance[name] = [0, 0]
 
     # balance
-    for key in world.consumptions:  # consumption balance for each kind of object
-        consumption = world.consumptions[key]
-        world_balance[consumption.nature][0] += catalog.get(f"{consumption.name}.energy")
-        local_grid_balance[consumption.grid][0] += catalog.get(f"{consumption.name}.energy")
-        agent_balance[consumption.nature][consumption.agent][0] += catalog.get(f"{consumption.name}.energy")
-        if consumption.cluster is not None:
-            cluster_balance[consumption.cluster][0] += catalog.get(f"{consumption.name}.energy")
+    for key in world.devices:  # consumption and production balances
+        device = world.devices[key]
 
-    for key in world.productions:  # production balance for each kind of object
-        production = world.productions[key]
-        world_balance[production.nature][1] += catalog.get(f"{production.name}.energy")
-        local_grid_balance[production.grid][1] = catalog.get(f"{production.name}.energy")
-        agent_balance[production.nature][production.agent][1] += catalog.get(f"{production.name}.energy")
-        if production.cluster is not None:  # cluster are optional and so a test is needed
-            cluster_balance[production.cluster][1] = catalog.get(f"{production.name}.energy")
+        for nature in device.natures:
+            # consumption balance
+            consumption = catalog.get(f"{device.name}.{nature.name}.asked_energy")
+            world_balance[nature.name][0] += consumption
+            agent_balance[nature.name][device.agent.name][0] += consumption
+            cluster_balance[device.natures[nature].name][0] += consumption
+
+            # production balance
+            production = catalog.get(f"{device.name}.{nature.name}.proposed_energy")
+            world_balance[nature.name][1] += production
+            agent_balance[nature.name][device.agent.name][1] += production
+            cluster_balance[device.natures[nature].name][1] += production
 
     # writing the balance in the catalog
     # for world
     for nature in world.natures:  # saving the balance in the catalog
         catalog.set(f"{world.name}_{nature}_consumption_balance", world_balance[nature][0])
         catalog.set(f"{world.name}_{nature}_production_balance", world_balance[nature][1])
-
-    # for local grids
-    for name in world.local_grids:
-        catalog.set(f"{name}_consumption_balance", local_grid_balance[name][0])
-        catalog.set(f"{name}_production_balance", local_grid_balance[name][1])
 
     # for agents
     for nature in world.natures:  # saving the balance in the catalog
@@ -126,7 +103,7 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
             catalog.set(f"{name}_{nature}_production_balance", agent_balance[nature][name][1])
 
     # for clusters
-    for name in world.clusters:
+    for name in world.clusters:  # saving the balance in the catalog
         catalog.set(f"{name}_consumption_balance", cluster_balance[name][0])
         catalog.set(f"{name}_production_balance", cluster_balance[name][1])
 

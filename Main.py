@@ -27,11 +27,7 @@ from common.Catalog import Catalog
 
 from common.Supervisor import Supervisor
 
-from common.lib.NatureList import NatureList
-
-from common.ExternalGrid import ExternalGrid
-
-from common.LocalGrid import LocalGrid
+from common.Nature import Nature
 
 from common.Agent import Agent
 
@@ -85,16 +81,6 @@ world.register_supervisor(supervisor)
 
 
 # ##############################################################################################
-# Nature list
-# this object defines the different natures present in world
-# some are predefined but it is possible to create user-defined natures
-nature = NatureList()  # creation of a nature
-name_new_nature = "Orgone"
-nature.add(name_new_nature, "mysterious organic energy")  # Optional addition of a new energy nature
-world.set_natures(nature)  # registration
-
-
-# ##############################################################################################
 # Time Manager
 # this object manages the two times (physical and iteration)
 # it needs a start date, the value of an iteration in s and the total number of iterations
@@ -111,42 +97,35 @@ world.set_time_manager(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Local grid
-# this object represents the grids inside wolrd
-# it allows to define who is able to exchange with who
-name_local_grid_elec = "Enedis"
-local_grid_elec = LocalGrid(name_local_grid_elec, "LVE")  # creation
-world.register_local_grid(local_grid_elec)  # registration
-
-
-# ##############################################################################################
-# External grid
-# this object represents grids outside world which interact with it
-name_external_grid = "RTE"
-external_grid_elec = ExternalGrid(name_external_grid, "LVE", name_local_grid_elec)  # creation
-world.register_external_grid(external_grid_elec)  # registration
+# Nature list
+# this object represents a nature of energy present in world
+Elec = Nature("LVE")  # creation of a nature
+Elec.add_description("Low Voltage Elec")  # Optional description of the nature
+world.register_nature(Elec)  # registration
 
 
 # ##############################################################################################
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
-name_agent = "James Bond"
-agent = Agent(name_agent)  # creation of an agent
+agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
 
 name_elec_contract = "contrat classique"
-agent.set_contract("LVE", name_elec_contract)  # definition of a contract
+agent.set_contract(Elec, name_elec_contract)  # definition of a contract
 
 
 # ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
-name_cluster = "general cluster"
-cluster = Cluster(name_cluster, "LVE", name_local_grid_elec)  # creation of a cluster
+# there is also a third argument to precise if the cluster
+cluster = Cluster("general cluster", Elec)  # creation of a cluster
 world.register_cluster(cluster)  # registration
 
+# here we add a grid, which represents an infinite producer
+elec_grid = Cluster("Enedis", Elec, True)
+world.register_cluster(elec_grid)  # registration
 
 # ##############################################################################################
 # Devices
@@ -156,22 +135,21 @@ world.register_cluster(cluster)  # registration
 
 # creation of our devices
 consumption_input_file = "usr/Datafiles/DummyBaseloadProfile.input"
-e1 = DummyConsumption("Essai", 1, name_local_grid_elec, name_agent, consumption_input_file, name_cluster)  # creation of a consumption point
+e1 = DummyConsumption("Essai", Elec, agent, consumption_input_file, cluster)  # creation of a consumption point
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
-c1 = DummyProduction("Toto", name_local_grid_elec, name_agent, production_input_file, name_cluster)  # creation of a production point
-shiftable_consumption_input_file = "usr/Datafiles/DummyShiftingLoadProfile.input"
+c1 = DummyProduction("Toto", Elec, agent, production_input_file, cluster)  # creation of a production point
 
 # shiftable device
-shiftable_consumption_input_file = "usr/Datafiles/DummyShiftingLoadProfile.input"
-e2 = DummyShiftableConsumption("Dishwasher", 1, name_local_grid_elec, name_agent, shiftable_consumption_input_file, name_cluster)  # creation of a consumption point
+shiftable_consumption_input_file = "usr/Datafiles/DummyShiftableLoadProfile.input"
+e2 = DummyShiftableConsumption("Dishwasher", Elec, agent, shiftable_consumption_input_file, cluster)  # creation of a consumption point
 # adjustable device
 adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
-e3 = DummyAdjustableConsumption("Heating", 1, name_local_grid_elec, name_agent, adjustable_consumption_input_file, name_cluster)  # creation of a consumption point
+e3 = DummyAdjustableConsumption("Heating", Elec, agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
-print(e1)  # displays the name and the type of the device
-print(c1)  # displays the name and the type of the device
+# print(e1)  # displays the name and the type of the device
+# print(c1)  # displays the name and the type of the device
 world.catalog.print_debug()  # displays the content of the catalog
 
 # registration of our devices
@@ -181,15 +159,15 @@ world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
 world.register_device(c1)  # registration of a production device
 
-world.catalog.print_debug()  # displays the content of the catalog
+# world.catalog.print_debug()  # displays the content of the catalog
 
 # there is another way to create devices using a class method "mass_create"
 # this method is user-defined for each specific device
-# it takes 3 arguments: the number of devices, a root name for the devices ( "root name"_"number")
+# it takes 3 more arguments: the number of devices, a root name for the devices (name = "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", 1, world, name_local_grid_elec, name_agent, consumption_input_file)
+DummyConsumption.mass_create(10, "conso", Elec, world, agent, consumption_input_file)
 # creation and registration of 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, name_local_grid_elec, name_agent, production_input_file)
+DummyProduction.mass_create(10, "prod", Elec, world, agent, production_input_file, cluster)
 # creation and registration of 10 dummy productions
 
 

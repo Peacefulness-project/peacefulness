@@ -20,7 +20,7 @@ class Agent:
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
         self._contract[nature] = contract  # add a key in the contract dictionary
-        self._catalog.add(f"{self._name}.{nature}", contract)  # add an entry in the catalog to make it public
+        self._catalog.add(f"{self._name}.{nature.name}", contract)  # add an entry in the catalog to make it public
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the local grid with the catalog of world
@@ -44,4 +44,7 @@ class Agent:
     def name(self):  # shortcut for read-only
         return self._name
 
+    @property
+    def natures(self):  # shortcut for read-only
+        return self._contract.keys()
 

@@ -43,3 +43,13 @@ def check_zero_one(list_or_array):
                 raise Exception("all elements must belong to [0;1]")
 
 
+def into_list(object):  # if the object is not a list, this function will return a list containing only the object
+    if not isinstance(object, list):
+        object = [object]
+
+    return object
+
+
+
+
+
