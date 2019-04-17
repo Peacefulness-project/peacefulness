@@ -22,7 +22,7 @@ for i in range(number_of_uses):
     file.write(f"{rand_time[i]}  ")
 
     # last start date
-    rand_duration = rand_time[i] + rnd.randint(0, 10)
+    rand_duration = rand_time[i] + rnd.randint(1, 10)
     file.write(f"{rand_duration}  ")
 
     # consumption during use

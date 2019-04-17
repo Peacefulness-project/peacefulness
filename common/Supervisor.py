@@ -26,4 +26,7 @@ class Supervisor:
     def name(self):  # shortcut for read-only
         return self._name
 
+    @property
+    def filename(self):  # shortcut for read-only
+        return self._filename
 

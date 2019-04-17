@@ -45,11 +45,9 @@ class World:
         # they serve as a default cluster
 
         self._devices = dict()  # dict containing the devices
-        self._consumptions = dict()  # dict containing the consumptions
-        self._productions = dict()  # dict containing the productions
 
-        self._daemons = dict()  # dict containing the daemons
         self._dataloggers = dict()  # dict containing the dataloggers
+        self._daemons = dict()  # dict containing the daemons
 
         self._supervisors = dict()  # objects which perform the calculus
 
@@ -131,7 +129,7 @@ class World:
 
         # checking if a cluster has been defined for each nature
         for nature in device.natures:
-            if device.natures[nature] is None:  # if it has not:
+            if device.natures[nature] is None:  # if it has not one:
                 if nature.has_external_grid:  # if a grid is defined, it is attached to it
                     device._natures[nature] = self._clusters[self._grids[nature]]
                 else:  # otherwise, an exception is raised
@@ -206,10 +204,6 @@ class World:
         if "path" not in self.catalog.keys:
             raise WorldException(f"A path is specified for the results files")
 
-        # checking if a nature list is defined
-        if self._natures is None:
-            raise WorldException(f"A nature list is needed")
-
         # checking if a supervisor is defined
         if not self._supervisors:
             raise WorldException(f"At least one supervisor is needed")
@@ -221,7 +215,8 @@ class World:
         world = self
         catalog = self._catalog
 
-        path = adapt_path(["usr", "supervisors", "DummySupervisorMain.py"])
+        for supervisor in self._supervisors:
+            path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename ])
 
         exec(open(path).read())
 
@@ -302,16 +297,20 @@ class Device:
         self._inputs = dict()
         self._outputs = dict()
 
-        natures = into_list(natures)
+        natures = into_list(natures)  # make it iterable
         for nature in natures:
             self._natures[nature] = None
             self._inputs[nature] = [0, 0, 0]
             self._outputs[nature] = [0, 0, 0]
 
         if clusters:
-            clusters = into_list(clusters)
+            clusters = into_list(clusters)  # make it iterable
             for cluster in clusters:
-                self._natures[cluster.nature] = cluster
+                if cluster.nature in self.natures:
+                    self._natures[cluster.nature] = cluster
+                else:
+                    raise DeviceException(f"{cluster.name} is of nature {cluster.nature}, "
+                                          f"which is not present in the device")
 
         self._agent = agent_name  # the agent represents the owner of the device
 

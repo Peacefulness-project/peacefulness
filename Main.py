@@ -38,6 +38,7 @@ from usr.Devices.DummyDevice import DummyConsumption, DummyShiftableConsumption,
 from common.Datalogger import Datalogger
 
 from usr.Daemons.DummyDaemon import DummyDaemon
+from usr.Daemons.DissatisfactionErosion import DissatisfactionErosionDaemon
 
 # ##############################################################################################
 # Minimum
@@ -82,8 +83,7 @@ world.register_supervisor(supervisor)
 
 # ##############################################################################################
 # Time Manager
-# this object manages the two times (physical and iteration)
-# it needs a start date, the value of an iteration in s and the total number of iterations
+# it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.datetime.now()  # a start date in the datetime format
 world.set_time_manager(start_date,  # time management: start date
                        1,  # value of a time step ( in hours)
@@ -196,8 +196,14 @@ logger2.add("simulation_time")  # this datalogger exports only the current itera
 # as an example, it can update some meteorological data
 
 # daemons need 2 arguments: a name and a period of activation
-dem = DummyDaemon("MonDemonDeMidi", 10)  # creation
-world.register_daemon(dem)  # registration
+daemon = DummyDaemon("MonDemonDeMidi", 10)  # creation
+world.register_daemon(daemon)  # registration
+
+# dissatisfaction erosion
+# this daemon reduces slowly the dissatisfaction of all agents over the time
+# here it is set like this: 10% of dissatisfaction will
+dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, 0.9, 168)  # creation
+world.register_daemon(dissatisfaction_management)  # registration
 
 
 # ##############################################################################################

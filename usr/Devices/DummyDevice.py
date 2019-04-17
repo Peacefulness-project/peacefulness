@@ -106,11 +106,13 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
         current_year = current_time.year
         current_year = dt.datetime(year=current_year, month=1, day=1)
         current_hour = current_time - current_year  # getting the duration between 01/01 and the current date
-        current_hour = current_hour.seconds // 3600  # converting this duration in hours
+        current_hour = current_hour.days*24 + current_hour.seconds // 3600  # converting this duration in hours
 
         if self._remaining_time == 0:  # if the device is not running
+
             for data in self._NomQuiPlairaPasAStephane:
                 if data[0] <= current_hour <= data[1]:  # if the current hour belongs to an interval
+
                     for nature in self._natures:
                         self._catalog.set(f"{self.name}.{nature.name}.asked_energy", data[2][0])  # what the device asks
 
@@ -189,7 +191,7 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
         file = file.split("\n")
 
         for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.max_energy", file[-1])  # recovering of the max energy, on the last line
+            self._catalog.set(f"{self.name}.{nature.name}.max_energy", float(file[-1]))  # recovering of the max energy, on the last line
         del file[-1]  # deleting the last line
 
         for line in file:  # converting the file into floats
@@ -221,13 +223,13 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
             current_year = current_time.year
             current_year = dt.datetime(year=current_year, month=1, day=1)
             current_hour = current_time - current_year  # getting the duration between 01/01 and the current date
-            current_hour = current_hour.seconds // 3600  # converting this duration in hours
+            current_hour = current_hour.days * 24 + current_hour.seconds // 3600  # converting this duration in hours
 
             for data in self._NomQuiPlairaPasAStephane:
                 # initialization of the use
                 if data[0] == current_hour:  # if the current hour corresponds to the beginning of a use
                     self._current_line = self._NomQuiPlairaPasAStephane.index(data)  # saving the line of data
-                    self._remaining_time = len(data[2])  # setting the remaining time of use
+                    self._remaining_time = len(data[1])  # setting the remaining time of use
                 pass    # this means the "for" ends, no matter if other uses would have been relevant,
                         # as this is a problem in the construction of the data file
 
@@ -238,10 +240,14 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
                 self._catalog.set(f"{self.name}.{nature.name}.asked_energy", data[1][-self._remaining_time])  # what the device asks
 
                 # calculus of the priority
-                priority.append((self._catalog.get(f"{self.name}.{nature.name}.max_energy") * (
-                            self._remaining_time - 1))  # what is possible to deliver
-                                / (sum(data[1][-self._remaining_time]) + self._latent_demand))  # what is still needed
-            self._catalog.set(f"{self.name}.priority", min(max(priority),1))
+                # what is still needed / what is possible to deliver
+                if self._remaining_time == 1:  # if it is the last round
+                    priority.append(1)  # priority is set to one, as it won't be possible to deliver last time
+                else:
+                    priority.append((sum(data[1][-self._remaining_time:]) + self._latent_demand)\
+                    / (self._catalog.get(f"{self.name}.{nature.name}.max_energy") * (self._remaining_time - 1)))
+
+            self._catalog.set(f"{self.name}.priority", min(max(priority), 1))
 
             self._remaining_time -= 1
             if self._remaining_time == 0:  # if the device is shut down after
