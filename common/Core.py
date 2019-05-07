@@ -78,7 +78,7 @@ class World:
 
         self._catalog.add("path", path)
 
-    def set_time_manager(self, start_date=datetime.datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
+    def set_time(self, start_date=datetime.datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
@@ -129,7 +129,7 @@ class World:
 
         # checking if a cluster has been defined for each nature
         for nature in device.natures:
-            if device.natures[nature] is None:  # if it has not one:
+            if device.natures[nature] is None:  # if it has no cluster:
                 if nature.has_external_grid:  # if a grid is defined, it is attached to it
                     device._natures[nature] = self._clusters[self._grids[nature]]
                 else:  # otherwise, an exception is raised

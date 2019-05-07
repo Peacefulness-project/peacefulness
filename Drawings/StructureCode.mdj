@@ -407,7 +407,7 @@
 											"top": 815,
 											"width": 338.51416015625,
 											"height": 13,
-											"text": "+set_time_manager(start_date, timestep_value, time_limit)",
+											"text": "+set_time(start_date, timestep_value, time_limit)",
 											"horizontalAlignment": 0
 										},
 										{
@@ -9313,7 +9313,7 @@
 							"_parent": {
 								"$ref": "AAAAAAFqAcgGUOTBWbs="
 							},
-							"name": "set_time_manager",
+							"name": "set_time",
 							"parameters": [
 								{
 									"_type": "UMLParameter",

@@ -74,6 +74,9 @@ world.set_directory(pathExport)  # registration
 # ##############################################################################################
 # Supervisor --> il est en stand-by
 # this object contains just the path to  your supervisor script and a brief description of what it does
+
+
+# TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
 name_supervisor = "glaDOS"
 supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py")
 supervisor.description = "this supervisor is a really basic one. It just serves as a " \
@@ -85,9 +88,9 @@ world.register_supervisor(supervisor)
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.datetime.now()  # a start date in the datetime format
-world.set_time_manager(start_date,  # time management: start date
-                       1,  # value of a time step ( in hours)
-                       24)  # number of time steps simulated
+world.set_time(start_date,  # time management: start date
+               1,  # value of a time step (in hours)
+               24)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -100,7 +103,7 @@ world.set_time_manager(start_date,  # time management: start date
 # Nature list
 # this object represents a nature of energy present in world
 Elec = Nature("LVE")  # creation of a nature
-Elec.add_description("Low Voltage Elec")  # Optional description of the nature
+Elec.add_description("Low Voltage Electricity")  # Optional description of the nature
 world.register_nature(Elec)  # registration
 
 
@@ -139,6 +142,7 @@ e1 = DummyConsumption("Essai", Elec, agent, consumption_input_file, cluster)  # 
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
 c1 = DummyProduction("Toto", Elec, agent, production_input_file, cluster)  # creation of a production point
 
+# TODO: Créer les classes de base
 # shiftable device
 shiftable_consumption_input_file = "usr/Datafiles/DummyShiftableLoadProfile.input"
 e2 = DummyShiftableConsumption("Dishwasher", Elec, agent, shiftable_consumption_input_file, cluster)  # creation of a consumption point
