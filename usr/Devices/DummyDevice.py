@@ -8,8 +8,8 @@ from common.Core import Device
 
 class DummyConsumption(Device):
 
-    def __init__(self, name, natures, agent_name, filename, cluster_names=None):
-        super().__init__(name, natures, agent_name, cluster_names)
+    def __init__(self, name,  agent_name, filename, clusters):
+        super().__init__(name, agent_name, clusters)
 
         self._NomQuiPlairaPasAStephane = np.zeros((365, 24))
         self._filename = filename  # the name of the data file
@@ -51,10 +51,10 @@ class DummyConsumption(Device):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, natures, world, agent_name, filename, cluster_name=None):
+    def mass_create(cls, n, name, world, agent_name, filename, cluster):
         for i in range(n):
             device_name = f"{name}_{str(i)}"
-            device = DummyConsumption(device_name, natures, agent_name, filename, cluster_name)
+            device = DummyConsumption(device_name, agent_name, filename, cluster)
             world.register_device(device)
 
     mass_create = classmethod(mass_create)
@@ -62,13 +62,13 @@ class DummyConsumption(Device):
 
 class DummyShiftableConsumption(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, natures, agent_name, filename, cluster_names=None):
-        super().__init__(name, natures, agent_name, cluster_names)
+    def __init__(self, name, agent_name, filename, clusters):
+        super().__init__(name, agent_name, clusters)
 
         self._NomQuiPlairaPasAStephane = list()  # the list containing the scheduled periods of work
         self._filename = filename  # the name of the data file
 
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
+        self._remaining_time = 0  # this counter indicates if a usage is running and how much time it will run
         self._current_line = None  # this counter saves the line corresponding to the ongoing use
 
     # ##########################################################################################
@@ -158,10 +158,10 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, nature, world, agent_name, filename, cluster_name=None):
+    def mass_create(cls, n, name, world, agent_name, filename, cluster):
         for i in range(n):
             entity_name = f"{name}_{str(i)}"
-            entity = DummyShiftableConsumption(entity_name, nature, agent_name, filename, cluster_name)
+            entity = DummyShiftableConsumption(entity_name, agent_name, filename, cluster)
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)
@@ -169,13 +169,13 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
 
 class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, natures, agent_name, filename, cluster_names=None):
-        super().__init__(name, natures, agent_name, cluster_names)
+    def __init__(self, name, agent_name, filename, clusters):
+        super().__init__(name, agent_name, clusters)
 
         self._NomQuiPlairaPasAStephane = []  # the list containing the scheduled periods of work
         self._filename = filename  # the name of the data file
 
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
+        self._remaining_time = 0  # this counter indicates if a usage is running and how much time it will run
         self._current_line = None  # this counter saves the line corresponding to the ongoing use
         self._max_energy = 0  # the maximum energy the device can receive
         self._latent_demand = 0  # the energy that has not been served yet meanwhile it was asked
@@ -191,7 +191,8 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
         file = file.split("\n")
 
         for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.max_energy", float(file[-1]))  # recovering of the max energy, on the last line
+            self._catalog.add(f"{self.name}.{nature.name}.max_energy", float(file[-1]))  # recovering of the max energy, on the last line
+            self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
         del file[-1]  # deleting the last line
 
         for line in file:  # converting the file into floats
@@ -275,10 +276,10 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, nature, world, agent_name, filename, cluster_name=None):
+    def mass_create(cls, n, name, world, agent_name, filename, cluster):
         for i in range(n):
             entity_name = f"{name}_{str(i)}"
-            entity = DummyShiftableConsumption(entity_name, nature, agent_name, filename, cluster_name)
+            entity = DummyShiftableConsumption(entity_name, agent_name, filename, cluster)
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)
@@ -286,8 +287,8 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
 
 class DummyProduction(Device):
 
-    def __init__(self, name, natures, agent_name, filename, cluster_names=None):
-        super().__init__(name, natures, agent_name, cluster_names)
+    def __init__(self, name, agent_name, filename, clusters):
+        super().__init__(name, agent_name, clusters)
 
         self._NomQuiPlairaPasAStephane = []  # the list containing the scheduled periods of work
         self._filename = filename  # the name of the data file
@@ -329,10 +330,10 @@ class DummyProduction(Device):
     # Class method
     # ##########################################################################################
 
-    def mass_create(cls, n, name, nature, world, agent_name, filename, cluster_name=None):
+    def mass_create(cls, n, name, world, agent_name, filename, cluster):
         for i in range(n):
             entity_name = f"{name}_{str(i)}"
-            entity = DummyProduction(entity_name, nature, agent_name, filename, cluster_name)
+            entity = DummyProduction(entity_name, agent_name, filename, cluster)
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)

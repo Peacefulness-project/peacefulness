@@ -77,10 +77,12 @@ world.set_directory(pathExport)  # registration
 
 
 # TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
+
+description = "this supervisor is a really basic one. It just serves as a " \
+              "skeleton/example for your (more) clever supervisor."
 name_supervisor = "glaDOS"
-supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py")
-supervisor.description = "this supervisor is a really basic one. It just serves as a " \
-                         "skeleton/example for your (more) clever supervisor."
+supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py", description)
+
 world.register_supervisor(supervisor)
 
 
@@ -122,7 +124,7 @@ agent.set_contract(Elec, name_elec_contract)  # definition of a contract
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
-# there is also a third argument to precise if the cluster
+# there is also a third argument to precise if the cluster is considered as an infinite grid
 cluster = Cluster("general cluster", Elec)  # creation of a cluster
 world.register_cluster(cluster)  # registration
 
@@ -138,17 +140,17 @@ world.register_cluster(elec_grid)  # registration
 
 # creation of our devices
 consumption_input_file = "usr/Datafiles/DummyBaseloadProfile.input"
-e1 = DummyConsumption("Essai", Elec, agent, consumption_input_file, cluster)  # creation of a consumption point
+e1 = DummyConsumption("Essai", agent, consumption_input_file, cluster)  # creation of a consumption point
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
-c1 = DummyProduction("Toto", Elec, agent, production_input_file, cluster)  # creation of a production point
+c1 = DummyProduction("Toto", agent, production_input_file, cluster)  # creation of a production point
 
 # TODO: Créer les classes de base
 # shiftable device
 shiftable_consumption_input_file = "usr/Datafiles/DummyShiftableLoadProfile.input"
-e2 = DummyShiftableConsumption("Dishwasher", Elec, agent, shiftable_consumption_input_file, cluster)  # creation of a consumption point
+e2 = DummyShiftableConsumption("Dishwasher", agent, shiftable_consumption_input_file, cluster)  # creation of a consumption point
 # adjustable device
 adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
-e3 = DummyAdjustableConsumption("Heating", Elec, agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
+e3 = DummyAdjustableConsumption("Heating", agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -169,9 +171,9 @@ world.register_device(c1)  # registration of a production device
 # this method is user-defined for each specific device
 # it takes 3 more arguments: the number of devices, a root name for the devices (name = "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", Elec, world, agent, consumption_input_file)
+DummyConsumption.mass_create(10, "conso", world, agent, consumption_input_file, elec_grid)
 # creation and registration of 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", Elec, world, agent, production_input_file, cluster)
+DummyProduction.mass_create(10, "prod", world, agent, production_input_file, cluster)
 # creation and registration of 10 dummy productions
 
 
@@ -205,7 +207,7 @@ world.register_daemon(daemon)  # registration
 
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
-# here it is set like this: 10% of dissatisfaction will
+# here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
 dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, 0.9, 168)  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 

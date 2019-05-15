@@ -127,14 +127,6 @@ class World:
         if isinstance(device, Device) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        # checking if a cluster has been defined for each nature
-        for nature in device.natures:
-            if device.natures[nature] is None:  # if it has no cluster:
-                if nature.has_external_grid:  # if a grid is defined, it is attached to it
-                    device._natures[nature] = self._clusters[self._grids[nature]]
-                else:  # otherwise, an exception is raised
-                    raise DeviceException(f"a cluster is needed for {device.name}, as no default grid is defined for {nature.name}")
-
         # checking if the agent is defined correctly
         if device._agent.name not in self._agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
@@ -288,7 +280,7 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, natures, agent_name, clusters):
+    def __init__(self, name, agent_name, clusters):
         self._name = name  # the name which serve as root in the catalog entries
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
@@ -297,20 +289,15 @@ class Device:
         self._inputs = dict()
         self._outputs = dict()
 
-        natures = into_list(natures)  # make it iterable
-        for nature in natures:
-            self._natures[nature] = None
-            self._inputs[nature] = [0, 0, 0]
-            self._outputs[nature] = [0, 0, 0]
-
         if clusters:
             clusters = into_list(clusters)  # make it iterable
             for cluster in clusters:
                 if cluster.nature in self.natures:
-                    self._natures[cluster.nature] = cluster
+                    raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
                 else:
-                    raise DeviceException(f"{cluster.name} is of nature {cluster.nature}, "
-                                          f"which is not present in the device")
+                    self._natures[cluster.nature] = cluster
+                    self._inputs[cluster.nature] = [None, 0, None]
+                    self._outputs[cluster.nature] = [None, 0, None]
 
         self._agent = agent_name  # the agent represents the owner of the device
 
@@ -327,8 +314,8 @@ class Device:
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.asked_energy", 0)  # write directly in the catalog the energy
             self._catalog.add(f"{self.name}.{nature.name}.proposed_energy", 0)  # write directly in the catalog the energy
-            self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
-            self._catalog.add(f"{self.name}.{nature.name}.max_energy", 0)  # write directly in the catalog the maximum energy
+            # self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
+            # self._catalog.add(f"{self.name}.{nature.name}.max_energy", 0)  # write directly in the catalog the maximum energy
         self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
         self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of
                                                         # being satisfied in the current time step
@@ -353,12 +340,6 @@ class Device:
     # ##########################################################################################
     # Class method
     # ##########################################################################################
-
-    def mass_create(cls, n, name, world, agent_name, cluster_name=None):
-        # a class method allowing to create several instance of a same class
-        pass
-
-    mass_create = classmethod(mass_create)
 
     # ##########################################################################################
     # Utility

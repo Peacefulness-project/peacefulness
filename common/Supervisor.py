@@ -4,10 +4,10 @@
 
 class Supervisor:
 
-    def __init__(self, name, filename):
+    def __init__(self, name, filename, description):
         self._name = name  # the name of the supervisor  in the catalog
         self._filename = filename  # the name of the file, who must be in usr.supervisors
-        self.description = ""  # a description of the objective/choice/process of the supervisor
+        self.description = description  # a description of the objective/choice/process of the supervisor
 
         self._catalog = None  # the catalog in which some data are stored
 
