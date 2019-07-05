@@ -21,8 +21,9 @@ class Cluster:
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the local grid with the catalog of world
-        if self._is_grid:
-            self._nature.set_external_grid()
+
+        self._catalog.add(f"{self.name}.energy_ flux")  # accounts for the energy exchanged by the cluster during the round
+        self._catalog.add(f"{self.name}.money_flux")  # accounts for the money exchanged by the cluster during the round
 
     # ##########################################################################################
     # Utility

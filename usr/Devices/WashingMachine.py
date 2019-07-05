@@ -18,7 +18,7 @@ class WashingMachine(Device):
         self._is_done = []  # list of usage already done during one period
         self._hour = None  # the hour of the day
 
-        self._period = 168  # this period represents a typical usage of a washing machine
+        self._period = 168  # this period represents a typical usage of a washing machine (1 week)
 
         self._user_profile = dict()  # user profile of utilisation, describing user's priority
         # hour since the beginning of the period : [ priority, usage ID ]
@@ -109,10 +109,10 @@ class WashingMachine(Device):
             priority = self._usage_profile[nature][-self._remaining_time][1]  # priority associated
 
         for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.asked_energy", consumption[nature.name])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
         self._catalog.set(f"{self.name}.priority", priority)
 
-    def react(self):
+    def _user_react(self):
 
         self._hour = self._hour + 1 - (self._hour // self._period)*self._period  # incrementing the hour in the period
 
@@ -121,7 +121,7 @@ class WashingMachine(Device):
         else:
             if self._hour in self._user_profile:  # if it can correspond to the beginning of an usage
                 for nature in self._natures:
-                    if self._catalog.get(f"{self.name}.{nature.name}.asked_energy") != 0:  # if it has started
+                    if self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") != 0:  # if it has started
                         self._remaining_time = len(self._usage_profile) - 1  # incrementing usage duration
                         self._is_done.append(self._user_profile[self._hour][1])  # the usage is considered as done
 

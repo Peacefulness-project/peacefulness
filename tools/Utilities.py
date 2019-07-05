@@ -1,6 +1,7 @@
 # This sheet regroups little things used to simplify the rest of the program
 import os
 import numpy as np
+import random as rnd
 
 # normalized separations
 little_separation = "---------------------------------------------------------"
@@ -48,6 +49,7 @@ def into_list(object):  # if the object is not a list, this function will return
         object = [object]
 
     return object
+
 
 
 

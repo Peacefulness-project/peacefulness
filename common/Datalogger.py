@@ -11,13 +11,11 @@ class Datalogger:
 
     def __init__(self, name, filename, period=0, sum_over_time=False):
         self._name = name
-        self._catalog = None  # catalog from which data is extracted
+
         #  linked to the catalog of a world later
         self._filename = filename
         self._period = period  # period between 2 activations
         self._sum = sum_over_time  # enables integration of a data between 2 periods
-        # self._data_dict = dict()  # this dictionary associates keys with the
-        # # desired operation
 
         self._list = []  # list of catalog keys which has to be written
 
@@ -25,6 +23,8 @@ class Datalogger:
         # allows to report info such as mean, min and max between two periods
 
         self._next_time = 0  # next time step for which data will be written
+
+        self._catalog = None  # catalog from which data is extracted
 
     # ##########################################################################################
     # Initialization

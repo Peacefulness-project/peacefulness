@@ -3,6 +3,9 @@
 # Native packages
 import datetime
 import os
+import random as rnd
+import json
+import sys
 # Current packages
 from common.Catalog import Catalog
 from common.Nature import Nature
@@ -35,15 +38,17 @@ class World:
         self._timestep_value = None  # value of the timestep used during the simulation (in hours)
         self._time_limit = None  # latest time step of the simulation (in number of iterations)
 
+        # Randomness management
+        self._random_seed = None  # yhe seed used in the random number generator of Python
+
         # dictionaries contained by world
         self._natures = dict()  # energy present in world
-
-        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
 
+        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
         self._devices = dict()  # dict containing the devices
 
         self._dataloggers = dict()  # dict containing the dataloggers
@@ -78,10 +83,24 @@ class World:
 
         self._catalog.add("path", path)
 
+    def set_random_seed(self, seed=datetime.datetime.now()):  # this method defines the seed used by the random number generator of Python
+        self._random_seed = seed  # the seed is saved
+        rnd.seed(self._random_seed)  # the seed is passed to world in order to save it somewhere
+
+        def rand_float():  # function returning a float between 0 and 1
+            return rnd.random()
+
+        def rand_int(min_int, max_int):  # function returning an int between min and max
+            return rnd.randint(min_int, max_int)
+
+        self._catalog.add("float", rand_float)
+        self._catalog.add("int", rand_int)
+
     def set_time(self, start_date=datetime.datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
+        self._catalog.add("time_step", timestep_value)  # value of a time step, used to adapt hourly-defined profiles
         self._timestep_value = datetime.timedelta(hours=timestep_value)
         self._time_limit = time_limit
 
@@ -91,18 +110,6 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         self._natures[nature.name] = nature
-
-    def register_agent(self, agent):  # method connecting one agent to the world
-        if agent.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{agent.name} already in use")
-
-        if isinstance(agent, Agent) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        agent._register(self._catalog)   # linking the agent with the catalog of world
-        self._agents[agent.name] = agent  # registering the agent in the dedicated dictionary
-        self._used_names.append(agent.name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing
 
     def register_cluster(self, cluster):  # method connecting one cluster to the world
         if cluster.name in self._used_names:  # checking if the name is already used
@@ -114,10 +121,22 @@ class World:
         if cluster.is_grid:  # if the cluster is identified as a greater grid than world
             # it serves a default cluster for the corresponding nature
             self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
-        
+
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_names.append(cluster.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def register_agent(self, agent):  # method connecting one agent to the world
+        if agent.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{agent.name} already in use")
+
+        if isinstance(agent, Agent) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        agent._register(self._catalog)   # linking the agent with the catalog of world
+        self._agents[agent.name] = agent  # registering the agent in the dedicated dictionary
+        self._used_names.append(agent.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_device(self, device):  # method connecting one device to the world
@@ -208,7 +227,7 @@ class World:
         catalog = self._catalog
 
         for supervisor in self._supervisors:
-            path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename ])
+            path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename])
 
         exec(open(path).read())
 
@@ -230,6 +249,78 @@ class World:
     # Utility
     # ##########################################################################################
 
+    def save(self):  # this method allows to export world
+        # the idea is to save all the information given by the user in the main
+        # and then to
+
+        print(sys.modules[__name__])
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg"])
+        os.makedirs(filepath)
+
+        # world file
+        world_dict = {"path": self._catalog.get("path"),
+
+                      "random seed": self._random_seed,
+
+                      # time management
+                      "start date": self._catalog.get("physical_time").strftime("%d %b %Y %H:%M:%S"),
+                      "time step": self.catalog.get("time_step"),
+                      "time limit": self.time_limit
+                      }
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"World.{self.name}.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(world_dict, indent=2))
+
+        # pour le(s) superviseur(s), on verra plus tard
+
+        # natures file
+        natures_list = {nature.name: nature.description for nature in self._natures.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Natures.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(natures_list, indent=2))
+
+        # clusters file
+        clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Clusters.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(clusters_list, indent=2))
+
+        # agents file
+        agents_list = {agent.name: [nature.name for nature in agent._contract] for agent in self._agents.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Agents.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(agents_list, indent=2))
+
+        # devices file
+        devices_list = {device.name: [f"{type(device)}", [cluster.name for cluster in device._natures], device._usage_profile, device._user_profile] for device in self.devices.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Devices.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(devices_list, indent=2))
+
+        # dataloggers file
+        dataloggers_list = {datalogger.name: [datalogger._list, datalogger._period, datalogger._sum] for datalogger in self.dataloggers.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Dataloggers.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(dataloggers_list, indent=2))
+
+        # daemons file
+        daemons_list = {daemon.name: daemon._period for daemon in self.daemons.values()}
+
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Daemons.json"])
+        file = open(filepath, "w")
+        file.write(json.dumps(daemons_list, indent=2))
+
+    def load(self):
+        pass
+
+    # properties
     @property
     def name(self):  # shortcut for read-only
         return self._name
@@ -251,12 +342,12 @@ class World:
         return self._natures
 
     @property
-    def agents(self):  # shortcut for read-only
-        return self._agents
-
-    @property
     def clusters(self):  # shortcut for read-only
         return self._clusters
+
+    @property
+    def agents(self):  # shortcut for read-only
+        return self._agents
 
     @property
     def devices(self):  # shortcut for read-only
@@ -289,15 +380,12 @@ class Device:
         self._inputs = dict()
         self._outputs = dict()
 
-        if clusters:
-            clusters = into_list(clusters)  # make it iterable
-            for cluster in clusters:
-                if cluster.nature in self.natures:
-                    raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
-                else:
-                    self._natures[cluster.nature] = cluster
-                    self._inputs[cluster.nature] = [None, 0, None]
-                    self._outputs[cluster.nature] = [None, 0, None]
+        clusters = into_list(clusters)  # make it iterable
+        for cluster in clusters:
+            if cluster.nature in self.natures:
+                raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
+            else:
+                self._natures[cluster.nature] = cluster
 
         self._agent = agent_name  # the agent represents the owner of the device
 
@@ -312,8 +400,8 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
-            self._catalog.add(f"{self.name}.{nature.name}.asked_energy", 0)  # write directly in the catalog the energy
-            self._catalog.add(f"{self.name}.{nature.name}.proposed_energy", 0)  # write directly in the catalog the energy
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accpeted by the supervisor
             # self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
             # self._catalog.add(f"{self.name}.{nature.name}.max_energy", 0)  # write directly in the catalog the maximum energy
         self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
@@ -335,11 +423,22 @@ class Device:
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor
+        #
+        #
+
+        self._user_react()
+
+    def _user_react(self):  # where users put device-specific behaviors
         pass
 
     # ##########################################################################################
     # Class method
     # ##########################################################################################
+
+    def create_devices(cls, quantity, name_root, world, agent, clusters, filename):
+        pass
+
+    create_devices = classmethod(create_devices)
 
     # ##########################################################################################
     # Utility

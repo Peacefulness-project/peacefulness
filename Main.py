@@ -33,7 +33,7 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.DummyDevice import DummyConsumption, DummyShiftableConsumption, DummyAdjustableConsumption, DummyProduction
+from usr.Devices.DummyDevice import DummyNonControllableDevice, DummyShiftableConsumption, DummyAdjustableConsumption, DummyProduction
 
 from common.Datalogger import Datalogger
 
@@ -72,6 +72,12 @@ world.set_directory(pathExport)  # registration
 
 
 # ##############################################################################################
+# Definition of the random seed to be used
+# The default seed is the current time (the value returned by datetime.datetime.now())
+world.set_random_seed("tournesol")
+
+
+# ##############################################################################################
 # Supervisor --> il est en stand-by
 # this object contains just the path to  your supervisor script and a brief description of what it does
 
@@ -104,9 +110,22 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Nature list
 # this object represents a nature of energy present in world
-Elec = Nature("LVE")  # creation of a nature
-Elec.add_description("Low Voltage Electricity")  # Optional description of the nature
-world.register_nature(Elec)  # registration
+nature_description = "Low Voltage Electricity"
+elec = Nature("LVE", nature_description)  # creation of a nature
+world.register_nature(elec)  # registration
+
+
+# ##############################################################################################
+# Cluster
+# this object is a collection of devices wanting to isolate themselves as much as they can
+# clusters need 2 arguments: a name and a nature of energy
+# there is also a third argument to precise if the cluster is considered as an infinite grid
+cluster = Cluster("general cluster", elec)  # creation of a cluster
+world.register_cluster(cluster)  # registration
+
+# here we add a grid, which represents an infinite producer
+elec_grid = Cluster("Enedis", elec, True)
+world.register_cluster(elec_grid)  # registration
 
 
 # ##############################################################################################
@@ -117,20 +136,8 @@ agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
 
 name_elec_contract = "contrat classique"
-agent.set_contract(Elec, name_elec_contract)  # definition of a contract
+agent.set_contract(elec, name_elec_contract)  # definition of a contract
 
-
-# ##############################################################################################
-# Cluster
-# this object is a collection of devices wanting to isolate themselves as much as they can
-# clusters need 2 arguments: a name and a nature of energy
-# there is also a third argument to precise if the cluster is considered as an infinite grid
-cluster = Cluster("general cluster", Elec)  # creation of a cluster
-world.register_cluster(cluster)  # registration
-
-# here we add a grid, which represents an infinite producer
-elec_grid = Cluster("Enedis", Elec, True)
-world.register_cluster(elec_grid)  # registration
 
 # ##############################################################################################
 # Devices
@@ -139,18 +146,18 @@ world.register_cluster(elec_grid)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-consumption_input_file = "usr/Datafiles/DummyBaseloadProfile.input"
-e1 = DummyConsumption("Essai", agent, consumption_input_file, cluster)  # creation of a consumption point
+# e1 = DummyNonControllableDevice("Essai", agent, consumption_input_file, cluster)  # creation of a consumption point
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
 c1 = DummyProduction("Toto", agent, production_input_file, cluster)  # creation of a production point
 
 # TODO: Créer les classes de base
+# basic device
+e1 = DummyNonControllableDevice("Light", agent, cluster, "usr/Datafiles/Light.json")  # creation of a consumption point
 # shiftable device
-shiftable_consumption_input_file = "usr/Datafiles/DummyShiftableLoadProfile.input"
-e2 = DummyShiftableConsumption("Dishwasher", agent, shiftable_consumption_input_file, cluster)  # creation of a consumption point
+e2 = DummyShiftableConsumption("Dishwasher", agent, cluster, "usr/Datafiles/Dishwasher.json")  # creation of a consumption point
 # adjustable device
 adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
-e3 = DummyAdjustableConsumption("Heating", agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
+# e3 = DummyAdjustableConsumption("Heating", agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -162,19 +169,22 @@ world.catalog.print_debug()  # displays the content of the catalog
 # note that the same method is used for all kind of devices
 world.register_device(e1)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
-world.register_device(e3)  # registration of a consumption device
-world.register_device(c1)  # registration of a production device
+# world.register_device(e3)  # registration of a consumption device
+# world.register_device(c1)  # registration of a production device
 
 # world.catalog.print_debug()  # displays the content of the catalog
+# DummyShiftableConsumption.create_devices(1, "le matos a toto", world, agent, cluster, "usr/Datafiles/Dishwasher.json")
+
 
 # there is another way to create devices using a class method "mass_create"
 # this method is user-defined for each specific device
 # it takes 3 more arguments: the number of devices, a root name for the devices (name = "root name"_"number")
 # and a world to be registered in
-DummyConsumption.mass_create(10, "conso", world, agent, consumption_input_file, elec_grid)
+# DummyConsumption.mass_create(10, "conso", world, agent, consumption_input_file, elec_grid)
 # creation and registration of 10 dummy consumptions
-DummyProduction.mass_create(10, "prod", world, agent, production_input_file, cluster)
+# DummyProduction.mass_create(10, "prod", world, agent, production_input_file, cluster)
 # creation and registration of 10 dummy productions
+print(type(world.devices["Light"]))
 
 
 # ##############################################################################################
@@ -191,10 +201,16 @@ logger.add_all()  # this datalogger exports all the data available in the catalo
 # as it is not activated for each turn, it will return, for each numerical data,
 # the mean, the min and the max between two activations
 # the 4th argument is a boolean: if it is true, the datalogger will integrate the data between two activations
-logger2 = Datalogger("log10", "essai2.txt", 20, 1)  # creation
+logger2 = Datalogger("log10", "essai2.txt", 1, 1)  # creation
 world.register_datalogger(logger2)  # registration
 logger2.add("simulation_time")  # this datalogger exports only the current iteration
-
+logger2.add("physical_time")
+logger2.add("Dishwasher.LVE.energy_wanted")
+logger2.add("Dishwasher.LVE.energy_accorded")
+logger2.add("Dishwasher.priority")
+logger2.add("Light.LVE.energy_wanted")
+logger2.add("Light.LVE.energy_accorded")
+logger2.add("Light.priority")
 
 # ##############################################################################################
 # Daemons
@@ -210,6 +226,11 @@ world.register_daemon(daemon)  # registration
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
 dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, 0.9, 168)  # creation
 world.register_daemon(dissatisfaction_management)  # registration
+
+
+# ##############################################################################################
+# here we save our world to use it later
+world.save()
 
 
 # ##############################################################################################

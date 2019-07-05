@@ -11,13 +11,14 @@ class Daemon:
             raise DaemonException("Daemon needs a name")
 
         self._name = name
-        self._catalog = None  # catalog from which data is extracted
-        # linked to the catalog of a world later
 
         # Daemons are not obliged to act each turn. A period of activation can be defined.
         self._period = period  # period between 2 activations
 
         self._next_time = 0  # next iteration at which the daemon will be activated
+
+        self._catalog = None  # catalog from which data is extracted
+        # linked to the catalog of a world later
 
     # ##########################################################################################
     # Initialization
@@ -26,6 +27,9 @@ class Daemon:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
         self._user_register()  # create relevant entries in the catalog
+
+    def _user_register(self):  # where are defined user-specific entries in the catalog
+        pass
 
     # ##########################################################################################
     # Dynamic behavior
@@ -39,9 +43,6 @@ class Daemon:
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period
             self._process()
             self._next_time += self._period
-
-    def _user_register(self):  # where are defined user-specific entries in the catalog
-        pass
 
     def _process(self):  # where the catalog entries are modified
         pass

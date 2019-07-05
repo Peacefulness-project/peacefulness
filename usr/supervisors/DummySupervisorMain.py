@@ -13,6 +13,13 @@ for i in range(0, world.time_limit, 1):
 
     sup.make_balance(world, catalog)  # sum the needs and the production for each nature
 
+    for key in world.devices:  # consumption and production balances
+        device = world.devices[key]
+
+        for nature in device.natures:
+            # consumption balance
+            consumption = catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+
     for nature in world.natures:
         pass  # here, a wonderful calculation takes place
         # results are then written in the catalog

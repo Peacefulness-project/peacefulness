@@ -1,0 +1,14 @@
+{
+
+  "Type": "Dishwasher",
+  "Profile type": "toto",
+
+  "user profile": [[8.5, 0], [11, 1], [11.001, 0]],
+  "usage profile": [[0.8, 500, 1], [0.5, 400, 1]],
+  "period": 24,
+
+  "start time variation": 1.5,
+  "consumption variation": 0.1,
+  "duration variation": 0.1
+
+}
