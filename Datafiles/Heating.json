@@ -1,0 +1,14 @@
+{
+
+  "Type": "Heating",
+  "Profile type": "toto",
+
+  "user profile": [19, 22.5],
+  "usage profile": [[0.5, {"LVE": [500, 450, 550]}], [0.5, {"LVE": [400, 350, 450]}]],
+  "period": 24,
+
+  "start time variation": 1.5,
+  "consumption variation": 0.1,
+  "duration variation": 0.1
+
+}

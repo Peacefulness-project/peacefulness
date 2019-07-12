@@ -1,0 +1,16 @@
+{
+
+  "template name": "Maisons avec profil toto",
+
+  "composition": [
+    ["DummyShiftableConsumption", "Dishwasher", 1, "usr/Datafiles/Dishwasher.json"],
+    ["DummyNonControllableDevice", "Light", 1, "usr/Datafiles/Light.json"],
+    ["DummyNonControllableDevice", "PV", 1, "usr/Datafiles/PV.json"]
+  ],
+
+  "contracts": {
+    "LVE":  "contrat posé",
+    "Heat":  "contrat riété"
+  }
+
+}

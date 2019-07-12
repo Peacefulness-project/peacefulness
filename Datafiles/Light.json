@@ -1,0 +1,14 @@
+{
+
+  "Type": "Light",
+  "Profile type": "toto",
+
+  "user profile": [19],
+  "usage profile": [[3, {"LVE": 0.1}]],
+  "period": 24,
+
+  "start time variation": 1.5,
+  "consumption variation": 0.1,
+  "duration variation": 0.1
+
+}
