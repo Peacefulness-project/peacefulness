@@ -5,7 +5,7 @@ import datetime
 import os
 import random as rnd
 import json
-import sys
+import shutil
 # Current packages
 from common.Catalog import Catalog
 from common.Nature import Nature
@@ -42,6 +42,9 @@ class World:
         self._random_seed = None  # yhe seed used in the random number generator of Python
 
         # dictionaries contained by world
+        self._personalized_classes = dict()  # this dictionary contains all the classes defined by the user
+        # it serves to re-instantiate daemons and devices
+
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
@@ -66,7 +69,7 @@ class World:
 
     # the following methods concern objects absolutely needed for world to perform a calculus
     def set_catalog(self, catalog):  # definition of a catalog
-        if isinstance(catalog, Catalog) is False:  # checking if the object has the expected type
+        if not isinstance(catalog, Catalog):  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
         self._catalog = catalog
@@ -155,6 +158,9 @@ class World:
             if nature not in device.agent.natures:
                 raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
 
+        if type(device) not in self._personalized_classes:  # saving the class in the dedicated dict
+            self._personalized_classes[f"{type(device).__name__}"] = type(device)
+        
         self._devices[device.name] = device
         device._register(self._catalog)  # registering of the device in the catalog
         self._used_names.append(device.name)  # adding the name to the list of used names
@@ -177,6 +183,9 @@ class World:
 
         if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
+        
+        if type(daemon) not in self._personalized_classes:  # saving the class in the dedicated dict
+            self._personalized_classes[f"{type(daemon).__name__}"] = type(daemon)
 
         daemon._register(self._catalog)  # registering of the device in the catalog
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
@@ -198,6 +207,29 @@ class World:
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
+
+    def agent_generation(self, quantity, filename, clusters):  # this method creates several agents, each with a predefinite set of devices
+
+        # loading the data in the file
+        file = open(filename, "r")
+        data = json.load(file)
+
+        for i in range(quantity):
+
+            # creation of an agent
+            agent_name = f"{data['template name']}_{str(i)}"
+            agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
+            self.register_agent(agent)
+            for nature in data["contracts"]:  # for each nature, the relevant contract is set
+                contract = data["contracts"][nature]
+                agent.set_contract(self._natures[nature], contract)  # definition of a contract
+
+            # creation of devices
+            for device_data in data["composition"]:
+                for j in range(device_data[1]):
+                    device_name = f"{agent.name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                    device = self._personalized_classes[device_data[0]](device_name, agent, clusters, device_data[2])  # creation of the device
+                    self.register_device(device)
 
     def _check(self):  # a method checking if the world has been well defined
         # 4 things are necessary for world to be correctly defined:
@@ -253,72 +285,171 @@ class World:
         # the idea is to save all the information given by the user in the main
         # and then to
 
-        print(sys.modules[__name__])
-
         filepath = adapt_path([self._catalog.get("path"), "inputs", "svg"])
         os.makedirs(filepath)
 
         # world file
-        world_dict = {"path": self._catalog.get("path"),
+        world_dict = {"name": self.name,
 
                       "random seed": self._random_seed,
 
                       # time management
-                      "start date": self._catalog.get("physical_time").strftime("%d %b %Y %H:%M:%S"),
+                      "start date": self._catalog.get("physical_time").strftime("%d %b %Y %H:%M:%S"),  # converting the datetime object into a string
                       "time step": self.catalog.get("time_step"),
                       "time limit": self.time_limit
                       }
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"World.{self.name}.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"World.json"])
+        file = open(filename, "w")
         file.write(json.dumps(world_dict, indent=2))
 
         # pour le(s) superviseur(s), on verra plus tard
 
+        # personalized classes file
+        personalized_classs_list = [personalized_class for personalized_class in self._personalized_classes]
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Classes.json"])
+        file = open(filename, "w")
+        file.write(json.dumps(personalized_classs_list, indent=2))
+
         # natures file
         natures_list = {nature.name: nature.description for nature in self._natures.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Natures.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Natures.json"])
+        file = open(filename, "w")
         file.write(json.dumps(natures_list, indent=2))
 
         # clusters file
         clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Clusters.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Clusters.json"])
+        file = open(filename, "w")
         file.write(json.dumps(clusters_list, indent=2))
 
         # agents file
-        agents_list = {agent.name: [nature.name for nature in agent._contract] for agent in self._agents.values()}
+        agents_list = {agent.name: {nature.name: agent._contract[nature] for nature in agent._contract} for agent in self._agents.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Agents.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Agents.json"])
+        file = open(filename, "w")
         file.write(json.dumps(agents_list, indent=2))
 
         # devices file
-        devices_list = {device.name: [f"{type(device)}", [cluster.name for cluster in device._natures], device._usage_profile, device._user_profile] for device in self.devices.values()}
+        devices_list = {device.name: [f"{type(device).__name__}", [cluster.name for cluster in device._natures], device._usage_profile, device._user_profile] for device in self.devices.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Devices.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Devices.json"])
+        file = open(filename, "w")
         file.write(json.dumps(devices_list, indent=2))
 
         # dataloggers file
-        dataloggers_list = {datalogger.name: [datalogger._list, datalogger._period, datalogger._sum] for datalogger in self.dataloggers.values()}
+        dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Dataloggers.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Dataloggers.json"])
+        file = open(filename, "w")
         file.write(json.dumps(dataloggers_list, indent=2))
 
         # daemons file
-        daemons_list = {daemon.name: daemon._period for daemon in self.daemons.values()}
+        daemons_list = {daemon.name: [f"{type(daemon).__name__}", daemon._period] for daemon in self.daemons.values()}
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Daemons.json"])
-        file = open(filepath, "w")
+        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Daemons.json"])
+        file = open(filename, "w")
         file.write(json.dumps(daemons_list, indent=2))
 
-    def load(self):
-        pass
+        file.close()
+
+        shutil.make_archive(filepath, "tar", filepath)  # packing the archive
+        shutil.rmtree(filepath)  # deleting the directory with all the now useless files
+
+    def load(self, filename):
+        shutil.unpack_archive(filename, format="tar")  # unpacking the archive
+
+        # World file
+        file = open("World.json", "r")
+        data = json.load(file)
+
+        self.set_random_seed(data["random seed"])
+
+        start_date = data["start date"]
+        start_date = datetime.datetime.strptime(start_date, "%d %b %Y %H:%M:%S")  # converting the string into a datetime object
+        time_step = data["time step"]
+        time_limit = data["time limit"]
+        self.set_time(start_date, time_step, time_limit)
+
+        os.remove("World.json")  # deleting the useless world file
+        # personalized_classs_list = [personalized_class for personalized_class in self._personalized_classes]
+
+        # # personalized classes file
+        file = open("Classes.json", "r")
+        data = json.load(file)
+
+        # print(globals())
+        #
+        # personalized_classs_list = {class_name: globals()[class_name] for class_name in data }
+        #
+        os.remove("Classes.json")  # deleting the useless world file
+
+        # Natures file
+        file = open("Natures.json", "r")
+        data = json.load(file)
+
+        for nature_name in data:
+            nature = Nature(nature_name, data[nature_name])  # creation of a nature
+            self.register_nature(nature)  # registration
+
+        os.remove("Natures.json")  # deleting the useless file
+
+        # Clusters file
+        file = open("Clusters.json", "r")
+        data = json.load(file)
+
+        for cluster_name in data:
+            cluster_nature = self._natures[data[cluster_name]]
+            cluster = Cluster(cluster_name, cluster_nature)  # creation of a cluster
+            self.register_cluster(cluster)  # registration
+
+        os.remove("Clusters.json")  # deleting the useless file
+
+        # Agents file
+        file = open("Agents.json", "r")
+        data = json.load(file)
+
+        for agent_name in data:
+            agent = Agent(agent_name)  # creation of an agent
+            self.register_agent(agent)  # registration
+
+            for nature_name in data[agent_name]:
+                contract = data[agent_name]
+                nature = self._natures[nature_name]
+                agent.set_contract(nature, contract)  # definition of a contract
+
+        os.remove("Agents.json")  # deleting the useless file
+
+        # Devices file
+        file = open("Devices.json", "r")
+        data = json.load(file)
+        os.remove("Devices.json")  # deleting the useless file
+
+        # Dataloggers file
+        file = open("Dataloggers.json", "r")
+        data = json.load(file)
+
+        for datalogger_name in data:
+            filename = data[datalogger_name][0]
+            period = data[datalogger_name][1]
+            sum_over_time = data[datalogger_name][2]
+            logger = Datalogger(datalogger_name, filename, period, sum_over_time)  # creation
+            self.register_datalogger(logger)  # registration
+
+            for entry in data[datalogger_name][3]:
+                logger.add(entry)  # this datalogger exports all the data available in the catalog
+
+        os.remove("Dataloggers.json")  # deleting the useless file
+
+        # Daemons file
+        file = open("Daemons.json", "r")
+        data = json.load(file)
+        os.remove("Daemons.json")  # deleting the useless file
+
+        file.close()
 
     # properties
     @property

@@ -4,7 +4,7 @@
   "Profile type": "toto",
 
   "user profile": [19],
-  "usage profile": [[3, 100]],
+  "usage profile": [[3, {"LVE": 0.1}]],
   "period": 24,
 
   "start time variation": 1.5,

@@ -58,11 +58,9 @@ world = World(name_world)  # creation
 # Creation of a data catalog
 # this object is a dictionary where goes all data needing to be seen by several objects
 data = Catalog()  # creation
-data.add("Version", "0.0")  # General information
 world.set_catalog(data)  # registration
 
 world.catalog.print_debug()  # displays the content of the catalog
-print(world)
 
 
 # ##############################################################################################
@@ -110,22 +108,32 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Nature list
 # this object represents a nature of energy present in world
+nature_name = "LVE"
 nature_description = "Low Voltage Electricity"
-elec = Nature("LVE", nature_description)  # creation of a nature
+elec = Nature(nature_name, nature_description)  # creation of a nature
 world.register_nature(elec)  # registration
 
+nature_name = "Heat"
+nature_description = "Energy transported by a district heating network"
+heat = Nature(nature_name, nature_description)  # creation of a nature
+world.register_nature(heat)  # registration
 
 # ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
-cluster = Cluster("general cluster", elec)  # creation of a cluster
-world.register_cluster(cluster)  # registration
+cluster_name = "general cluster"
+cluster_elec = Cluster(cluster_name, elec)  # creation of a cluster
+world.register_cluster(cluster_elec)  # registration
 
 # here we add a grid, which represents an infinite producer
 elec_grid = Cluster("Enedis", elec, True)
 world.register_cluster(elec_grid)  # registration
+
+cluster_name = "Les tuyaux a toto"
+cluster_heat = Cluster(cluster_name, heat)  # creation of a cluster
+world.register_cluster(cluster_heat)  # registration
 
 
 # ##############################################################################################
@@ -137,7 +145,8 @@ world.register_agent(agent)  # registration
 
 name_elec_contract = "contrat classique"
 agent.set_contract(elec, name_elec_contract)  # definition of a contract
-
+name_heat_contract = "contrat classique"
+agent.set_contract(heat, name_heat_contract)  # definition of a contract
 
 # ##############################################################################################
 # Devices
@@ -148,13 +157,13 @@ agent.set_contract(elec, name_elec_contract)  # definition of a contract
 # creation of our devices
 # e1 = DummyNonControllableDevice("Essai", agent, consumption_input_file, cluster)  # creation of a consumption point
 production_input_file = "usr/Datafiles/DummyProductionProfile.input"
-c1 = DummyProduction("Toto", agent, production_input_file, cluster)  # creation of a production point
+c1 = DummyProduction("Toto", agent, production_input_file, cluster_elec)  # creation of a production point
 
 # TODO: Créer les classes de base
 # basic device
-e1 = DummyNonControllableDevice("Light", agent, cluster, "usr/Datafiles/Light.json")  # creation of a consumption point
+e1 = DummyNonControllableDevice("Light", agent, cluster_elec, "usr/Datafiles/Light.json")  # creation of a consumption point
 # shiftable device
-e2 = DummyShiftableConsumption("Dishwasher", agent, cluster, "usr/Datafiles/Dishwasher.json")  # creation of a consumption point
+e2 = DummyShiftableConsumption("Dishwasher", agent, cluster_elec, "usr/Datafiles/Dishwasher.json")  # creation of a consumption point
 # adjustable device
 adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
 # e3 = DummyAdjustableConsumption("Heating", agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
@@ -184,8 +193,8 @@ world.register_device(e2)  # registration of a consumption device
 # creation and registration of 10 dummy consumptions
 # DummyProduction.mass_create(10, "prod", world, agent, production_input_file, cluster)
 # creation and registration of 10 dummy productions
-print(type(world.devices["Light"]))
 
+world.agent_generation(10, "usr/DeviceGenerators/DummyAgent.json", cluster_elec)
 
 # ##############################################################################################
 # Dataloggers
