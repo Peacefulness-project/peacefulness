@@ -533,8 +533,6 @@ class Device:
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accpeted by the supervisor
-            # self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
-            # self._catalog.add(f"{self.name}.{nature.name}.max_energy", 0)  # write directly in the catalog the maximum energy
         self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
         self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of
                                                         # being satisfied in the current time step
