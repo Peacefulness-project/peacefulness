@@ -3,12 +3,12 @@
   "Type": "Heating",
   "Profile type": "toto",
 
-  "user profile": [[19,0], [19.001,1], [22.5,1],[22.501,0]],
-  "usage profile": [[0.5, {"LVE": [500, 450, 550]}],[0.5, {"LVE": [400, 350, 450]}]],
+  "user profile": [19],
+  "usage profile": [[0.5, {"Heat": [450, 500, 550]}], [2, {"Heat": [350, 400, 450]}]],
   "period": 24,
 
   "start time variation": 1.5,
-  "consumption variation": 0.5,
-  "duration variation": 0.2
+  "consumption variation": 0.1,
+  "duration variation": 0.1
 
 }

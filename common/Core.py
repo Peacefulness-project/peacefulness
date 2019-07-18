@@ -6,6 +6,8 @@ import os
 import random as rnd
 import json
 import shutil
+import inspect
+import pickle
 # Current packages
 from common.Catalog import Catalog
 from common.Nature import Nature
@@ -42,7 +44,7 @@ class World:
         self._random_seed = None  # yhe seed used in the random number generator of Python
 
         # dictionaries contained by world
-        self._personalized_classes = dict()  # this dictionary contains all the classes defined by the user
+        self._user_classes = dict()  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons and devices
 
         self._natures = dict()  # energy present in world
@@ -158,8 +160,12 @@ class World:
             if nature not in device.agent.natures:
                 raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
 
-        if type(device) not in self._personalized_classes:  # saving the class in the dedicated dict
-            self._personalized_classes[f"{type(device).__name__}"] = type(device)
+        if type(device) not in self._user_classes:  # saving the class in the dedicated dict
+            absolute_path = inspect.getfile(type(device))  # this is the absolute path to the file where the class is defined
+            module_name = absolute_path.split("usr")[-1]
+            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
+            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
+            self._user_classes[f"{type(device).__name__}"] = [module_name, type(device)]
         
         self._devices[device.name] = device
         device._register(self._catalog)  # registering of the device in the catalog
@@ -184,8 +190,12 @@ class World:
         if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
         
-        if type(daemon) not in self._personalized_classes:  # saving the class in the dedicated dict
-            self._personalized_classes[f"{type(daemon).__name__}"] = type(daemon)
+        if type(daemon) not in self._user_classes:  # saving the class in the dedicated dict
+            absolute_path = inspect.getfile(type(daemon))  # this is the absolute path to the file where the class is defined
+            module_name = absolute_path.split("usr")[-1]
+            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
+            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
+            self._user_classes[f"{type(daemon).__name__}"] = [module_name, type(daemon)]
 
         daemon._register(self._catalog)  # registering of the device in the catalog
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
@@ -213,6 +223,7 @@ class World:
         # loading the data in the file
         file = open(filename, "r")
         data = json.load(file)
+        file.close()
 
         for i in range(quantity):
 
@@ -226,9 +237,10 @@ class World:
 
             # creation of devices
             for device_data in data["composition"]:
-                for j in range(device_data[1]):
-                    device_name = f"{agent.name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                    device = self._personalized_classes[device_data[0]](device_name, agent, clusters, device_data[2])  # creation of the device
+                for j in range(device_data[2]):
+                    device_name = f"{agent.name}_{device_data[1]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                    device_class = self._user_classes[device_data[0]][1]
+                    device = device_class(device_name, agent, clusters, device_data[3])  # creation of the device
                     self.register_device(device)
 
     def _check(self):  # a method checking if the world has been well defined
@@ -282,10 +294,10 @@ class World:
     # ##########################################################################################
 
     def save(self):  # this method allows to export world
-        # the idea is to save all the information given by the user in the main
-        # and then to
+        # the idea is to save the minimum information given by the user in the main
+        # to be able to reconstruct it later
 
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "svg"])
+        filepath = adapt_path([self._catalog.get("path"), "inputs", "save"])
         os.makedirs(filepath)
 
         # world file
@@ -299,58 +311,66 @@ class World:
                       "time limit": self.time_limit
                       }
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"World.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"World.json"])
         file = open(filename, "w")
         file.write(json.dumps(world_dict, indent=2))
 
         # pour le(s) superviseur(s), on verra plus tard
 
         # personalized classes file
-        personalized_classs_list = [personalized_class for personalized_class in self._personalized_classes]
+        user_classes_list = dict()
+        # for user_class in self._user_classes:
+        #     user_classes_list[user_class] = [self._user_classes[user_class][0]]
+        #     string_class = str(pickle.dumps(self._user_classes[user_class][1]))  # a format allowing to serialize a class to JSON and then deserialize it
+        #     user_classes_list[user_class].append(string_class)
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Classes.json"])
-        file = open(filename, "w")
-        file.write(json.dumps(personalized_classs_list, indent=2))
+        for user_class in self._user_classes:
+            user_classes_list[user_class] = self._user_classes[user_class]
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
+        file = open(filename, "wb")
+        pickle.dump(user_classes_list, file)
+        # file.write(json.dumps(user_classes_list, indent=2))
 
         # natures file
         natures_list = {nature.name: nature.description for nature in self._natures.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Natures.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Natures.json"])
         file = open(filename, "w")
         file.write(json.dumps(natures_list, indent=2))
 
         # clusters file
         clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Clusters.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")
         file.write(json.dumps(clusters_list, indent=2))
 
         # agents file
         agents_list = {agent.name: {nature.name: agent._contract[nature] for nature in agent._contract} for agent in self._agents.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Agents.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
         file = open(filename, "w")
         file.write(json.dumps(agents_list, indent=2))
 
         # devices file
-        devices_list = {device.name: [f"{type(device).__name__}", [cluster.name for cluster in device._natures], device._usage_profile, device._user_profile] for device in self.devices.values()}
+        devices_list = {device.name: [f"{type(device).__name__}", device._agent.name, [cluster.name for cluster in device._natures.values()], device._period, device._usage_profile, device._user_profile] for device in self.devices.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Devices.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Devices.json"])
         file = open(filename, "w")
         file.write(json.dumps(devices_list, indent=2))
 
         # dataloggers file
         dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Dataloggers.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Dataloggers.json"])
         file = open(filename, "w")
         file.write(json.dumps(dataloggers_list, indent=2))
 
         # daemons file
-        daemons_list = {daemon.name: [f"{type(daemon).__name__}", daemon._period] for daemon in self.daemons.values()}
+        daemons_list = {daemon.name: [f"{type(daemon).__name__}", daemon._period, daemon._parameters] for daemon in self.daemons.values()}
 
-        filename = adapt_path([self._catalog.get("path"), "inputs", "svg", f"Daemons.json"])
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Daemons.json"])
         file = open(filename, "w")
         file.write(json.dumps(daemons_list, indent=2))
 
@@ -378,14 +398,29 @@ class World:
         # personalized_classs_list = [personalized_class for personalized_class in self._personalized_classes]
 
         # # personalized classes file
-        file = open("Classes.json", "r")
-        data = json.load(file)
+        file = open("Classes.pickle", "rb")
 
-        # print(globals())
+        data = pickle.load(file)
+
+        for user_class in data:
+            self._user_classes[user_class] = data[user_class]
+
+        # for user_class in data:
+        #     truc = data[user_class][1]
+        #     truc = truc[2:-1]
+        #     truc = bytes(truc, 'ASCII')
+        #     print(truc)
+        #     truc = pickle.loads(truc)
+        #     print(truc)
+        #
+        # test = __import__('usr.Devices.DummyDevice', globals(), locals(), ['DummyNonControllableDevice'])
+        # # print(inspect.getfile(test.DummyNonControllableDevice))
+        # DummyNonControllableDevice = test.DummyNonControllableDevice()
+
         #
         # personalized_classs_list = {class_name: globals()[class_name] for class_name in data }
         #
-        os.remove("Classes.json")  # deleting the useless world file
+        os.remove("Classes.pickle")  # deleting the useless world file
 
         # Natures file
         file = open("Natures.json", "r")
@@ -426,6 +461,22 @@ class World:
         # Devices file
         file = open("Devices.json", "r")
         data = json.load(file)
+
+        for device_name in data:
+            agent = self._agents[data[device_name][1]]
+            clusters = [self._clusters[cluster_name] for cluster_name in data[device_name][2]]
+            device_class = self._user_classes[data[device_name][0]][1]
+
+            device = device_class(device_name, agent, clusters, "loaded device")
+
+            # getting the real hour
+            device._hour = self._catalog.get("physical_time").hour  # getting the hour of the day
+            device._period = data[device_name][3]
+            device._usage_profile = data[device_name][4]
+            device._user_profile = data[device_name][5]
+
+            self.register_device(device)
+
         os.remove("Devices.json")  # deleting the useless file
 
         # Dataloggers file
@@ -447,6 +498,14 @@ class World:
         # Daemons file
         file = open("Daemons.json", "r")
         data = json.load(file)
+
+        for daemon_name in data:
+            daemon_period = data[daemon_name][1]
+            daemon_parameters = data[daemon_name][2]
+            daemon_class = self._user_classes[data[daemon_name][0]][1]
+            daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
+            self.register_daemon(daemon)
+
         os.remove("Daemons.json")  # deleting the useless file
 
         file.close()
@@ -502,8 +561,20 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, agent_name, clusters):
+    def __init__(self, name, agent_name, clusters, filename):
         self._name = name  # the name which serve as root in the catalog entries
+
+        self._filename = filename  # the name of the data file
+
+        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
+        self._hour = None  # the hour of the day
+
+        self._user_profile = []  # user profile of utilisation, describing user's priority
+        # hour since the beginning of the period : [ priority, usage ID ]
+        # the user profile lasts 1 day and starts at 00:00 AM
+
+        self._usage_profile = []  # energy and interruptibility for one usage
+        # [ energy consumption, priority ]
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
@@ -533,8 +604,6 @@ class Device:
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accpeted by the supervisor
-            # self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
-            # self._catalog.add(f"{self.name}.{nature.name}.max_energy", 0)  # write directly in the catalog the maximum energy
         self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
         self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of
                                                         # being satisfied in the current time step
@@ -542,8 +611,14 @@ class Device:
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
         self._register_device(catalog)
         self._user_register()
+        if self._filename != "loaded device":  # if a filename has been defined
+            self._get_consumption()
+            # else, it is assumed that the device has been load
 
     def _user_register(self):  # where users put device-specific behaviors
+        pass
+
+    def _get_consumption(self):
         pass
 
     # ##########################################################################################

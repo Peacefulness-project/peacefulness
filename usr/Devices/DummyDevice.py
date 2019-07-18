@@ -11,17 +11,7 @@ from common.Core import Device
 class DummyNonControllableDevice(Device):
 
     def __init__(self, name,  agent_name, clusters, filename):
-        super().__init__(name, agent_name, clusters)
-
-        self._filename = filename  # the name of the data file
-
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
-        self._user_profile = []  # user profile of utilisation, describing user's priority
-        # hour since the beginning of the period : [ priority, usage ID ]
-        # the user profile lasts 1 day and starts at 00:00 AM
-
-        self._usage_profile = []  # energy and interruptibility for one usage
-        # [ energy consumption, priority ]
+        super().__init__(name, agent_name, clusters, filename)
 
     # ##########################################################################################
     # Initialization
@@ -31,9 +21,12 @@ class DummyNonControllableDevice(Device):
         # getting the real hour
         self._hour = self._catalog.get("physical_time").hour  # getting the hour of the day
 
+    def _get_consumption(self):
+
         # parsing the data
         file = open(self._filename, "r")
         data = json.load(file)
+        file.close()
 
         # creation of the consumption data
         self._period = data["period"]
@@ -95,6 +88,14 @@ class DummyNonControllableDevice(Device):
         if duration:  # to know if the device need more time
             self._usage_profile.append(consumption)
 
+        # removal of unused natures in the self._natures
+        nature_to_remove = []
+        for nature in self._natures:
+            if nature.name not in self._usage_profile[0].keys():
+                nature_to_remove.append(nature)
+        for nature in nature_to_remove:
+            self._natures.pop(nature)
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -138,22 +139,10 @@ class DummyNonControllableDevice(Device):
 class DummyShiftableConsumption(Device):  # a consumption which is shiftable
 
     def __init__(self, name, agent_name, clusters, filename):
-        super().__init__(name, agent_name, clusters)
+        super().__init__(name, agent_name, clusters, filename)
 
-        self._filename = filename  # the name of the data file
-
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
-        self._hour = None  # the hour of the day
-        self._period = 0  # this period represents a typical usage of a dishwasher (e.g 2 days)
-
-        self._user_profile = []  # user profile of utilisation, describing user's priority
-        # hour since the beginning of the period : [ priority, usage ID ]
-        # the user profile lasts 1 day and starts at 00:00 AM
-
-        self._usage_profile = []  # energy and interruptibility for one usage
-        # [ energy consumption, priority ]
 
     # ##########################################################################################
     # Initialization
@@ -163,9 +152,12 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
         # getting the real hour
         self._hour = self._catalog.get("physical_time").hour  # getting the hour of the day
 
+    def _get_consumption(self):
+
         # parsing the data
         file = open(self._filename, "r")
         data = json.load(file)
+        file.close()
 
         # creation of the consumption data
         self._period = data["period"]
@@ -223,7 +215,7 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
                 if next_point[0] > line[0] + time_step:  # if the next point is not reached during this time step
                     b = next_point[0] - previous_point[0]
                     c = (line[0] + time_step) - previous_point[0]
-                else:  # if the next point is met during the time step, there is no nee for linear interpolation
+                else:  # if the next point is met during the time step, there is no need for linear interpolation
                     b = 1
                     c = 1
                 line[1] = max(previous_point[1] + a/b*c, previous_point[1], line[1])  # to avoid problems with the diminution of priority...
@@ -291,6 +283,14 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
             self._usage_profile[-1][0] = consumption
             self._usage_profile[-1][1] = priority
 
+        # removal of unused natures in the self._natures
+        nature_to_remove = []
+        for nature in self._natures:
+            if nature.name not in self._usage_profile[0][0]:
+                nature_to_remove.append(nature)
+        for nature in nature_to_remove:
+            self._natures.pop(nature)
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -303,7 +303,7 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
         consumption = {nature: 0 for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
         priority = 0  # priority of the consumption
 
-        if self._remaining_time == 0:  # if the device is not running
+        if not self._remaining_time:  # if the device is not running
             # then it's the user profile which is taken into account
 
             for line in self._user_profile:
@@ -359,52 +359,109 @@ class DummyShiftableConsumption(Device):  # a consumption which is shiftable
 class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
 
     def __init__(self, name, agent_name, clusters, filename):
-        super().__init__(name, agent_name, clusters)
+        super().__init__(name, agent_name, clusters, filename)
 
-        self._filename = filename  # the name of the data file
-
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
-        self._hour = None  # the hour of the day
-        self._period = 0  # this period represents a typical usage of a dishwasher (e.g 2 days)
 
-        self._user_profile = []  # user profile of utilisation, describing user's priority
-        # hour since the beginning of the period : [ priority, usage ID ]
-        # the user profile lasts 1 day and starts at 00:00 AM
-
-        self._usage_profile = []  # energy and interruptibility for one usage
-        # [ energy consumption, priority ]
+        self._latent_demand = 0  # the energy in excess or in default after being served
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
+        # getting the real hour
+        self._hour = self._catalog.get("physical_time").hour  # getting the hour of the day
 
-        # reading the data file
+        # Creation of specific entries
+        for nature in self._natures:
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
+    def _get_consumption(self):
+
+        # parsing the data
         file = open(self._filename, "r")
-        file = file.read()
-        file = file.split("\n")
+        data = json.load(file)
+        file.close()
 
-        for nature in self.natures:
-            self._catalog.add(f"{self.name}.{nature.name}.max_energy", float(file[-1]))  # recovering of the max energy, on the last line
-            self._catalog.add(f"{self.name}.{nature.name}.min_energy", 0)  # write directly in the catalog the minimum energy
-        del file[-1]  # deleting the last line
+        # creation of the consumption data
+        self._period = data["period"]
 
-        for line in file:  # converting the file into floats
-            line = line.split("  ")
-            line[0] = float(line[0])  # start date
+        # we randomize a bit in order to represent reality better
+        start_time_variation = (self._catalog.get("float")() - 0.5) * data["start time variation"]  # creation of a displacement in the user profile
+        for start_time in data["user profile"]:
+            start_time += start_time_variation
 
-            # recovering the consumption over time
-            line[1] = line[1].strip("[]")
-            line[1] = line[1].split(", ")
-            line[1] = [float(element) for element in line[1]]  # consumption once started
+        duration_variation = (self._catalog.get("float")() - 0.5) * data["duration variation"]  # modification of the duration
+        consumption_variation = (self._catalog.get("float")() - 0.5) * data["consumption variation"]  # modification of the consumption
+        for line in data["usage profile"]:
+            line[0] += duration_variation
+            for nature in line[1]:
+                for element in line[1][nature]:
+                    element += consumption_variation
 
-            self._NomQuiPlairaPasAStephane.append(line)  # each line corresponds to one use
+        # adaptation of the data to the time step
+        # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
+        time_step = self._catalog.get("time_step")
 
-        # specific entries
-        self._catalog.add(f"{self._name}.completeness", 0)  # the completeness of a usage
+        for hour in data["user profile"]:
+            self._user_profile.append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+
+        # usage profile
+        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
+
+        duration = 0
+        consumption = {nature: [0, 0, 0] for nature in data["usage profile"][0][1]}  # consumption is a dictionary containing the consumption for each nature
+
+        for i in range(len(data["usage profile"])):
+            buffer = duration % time_step  # the time already taken by the line i-1 of data in the current time_step
+            duration += data["usage profile"][i][0]
+
+            if duration < time_step:  # as long as the next time step is not reached, consumption and duration are summed
+                for nature in consumption:
+                    consumption[nature][0] += data["usage profile"][i][1][nature][0]
+                    consumption[nature][1] += data["usage profile"][i][1][nature][1]
+                    consumption[nature][2] += data["usage profile"][i][1][nature][2]
+
+            else:  # we add a part of the energy consumption on the current step and we report the other part and we store the values into the self
+
+                # fulling the usage profile
+                while duration // time_step:  # here we manage a constant consumption over several time steps
+
+                    time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
+                    ratio = min(time_left / data["usage profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
+                    self._usage_profile.append({})
+                    for nature in consumption:
+                        self._usage_profile[-1][nature] = [0, 0, 0]
+                        self._usage_profile[-1][nature][0] = (consumption[nature][0] + data["usage profile"][i][1][nature][0] * ratio)
+                        self._usage_profile[-1][nature][1] = (consumption[nature][1] + data["usage profile"][i][1][nature][1] * ratio)
+                        self._usage_profile[-1][nature][2] = (consumption[nature][2] + data["usage profile"][i][1][nature][2] * ratio)
+
+                    duration -= time_step  # we decrease the duration of 1 time step
+                    # buffer and consumption were the residue of line i-1, so they are not relevant anymore
+                    buffer = 0
+                    for nature in consumption:
+                        for element in consumption[nature]:
+                            element = 0
+
+                for nature in consumption:
+                    consumption[nature][0] = data["usage profile"][i][1][nature][0] * duration / data["usage profile"][i][0]  # energy reported
+                    consumption[nature][1] = data["usage profile"][i][1][nature][1] * duration / data["usage profile"][i][0]  # energy reported
+                    consumption[nature][2] = data["usage profile"][i][1][nature][2] * duration / data["usage profile"][i][0]  # energy reported
+
+        # then, we affect the residue of energy if one, with the appropriate priority, to the usage profile
+        if duration:  # to know if the device need more time
+            self._usage_profile.append(consumption)
+
+        # removal of unused natures in the self._natures
+        nature_to_remove = []
+        for nature in self._natures:
+            if nature.name not in self._usage_profile[0].keys():
+                nature_to_remove.append(nature)
+        for nature in nature_to_remove:
+            self._natures.pop(nature)
 
     # ##########################################################################################
     # Dynamic behavior
@@ -412,62 +469,37 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
 
     def _update(self):  # method updating needs of the devices before the supervision
 
+        consumption = {nature: [0, 0, 0] for nature in self._usage_profile[0]}  # consumption which will be asked eventually
+
         if self._remaining_time == 0:  # if the device is not running
+            # then it's the user profile which is taken into account
 
-            # getting the current moment as a datetime format
-            current_time = self._catalog.get("physical_time")
-            # the line of the data corresponds to the number of the day in the year
-            # getting the number of the day in the year
-            current_year = current_time.year
-            current_year = dt.datetime(year=current_year, month=1, day=1)
-            current_hour = current_time - current_year  # getting the duration between 01/01 and the current date
-            current_hour = current_hour.days * 24 + current_hour.seconds // 3600  # converting this duration in hours
+            for hour in self._user_profile:
+                if hour == self._hour:  # if a consumption has been scheduled and if it has not been fulfilled yet
+                    for nature in consumption:
+                        consumption[nature] = self._usage_profile[0][nature][0]
+                        consumption[nature] = self._usage_profile[0][nature][1]
+                        consumption[nature] = self._usage_profile[0][nature][2]
+                    self._remaining_time = len(self._usage_profile) - 1  # incrementing usage duration
 
-            for data in self._NomQuiPlairaPasAStephane:
-                # initialization of the use
-                if data[0] == current_hour:  # if the current hour corresponds to the beginning of a use
-                    self._current_line = self._NomQuiPlairaPasAStephane.index(data)  # saving the line of data
-                    self._remaining_time = len(data[1])  # setting the remaining time of use
-                pass    # this means the "for" ends, no matter if other uses would have been relevant,
-                        # as this is a problem in the construction of the data file
-
-        if self._remaining_time != 0:  # if the device is running
-            priority = list()  # a calculus of priority is made for each nature and then the max is kept
-            for nature in self._natures:
-                data = self._NomQuiPlairaPasAStephane[self._current_line]
-                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", data[1][-self._remaining_time])  # what the device asks
-
-                # calculus of the priority
-                # what is still needed / what is possible to deliver
-                if self._remaining_time == 1:  # if it is the last round
-                    priority.append(1)  # priority is set to one, as it won't be possible to deliver last time
-                else:
-                    priority.append((sum(data[1][-self._remaining_time:]) + self._latent_demand)\
-                    / (self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") * (self._remaining_time - 1)))
-
-            self._catalog.set(f"{self.name}.priority", min(max(priority), 1))
-
-            self._remaining_time -= 1
-            if self._remaining_time == 0:  # if the device is shut down after
-                self._catalog.set(f"{self.name}.priority", 0)  # its priority is reinitialized
-                for nature in self._natures:
-                    self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", 0)  # its energy demand is reinitialized
-                self._current_line = None  # the current line is reinitialized
-                self._latent_demand = 0  # latent demand is reinitialized
+            for nature in self.natures:
+                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
+                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
+                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
-        if self._current_line is not None:  # if there is a need ongoing
-            data = self._NomQuiPlairaPasAStephane[self._current_line]
+        if self._remaining_time != 0:  # decrementing the remaining time of use
+            self._remaining_time -= 1
+            for nature in self._natures:
+                energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+                energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+                if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
+                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                    dissatisfaction += abs(energy_wanted - energy_accorded) / energy_wanted  # ... dissatisfaction increases
+                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
 
-            if self._remaining_time != 0:  # if the device is running
-                for nature in self._natures:
-                    if self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") != data[1][0]:  # if it has not been served or partially
-                        dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") \
-                                        + self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") / data[1][0]  # served/asked
-                        self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
-
-                    self._latent_demand += data[1][0] - self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")  # latent demand is updated
+                    self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
 
     # ##########################################################################################
     # Class method
@@ -480,61 +512,5 @@ class DummyAdjustableConsumption(Device):  # a consumption which is adjustable
             world.register_device(entity)
 
     mass_create = classmethod(mass_create)
-
-
-# ##############################################################################################
-class DummyProduction(Device):
-
-    def __init__(self, name, agent_name, filename, clusters):
-        super().__init__(name, agent_name, clusters)
-
-        self._NomQuiPlairaPasAStephane = []  # the list containing the scheduled periods of work
-        self._filename = filename  # the name of the data file
-
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):  # make the initialization operations specific to the device
-        self._NomQuiPlairaPasAStephane = np.loadtxt(self._filename, delimiter="\t")
-
-    # ##########################################################################################
-    # Dynamic behaviour
-    # ##########################################################################################
-
-    def _update(self):  # method updating needs of the devices before the supervision
-
-        # getting the current moment as a datetime format
-        current_time = self._catalog.get("physical_time")
-        # the line of the data corresponds to the number of the day in the year
-        # getting the number of the day in the year
-        current_year = current_time.year
-        current_year = dt.datetime(year=current_year, month=1, day=1)
-        current_day = current_time - current_year  # getting the duration between 01/01 and the current date
-        current_day = current_day.days  # converting this duration in days
-        # the column of the data corresponds to the hour in the day
-        # getting the current hour
-        current_hour = current_time.hour
-
-        current_consumption = self._NomQuiPlairaPasAStephane[current_day][current_hour]
-
-        for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", current_consumption)
-
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
-        pass
-
-    # ##########################################################################################
-    # Class method
-    # ##########################################################################################
-
-    def mass_create(cls, n, name, world, agent_name, filename, cluster):
-        for i in range(n):
-            entity_name = f"{name}_{str(i)}"
-            entity = DummyProduction(entity_name, agent_name, filename, cluster)
-            world.register_device(entity)
-
-    mass_create = classmethod(mass_create)
-
 
 

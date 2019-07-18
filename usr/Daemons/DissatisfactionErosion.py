@@ -5,9 +5,10 @@ from common.Daemon import Daemon
 
 
 class DissatisfactionErosionDaemon(Daemon):
-    def __init__(self, name, period, residual, duration_in_hours):
-        super().__init__(name, period)
-        self._coefficient = residual ** (1 / duration_in_hours)
+
+    def __init__(self, name, period,  parameters):
+        super().__init__(name, period, parameters)
+        self._coefficient = parameters[0] ** (1 / parameters[1])
 
     def _process(self):
         for key in self.catalog.keys:

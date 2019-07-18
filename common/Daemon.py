@@ -5,7 +5,7 @@ from common.Catalog import Catalog
 
 class Daemon:
 
-    def __init__(self, name, period=0):
+    def __init__(self, name, period=0, parameters=[]):
 
         if name is None:
             raise DaemonException("Daemon needs a name")
@@ -19,6 +19,9 @@ class Daemon:
 
         self._catalog = None  # catalog from which data is extracted
         # linked to the catalog of a world later
+
+        self._parameters = parameters  # parameters is the list of different parameters necessary for user-defined daemons subclasses
+        # putting them into a list allows to
 
     # ##########################################################################################
     # Initialization

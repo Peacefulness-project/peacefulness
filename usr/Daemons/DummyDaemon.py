@@ -2,8 +2,9 @@ from common.Daemon import Daemon
 
 
 class DummyDaemon(Daemon):
-    def __init__(self, name, period):
-        super().__init__(name, period)
+
+    def __init__(self, name, period, parameters):
+        super().__init__(name, period, parameters)
 
     def _user_register(self):
         self._catalog.add("tick", 0)

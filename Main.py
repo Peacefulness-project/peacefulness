@@ -33,11 +33,12 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.DummyDevice import DummyNonControllableDevice, DummyShiftableConsumption, DummyAdjustableConsumption, DummyProduction
+from usr.Devices.DummyDevice import DummyNonControllableDevice, DummyShiftableConsumption, DummyAdjustableConsumption
 
 from common.Datalogger import Datalogger
 
 from usr.Daemons.DummyDaemon import DummyDaemon
+
 from usr.Daemons.DissatisfactionErosion import DissatisfactionErosionDaemon
 
 # ##############################################################################################
@@ -155,9 +156,7 @@ agent.set_contract(heat, name_heat_contract)  # definition of a contract
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-# e1 = DummyNonControllableDevice("Essai", agent, consumption_input_file, cluster)  # creation of a consumption point
-production_input_file = "usr/Datafiles/DummyProductionProfile.input"
-c1 = DummyProduction("Toto", agent, production_input_file, cluster_elec)  # creation of a production point
+c1 = DummyNonControllableDevice("PV", agent, cluster_elec, "usr/Datafiles/PV.json")  # creation of a production point
 
 # TODO: Créer les classes de base
 # basic device
@@ -165,8 +164,7 @@ e1 = DummyNonControllableDevice("Light", agent, cluster_elec, "usr/Datafiles/Lig
 # shiftable device
 e2 = DummyShiftableConsumption("Dishwasher", agent, cluster_elec, "usr/Datafiles/Dishwasher.json")  # creation of a consumption point
 # adjustable device
-adjustable_consumption_input_file = "usr/Datafiles/DummyAdjustableLoadProfile.input"
-# e3 = DummyAdjustableConsumption("Heating", agent, adjustable_consumption_input_file, cluster)  # creation of a consumption point
+e3 = DummyAdjustableConsumption("Heating", agent, cluster_heat, "usr/Datafiles/Heating.json")  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -176,25 +174,15 @@ world.catalog.print_debug()  # displays the content of the catalog
 
 # registration of our devices
 # note that the same method is used for all kind of devices
+world.register_device(c1)  # registration of a production device
 world.register_device(e1)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
-# world.register_device(e3)  # registration of a consumption device
-# world.register_device(c1)  # registration of a production device
-
-# world.catalog.print_debug()  # displays the content of the catalog
-# DummyShiftableConsumption.create_devices(1, "le matos a toto", world, agent, cluster, "usr/Datafiles/Dishwasher.json")
+world.register_device(e3)  # registration of a consumption device
 
 
-# there is another way to create devices using a class method "mass_create"
-# this method is user-defined for each specific device
-# it takes 3 more arguments: the number of devices, a root name for the devices (name = "root name"_"number")
-# and a world to be registered in
-# DummyConsumption.mass_create(10, "conso", world, agent, consumption_input_file, elec_grid)
-# creation and registration of 10 dummy consumptions
-# DummyProduction.mass_create(10, "prod", world, agent, production_input_file, cluster)
-# creation and registration of 10 dummy productions
+# the following method create "n" agents with a predefined set of devices based on a JSON file
+#world.agent_generation(1, "usr/DeviceGenerators/DummyAgent.json", [cluster_elec, cluster_heat])
 
-world.agent_generation(10, "usr/DeviceGenerators/DummyAgent.json", cluster_elec)
 
 # ##############################################################################################
 # Dataloggers
@@ -233,7 +221,7 @@ world.register_daemon(daemon)  # registration
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
-dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, 0.9, 168)  # creation
+dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, [0.9, 168])  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 
 
