@@ -12,7 +12,7 @@
       "profile": [19],
 
       "period": 24,
-      "offset": 0,
+      "offset": -4,
 
       "start_time_variation": 1.5,
       "duration_variation": 0.1
