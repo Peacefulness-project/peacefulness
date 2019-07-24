@@ -1,14 +1,36 @@
 {
+  "device_consumption": {
+    "residential_light": {
+      "usage_profile": {"LVE": 0.1},
+      "consumption_variation": 0.1
+    },
 
-  "Type": "Light",
-  "Profile type": "toto",
+    "commercial_light": {
+      "usage_profile": {"LVE": 0.5},
+      "consumption_variation": 0.1
+    }
+  },
 
-  "user profile": [19],
-  "usage profile": [[3, {"LVE": 0.1}]],
-  "period": 24,
+  "user_profile":{
+    "offset": {
+      "profile": [[8, 6.5]],
 
-  "start time variation": 1.5,
-  "consumption variation": 0.1,
-  "duration variation": 0.1
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 0,
+      "duration_variation": 0.1
+    },
+
+    "default": {
+      "profile": [[19, 3]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "duration_variation": 0.1
+    }
+  }
 
 }

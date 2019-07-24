@@ -19,6 +19,7 @@ for i in range(0, world.time_limit, 1):
         for nature in device.natures:
             # consumption balance
             consumption = catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+            catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
 
     for nature in world.natures:
         pass  # here, a wonderful calculation takes place

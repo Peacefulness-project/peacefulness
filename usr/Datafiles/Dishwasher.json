@@ -1,14 +1,23 @@
 {
+  "device_consumption": {
+    "default": {
+      "usage_profile": [[0.8, {"LVE": 0.5}, 1], [0.5, {"LVE": 0.4}, 1]],
+      "consumption_variation": 0.1,
+      "duration_variation": 0.1
 
-  "Type": "Dishwasher",
-  "Profile type": "toto",
+    }
+  },
 
-  "user profile": [[8.5, 0], [11, 1], [11.001, 0], [12.5, 0], [12.6,1], [12.6007, 0]],
-  "usage profile": [[0.8, {"LVE": 0.5}, 1], [0.5, {"LVE": 0.4}, 1]],
-  "period": 24,
+  "user_profile":{
 
-  "start time variation": 1.5,
-  "consumption variation": 0.1,
-  "duration variation": 0.1
+    "family": {
+      "profile": [[8.5, 0], [11, 1], [11.001, 0]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0
+    }
+  }
 
 }

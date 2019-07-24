@@ -33,7 +33,10 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.DummyDevice import DummyNonControllableDevice, DummyShiftableConsumption, DummyAdjustableConsumption
+from usr.Devices.Light import Light
+from usr.Devices.PV import PV
+from usr.Devices.Dishwasher import Dishwasher
+from usr.Devices.Heating import Heating
 
 from common.Datalogger import Datalogger
 
@@ -156,15 +159,15 @@ agent.set_contract(heat, name_heat_contract)  # definition of a contract
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = DummyNonControllableDevice("PV", agent, cluster_elec, "usr/Datafiles/PV.json")  # creation of a production point
+c1 = PV("PV", agent, cluster_elec, "default", "residential_PV")  # creation of a production point
 
-# TODO: Créer les classes de base
 # basic device
-e1 = DummyNonControllableDevice("Light", agent, cluster_elec, "usr/Datafiles/Light.json")  # creation of a consumption point
+Light1 = Light("Light_basic", agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
+Light2 = Light("Light_offset", agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
 # shiftable device
-e2 = DummyShiftableConsumption("Dishwasher", agent, cluster_elec, "usr/Datafiles/Dishwasher.json")  # creation of a consumption point
+e2 = Dishwasher("Dishwasher1", agent, cluster_elec, "family", "default")  # creation of a consumption point
 # adjustable device
-e3 = DummyAdjustableConsumption("Heating", agent, cluster_heat, "usr/Datafiles/Heating.json")  # creation of a consumption point
+e3 = Heating("Heating1", agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -175,18 +178,20 @@ world.catalog.print_debug()  # displays the content of the catalog
 # registration of our devices
 # note that the same method is used for all kind of devices
 world.register_device(c1)  # registration of a production device
-world.register_device(e1)  # registration of a consumption device
+world.register_device(Light1)  # registration of a consumption device
+world.register_device(Light2)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
 
 
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-#world.agent_generation(1, "usr/DeviceGenerators/DummyAgent.json", [cluster_elec, cluster_heat])
+world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
 
 
 # ##############################################################################################
 # Dataloggers
 # this object is in charge of exporting data into files at a given iteration frequency
+# world.catalog.print_debug()  # displays the content of the catalog
 
 # dataloggers need at least 3 arguments: a name, a file name and a period of activation
 # the first logger writes all the available data at each turn
@@ -202,12 +207,14 @@ logger2 = Datalogger("log10", "essai2.txt", 1, 1)  # creation
 world.register_datalogger(logger2)  # registration
 logger2.add("simulation_time")  # this datalogger exports only the current iteration
 logger2.add("physical_time")
-logger2.add("Dishwasher.LVE.energy_wanted")
-logger2.add("Dishwasher.LVE.energy_accorded")
-logger2.add("Dishwasher.priority")
-logger2.add("Light.LVE.energy_wanted")
-logger2.add("Light.LVE.energy_accorded")
-logger2.add("Light.priority")
+# logger2.add("Light_basic.LVE.energy_wanted")
+# logger2.add("Light_offset.LVE.energy_wanted")
+# logger2.add("Dishwasher1.LVE.energy_wanted")
+# logger2.add("Dishwasher1.LVE.energy_accorded")
+# logger2.add("Dishwasher1.priority")
+logger2.add("Heating1.Heat.energy_wanted")
+logger2.add("Heating1.Heat.energy_accorded")
+logger2.add("Heating1.priority")
 
 # ##############################################################################################
 # Daemons

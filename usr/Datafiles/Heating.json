@@ -1,14 +1,22 @@
 {
+  "device_consumption": {
+    "residential_heating": {
+      "usage_profile": [[0.5, {"Heat": [1, 1.5, 2]}], [2, {"Heat": [1, 1.2, 2]}]],
+      "consumption_variation": 0.1
+    }
 
-  "Type": "Heating",
-  "Profile type": "toto",
+  },
 
-  "user profile": [19],
-  "usage profile": [[0.5, {"Heat": [450, 500, 550]}], [2, {"Heat": [350, 400, 450]}]],
-  "period": 24,
+  "user_profile":{
+    "default": {
+      "profile": [19],
 
-  "start time variation": 1.5,
-  "consumption variation": 0.1,
-  "duration variation": 0.1
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 1.5,
+      "duration_variation": 0.1
+    }
+  }
 
 }

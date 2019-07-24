@@ -164,8 +164,8 @@ class World:
             absolute_path = inspect.getfile(type(device))  # this is the absolute path to the file where the class is defined
             module_name = absolute_path.split("usr")[-1]
             module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
-            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
-            self._user_classes[f"{type(device).__name__}"] = [module_name, type(device)]
+            module_name = "usr" + module_name[:-3]  # here we add the "usr" we delete earlier and we delete the ".py"
+            self._user_classes[f"{type(device).__name__}"] = type(device)
         
         self._devices[device.name] = device
         device._register(self._catalog)  # registering of the device in the catalog
@@ -195,7 +195,7 @@ class World:
             module_name = absolute_path.split("usr")[-1]
             module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
             module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
-            self._user_classes[f"{type(daemon).__name__}"] = [module_name, type(daemon)]
+            self._user_classes[f"{type(daemon).__name__}"] = type(daemon)
 
         daemon._register(self._catalog)  # registering of the device in the catalog
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
@@ -236,11 +236,11 @@ class World:
                 agent.set_contract(self._natures[nature], contract)  # definition of a contract
 
             # creation of devices
-            for device_data in data["composition"]:
-                for j in range(device_data[2]):
-                    device_name = f"{agent.name}_{device_data[1]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                    device_class = self._user_classes[device_data[0]][1]
-                    device = device_class(device_name, agent, clusters, device_data[3])  # creation of the device
+            for device_data in data["composition"].values():
+                for j in range(device_data[3]):
+                    device_name = f"{agent.name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                    device_class = self._user_classes[device_data[0]]
+                    device = device_class(device_name, agent, clusters, device_data[1], device_data[2])  # creation of the device
                     self.register_device(device)
 
     def _check(self):  # a method checking if the world has been well defined
@@ -318,19 +318,10 @@ class World:
         # pour le(s) superviseur(s), on verra plus tard
 
         # personalized classes file
-        user_classes_list = dict()
-        # for user_class in self._user_classes:
-        #     user_classes_list[user_class] = [self._user_classes[user_class][0]]
-        #     string_class = str(pickle.dumps(self._user_classes[user_class][1]))  # a format allowing to serialize a class to JSON and then deserialize it
-        #     user_classes_list[user_class].append(string_class)
-
-        for user_class in self._user_classes:
-            user_classes_list[user_class] = self._user_classes[user_class]
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
         file = open(filename, "wb")
-        pickle.dump(user_classes_list, file)
-        # file.write(json.dumps(user_classes_list, indent=2))
+        pickle.dump(self._user_classes, file)  # the dictionary containing the classes is exported entirely
 
         # natures file
         natures_list = {nature.name: nature.description for nature in self._natures.values()}
@@ -354,7 +345,13 @@ class World:
         file.write(json.dumps(agents_list, indent=2))
 
         # devices file
-        devices_list = {device.name: [f"{type(device).__name__}", device._agent.name, [cluster.name for cluster in device._natures.values()], device._period, device._usage_profile, device._user_profile] for device in self.devices.values()}
+        devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
+                                      [cluster.name for cluster in device._natures.values()],
+                                      device._period,
+                                      device._user_profile, device._usage_profile,  # the data of the profiles
+                                      device.user_profile, device.usage_profile,  # the name of the profiles
+                                      device._moment  # the current moment in the period
+                                      ] for device in self.devices.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Devices.json"])
         file = open(filename, "w")
@@ -405,22 +402,7 @@ class World:
         for user_class in data:
             self._user_classes[user_class] = data[user_class]
 
-        # for user_class in data:
-        #     truc = data[user_class][1]
-        #     truc = truc[2:-1]
-        #     truc = bytes(truc, 'ASCII')
-        #     print(truc)
-        #     truc = pickle.loads(truc)
-        #     print(truc)
-        #
-        # test = __import__('usr.Devices.DummyDevice', globals(), locals(), ['DummyNonControllableDevice'])
-        # # print(inspect.getfile(test.DummyNonControllableDevice))
-        # DummyNonControllableDevice = test.DummyNonControllableDevice()
-
-        #
-        # personalized_classs_list = {class_name: globals()[class_name] for class_name in data }
-        #
-        os.remove("Classes.pickle")  # deleting the useless world file
+        os.remove("Classes.pickle")  # deleting the useless file
 
         # Natures file
         file = open("Natures.json", "r")
@@ -465,15 +447,18 @@ class World:
         for device_name in data:
             agent = self._agents[data[device_name][1]]
             clusters = [self._clusters[cluster_name] for cluster_name in data[device_name][2]]
-            device_class = self._user_classes[data[device_name][0]][1]
+            device_class = self._user_classes[data[device_name][0]]
+            user_profile_name = data[device_name][6]  # loading the user profile name
+            usage_profile_name = data[device_name][7]  # loading the usage profile name
 
-            device = device_class(device_name, agent, clusters, "loaded device")
+            device = device_class(device_name, agent, clusters, user_profile_name, usage_profile_name, "loaded device")
 
-            # getting the real hour
-            device._hour = self._catalog.get("physical_time").hour  # getting the hour of the day
-            device._period = data[device_name][3]
-            device._usage_profile = data[device_name][4]
-            device._user_profile = data[device_name][5]
+            # loading the real hour
+            device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
+            device._period = data[device_name][3]  # loading the period
+            device._user_profile = data[device_name][4]  # loading the user profile
+            device._usage_profile = data[device_name][5]  # loading the usage profile
+            device._moment = data[device_name][8]  # loading the initial moment
 
             self.register_device(device)
 
@@ -502,7 +487,7 @@ class World:
         for daemon_name in data:
             daemon_period = data[daemon_name][1]
             daemon_parameters = data[daemon_name][2]
-            daemon_class = self._user_classes[data[daemon_name][0]][1]
+            daemon_class = self._user_classes[data[daemon_name][0]]
             daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
             self.register_daemon(daemon)
 
@@ -561,18 +546,21 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, agent_name, clusters, filename):
+    def __init__(self, name, agent_name, clusters, filename, user_type, consumption_device):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
 
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
-        self._hour = None  # the hour of the day
+        self._moment = None  # the current moment in the period
+        self._period = None
+        self._offset = None
 
+        self._user_profile_name = user_type
         self._user_profile = []  # user profile of utilisation, describing user's priority
         # hour since the beginning of the period : [ priority, usage ID ]
         # the user profile lasts 1 day and starts at 00:00 AM
 
+        self._usage_profile_name = consumption_device
         self._usage_profile = []  # energy and interruptibility for one usage
         # [ energy consumption, priority ]
 
@@ -597,23 +585,21 @@ class Device:
     # Initialization
     # ##########################################################################################
 
-    def _register_device(self, catalog):  # make the initialization operations undoable without a catalog
-        # and relevant for all devices
+    def _register(self, catalog):  # make the initialization operations undoable without a catalog
         self._catalog = catalog  # linking the catalog to the device
+
+        if self._filename != "loaded device":  # if a filename has been defined...
+            self._get_consumption()  # ... then the file is converted into consumption profiles
+            # else, the device has been loaded and does not need a data file
 
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accpeted by the supervisor
         self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
-        self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of
-                                                        # being satisfied in the current time step
+        self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
+                                                        # ...being satisfied in the current time step
 
-    def _register(self, catalog):  # make the initialization operations undoable without a catalog
-        self._register_device(catalog)
-        self._user_register()
-        if self._filename != "loaded device":  # if a filename has been defined
-            self._get_consumption()
-            # else, it is assumed that the device has been load
+        self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
     def _user_register(self):  # where users put device-specific behaviors
         pass
@@ -638,15 +624,6 @@ class Device:
         pass
 
     # ##########################################################################################
-    # Class method
-    # ##########################################################################################
-
-    def create_devices(cls, quantity, name_root, world, agent, clusters, filename):
-        pass
-
-    create_devices = classmethod(create_devices)
-
-    # ##########################################################################################
     # Utility
     # ##########################################################################################
 
@@ -657,6 +634,14 @@ class Device:
     @property
     def natures(self):  # shortcut for read-only
         return self._natures
+
+    @property
+    def usage_profile(self):  # shortcut for read-only
+        return self._usage_profile_name
+
+    @property
+    def user_profile(self):  # shortcut for read-only
+        return self._user_profile_name
 
     @property
     def agent(self):  # shortcut for read-only

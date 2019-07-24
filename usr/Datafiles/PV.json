@@ -1,14 +1,19 @@
 {
+  "device_consumption": {
+    "residential_PV": {
+      "usage_profile": {"LVE": -0.2},
+      "consumption_variation": 0
+    }
 
-  "Type": "Photovoltaic panel",
-  "Profile type": "toto",
+  },
 
-  "user profile": [9],
-  "usage profile": [[2, {"LVE": -0.1}], [1, {"LVE": -0.15}], [0.5, {"LVE": -0.2}], [1, {"LVE": -0.15}], [2, {"LVE": -0.1}]],
-  "period": 24,
-
-  "start time variation": 1,
-  "consumption variation": 0.1,
-  "duration variation": 0.1
-
+  "user_profile": {
+    "default": {
+      "profile": [[9, 8]],
+      "period": 24,
+      "offset": 0,
+      "start_time_variation": 0,
+      "duration_variation": 0
+    }
+  }
 }

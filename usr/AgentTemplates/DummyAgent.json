@@ -1,0 +1,15 @@
+{
+  "template name": "profil de fer",
+
+  "composition": {
+    "Dishwasher": ["Dishwasher", "family", "default", 1],
+    "Light": ["Light", "default", "residential_light", 1],
+    "PV": ["PV", "default", "residential_PV", 1]
+  },
+
+  "contracts": {
+    "LVE":  "contrat posé",
+    "Heat":  "contrat riété"
+  }
+
+}
