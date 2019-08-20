@@ -19,7 +19,7 @@
 
 # ##############################################################################################
 # Importations
-import datetime
+from datetime import datetime
 
 from common.Core import World
 
@@ -75,7 +75,7 @@ world.set_directory(pathExport)  # registration
 
 # ##############################################################################################
 # Definition of the random seed to be used
-# The default seed is the current time (the value returned by datetime.datetime.now())
+# The default seed is the current time (the value returned by datetime.now())
 world.set_random_seed("tournesol")
 
 
@@ -97,7 +97,7 @@ world.register_supervisor(supervisor)
 # ##############################################################################################
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = datetime.datetime.now()  # a start date in the datetime format
+start_date = datetime.now()  # a start date in the datetime format
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated

@@ -12,16 +12,14 @@ class Daemon:
 
         self._name = name
 
-        # Daemons are not obliged to act each turn. A period of activation can be defined.
-        self._period = period  # period between 2 activations
+        self._period = period  # number of rounds between 2 activations
 
         self._next_time = 0  # next iteration at which the daemon will be activated
 
         self._catalog = None  # catalog from which data is extracted
-        # linked to the catalog of a world later
 
         self._parameters = parameters  # parameters is the list of different parameters necessary for user-defined daemons subclasses
-        # putting them into a list allows to
+        # putting them into a list is necessary for the save/load system
 
     # ##########################################################################################
     # Initialization
@@ -40,14 +38,13 @@ class Daemon:
 
     def _launch(self):  # modify the catalog at the given period
 
-        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
-        # to be called or not
+        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period
             self._process()
             self._next_time += self._period
 
-    def _process(self):  # where the catalog entries are modified
+    def _process(self):  # where specific tasks are defined
         pass
 
     # ##########################################################################################

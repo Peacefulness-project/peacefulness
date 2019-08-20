@@ -1,13 +1,13 @@
 # Declaration of core classes
 # ##############################################################################################
 # Native packages
-import datetime
-import os
-import random as rnd
-import json
-import shutil
-import inspect
-import pickle
+from datetime import datetime, timedelta
+from os import makedirs, remove
+from random import random, seed as random_generator_seed, randint
+from json import load, dumps
+from shutil import make_archive, unpack_archive, rmtree
+from inspect import getfile
+from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 from common.Catalog import Catalog
 from common.Nature import Nature
@@ -32,7 +32,7 @@ class World:
         if name:
             self._name = name
         else:  # By default, world is named after the date
-            self._name = f"Unnamed ({datetime.datetime.now()})"
+            self._name = f"Unnamed ({datetime.now()})"
 
         self._catalog = None  # data catalog which gathers all data
 
@@ -41,7 +41,7 @@ class World:
         self._time_limit = None  # latest time step of the simulation (in number of iterations)
 
         # Randomness management
-        self._random_seed = None  # yhe seed used in the random number generator of Python
+        self._random_seed = None  # the seed used in the random number generator of Python
 
         # dictionaries contained by world
         self._user_classes = dict()  # this dictionary contains all the classes defined by the user
@@ -77,44 +77,49 @@ class World:
         self._catalog = catalog
 
     def set_directory(self, path):  # definition of a case directory and creation of the directory
-        instant_date = datetime.datetime.now()  # get the current time
+        instant_date = datetime.now()  # get the current time
         instant_date = instant_date.strftime("%d_%m_%Y-%H_%M_%S")  # the directory is named after the date
 
         path = adapt_path([path, f"Case_{instant_date}"])  # path is the root for all files relative to the case
 
-        os.makedirs(path)
-        os.makedirs(adapt_path([path, "inputs"]))
-        os.makedirs(adapt_path([path, "outputs"]))
+        makedirs(path)
+        makedirs(adapt_path([path, "inputs"]))
+        makedirs(adapt_path([path, "outputs"]))
 
         self._catalog.add("path", path)
 
-    def set_random_seed(self, seed=datetime.datetime.now()):  # this method defines the seed used by the random number generator of Python
+    def set_random_seed(self, seed=datetime.now()):  # this method defines the seed used by the random number generator of Python
         self._random_seed = seed  # the seed is saved
-        rnd.seed(self._random_seed)  # the seed is passed to world in order to save it somewhere
+        random_generator_seed(self._random_seed)  # the seed is passed to world in order to save it somewhere
 
         def rand_float():  # function returning a float between 0 and 1
-            return rnd.random()
+            return random()
 
         def rand_int(min_int, max_int):  # function returning an int between min and max
-            return rnd.randint(min_int, max_int)
+            return randint(min_int, max_int)
 
         self._catalog.add("float", rand_float)
         self._catalog.add("int", rand_int)
 
-    def set_time(self, start_date=datetime.datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
+    def set_time(self, start_date=datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
         self._catalog.add("time_step", timestep_value)  # value of a time step, used to adapt hourly-defined profiles
-        self._timestep_value = datetime.timedelta(hours=timestep_value)
+        self._timestep_value = timedelta(hours=timestep_value)
         self._time_limit = time_limit
 
     # the following methods concern objects modeling a case
     def register_nature(self, nature):  # definition of natures dictionary
+        if nature.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{nature.name} already in use")
+
         if isinstance(nature, Nature) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
         self._natures[nature.name] = nature
+        self._used_names.append(nature.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
 
     def register_cluster(self, cluster):  # method connecting one cluster to the world
         if cluster.name in self._used_names:  # checking if the name is already used
@@ -161,7 +166,7 @@ class World:
                 raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
 
         if type(device) not in self._user_classes:  # saving the class in the dedicated dict
-            absolute_path = inspect.getfile(type(device))  # this is the absolute path to the file where the class is defined
+            absolute_path = getfile(type(device))  # this is the absolute path to the file where the class is defined
             module_name = absolute_path.split("usr")[-1]
             module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
             module_name = "usr" + module_name[:-3]  # here we add the "usr" we delete earlier and we delete the ".py"
@@ -191,7 +196,7 @@ class World:
             raise WorldException("The object is not of the correct type")
         
         if type(daemon) not in self._user_classes:  # saving the class in the dedicated dict
-            absolute_path = inspect.getfile(type(daemon))  # this is the absolute path to the file where the class is defined
+            absolute_path = getfile(type(daemon))  # this is the absolute path to the file where the class is defined
             module_name = absolute_path.split("usr")[-1]
             module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
             module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
@@ -222,7 +227,7 @@ class World:
 
         # loading the data in the file
         file = open(filename, "r")
-        data = json.load(file)
+        data = load(file)
         file.close()
 
         for i in range(quantity):
@@ -298,7 +303,7 @@ class World:
         # to be able to reconstruct it later
 
         filepath = adapt_path([self._catalog.get("path"), "inputs", "save"])
-        os.makedirs(filepath)
+        makedirs(filepath)
 
         # world file
         world_dict = {"name": self.name,
@@ -313,7 +318,8 @@ class World:
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"World.json"])
         file = open(filename, "w")
-        file.write(json.dumps(world_dict, indent=2))
+        file.write(dumps(world_dict, indent=2))
+        file.close()
 
         # pour le(s) superviseur(s), on verra plus tard
 
@@ -321,28 +327,32 @@ class World:
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
         file = open(filename, "wb")
-        pickle.dump(self._user_classes, file)  # the dictionary containing the classes is exported entirely
+        pickle_dump(self._user_classes, file)  # the dictionary containing the classes is exported entirely
+        file.close()
 
         # natures file
         natures_list = {nature.name: nature.description for nature in self._natures.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Natures.json"])
         file = open(filename, "w")
-        file.write(json.dumps(natures_list, indent=2))
+        file.write(dumps(natures_list, indent=2))
+        file.close()
 
         # clusters file
         clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")
-        file.write(json.dumps(clusters_list, indent=2))
+        file.write(dumps(clusters_list, indent=2))
+        file.close()
 
         # agents file
         agents_list = {agent.name: {nature.name: agent._contract[nature] for nature in agent._contract} for agent in self._agents.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
         file = open(filename, "w")
-        file.write(json.dumps(agents_list, indent=2))
+        file.write(dumps(agents_list, indent=2))
+        file.close()
 
         # devices file
         devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
@@ -355,79 +365,83 @@ class World:
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Devices.json"])
         file = open(filename, "w")
-        file.write(json.dumps(devices_list, indent=2))
+        file.write(dumps(devices_list, indent=2))
+        file.close()
 
         # dataloggers file
         dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Dataloggers.json"])
         file = open(filename, "w")
-        file.write(json.dumps(dataloggers_list, indent=2))
+        file.write(dumps(dataloggers_list, indent=2))
+        file.close()
 
         # daemons file
         daemons_list = {daemon.name: [f"{type(daemon).__name__}", daemon._period, daemon._parameters] for daemon in self.daemons.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Daemons.json"])
         file = open(filename, "w")
-        file.write(json.dumps(daemons_list, indent=2))
-
+        file.write(dumps(daemons_list, indent=2))
         file.close()
 
-        shutil.make_archive(filepath, "tar", filepath)  # packing the archive
-        shutil.rmtree(filepath)  # deleting the directory with all the now useless files
+        make_archive(filepath, "tar", filepath)  # packing the archive
+        rmtree(filepath)  # deleting the directory with all the now useless files
 
     def load(self, filename):
-        shutil.unpack_archive(filename, format="tar")  # unpacking the archive
+        unpack_archive(filename, format="tar")  # unpacking the archive
 
         # World file
         file = open("World.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         self.set_random_seed(data["random seed"])
 
         start_date = data["start date"]
-        start_date = datetime.datetime.strptime(start_date, "%d %b %Y %H:%M:%S")  # converting the string into a datetime object
+        start_date = datetime.strptime(start_date, "%d %b %Y %H:%M:%S")  # converting the string into a datetime object
         time_step = data["time step"]
         time_limit = data["time limit"]
         self.set_time(start_date, time_step, time_limit)
 
-        os.remove("World.json")  # deleting the useless world file
-        # personalized_classs_list = [personalized_class for personalized_class in self._personalized_classes]
+        file.close()
+        remove("World.json")  # deleting the useless world file
 
         # # personalized classes file
         file = open("Classes.pickle", "rb")
 
-        data = pickle.load(file)
+        data = pickle_load(file)
 
         for user_class in data:
             self._user_classes[user_class] = data[user_class]
 
-        os.remove("Classes.pickle")  # deleting the useless file
+        file.close()
+        remove("Classes.pickle")  # deleting the useless file
 
         # Natures file
         file = open("Natures.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for nature_name in data:
             nature = Nature(nature_name, data[nature_name])  # creation of a nature
             self.register_nature(nature)  # registration
 
-        os.remove("Natures.json")  # deleting the useless file
+        file.close()
+        remove("Natures.json")  # deleting the useless file
 
         # Clusters file
         file = open("Clusters.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for cluster_name in data:
             cluster_nature = self._natures[data[cluster_name]]
             cluster = Cluster(cluster_name, cluster_nature)  # creation of a cluster
             self.register_cluster(cluster)  # registration
 
-        os.remove("Clusters.json")  # deleting the useless file
+        file.close()
+        remove("Clusters.json")  # deleting the useless file
 
         # Agents file
         file = open("Agents.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for agent_name in data:
             agent = Agent(agent_name)  # creation of an agent
@@ -438,11 +452,12 @@ class World:
                 nature = self._natures[nature_name]
                 agent.set_contract(nature, contract)  # definition of a contract
 
-        os.remove("Agents.json")  # deleting the useless file
+        file.close()
+        remove("Agents.json")  # deleting the useless file
 
         # Devices file
         file = open("Devices.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for device_name in data:
             agent = self._agents[data[device_name][1]]
@@ -462,11 +477,12 @@ class World:
 
             self.register_device(device)
 
-        os.remove("Devices.json")  # deleting the useless file
+        file.close()
+        remove("Devices.json")  # deleting the useless file
 
         # Dataloggers file
         file = open("Dataloggers.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for datalogger_name in data:
             filename = data[datalogger_name][0]
@@ -478,11 +494,12 @@ class World:
             for entry in data[datalogger_name][3]:
                 logger.add(entry)  # this datalogger exports all the data available in the catalog
 
-        os.remove("Dataloggers.json")  # deleting the useless file
+        file.close()
+        remove("Dataloggers.json")  # deleting the useless file
 
         # Daemons file
         file = open("Daemons.json", "r")
-        data = json.load(file)
+        data = load(file)
 
         for daemon_name in data:
             daemon_period = data[daemon_name][1]
@@ -491,7 +508,8 @@ class World:
             daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
             self.register_daemon(daemon)
 
-        os.remove("Daemons.json")  # deleting the useless file
+        file.close()
+        remove("Daemons.json")  # deleting the useless file
 
         file.close()
 
@@ -552,17 +570,16 @@ class Device:
         self._filename = filename  # the name of the data file
 
         self._moment = None  # the current moment in the period
-        self._period = None
-        self._offset = None
+        self._period = None  # the duration of a classic cycle of use for the user of the device
+        self._offset = None  # the delay between the beginning of the period and the beginning of the year
 
         self._user_profile_name = user_type
         self._user_profile = []  # user profile of utilisation, describing user's priority
-        # hour since the beginning of the period : [ priority, usage ID ]
-        # the user profile lasts 1 day and starts at 00:00 AM
+        # the content differs depending on the kind of device
 
         self._usage_profile_name = consumption_device
-        self._usage_profile = []  # energy and interruptibility for one usage
-        # [ energy consumption, priority ]
+        self._usage_profile = []  # energy profile dor one usage of the device
+        # the content differs depending on the kind of device
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
@@ -615,9 +632,6 @@ class Device:
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor
-        #
-        #
-
         self._user_react()
 
     def _user_react(self):  # where users put device-specific behaviors

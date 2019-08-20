@@ -1,7 +1,6 @@
 # List of energy
 # This class is just a dictionary containing the different nature of energy
 # A representative of this class is created for each world
-from copy import deepcopy
 
 
 class Nature:  # this class contains the different natures
@@ -10,14 +9,14 @@ class Nature:  # this class contains the different natures
     def __init__(self, name, description):
         Nature._list = list()  # a list indexing all types of nature
 
-        if name in Nature._list:
+        if name in Nature._list:  # to avoid double definitions
             raise NatureException(f"{name} is already a defined nature")
         else:
             Nature._list.append(name)
-            self._name = name
+            self._name = name  # the name of the nature, which is used as a keyword
 
-        self.description = description
-        self._grid = False
+        self.description = description  # a description of the nature
+        self._grid = False  # a flag indicating if this nature is linked to a major grid
 
     # ##########################################################################################
     # Initialization

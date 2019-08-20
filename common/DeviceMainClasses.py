@@ -1,8 +1,8 @@
 # ##############################################################################################
 # Native packages
-import json
-import datetime
-import math
+from json import load
+from datetime import datetime
+from math import ceil
 # Current packages
 from common.Core import Device, DeviceException
 
@@ -24,7 +24,7 @@ class NonControllableDevice(Device):
 
         # parsing the data
         file = open(self._filename, "r")
-        data = json.load(file)
+        data = load(file)
 
         # getting the user profile
         try:
@@ -41,19 +41,19 @@ class NonControllableDevice(Device):
 
         # creation of the consumption data
         time_step = self._catalog.get("time_step")
-        self._period = int(data_user["period"]//time_step)  # the number of iteration corresponding to a period
-        self._offset = data_user["offset"]
+        self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
+        self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
         # the period MUST be a multiple of the time step
-        year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime.datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds()/3600
+        year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
+        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
+        beginning = beginning.total_seconds()/3600  # hours -> seconds
         beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = math.ceil(beginning)  # the position in the period where the device start
+        self._moment = ceil(beginning)  # the position in the period where the device starts
 
         # we randomize a bit in order to represent reality better
         duration_variation = (self._catalog.get("float")() - 0.5) * data_user["duration_variation"]  # modification of the duration
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
-        for line in data_user["profile"]:
+        for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
             line[0] += start_time_variation
             line[1] += duration_variation
 
@@ -69,32 +69,31 @@ class NonControllableDevice(Device):
             current_moment = int(line[0] // time_step)  # the moment when the device will be turned on
 
             # creation of the user profile, where there are hours associated with the use of the device
-
             # first time step
             ratio = (beginning % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
 
             # intermediate time steps
-            duration_residue = line[1] - (line[0] - (line[0] // time_step) * time_step)
-            while duration_residue >= 1:
+            duration_residue = line[1] - (line[0] - (line[0] // time_step) * time_step)  # the residue of the duration is the remnant time during which the device is operating
+            while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
                 current_moment += 1
                 duration_residue -= 1
-                self._user_profile.append([current_moment, 1])  # adding an intermediate time step where it is obviously fully used
+                self._user_profile.append([current_moment, 1])  # ... a new entry is created with a ratio of 1 (full use)
 
             # final time step
             current_moment += 1
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
-            self._user_profile.append([current_moment, ratio])  # adding the final time step beforeit wil be turned off
+            self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
         # usage_profile
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
 
         self._usage_profile = dict()
-        for nature in data_device["usage_profile"]:
+        for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
             self._usage_profile[nature] = data_device["usage_profile"][nature]
 
-        # removal of unused natures in the self._natures
-        nature_to_remove = []
+        # removal of unused natures in the self._natures i.e natures with no profiles
+        nature_to_remove = []  # buffer (as it is not possible to remove keys in a dictionary being read)
         for nature in self._natures:
             if nature.name not in self._usage_profile.keys():
                 nature_to_remove.append(nature)
@@ -112,7 +111,7 @@ class NonControllableDevice(Device):
         for line in self._user_profile:
             if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
                 for nature in consumption:
-                    consumption[nature] = self._usage_profile[nature] * line[1]  # energy needed
+                    consumption[nature] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
 
         for nature in self.natures:  # publication of the consumption in the catalog
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
@@ -142,7 +141,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         # parsing the data
         file = open(self._filename, "r")
-        data = json.load(file)
+        data = load(file)
 
         # getting the user profile
         try:
@@ -163,14 +162,14 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._offset = data_user["offset"]
         # the period MUST be a multiple of the time step
         year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime.datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
+        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
         beginning = beginning.total_seconds()/3600
         beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = math.ceil(beginning)  # the position in the period where the device start
+        self._moment = ceil(beginning)  # the position in the period where the device start
 
         # we randomize a bit in order to represent reality better
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
-        for line in data_user["profile"]:
+        for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
             line[0] += start_time_variation
 
         duration_variation = (self._catalog.get("float")() - 0.5) * data_device["duration_variation"]  # modification of the duration
@@ -199,21 +198,18 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         next_point = data_user["profile"][j+1]  # the last point of data that will be encountered
         usage_number = 0
 
-        for line in self._user_profile:
+        for line in self._user_profile:  # filling the user profile with priority
 
             line[2] = usage_number  # adding the id of the usage
 
-            while True:
+            while True:  # the loop is shut down when all the data on the line has been recorded
 
-                next_point_reached = False
+                next_point_reached = False  # a flag indicating when the next time step is beyond the scope of the "line"
                 if next_point[0] < line[0] + time_step:  # when "next_point" is reached, it becomes "previous_point"
                     next_point_reached = True
                     j += 1
                     previous_point = data_user["profile"][j]
                     next_point = data_user["profile"][j + 1]
-
-                # if not (next_point[1] + previous_point[1]):  # if the priority is null
-                #     line[1] = 0  # then it is put to 0 to avoid problems due to numerical unaccuracy
 
                 # linear interpolation in order to calculate the priority
                 a = next_point[1] - previous_point[1]
@@ -250,7 +246,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         for i in range(len(data_device["usage_profile"])):
 
             buffer = duration % time_step  # the time already taken by the line i-1 of data in the current time_step
-            duration += data_device["usage_profile"][i][0]
+            duration += data_device["usage_profile"][i][0]  # duration represents the time not affected yet in a line of data of usage profile
 
             if duration < time_step:  # as long as the next time step is not reached, consumption and duration are summed
 
@@ -270,7 +266,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                         self._usage_profile[-1][0][nature] = 0   # creation of the entry
                         self._usage_profile[-1][0][nature] = consumption[nature] + data_device["usage_profile"][i][1][nature] * ratio
 
-                    self._usage_profile[-1][1] = max(priority, data_device["usage_profile"][i][2])
+                    self._usage_profile[-1][1] = max(priority, data_device["usage_profile"][i][2])  # the priority is the max betwwen the former priority and the new
                     priority = 0
 
                     duration -= time_step  # we decrease the duration of 1 time step
@@ -309,8 +305,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         consumption = {nature: 0 for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
         priority = 0  # priority of the consumption
 
-        if not self._remaining_time:  # if the device is not running
-            # then it's the user_profile which is taken into account
+        if not self._remaining_time:  # if the device is not running then it's the user_profile which is taken into account
 
             for line in self._user_profile:
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
@@ -320,8 +315,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     self._is_done.append(line[2])  # adding the usage to the list of already satisfied usages
                     self._remaining_time = len(self._usage_profile)
 
-        else:  # if the device is running
-            # then it's the usage_profile who matters
+        else:  # if the device is running then it's the usage_profile who matters
             for nature in consumption:
                 consumption[nature] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
             priority = self._usage_profile[-self._remaining_time][1]  # priority associated
@@ -371,7 +365,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         # parsing the data
         file = open(self._filename, "r")
-        data = json.load(file)
+        data = load(file)
 
         # getting the user profile
         try:
@@ -392,10 +386,10 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         self._offset = data_user["offset"]
         # the period MUST be a multiple of the time step
         year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime.datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
+        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
         beginning = beginning.total_seconds()/3600
         beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = math.ceil(beginning)  # the position in the period where the device start
+        self._moment = ceil(beginning)  # the position in the period where the device start
 
         # we randomize a bit in order to represent reality better
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
@@ -479,8 +473,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         consumption = {nature: [0, 0, 0] for nature in self._usage_profile[0]}  # consumption which will be asked eventually
 
-        if self._remaining_time == 0:  # if the device is not running
-            # then it's the user_profile which is taken into account
+        if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
 
             for hour in self._user_profile:
                 if hour == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet

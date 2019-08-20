@@ -2,7 +2,7 @@
 # from tools.Utilities import list_to_str
 # from tools.DataProcessingFunctions import *
 
-import numpy as np
+from numpy import mean
 
 from tools.Utilities import adapt_path
 
@@ -12,9 +12,8 @@ class Datalogger:
     def __init__(self, name, filename, period=0, sum_over_time=False):
         self._name = name
 
-        #  linked to the catalog of a world later
-        self._filename = filename
-        self._period = period  # period between 2 activations
+        self._filename = filename  # the name of the file where the data will be written
+        self._period = period  # number of rounds between 2 activations
         self._sum = sum_over_time  # enables integration of a data between 2 periods
 
         self._list = []  # list of catalog keys which has to be written
@@ -54,7 +53,7 @@ class Datalogger:
 
     def _data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
         processed_data = list()
-        processed_data.append(np.mean(self._buffer[key]))  # mean
+        processed_data.append(mean(self._buffer[key]))  # mean
         processed_data.append(min(self._buffer[key]))  # min
         processed_data.append(max(self._buffer[key]))  # max
         return processed_data
@@ -68,14 +67,12 @@ class Datalogger:
 
     def _launch(self):  # write data at the given frequency
 
-        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has
-        # to be called or not
+        current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
-                    self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
-        if current_time >= self._next_time:  # data is saved only if the current time is a
-            # multiple of the defined period
+                self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
+        if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the defined period
 
             if current_time == 0:  # initialization of the file
                 self._save_header()  # name of each piece of data is written at the top of the file

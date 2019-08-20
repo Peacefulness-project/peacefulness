@@ -32,7 +32,7 @@ class Catalog:
     # ##########################################################################################
 
     @property
-    def keys(self):
+    def keys(self):  # for read only
         return self._data.keys()
 
     def __str__(self):  # calling our catalog will return the number of items
@@ -50,5 +50,3 @@ class Catalog:
 class CatalogException(Exception):
     def __init__(self, message):
         super().__init__(message)
-
-
