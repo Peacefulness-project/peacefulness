@@ -29,6 +29,9 @@ from common.Supervisor import Supervisor
 
 from common.Nature import Nature
 
+from common.Contract import Contract
+from usr.Contracts.ClassicContract import ClassicContract
+
 from common.Agent import Agent
 
 from common.Cluster import Cluster
@@ -41,8 +44,8 @@ from usr.Devices.Heating import Heating
 from common.Datalogger import Datalogger
 
 from usr.Daemons.DummyDaemon import DummyDaemon
-
 from usr.Daemons.DissatisfactionErosion import DissatisfactionErosionDaemon
+from usr.Daemons.PriceManagerDaemon import PriceManagerDaemon
 
 # ##############################################################################################
 # Minimum
@@ -141,16 +144,22 @@ world.register_cluster(cluster_heat)  # registration
 
 
 # ##############################################################################################
+# Contracts
+# this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
+# contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
+classic_contract = ClassicContract("classic_contract")
+world.register_contract(classic_contract)
+
+# ##############################################################################################
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
 agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
 
-name_elec_contract = "contrat classique"
-agent.set_contract(elec, name_elec_contract)  # definition of a contract
-name_heat_contract = "contrat classique"
-agent.set_contract(heat, name_heat_contract)  # definition of a contract
+agent.set_contract(elec, classic_contract)  # definition of a contract
+agent.set_contract(heat, classic_contract)  # definition of a contract
+
 
 # ##############################################################################################
 # Devices
@@ -230,6 +239,13 @@ world.register_daemon(daemon)  # registration
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
 dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, [0.9, 168])  # creation
 world.register_daemon(dissatisfaction_management)  # registration
+
+# Price Manager
+# this daemon fixes a price for a given nature of energy
+price_manager_elec = PriceManagerDaemon("Picsou", 1, [elec.name, 1, 0.5])
+price_manager_heat = PriceManagerDaemon("Flairsou", 1, [heat.name, 1, 0.5])
+world.register_daemon(price_manager_elec)  # registration
+world.register_daemon(price_manager_heat)  # registration
 
 
 # ##############################################################################################

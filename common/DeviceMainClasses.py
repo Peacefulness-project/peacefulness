@@ -5,6 +5,7 @@ from datetime import datetime
 from math import ceil
 # Current packages
 from common.Core import Device, DeviceException
+from common.Contract import Contract
 
 
 # ##############################################################################################
@@ -118,6 +119,20 @@ class NonControllableDevice(Device):
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
+
+        for nature in self._natures:
+            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+            energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+            if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
+                self._agent._contracts[nature].non_controllable_dissatisfaction(self.agent.name, self.name)
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "non_controllable"
 
 
 # ##############################################################################################
@@ -334,8 +349,17 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     if self._remaining_time:  # decrementing the remaining time of use
                         self._remaining_time -= 1
                 else:
-                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
-                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+                    self._agent._contracts[nature].shiftable_dissatisfaction(self.agent.name, self.name)
+                    # dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
+                    # self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "shiftable"
 
 
 # ##############################################################################################
@@ -500,11 +524,19 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                     self._remaining_time -= 1
 
                 if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
-                    dissatisfaction += abs(energy_wanted - energy_accorded) / energy_wanted  # ... dissatisfaction increases
-                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+                    self._agent._contracts[nature].adjustable_dissatisfaction(self.agent.name, self.name)
+                    # dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                    # dissatisfaction += abs(energy_wanted - energy_accorded) / energy_wanted  # ... dissatisfaction increases
+                    # self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
 
                     self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
 
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "adjustable"
 
 

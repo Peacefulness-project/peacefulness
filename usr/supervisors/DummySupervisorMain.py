@@ -16,10 +16,11 @@ for i in range(0, world.time_limit, 1):
     for key in world.devices:  # consumption and production balances
         device = world.devices[key]
 
-        for nature in device.natures:
-            # consumption balance
-            consumption = catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-            catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
+        if catalog.get(f"{device.name}.priority") > 0.5:
+            for nature in device.natures:
+                # consumption balance
+                consumption = catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+                catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
 
     for nature in world.natures:
         pass  # here, a wonderful calculation takes place

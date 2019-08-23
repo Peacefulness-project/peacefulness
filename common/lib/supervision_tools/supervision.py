@@ -38,7 +38,7 @@ def end_round(world):  # function incrementing the time step and calling datalog
     # it is called after the resolution of the round
 
     for key in world.devices:
-        world._devices[key]._user_react()
+        world._devices[key].react()
 
     for key in world.dataloggers:  # activation of the dataloggers, they must be called before the daemons,
         # who may have an impact on data

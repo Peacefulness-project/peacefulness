@@ -2,6 +2,7 @@
 # consumption and/or production points
 # It is linked with a contract
 from common.Catalog import Catalog
+from common.Contract import Contract
 
 
 class Agent:
@@ -9,7 +10,7 @@ class Agent:
     def __init__(self, name):
         self._name = name  # the name written in the catalog
 
-        self._contract = dict()  # the contract defines the type of strategy relevant
+        self._contracts = dict()  # the contract defines the type of strategy relevant
         # for the agent for each nature of energy. A contract is a keyword (for now, at least)
 
         self._catalog = None  # the catalog in which some data are stored
@@ -19,8 +20,8 @@ class Agent:
     # ##########################################################################################
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
-        self._contract[nature] = contract  # add a key in the contract dictionary
-        self._catalog.add(f"{self._name}.{nature.name}", contract)  # add an entry in the catalog to make it public
+        self._contracts[nature] = contract  # add a contract for an energy nature
+        # self._catalog.add(f"{self._name}.{nature.name}", contract)
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
@@ -35,7 +36,8 @@ class Agent:
     ############################################################################################
 
     def _update(self):
-        pass
+        self._catalog.set(f"{self._name}.money", 0)  # the money earned or spent by the agent during the current round
+        self._catalog.set(f"{self._name}.energy", 0)  # the energy received or delivered by the agent during the current round
 
     # ##########################################################################################
     # Utilities
@@ -47,5 +49,8 @@ class Agent:
 
     @property
     def natures(self):  # shortcut for read-only
-        return self._contract.keys()
+        return self._contracts.keys()
 
+    @property
+    def contracts(self):  # shortcut for read-only
+        return self._contracts.values()

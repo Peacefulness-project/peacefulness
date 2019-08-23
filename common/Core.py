@@ -11,6 +11,7 @@ from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 from common.Catalog import Catalog
 from common.Nature import Nature
+from common.Contract import Contract
 from common.Agent import Agent
 from common.Cluster import Cluster
 from common.Datalogger import Datalogger
@@ -52,7 +53,8 @@ class World:
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
-
+        
+        self._contracts = dict()  # dict containing the different contracts
         self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
         self._devices = dict()  # dict containing the devices
 
@@ -137,6 +139,25 @@ class World:
         self._used_names.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
+    def register_contract(self, contract):
+        if contract.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{contract.name} already in use")        
+    
+        if isinstance(contract, Contract) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+        
+        if type(contract) not in self._user_classes:  # saving the class in the dedicated dict
+            absolute_path = getfile(type(contract))  # this is the absolute path to the file where the class is defined
+            module_name = absolute_path.split("usr")[-1]
+            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
+            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
+            self._user_classes[f"{type(contract).__name__}"] = type(contract)
+        
+        contract._register(self._catalog)   # linking the agent with the catalog of world
+        self._contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
+        self._used_names.append(contract.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing   
+        
     def register_agent(self, agent):  # method connecting one agent to the world
         if agent.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{agent.name} already in use")
@@ -237,7 +258,8 @@ class World:
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
             for nature in data["contracts"]:  # for each nature, the relevant contract is set
-                contract = data["contracts"][nature]
+                contract_name = data["contracts"][nature]
+                contract = self._contracts[contract_name]
                 agent.set_contract(self._natures[nature], contract)  # definition of a contract
 
             # creation of devices
@@ -346,8 +368,18 @@ class World:
         file.write(dumps(clusters_list, indent=2))
         file.close()
 
+        # contracts file
+        contracts_list = {contract.name: [f"{type(contract).__name__}",
+                                          contract._operations_allowed
+                                          ] for contract in self._contracts.values()}
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Contracts.json"])
+        file = open(filename, "w")
+        file.write(dumps(contracts_list, indent=2))
+        file.close()
+
         # agents file
-        agents_list = {agent.name: {nature.name: agent._contract[nature] for nature in agent._contract} for agent in self._agents.values()}
+        agents_list = {agent.name: {nature.name: [nature.name, agent._contracts[nature].name] for nature in agent._contracts} for agent in self._agents.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
         file = open(filename, "w")
@@ -405,7 +437,7 @@ class World:
         file.close()
         remove("World.json")  # deleting the useless world file
 
-        # # personalized classes file
+        # personalized classes file
         file = open("Classes.pickle", "rb")
 
         data = pickle_load(file)
@@ -438,6 +470,20 @@ class World:
 
         file.close()
         remove("Clusters.json")  # deleting the useless file
+
+        # Contracts file
+        file = open("Contracts.json", "r")
+        data = load(file)
+
+        for contract_name in data:
+            operations_allowed = data[contract_name][1]
+            contract_class = self._user_classes[data[contract_name][0]]
+
+            contract = contract_class(contract_name, operations_allowed)
+            self.register_contract(contract)           
+
+        file.close()
+        remove("Contracts.json")  # deleting the useless file
 
         # Agents file
         file = open("Agents.json", "r")
@@ -564,7 +610,7 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, agent_name, clusters, filename, user_type, consumption_device):
+    def __init__(self, name, agent, clusters, filename, user_type, consumption_device):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -594,7 +640,7 @@ class Device:
             else:
                 self._natures[cluster.nature] = cluster
 
-        self._agent = agent_name  # the agent represents the owner of the device
+        self._agent = agent  # the agent represents the owner of the device
 
         self._catalog = None  # added later
 
@@ -611,8 +657,7 @@ class Device:
 
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accpeted by the supervisor
-        self._catalog.add(f"{self.name}.price", 0)  # write directly in the catalog the price
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
         self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
                                                         # ...being satisfied in the current time step
 
@@ -633,6 +678,10 @@ class Device:
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor
         self._user_react()
+
+        for nature in self._natures:
+            energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+            self._agent._contracts[nature]._billing(energy_amount, self._agent.name, nature)
 
     def _user_react(self):  # where users put device-specific behaviors
         pass

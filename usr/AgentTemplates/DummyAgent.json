@@ -8,8 +8,8 @@
   },
 
   "contracts": {
-    "LVE":  "contrat posé",
-    "Heat":  "contrat riété"
+    "LVE":  "classic_contract",
+    "Heat":  "classic_contract"
   }
 
 }
