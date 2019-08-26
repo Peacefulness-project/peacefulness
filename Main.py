@@ -31,6 +31,7 @@ from common.Nature import Nature
 
 from common.Contract import Contract
 from usr.Contracts.ClassicContract import ClassicContract
+from usr.Contracts.Cooperative_contract import CooperativeContract
 
 from common.Agent import Agent
 
@@ -46,6 +47,7 @@ from common.Datalogger import Datalogger
 from usr.Daemons.DummyDaemon import DummyDaemon
 from usr.Daemons.DissatisfactionErosion import DissatisfactionErosionDaemon
 from usr.Daemons.PriceManagerDaemon import PriceManagerDaemon
+from usr.Daemons.TemperatureDaemon import TemperatureDaemon
 
 # ##############################################################################################
 # Minimum
@@ -150,6 +152,10 @@ world.register_cluster(cluster_heat)  # registration
 classic_contract = ClassicContract("classic_contract")
 world.register_contract(classic_contract)
 
+cooperative_contract = CooperativeContract("cooperative contract")
+world.register_contract(cooperative_contract)
+
+
 # ##############################################################################################
 # Agent
 # this object represents the owner of devices
@@ -246,6 +252,11 @@ price_manager_elec = PriceManagerDaemon("Picsou", 1, [elec.name, 1, 0.5])
 price_manager_heat = PriceManagerDaemon("Flairsou", 1, [heat.name, 1, 0.5])
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
+
+# Temperature
+# this daemon is responsible for the value of outside temperature in the catalog
+temperature_daemon = TemperatureDaemon("je mettrai une betise bientot", 1, 10)
+world.register_daemon(temperature_daemon)  # registration
 
 
 # ##############################################################################################

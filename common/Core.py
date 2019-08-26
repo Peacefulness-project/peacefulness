@@ -147,10 +147,6 @@ class World:
             raise WorldException("The object is not of the correct type")
         
         if type(contract) not in self._user_classes:  # saving the class in the dedicated dict
-            absolute_path = getfile(type(contract))  # this is the absolute path to the file where the class is defined
-            module_name = absolute_path.split("usr")[-1]
-            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
-            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
             self._user_classes[f"{type(contract).__name__}"] = type(contract)
         
         contract._register(self._catalog)   # linking the agent with the catalog of world
@@ -187,10 +183,6 @@ class World:
                 raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
 
         if type(device) not in self._user_classes:  # saving the class in the dedicated dict
-            absolute_path = getfile(type(device))  # this is the absolute path to the file where the class is defined
-            module_name = absolute_path.split("usr")[-1]
-            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
-            module_name = "usr" + module_name[:-3]  # here we add the "usr" we delete earlier and we delete the ".py"
             self._user_classes[f"{type(device).__name__}"] = type(device)
         
         self._devices[device.name] = device
@@ -217,10 +209,6 @@ class World:
             raise WorldException("The object is not of the correct type")
         
         if type(daemon) not in self._user_classes:  # saving the class in the dedicated dict
-            absolute_path = getfile(type(daemon))  # this is the absolute path to the file where the class is defined
-            module_name = absolute_path.split("usr")[-1]
-            module_name = module_name.replace("/" or "\\", ".")  # the syntax for module importation in python needs "." instead of "/" or "\"
-            module_name = "usr" + module_name[:-3]  # here we add the usr we delete earlier and we delete the ".py"
             self._user_classes[f"{type(daemon).__name__}"] = type(daemon)
 
         daemon._register(self._catalog)  # registering of the device in the catalog
@@ -317,7 +305,7 @@ class World:
         self._catalog.set("simulation_time", current_time + 1)
 
     # ##########################################################################################
-    # Utility
+    # save/load system
     # ##########################################################################################
 
     def save(self):  # this method allows to export world
@@ -558,6 +546,10 @@ class World:
         remove("Daemons.json")  # deleting the useless file
 
         file.close()
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
 
     # properties
     @property

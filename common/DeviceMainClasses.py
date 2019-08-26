@@ -124,7 +124,7 @@ class NonControllableDevice(Device):
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                self._agent._contracts[nature].non_controllable_dissatisfaction(self.agent.name, self.name)
+                self._agent._contracts[nature].non_controllable_dissatisfaction(self.agent.name, self.name, self.natures)
 
     # ##########################################################################################
     # Utility
@@ -349,9 +349,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     if self._remaining_time:  # decrementing the remaining time of use
                         self._remaining_time -= 1
                 else:
-                    self._agent._contracts[nature].shiftable_dissatisfaction(self.agent.name, self.name)
-                    # dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
-                    # self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+                    self._agent._contracts[nature].shiftable_dissatisfaction(self.agent.name, self.name, self.natures)
 
     # ##########################################################################################
     # Utility
@@ -413,7 +411,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
         beginning = beginning.total_seconds()/3600
         beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = ceil(beginning)  # the position in the period where the device start
+        self._moment = ceil(beginning)  # the position in the period where the device starts
 
         # we randomize a bit in order to represent reality better
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile

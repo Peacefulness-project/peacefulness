@@ -1,4 +1,4 @@
-# This contract is the most basic in France: fixed tariffs, full freedom for users
+# This contract is the one wanted for
 from common.Contract import Contract
 
 
@@ -26,7 +26,6 @@ class ClassicContract(Contract):
         print(money)
 
     # dissatisfaction management
-    # nothing here as the supervisor is supposed to give
-
+    # nothing here as the supervisor is supposed to give always
 
 
