@@ -16,14 +16,12 @@ class CooperativeContract(Contract):
     def _billing_buying(self, energy_amount, agent_name, nature):
         price = self._catalog.get(f"{nature.name}_buying_price")  # getting the price per kW.h
         money = self._catalog.get(f"{agent_name}.money") + price * energy_amount  # updating the amount of money spent/earned by the agent
-        print(money)
         self._catalog.set(f"{agent_name}.money", money)
 
     def _billing_selling(self, energy_amount, agent_name, nature):
         price = self._catalog.get(f"{nature.name}_selling_price")  # getting the price per kW.h
         money = self._catalog.get(f"{agent_name}.money") + price * energy_amount  # updating the amount of money spent/earned by the agent
         self._catalog.set(f"{agent_name}.money", money)
-        print(money)
 
     # dissatisfaction management
     def shiftable_dissatisfaction(self, agent_name, device_name, natures):
