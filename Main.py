@@ -29,25 +29,13 @@ from common.Supervisor import Supervisor
 
 from common.Nature import Nature
 
-from common.Contract import Contract
-from usr.Contracts.ClassicContract import ClassicContract
-from usr.Contracts.Cooperative_contract import CooperativeContract
-
 from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from usr.Devices.Light import Light
-from usr.Devices.PV import PV
-from usr.Devices.Dishwasher import Dishwasher
-from usr.Devices.Heating import Heating
-
 from common.Datalogger import Datalogger
 
-from usr.Daemons.DummyDaemon import DummyDaemon
-from usr.Daemons.DissatisfactionErosion import DissatisfactionErosionDaemon
-from usr.Daemons.PriceManagerDaemon import PriceManagerDaemon
-from usr.Daemons.TemperatureDaemon import TemperatureDaemon
+import usr.UserDefinedClasses as user
 
 # ##############################################################################################
 # Minimum
@@ -149,10 +137,10 @@ world.register_cluster(cluster_heat)  # registration
 # Contracts
 # this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
-classic_contract = ClassicContract("classic_contract")
+classic_contract = user.Contracts.ClassicContract.ClassicContract("classic_contract")
 world.register_contract(classic_contract)
 
-cooperative_contract = CooperativeContract("cooperative contract")
+cooperative_contract = user.Contracts.CooperativeContract.CooperativeContract("cooperative contract")
 world.register_contract(cooperative_contract)
 
 
@@ -174,15 +162,15 @@ agent.set_contract(heat, classic_contract)  # definition of a contract
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = PV("PV", agent, cluster_elec, "default", "residential_PV")  # creation of a production point
+c1 = user.Devices.PV.PV("PV", agent, cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = Light("Light_basic", agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
-Light2 = Light("Light_offset", agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
+Light1 = user.Devices.Light.Light("Light_basic", agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
+Light2 = user.Devices.Light.Light("Light_offset", agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
 # shiftable device
-e2 = Dishwasher("Dishwasher1", agent, cluster_elec, "family", "default")  # creation of a consumption point
+e2 = user.Devices.Dishwasher.Dishwasher("Dishwasher1", agent, cluster_elec, "family", "default")  # creation of a consumption point
 # adjustable device
-e3 = Heating("Heating1", agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
+e3 = user.Devices.Heating.Heating("Heating1", agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -237,25 +225,25 @@ logger2.add("Heating1.priority")
 # as an example, it can update some meteorological data
 
 # daemons need 2 arguments: a name and a period of activation
-daemon = DummyDaemon("MonDemonDeMidi", 10)  # creation
+daemon = user.Daemons.DummyDaemon.DummyDaemon("MonDemonDeMidi", 10)  # creation
 world.register_daemon(daemon)  # registration
 
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
-dissatisfaction_management = DissatisfactionErosionDaemon("DissatisfactionErosion", 1, [0.9, 168])  # creation
+dissatisfaction_management = user.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, [0.9, 168])  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 
 # Price Manager
 # this daemon fixes a price for a given nature of energy
-price_manager_elec = PriceManagerDaemon("Picsou", 1, [elec.name, 1, 0.5])
-price_manager_heat = PriceManagerDaemon("Flairsou", 1, [heat.name, 1, 0.5])
+price_manager_elec = user.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, [elec.name, 1, 0.5])
+price_manager_heat = user.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, [heat.name, 1, 0.5])
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = TemperatureDaemon("je mettrai une betise bientot", 1, 10)
+temperature_daemon = user.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, 10)
 world.register_daemon(temperature_daemon)  # registration
 
 

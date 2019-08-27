@@ -11,7 +11,7 @@ from common.Core import DeviceException
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name,  agent_name, clusters, user_type, consumption_device, filename="usr/Datafiles/Heating.json"):
+    def __init__(self, name,  agent_name, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/Heating.json"):
         super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
 
         self._inertia = None
