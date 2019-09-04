@@ -6,6 +6,7 @@ from os import makedirs, remove
 from random import random, seed as random_generator_seed, randint
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
+from math import ceil
 from inspect import getfile
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
@@ -658,8 +659,53 @@ class Device:
     def _user_register(self):  # where users put device-specific behaviors
         pass
 
+    # ##########################################################################################
+    # Consumption reading
+    # ##########################################################################################
+
     def _get_consumption(self):
         pass
+
+    def _read_consumption_data(self):
+
+        # parsing the data
+        file = open(self._filename, "r")
+        data = load(file)
+
+        # getting the user profile
+        try:
+            data_user = data["user_profile"][self._user_profile_name]
+        except:
+            raise DeviceException(
+                f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+
+        # getting the usage profile
+        try:
+            data_device = data["device_consumption"][self._usage_profile_name]
+        except:
+            raise DeviceException(
+                f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
+
+        file.close()
+
+        return [data_user, data_device]
+
+    def _data_user_creation(self, data_user):
+        # creation of the consumption data
+        time_step = self._catalog.get("time_step")
+        self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
+        self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
+        # the period MUST be a multiple of the time step
+
+    def _offset_management(self):
+        time_step = self._catalog.get("time_step")
+        year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
+        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
+        beginning = beginning.total_seconds()/3600  # hours -> seconds
+        beginning = (beginning - self._offset)/time_step % self._period
+        self._moment = ceil(beginning)  # the position in the period where the device starts
+
+        return beginning
 
     # ##########################################################################################
     # Dynamic behavior

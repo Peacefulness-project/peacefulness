@@ -2,7 +2,6 @@
 # Native packages
 from json import load
 from datetime import datetime
-from math import ceil
 # Current packages
 from common.Core import Device, DeviceException
 from common.Contract import Contract
@@ -23,33 +22,11 @@ class NonControllableDevice(Device):
 
     def _get_consumption(self):
 
-        # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
-        # getting the user profile
-        try:
-            data_user = data["user_profile"][self._user_profile_name]
-        except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+        self._data_user_creation(data_user)  # creation of an empty user profile
 
-        # getting the usage profile
-        try:
-            data_device = data["device_consumption"][self._usage_profile_name]
-        except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
-        file.close()
-
-        # creation of the consumption data
-        time_step = self._catalog.get("time_step")
-        self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
-        self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
-        # the period MUST be a multiple of the time step
-        year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
-        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds()/3600  # hours -> seconds
-        beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = ceil(beginning)  # the position in the period where the device starts
+        beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         duration_variation = (self._catalog.get("float")() - 0.5) * data_user["duration_variation"]  # modification of the duration
@@ -154,33 +131,11 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
     def _get_consumption(self):
 
-        # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
-        # getting the user profile
-        try:
-            data_user = data["user_profile"][self._user_profile_name]
-        except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+        self._data_user_creation(data_user)  # creation of an empty user profile
 
-        # getting the usage profile
-        try:
-            data_device = data["device_consumption"][self._usage_profile_name]
-        except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
-        file.close()
-
-        # creation of the consumption data
-        time_step = self._catalog.get("time_step")
-        self._period = int(data_user["period"]//time_step)  # the number of iteration corresponding to a period
-        self._offset = data_user["offset"]
-        # the period MUST be a multiple of the time step
-        year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds()/3600
-        beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = ceil(beginning)  # the position in the period where the device start
+        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
@@ -385,33 +340,11 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
     def _get_consumption(self):
 
-        # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
-        # getting the user profile
-        try:
-            data_user = data["user_profile"][self._user_profile_name]
-        except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+        self._data_user_creation(data_user)  # creation of an empty user profile
 
-        # getting the usage profile
-        try:
-            data_device = data["device_consumption"][self._usage_profile_name]
-        except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
-        file.close()
-
-        # creation of the consumption data
-        time_step = self._catalog.get("time_step")
-        self._period = int(data_user["period"]//time_step)  # the number of iteration corresponding to a period
-        self._offset = data_user["offset"]
-        # the period MUST be a multiple of the time step
-        year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds()/3600
-        beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = ceil(beginning)  # the position in the period where the device starts
+        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
