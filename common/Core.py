@@ -644,10 +644,6 @@ class Device:
     def _register(self, catalog):  # make the initialization operations undoable without a catalog
         self._catalog = catalog  # linking the catalog to the device
 
-        if self._filename != "loaded device":  # if a filename has been defined...
-            self._get_consumption()  # ... then the file is converted into consumption profiles
-            # else, the device has been loaded and does not need a data file
-
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
@@ -655,6 +651,10 @@ class Device:
                                                         # ...being satisfied in the current time step
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
+
+        if self._filename != "loaded device":  # if a filename has been defined...
+            self._get_consumption()  # ... then the file is converted into consumption profiles
+            # else, the device has been loaded and does not need a data file
 
     def _user_register(self):  # where users put device-specific behaviors
         pass

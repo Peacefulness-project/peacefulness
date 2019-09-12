@@ -3,7 +3,7 @@
 # Native packages
 from json import load
 from datetime import datetime
-from math import ceil
+from math import ceil, exp
 # Current packages
 from common.DeviceMainClasses import AdjustableDevice
 from common.Core import DeviceException
@@ -14,30 +14,30 @@ class Heating(AdjustableDevice):
     def __init__(self, name,  agent_name, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/Heating.json"):
         super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
 
-        self._inertia = None
+        self._G = None
+        self._thermal_inertia = None
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
+    def _user_register(self):  # make the initialization operations specific to the device
+
+        # Creation of specific entries
+        for nature in self._natures:
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
+        self._catalog.add(f"{self.name}.current_indoor_temperature")
+        self._catalog.add(f"{self.name}.previous_indoor_temperature")
+
     def _get_consumption(self):
 
-        # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
-        # getting the user profile
-        try:
-            data_user = data["user_profile"][self._user_profile_name]
-        except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+        self._data_user_creation(data_user)  # creation of an empty user profile
 
-        # getting the usage profile
-        try:
-            data_device = data["device_consumption"][self._usage_profile_name]
-        except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
-        file.close()
+        self._offset_management()  # implementation of the offset
 
         # creation of the consumption data
         time_step = self._catalog.get("time_step")
@@ -63,7 +63,10 @@ class Heating(AdjustableDevice):
                 for element in line[1][nature]:
                     element += consumption_variation
 
-        self._inertia = data_device["coeff"]
+        self._G = data_device["G"]
+        self._thermal_inertia = data_device["thermal_inertia"]
+        self._catalog.set(f"{self.name}.current_indoor_temperature", data_device["initial_temperature"])
+        self._catalog.set(f"{self.name}.previous_indoor_temperature", data_device["initial_temperature"])
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -94,7 +97,6 @@ class Heating(AdjustableDevice):
                 while duration // time_step:  # here we manage a constant consumption over several time steps
 
                     time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
-                    # ratio = min(time_left / data_device["usage_profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
                     self._usage_profile.append({})
                     for nature in temperature_range:
                         self._usage_profile[-1][nature] = [0, 0, 0]
@@ -139,12 +141,27 @@ class Heating(AdjustableDevice):
             for hour in self._user_profile:
                 if hour == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
 
-                    outdoor_temperature = self._catalog.get("outdoor_temperature")
+                    current_indoor_temperature = self._catalog.get(f"{self.name}.current_indoor_temperature")
+                    previous_indoor_temperature = self._catalog.get(f"{self.name}.previous_indoor_temperature")
+
+                    current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
+                    previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
+
+                    time_step = self._catalog.get("time_step") * 3600
+
+                    deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
 
                     for nature in consumption:
-                        consumption[nature][0] = (self._usage_profile[0][nature][0] - outdoor_temperature) * self._inertia
-                        consumption[nature][1] = (self._usage_profile[0][nature][1] - outdoor_temperature) * self._inertia
-                        consumption[nature][2] = (self._usage_profile[0][nature][2] - outdoor_temperature) * self._inertia
+                        # min power calculation:
+                        deltaTnew = self._usage_profile[0][nature][0] - current_outdoor_temperature
+                        consumption[nature][0] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        # nominal power calculation:
+                        deltaTnew = self._usage_profile[0][nature][1] - current_outdoor_temperature
+                        consumption[nature][1] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        # max power calculation:
+                        deltaTnew = self._usage_profile[0][nature][2] - current_outdoor_temperature
+                        consumption[nature][2] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+
                     self._remaining_time = len(self._usage_profile) - 1  # incrementing usage duration
 
             for nature in self.natures:
@@ -170,4 +187,37 @@ class Heating(AdjustableDevice):
                     self._agent._contracts[nature].adjustable_dissatisfaction(self.agent.name, self.name, self.natures)
 
                     self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
+
+        # recalculating the temperature
+        current_indoor_temperature = self._catalog.get(f"{self.name}.current_indoor_temperature")
+        previous_indoor_temperature = self._catalog.get(f"{self.name}.previous_indoor_temperature")
+        self._catalog.set(f"{self.name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous indoor temperature
+
+        current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
+        previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
+
+        time_step = self._catalog.get("time_step") * 3600
+
+        deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
+
+        power = 0
+        for nature in self._natures:
+            power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") / time_step
+
+        current_indoor_temperature = power * self._G * self._thermal_inertia * (1 - exp(-time_step/self._thermal_inertia)) + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
+
+        self._catalog.set(f"{self.name}.current_indoor_temperature", current_indoor_temperature)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
