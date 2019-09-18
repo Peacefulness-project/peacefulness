@@ -362,6 +362,7 @@ class World:
 
         # contracts file
         contracts_list = {contract.name: [f"{type(contract).__name__}",
+                                          contract.nature.name,
                                           contract._operations_allowed
                                           ] for contract in self._contracts.values()}
 
@@ -469,8 +470,9 @@ class World:
         data = load(file)
 
         for contract_name in data:
-            operations_allowed = data[contract_name][1]
             contract_class = self._user_classes[data[contract_name][0]]
+            contract_nature = self._natures[data[contract_name][1]]
+            operations_allowed = data[contract_name][2]
 
             contract = contract_class(contract_name, operations_allowed)
             self.register_contract(contract)           
