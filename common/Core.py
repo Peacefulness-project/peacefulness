@@ -383,17 +383,17 @@ class World:
         devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
                                       [cluster[0].name for cluster in device._natures.values()],  # clusters
                                       [contract[1].name for contract in device._natures.values()],  # contracts
-                                      device._period,
+                                      device._period,  # the period of the device
                                       device._user_profile, device._usage_profile,  # the data of the profiles
                                       device.user_profile, device.usage_profile,  # the name of the profiles
-                                      device._moment  # the current moment in the period
+                                      device._moment,  # the current moment in the period
+                                      device._parameters  # the optional parameters used by the device
                                       ] for device in self.devices.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Devices.json"])
         file = open(filename, "w")
         file.write(dumps(devices_list, indent=2))
         file.close()
-
         # dataloggers file
         dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 
@@ -474,7 +474,7 @@ class World:
             contract_nature = self._natures[data[contract_name][1]]
             operations_allowed = data[contract_name][2]
 
-            contract = contract_class(contract_name, operations_allowed)
+            contract = contract_class(contract_name, contract_nature, operations_allowed)
             self.register_contract(contract)           
 
         file.close()
@@ -498,26 +498,25 @@ class World:
         for device_name in data:
             agent = self._agents[data[device_name][1]]
             clusters = [self._clusters[cluster_name] for cluster_name in data[device_name][2]]
-            contracts = [self._contracts[contract_name] for contract_name in data[device_name][2]]
+            contracts = [self._contracts[contract_name] for contract_name in data[device_name][3]]
             device_class = self._user_classes[data[device_name][0]]
-            user_profile_name = data[device_name][6]  # loading the user profile name
-            usage_profile_name = data[device_name][7]  # loading the usage profile name
+            user_profile_name = data[device_name][7]  # loading the user profile name
+            usage_profile_name = data[device_name][8]  # loading the usage profile name
 
-            # for nature_name in data[agent_name]:
-            #     contract = data[agent_name]
-            #     nature = self._natures[nature_name]
-            #     agent.set_contract(nature, contract)  # definition of a contract
+            # loading the parameters
+            device_parameters = data[device_name][10]
 
-            device = device_class(device_name, contracts, agent, clusters, user_profile_name, usage_profile_name, "loaded device")
+            # creation of the device
+            device = device_class(device_name, contracts, agent, clusters, user_profile_name, usage_profile_name, device_parameters, "loaded device")
 
             # loading the real hour
             device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
-            device._period = data[device_name][3]  # loading the period
-            device._moment = data[device_name][8]  # loading the initial moment
+            device._period = data[device_name][4]  # loading the period
+            device._moment = data[device_name][9]  # loading the initial moment
 
             # loading the profiles
-            device._user_profile = data[device_name][4]  # loading the user profile
-            device._usage_profile = data[device_name][5]  # loading the usage profile
+            device._user_profile = data[device_name][5]  # loading the user profile
+            device._usage_profile = data[device_name][6]  # loading the usage profile
 
             self.register_device(device)
 
@@ -612,7 +611,8 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device):
+    def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device, parameters=None):
+
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -644,6 +644,7 @@ class Device:
                 self._natures[cluster.nature][0] = cluster
 
         contracts = into_list(contracts)  # make it iterable
+
         for contract in contracts:
             if self.natures[contract.nature][1]:
                 raise DeviceException(f"a contract has already been defined for nature {contract.nature}")
@@ -656,6 +657,13 @@ class Device:
         self._agent = agent  # the agent represents the owner of the device
 
         self._catalog = None  # added later
+
+        # parameters is an optional dictionary which stores additional information needed by user-defined classes
+        # putting these information there allow them to be saved/loaded via world method
+        if parameters:
+            self._parameters = parameters
+        else:  # if there are no parameters
+            self._parameters = {}  # they are put in an empty dictionary
 
     # ##########################################################################################
     # Initialization

@@ -5,7 +5,7 @@ from common.Catalog import Catalog
 
 class Daemon:
 
-    def __init__(self, name, period=0, parameters=[]):
+    def __init__(self, name, period=0, parameters=None):
 
         if name is None:
             raise DaemonException("Daemon needs a name")
@@ -18,8 +18,12 @@ class Daemon:
 
         self._catalog = None  # catalog from which data is extracted
 
-        self._parameters = parameters  # parameters is the list of different parameters necessary for user-defined daemons subclasses
+        # parameters is the list of different parameters necessary for user-defined daemons subclasses
         # putting them into a list is necessary for the save/load system
+        if parameters:
+            self._parameters = parameters
+        else:
+            self._parameters = {}
 
     # ##########################################################################################
     # Initialization

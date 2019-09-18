@@ -4,7 +4,7 @@ from common.Contract import Contract
 
 class ClassicContract(Contract):
 
-    def __init__(self, name, nature):
+    def __init__(self, name, nature, operations_allowed=[]):
         operations_allowed = [[], [], [], []]  # no operations are allowed for the supervisor
         super().__init__(name, nature, operations_allowed)
 

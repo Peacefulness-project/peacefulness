@@ -7,9 +7,9 @@ class PriceManagerDaemon(Daemon):
 
     def __init__(self, name, period, parameters):
         super().__init__(name, period, parameters)
-        self._nature = parameters[0]
-        self._buying_price = parameters[1]
-        self._selling_price = parameters[2]
+        self._nature = parameters["nature"]
+        self._buying_price = parameters["buying_price"]
+        self._selling_price = parameters["selling_price"]
 
     def _user_register(self):
         self._catalog.add(f"{self._nature}_buying_price", self._buying_price)

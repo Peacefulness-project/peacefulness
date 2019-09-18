@@ -10,8 +10,8 @@ from common.Contract import Contract
 # ##############################################################################################
 class NonControllableDevice(Device):
 
-    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
 
     # ##########################################################################################
     # Initialization
@@ -77,6 +77,8 @@ class NonControllableDevice(Device):
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
             self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -115,8 +117,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, contracts,  agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts,  agent_name, clusters, filename, user_type, consumption_device, parameters):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
@@ -262,6 +264,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
             self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -320,8 +324,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
@@ -421,6 +425,11 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
             self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
 
     # ##########################################################################################
     # Dynamic behavior

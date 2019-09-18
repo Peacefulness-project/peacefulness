@@ -11,11 +11,11 @@ from common.Core import DeviceException
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/Heating.json"):
-        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, parameters, filename="usr/DevicesProfiles/Heating.json"):
+        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device, parameters)
 
-        self._G = None
-        self._thermal_inertia = None
+        self._G = parameters["G"]
+        self._thermal_inertia = parameters["thermal_inertia"]
 
     # ##########################################################################################
     # Initialization
@@ -28,8 +28,9 @@ class Heating(AdjustableDevice):
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
-        self._catalog.add(f"{self.name}.current_indoor_temperature")
-        self._catalog.add(f"{self.name}.previous_indoor_temperature")
+        # adding the initial values of temperatures
+        self._catalog.add(f"{self.name}.current_indoor_temperature", self._parameters["initial_temperature"])
+        self._catalog.add(f"{self.name}.previous_indoor_temperature", self._parameters["initial_temperature"])
 
     def _get_consumption(self):
 
@@ -62,11 +63,6 @@ class Heating(AdjustableDevice):
             for nature in line[1]:
                 for element in line[1][nature]:
                     element += consumption_variation
-
-        self._G = data_device["G"]
-        self._thermal_inertia = data_device["thermal_inertia"]
-        self._catalog.set(f"{self.name}.current_indoor_temperature", data_device["initial_temperature"])
-        self._catalog.set(f"{self.name}.previous_indoor_temperature", data_device["initial_temperature"])
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation

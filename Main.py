@@ -168,8 +168,12 @@ Light1 = User.Devices.Light.Light("Light_basic", classic_contract_elec, agent, c
 Light2 = User.Devices.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
 # shiftable device
 e2 = User.Devices.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
-# adjustable device
-e3 = User.Devices.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
+# temperature-related device
+# these devices need additional parameters to model their physic
+thermal_parameters = {"G": 1,  # G in kJ/K
+                      "thermal_inertia": 7200,  # thermal inertia in s
+                      "initial_temperature": 17}  # initial temperature in °C
+e3 = User.Devices.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating", thermal_parameters)  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 
@@ -230,19 +234,19 @@ world.register_daemon(daemon)  # registration
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
-dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, [0.9, 168])  # creation
+dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 
 # Price Manager
 # this daemon fixes a price for a given nature of energy
-price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, [elec.name, 1, 0.5])
-price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, [heat.name, 1, 0.5])
+price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 1, "selling_price": 0.5})
+price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 1, "selling_price": 0.5})
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, 10)
+temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, {"temperature": 10})
 world.register_daemon(temperature_daemon)  # registration
 
 

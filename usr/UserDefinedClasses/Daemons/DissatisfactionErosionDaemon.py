@@ -8,7 +8,7 @@ class DissatisfactionErosionDaemon(Daemon):
 
     def __init__(self, name, period,  parameters):
         super().__init__(name, period, parameters)
-        self._coefficient = parameters[0] ** (1 / parameters[1])
+        self._coefficient = parameters["coef_1"] ** (1 / parameters["coef_2"])
 
     def _process(self):
         for key in self.catalog.keys:

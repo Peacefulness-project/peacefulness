@@ -3,7 +3,7 @@ from common.Daemon import Daemon
 
 class DummyDaemon(Daemon):
 
-    def __init__(self, name, period, parameters=[]):
+    def __init__(self, name, period, parameters=None):
         super().__init__(name, period, parameters)
 
     def _user_register(self):

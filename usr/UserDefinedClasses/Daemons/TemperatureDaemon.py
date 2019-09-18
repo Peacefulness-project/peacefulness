@@ -9,7 +9,7 @@ class TemperatureDaemon(Daemon):
 
     def __init__(self, name, period, parameters):
         super().__init__(name, period, parameters)
-        self._temperature = parameters
+        self._temperature = parameters["temperature"]
         # self._temperature_min = parameters[0]
         # self._temperature_max = parameters[1]
 

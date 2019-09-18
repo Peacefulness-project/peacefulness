@@ -27,6 +27,11 @@ class Catalog:
             raise CatalogException(f"key {name} does not exist")
         return self._data[name]
 
+    def remove(self, name):
+        if name not in self._data:  # checking if the key already exists
+            raise CatalogException(f"key {name} does not exist")
+        self._data.pop(name)
+
     # ##########################################################################################
     # Utilities
     # ##########################################################################################

@@ -2,10 +2,7 @@
   "device_consumption": {
     "residential_heating": {
       "usage_profile": [[0.5, {"Heat": [15, 18, 20]}], [2, {"Heat": [19, 20, 21]}]],
-      "consumption_variation": 0.1,
-      "G": 1,
-      "thermal_inertia": 7200,
-      "initial_temperature": 17
+      "consumption_variation": 0.1
     }
 
   },
