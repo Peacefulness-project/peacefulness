@@ -4,9 +4,9 @@ from common.Contract import Contract
 
 class CooperativeContract(Contract):
 
-    def __init__(self, name):
+    def __init__(self, name, nature):
         operations_allowed = [[], ["shiftable"], ["adjustable"], []]  # no operations are allowed for the supervisor
-        super().__init__(name, operations_allowed)
+        super().__init__(name, nature, operations_allowed)
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -25,20 +25,10 @@ class CooperativeContract(Contract):
 
     # dissatisfaction management
     def shiftable_dissatisfaction(self, agent_name, device_name, natures):
-        dissatisfaction = self._catalog.get(f"{agent_name}.dissatisfaction") + 1
-        self._catalog.set(f"{agent_name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+        pass
 
     def adjustable_dissatisfaction(self, agent_name, device_name, natures):
-        dissatisfaction = self._catalog.get(f"{agent_name}.dissatisfaction")
-        for nature in natures:
-            energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
-            energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
-            energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-
-            dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
-
-        self._catalog.set(f"{agent_name}.dissatisfaction", dissatisfaction)
+        pass
 
 
 

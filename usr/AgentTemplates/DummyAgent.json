@@ -8,8 +8,8 @@
   },
 
   "contracts": {
-    "LVE":  "classic_contract",
-    "Heat":  "classic_contract"
+    "LVE":  "classic_contract_elec",
+    "Heat":  "classic_contract_heat"
   }
 
 }

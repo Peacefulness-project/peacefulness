@@ -137,11 +137,14 @@ world.register_cluster(cluster_heat)  # registration
 # Contracts
 # this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
-classic_contract = User.Contracts.ClassicContract.ClassicContract("classic_contract")
-world.register_contract(classic_contract)
+classic_contract_elec = User.Contracts.ClassicContract.ClassicContract("classic_contract_elec", elec)
+world.register_contract(classic_contract_elec)
 
-cooperative_contract = User.Contracts.CooperativeContract.CooperativeContract("cooperative contract")
-world.register_contract(cooperative_contract)
+classic_contract_heat = User.Contracts.ClassicContract.ClassicContract("classic_contract_heat", heat)
+world.register_contract(classic_contract_heat)
+
+cooperative_contract_elec = User.Contracts.CooperativeContract.CooperativeContract("cooperative_contract_elec", elec)
+world.register_contract(cooperative_contract_elec)
 
 
 # ##############################################################################################
@@ -151,10 +154,6 @@ world.register_contract(cooperative_contract)
 agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
 
-agent.set_contract(elec, classic_contract)  # definition of a contract
-agent.set_contract(heat, classic_contract)  # definition of a contract
-
-
 # ##############################################################################################
 # Devices
 # these objects regroup production, consumption, storage and transformation devices
@@ -162,15 +161,15 @@ agent.set_contract(heat, classic_contract)  # definition of a contract
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.PV.PV("PV", agent, cluster_elec, "default", "residential_PV")  # creation of a production point
+c1 = User.Devices.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = User.Devices.Light.Light("Light_basic", agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
-Light2 = User.Devices.Light.Light("Light_offset", agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
+Light1 = User.Devices.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
+Light2 = User.Devices.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
 # shiftable device
-e2 = User.Devices.Dishwasher.Dishwasher("Dishwasher1", agent, cluster_elec, "family", "default")  # creation of a consumption point
+e2 = User.Devices.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
 # adjustable device
-e3 = User.Devices.Heating.Heating("Heating1", agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
+e3 = User.Devices.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating")  # creation of a consumption point
 
 # the nature of these dummy devices is LVE by definition
 

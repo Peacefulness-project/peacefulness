@@ -70,7 +70,6 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
     for name in world.clusters:
         cluster_balance[name] = 0
 
-
     # balance
     for key in world.devices:  # consumption and production balances
         device = world.devices[key]
@@ -81,13 +80,7 @@ def make_balance(world, catalog):  # sum the needs and the production for the wo
             consumption[nature.name] = catalog.get(f"{device.name}.{nature.name}.energy_wanted")
             world_balance[nature.name] += consumption[nature.name]
             agent_balance[nature.name][device.agent.name] += consumption[nature.name]
-            cluster_balance[device.natures[nature].name] += consumption[nature.name]
-
-            # # production balance
-            # production = catalog.get(f"{device.name}.{nature.name}.proposed_energy")
-            # world_balance[nature.name][1] += production
-            # agent_balance[nature.name][device.agent.name][1] += production
-            # cluster_balance[device.natures[nature].name][1] += production
+            cluster_balance[device.natures[nature][0].name] += consumption[nature.name]
 
     # writing the balance in the catalog
     # for world

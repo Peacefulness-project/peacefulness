@@ -178,10 +178,10 @@ class World:
         if device._agent.name not in self._agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        # if the agent does not include the nature of the device
-        for nature in device.natures:
-            if nature not in device.agent.natures:
-                raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
+        # # if the agent does not include the nature of the device
+        # for nature in device.natures:
+        #     if nature not in device.agent.natures:
+        #         raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
 
         if type(device) not in self._user_classes:  # saving the class in the dedicated dict
             self._user_classes[f"{type(device).__name__}"] = type(device)
@@ -246,17 +246,20 @@ class World:
             agent_name = f"{data['template name']}_{str(i)}"
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
-            for nature in data["contracts"]:  # for each nature, the relevant contract is set
-                contract_name = data["contracts"][nature]
-                contract = self._contracts[contract_name]
-                agent.set_contract(self._natures[nature], contract)  # definition of a contract
+
 
             # creation of devices
             for device_data in data["composition"].values():
                 for j in range(device_data[3]):
                     device_name = f"{agent.name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
                     device_class = self._user_classes[device_data[0]]
-                    device = device_class(device_name, agent, clusters, device_data[1], device_data[2])  # creation of the device
+
+                    contracts = []
+                    for contract_name in data["contracts"].values():  # for each nature, the relevant contract is set
+                        contract = self._contracts[contract_name]
+                        contracts.append(contract)
+
+                    device = device_class(device_name, contracts, agent, clusters, device_data[1], device_data[2])  # creation of the device
                     self.register_device(device)
 
     def _check(self):  # a method checking if the world has been well defined
@@ -377,7 +380,8 @@ class World:
 
         # devices file
         devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
-                                      [cluster.name for cluster in device._natures.values()],
+                                      [cluster[0].name for cluster in device._natures.values()],  # clusters
+                                      [contract[1].name for contract in device._natures.values()],  # contracts
                                       device._period,
                                       device._user_profile, device._usage_profile,  # the data of the profiles
                                       device.user_profile, device.usage_profile,  # the name of the profiles
@@ -482,11 +486,6 @@ class World:
             agent = Agent(agent_name)  # creation of an agent
             self.register_agent(agent)  # registration
 
-            for nature_name in data[agent_name]:
-                contract = data[agent_name]
-                nature = self._natures[nature_name]
-                agent.set_contract(nature, contract)  # definition of a contract
-
         file.close()
         remove("Agents.json")  # deleting the useless file
 
@@ -497,18 +496,26 @@ class World:
         for device_name in data:
             agent = self._agents[data[device_name][1]]
             clusters = [self._clusters[cluster_name] for cluster_name in data[device_name][2]]
+            contracts = [self._contracts[contract_name] for contract_name in data[device_name][2]]
             device_class = self._user_classes[data[device_name][0]]
             user_profile_name = data[device_name][6]  # loading the user profile name
             usage_profile_name = data[device_name][7]  # loading the usage profile name
 
-            device = device_class(device_name, agent, clusters, user_profile_name, usage_profile_name, "loaded device")
+            # for nature_name in data[agent_name]:
+            #     contract = data[agent_name]
+            #     nature = self._natures[nature_name]
+            #     agent.set_contract(nature, contract)  # definition of a contract
+
+            device = device_class(device_name, contracts, agent, clusters, user_profile_name, usage_profile_name, "loaded device")
 
             # loading the real hour
             device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
             device._period = data[device_name][3]  # loading the period
+            device._moment = data[device_name][8]  # loading the initial moment
+
+            # loading the profiles
             device._user_profile = data[device_name][4]  # loading the user profile
             device._usage_profile = data[device_name][5]  # loading the usage profile
-            device._moment = data[device_name][8]  # loading the initial moment
 
             self.register_device(device)
 
@@ -603,7 +610,7 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, agent, clusters, filename, user_type, consumption_device):
+    def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -622,7 +629,7 @@ class Device:
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
-        self._natures = dict()
+        self._natures = dict() # contains, for each energy nature used by the device, the cluster and the nature associated
         self._inputs = dict()
         self._outputs = dict()
 
@@ -631,7 +638,18 @@ class Device:
             if cluster.nature in self.natures:
                 raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
             else:
-                self._natures[cluster.nature] = cluster
+                self._natures[cluster.nature] = [None, None]
+                self._natures[cluster.nature][0] = cluster
+
+        contracts = into_list(contracts)  # make it iterable
+        for contract in contracts:
+            if self.natures[contract.nature][1]:
+                raise DeviceException(f"a contract has already been defined for nature {contract.nature}")
+            else:
+                try:  # "try" allows to test if self._natures[nature of the contract] was created in the cluster definition step
+                    self._natures[contract.nature][1] = contract  # add the contract
+                except:
+                    raise DeviceException(f"a cluster is missing for nature {contract.nature}")
 
         self._agent = agent  # the agent represents the owner of the device
 
@@ -676,15 +694,13 @@ class Device:
         try:
             data_user = data["user_profile"][self._user_profile_name]
         except:
-            raise DeviceException(
-                f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
 
         # getting the usage profile
         try:
             data_device = data["device_consumption"][self._usage_profile_name]
         except:
-            raise DeviceException(
-                f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
+            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
 
         file.close()
 
@@ -719,7 +735,7 @@ class Device:
 
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-            self._agent._contracts[nature]._billing(energy_amount, self._agent.name, nature)
+            self._natures[nature][1]._billing(energy_amount, self._agent.name, nature)  # call the method billing from the contract
 
     def _user_react(self):  # where users put device-specific behaviors
         pass

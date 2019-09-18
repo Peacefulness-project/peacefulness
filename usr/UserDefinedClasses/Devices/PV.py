@@ -4,8 +4,8 @@ from math import sin, pi
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name,  agent_name, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/PV.json"):
-        super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/PV.json"):
+        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device)
 
     # ##########################################################################################
     # Initialization

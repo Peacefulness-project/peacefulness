@@ -4,9 +4,10 @@
 
 class Contract:
 
-    def __init__(self, name, operations_allowed):
+    def __init__(self, name, nature, operations_allowed):
         self._name = name
         self._catalog = None
+        self._nature = nature
 
         # in the following list are listed the operations allowed for each type of device
         # an empty list means that the supervisor has to accept
@@ -62,5 +63,7 @@ class Contract:
     def name(self):  # shortcut for read-only
         return self._name
 
-
+    @property
+    def nature(self):  # shortcut for read-only
+        return self._nature
 

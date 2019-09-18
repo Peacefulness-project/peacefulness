@@ -11,8 +11,8 @@ from common.Core import DeviceException
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name,  agent_name, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/Heating.json"):
-        super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, filename="usr/DevicesProfiles/Heating.json"):
+        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device)
 
         self._G = None
         self._thermal_inertia = None
@@ -184,7 +184,21 @@ class Heating(AdjustableDevice):
 
                 if not (energy_wanted_min < energy_accorded < energy_wanted_max):  # if the energy given is not in the borders defined by the user
                     # be careful when the adjustable device is a producer, as the notion of maximum and minimum can create confusion (negative values)
-                    self._agent._contracts[nature].adjustable_dissatisfaction(self.agent.name, self.name, self.natures)
+                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                    for nature in self.natures:
+                        energy_wanted_min = self._catalog.get(
+                            f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
+                        energy_wanted = self._catalog.get(
+                            f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
+                        energy_wanted_max = self._catalog.get(
+                            f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
+                        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+
+                        dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(
+                            energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+
+                        self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+                        self._natures[nature][1].adjustable_dissatisfaction(self.agent.name, self.name, self.natures)
 
                     self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
 

@@ -10,8 +10,8 @@ from common.Contract import Contract
 # ##############################################################################################
 class NonControllableDevice(Device):
 
-    def __init__(self, name,  agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
 
     # ##########################################################################################
     # Initialization
@@ -101,7 +101,7 @@ class NonControllableDevice(Device):
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                self._agent._contracts[nature].non_controllable_dissatisfaction(self.agent.name, self.name, self.natures)
+                self._natures[nature][1].non_controllable_dissatisfaction(self.agent.name, self.name, self.natures)  # contract object method
 
     # ##########################################################################################
     # Utility
@@ -115,8 +115,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts,  agent_name, clusters, filename, user_type, consumption_device):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
 
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
@@ -304,7 +304,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     if self._remaining_time:  # decrementing the remaining time of use
                         self._remaining_time -= 1
                 else:
-                    self._agent._contracts[nature].shiftable_dissatisfaction(self.agent.name, self.name, self.natures)
+                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
+                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+                    self._natures[nature][1].shiftable_dissatisfaction(self.agent.name, self.name, self.natures)
 
     # ##########################################################################################
     # Utility
@@ -318,8 +320,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, agent_name, clusters, filename, user_type, consumption_device):
-        super().__init__(name, agent_name, clusters, filename, user_type, consumption_device)
+    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
@@ -455,10 +457,17 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                     self._remaining_time -= 1
 
                 if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                    self._agent._contracts[nature].adjustable_dissatisfaction(self.agent.name, self.name)
-                    # dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
-                    # dissatisfaction += abs(energy_wanted - energy_accorded) / energy_wanted  # ... dissatisfaction increases
-                    # self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                    for nature in self.natures:
+                        energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
+                        energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
+                        energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
+                        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+
+                        dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+
+                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+                    self._natures[nature][1].adjustable_dissatisfaction(self.agent.name, self.name)
 
                     self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
 
