@@ -43,17 +43,21 @@ class Contract:
         pass
 
     # dissatisfaction management
-    def non_controllable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for non controllable devices. It is user-defined
+
+    def dissatisfaction_modification(self, dissatisfaction):
         pass
 
-    def shiftable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for shiftable devices. It is user-defined
-        pass
-
-    def adjustable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for adjustable devices. It is user-defined
-        pass
-
-    def storage_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for storage devices. It is user-defined
-        pass
+    # def non_controllable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for non controllable devices. It is user-defined
+    #     pass
+    #
+    # def shiftable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for shiftable devices. It is user-defined
+    #     pass
+    #
+    # def adjustable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for adjustable devices. It is user-defined
+    #     pass
+    #
+    # def storage_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for storage devices. It is user-defined
+    #     pass
 
     # ##########################################################################################
     # Utilities

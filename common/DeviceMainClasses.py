@@ -99,11 +99,15 @@ class NonControllableDevice(Device):
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
+        # dissatisfaction accounting
+        dissatisfaction = 0
         for nature in self._natures:
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                self._natures[nature][1].non_controllable_dissatisfaction(self.agent.name, self.name, self.natures)  # contract object method
+                dissatisfaction = 42  # j'ai mis 42 en attendant qu'on se mette d'accord
+                dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
+        self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
 
     # ##########################################################################################
     # Utility
@@ -195,7 +199,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 line[1] = max(previous_point[1] + a/b*c, previous_point[1], line[1])  # to avoid problems with the diminution of priority...
                 # ... as priority is always the highest one encountered during the time step
 
-                if next_point[1] < previous_point[1]:  # if priority has decreased...
+                if not next_point[1]:  # if priority becomes null...
                     usage_number += 1  # ...then it means a new usage will begin
 
                 if next_point[0] > line[0] + time_step or not next_point_reached:
@@ -235,7 +239,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
                     ratio = min(time_left / data_device["usage_profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
                     for nature in data_device["usage_profile"][i][1]:  # consumption is added for each nature present
-                        self._usage_profile[-1][0][nature] = 0   # creation of the entry
+                        self._usage_profile[-1][0][nature] = 0  # creation of the entry
                         self._usage_profile[-1][0][nature] = consumption[nature] + data_device["usage_profile"][i][1][nature] * ratio
 
                     self._usage_profile[-1][1] = max(priority, data_device["usage_profile"][i][2])  # the priority is the max betwwen the former priority and the new
@@ -293,10 +297,11 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             for nature in consumption:
                 consumption[nature] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
             priority = self._usage_profile[-self._remaining_time][1]  # priority associated
+        # priority = (1 - self._catalog.get(f"{self.name}.priority")) / (tfinal + interruption_duration - tprecedent) + priority
 
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
-            self._catalog.set(f"{self.name}.priority", priority)
+        self._catalog.set(f"{self.name}.priority", priority)
 
     def _user_react(self):
 
@@ -309,8 +314,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                         self._remaining_time -= 1
                 else:
                     dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
+                    dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
                     self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
-                    self._natures[nature][1].shiftable_dissatisfaction(self.agent.name, self.name, self.natures)
 
     # ##########################################################################################
     # Utility
@@ -430,7 +435,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -465,18 +469,15 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                 if self._remaining_time:  # decrementing the remaining time of use
                     self._remaining_time -= 1
 
-                if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
+                if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy, then it creates dissatisfaction
                     dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
-                    for nature in self.natures:
-                        energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-                        energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
-                        energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
-                        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+                    energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
+                    energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
 
-                        dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+                    dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+                    dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
 
                     self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
-                    self._natures[nature][1].adjustable_dissatisfaction(self.agent.name, self.name)
 
                     self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
 

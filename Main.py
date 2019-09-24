@@ -140,11 +140,11 @@ world.register_cluster(cluster_heat)  # registration
 classic_contract_elec = User.Contracts.ClassicContract.ClassicContract("classic_contract_elec", elec)
 world.register_contract(classic_contract_elec)
 
-classic_contract_heat = User.Contracts.ClassicContract.ClassicContract("classic_contract_heat", heat)
-world.register_contract(classic_contract_heat)
-
 cooperative_contract_elec = User.Contracts.CooperativeContract.CooperativeContract("cooperative_contract_elec", elec)
 world.register_contract(cooperative_contract_elec)
+
+classic_contract_heat = User.Contracts.ClassicContract.ClassicContract("classic_contract_heat", heat)
+world.register_contract(classic_contract_heat)
 
 
 # ##############################################################################################
@@ -195,6 +195,34 @@ world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, c
 
 
 # ##############################################################################################
+# Daemons
+# this object updates entries of the catalog which do not belong to any other object
+# as an example, it can update some meteorological data
+
+# daemons need 2 arguments: a name and a period of activation
+daemon = User.Daemons.DummyDaemon.DummyDaemon("MonDemonDeMidi", 10)  # creation
+world.register_daemon(daemon)  # registration
+
+# dissatisfaction erosion
+# this daemon reduces slowly the dissatisfaction of all agents over the time
+# here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
+dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
+world.register_daemon(dissatisfaction_management)  # registration
+
+# Price Manager
+# this daemon fixes a price for a given nature of energy
+price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 1, "selling_price": 0.5})
+price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 1, "selling_price": 0.5})
+world.register_daemon(price_manager_elec)  # registration
+world.register_daemon(price_manager_heat)  # registration
+
+# Temperature
+# this daemon is responsible for the value of outside temperature in the catalog
+temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, {"temperature": 10})
+world.register_daemon(temperature_daemon)  # registration
+
+
+# ##############################################################################################
 # Dataloggers
 # this object is in charge of exporting data into files at a given iteration frequency
 # world.catalog.print_debug()  # displays the content of the catalog
@@ -221,33 +249,6 @@ logger2.add("physical_time")
 logger2.add("Heating1.Heat.energy_wanted")
 logger2.add("Heating1.Heat.energy_accorded")
 logger2.add("Heating1.priority")
-
-# ##############################################################################################
-# Daemons
-# this object updates entries of the catalog which do not belong to any other object
-# as an example, it can update some meteorological data
-
-# daemons need 2 arguments: a name and a period of activation
-daemon = User.Daemons.DummyDaemon.DummyDaemon("MonDemonDeMidi", 10)  # creation
-world.register_daemon(daemon)  # registration
-
-# dissatisfaction erosion
-# this daemon reduces slowly the dissatisfaction of all agents over the time
-# here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
-dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
-world.register_daemon(dissatisfaction_management)  # registration
-
-# Price Manager
-# this daemon fixes a price for a given nature of energy
-price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 1, "selling_price": 0.5})
-price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 1, "selling_price": 0.5})
-world.register_daemon(price_manager_elec)  # registration
-world.register_daemon(price_manager_heat)  # registration
-
-# Temperature
-# this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, {"temperature": 10})
-world.register_daemon(temperature_daemon)  # registration
 
 
 # ##############################################################################################

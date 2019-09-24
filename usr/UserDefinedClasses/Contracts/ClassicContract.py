@@ -24,6 +24,8 @@ class ClassicContract(Contract):
         self._catalog.set(f"{agent_name}.money", money)
 
     # dissatisfaction management
-    # nothing here as the supervisor is supposed to give always
+
+    def dissatisfaction_modification(self, dissatisfaction):
+        return dissatisfaction
 
 

@@ -24,11 +24,15 @@ class CooperativeContract(Contract):
         self._catalog.set(f"{agent_name}.money", money)
 
     # dissatisfaction management
-    def shiftable_dissatisfaction(self, agent_name, device_name, natures):
-        pass
 
-    def adjustable_dissatisfaction(self, agent_name, device_name, natures):
-        pass
+    def dissatisfaction_modification(self, dissatisfaction):
+        return dissatisfaction
+
+    # def shiftable_dissatisfaction(self, agent_name, device_name, natures):
+    #     pass
+    #
+    # def adjustable_dissatisfaction(self, agent_name, device_name, natures):
+    #     pass
 
 
 

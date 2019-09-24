@@ -28,9 +28,25 @@ class Heating(AdjustableDevice):
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
-        # adding the initial values of temperatures
-        self._catalog.add(f"{self.name}.current_indoor_temperature", self._parameters["initial_temperature"])
-        self._catalog.add(f"{self.name}.previous_indoor_temperature", self._parameters["initial_temperature"])
+        # managing the temperature at the level of the agent
+        try:  # there can be only one temperature in the catalog for each agent
+            # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
+            print("toto")
+            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", self._parameters["initial_temperature"])
+            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", self._parameters["initial_temperature"])
+
+            try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
+                # later, a daemon in charge of updating temperatures saves the list and removes this entry
+                self._catalog.add("agents_with_temperature_devices", {})
+            except:
+                pass
+
+            agent_list = self._catalog.get("agents_with_temperature_devices")
+            agent_list[self.agent.name] = [self._thermal_inertia, self._G]
+            self._catalog.set("agents_with_temperature_devices", agent_list)
+
+        except:
+            pass
 
     def _get_consumption(self):
 
@@ -137,8 +153,8 @@ class Heating(AdjustableDevice):
             for hour in self._user_profile:
                 if hour == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
 
-                    current_indoor_temperature = self._catalog.get(f"{self.name}.current_indoor_temperature")
-                    previous_indoor_temperature = self._catalog.get(f"{self.name}.previous_indoor_temperature")
+                    current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
+                    previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
 
                     current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
                     previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
@@ -171,7 +187,6 @@ class Heating(AdjustableDevice):
 
         for nature in self._natures:
             energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
             energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             if energy_wanted_min:  # if the device is active
@@ -182,26 +197,27 @@ class Heating(AdjustableDevice):
                     # be careful when the adjustable device is a producer, as the notion of maximum and minimum can create confusion (negative values)
                     dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
                     for nature in self.natures:
-                        energy_wanted_min = self._catalog.get(
-                            f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-                        energy_wanted = self._catalog.get(
-                            f"{self.name}.{nature.name}.energy_wanted")  # nominal quantity of energy
-                        energy_wanted_max = self._catalog.get(
-                            f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
-                        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
 
-                        dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(
-                            energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+                        Tnom = self._usage_profile[0][nature][1]  # ideal temperature
+                        Tint = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")  # temperature inside
 
+                        Tmin = self._usage_profile[0][nature][0]  # inferior accepted temperature
+                        TminDis = Tnom - 2*(Tnom - Tmin)  # inferior temperature at which maximal dissatisfaction is reached
+                        Tmax = self._usage_profile[0][nature][2]  # superior accepted temperature
+                        TmaxDis = Tnom + 2*(Tmax - Tnom)  # superior temperature at which maximal dissatisfaction is reached
+
+                        # dissatisfaction generated by a too cold temperature
+                        dissatisfaction += min(1, (Tint - TminDis)/(Tmin - TminDis))*(Tint < Tmin) \
+                                           + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # dissatisfaction generated by a too hot temperature
+
+                        dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
                         self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
                         self._natures[nature][1].adjustable_dissatisfaction(self.agent.name, self.name, self.natures)
 
-                    self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
-
         # recalculating the temperature
-        current_indoor_temperature = self._catalog.get(f"{self.name}.current_indoor_temperature")
-        previous_indoor_temperature = self._catalog.get(f"{self.name}.previous_indoor_temperature")
-        self._catalog.set(f"{self.name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous indoor temperature
+        current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
+        previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
+        self._catalog.set(f"{self.agent.name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous indoor temperature
 
         current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
         previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
@@ -214,9 +230,12 @@ class Heating(AdjustableDevice):
         for nature in self._natures:
             power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") / time_step
 
-        current_indoor_temperature = power * self._G * self._thermal_inertia * (1 - exp(-time_step/self._thermal_inertia)) + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
+        print(current_indoor_temperature)
+        print(previous_indoor_temperature)
+        current_indoor_temperature = power * self._G * self._thermal_inertia * (1 - exp(-time_step/self._thermal_inertia)) \
+                                     + 0 * deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
 
-        self._catalog.set(f"{self.name}.current_indoor_temperature", current_indoor_temperature)
+        self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
 
 
