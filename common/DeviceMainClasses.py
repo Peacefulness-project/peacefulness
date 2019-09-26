@@ -127,6 +127,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._is_done = []  # list of usage already done during one period
+        # a list containing the data necessary to manage priority if the device is interrupted
+        self._interruption_data = [False,  # if the device has been interrupted
+                                   0,  # last time step to launch the device initially
+                                   0]  # duration during which the device has functionned
 
     # ##########################################################################################
     # Initialization
@@ -258,6 +262,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         # then, we affect the residue of energy if one, with the appropriate priority, to the usage_profile
         if duration:  # to know if the device need more time
             self._usage_profile.append([0, 0])  # creation of the entry
+            priority = data_device["usage_profile"][-1][2]
             self._usage_profile[-1][0] = consumption
             self._usage_profile[-1][1] = priority
 
@@ -277,7 +282,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
     def _update(self):
 
-        if self._moment == 0:  # if a new period is starting
+        if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
 
         consumption = {nature: 0 for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
@@ -285,19 +290,33 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile which is taken into account
 
-            for line in self._user_profile:
+            for i in range(len(self._user_profile)):
+                line = self._user_profile[i]
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in consumption:
                         consumption[nature] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
                     priority = line[1]  # the current priority
+
                     self._is_done.append(line[2])  # adding the usage to the list of already satisfied usages
                     self._remaining_time = len(self._usage_profile)
+                    # reinitialisation of the interruption data
+                    self._interruption_data[0] = False
+                    j = 0
+                    while line[2] == self._user_profile[j][2] and j < (len(self._user_profile) - 1):  # as long as the usage ID is still the same, the last time_step is not reached (and of course as long as the end of the list is not reached)
+                        self._interruption_data[1] = self._user_profile[j][0]
+                        j += 1
+                    self._interruption_data[2] = 0
+
+                    break  # once the matching hour has been found, it is useless to pursue the loop
 
         else:  # if the device is running then it's the usage_profile who matters
             for nature in consumption:
                 consumption[nature] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
             priority = self._usage_profile[-self._remaining_time][1]  # priority associated
-        # priority = (1 - self._catalog.get(f"{self.name}.priority")) / (tfinal + interruption_duration - tprecedent) + priority
+            if self._interruption_data[0]:  # if the device has been interrupted
+                priority = (1 - self._catalog.get(f"{self.name}.priority")) / \
+                           (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + \
+                           self._catalog.get(f"{self.name}.priority")  # calculation of priority in case of interruption
 
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
@@ -309,9 +328,13 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         for nature in self._natures:
             if self._catalog.get(f"{self.name}.{nature.name}.energy_wanted"):  # if the device is active
-                if self._catalog.get(f"{self.name}.{nature.name}.energy_accorded"):  # if it has started
-                    if self._remaining_time:  # decrementing the remaining time of use
-                        self._remaining_time -= 1
+                
+                if self._remaining_time:  # if it has started
+                    if self._catalog.get(f"{self.name}.{nature.name}.energy_accorded"):  # if it has not been interrupted
+                        self._remaining_time -= 1  # decrementing the remaining time of use
+                        self._interruption_data[2] += 1  # it has been working for one more time step
+                    else:  # if it has been interrupted
+                        self._interruption_data[0] = True  # it is flagged as "interrupted"
                 else:
                     dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
                     dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction

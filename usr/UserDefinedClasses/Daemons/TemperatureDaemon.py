@@ -38,7 +38,7 @@ class TemperatureDaemon(Daemon):
 
         # indoor temperature update
         previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
-        time_step = self._catalog.get("time_step")
+        time_step = self._catalog.get("time_step") * 3600  # the duration of a time step in seconds
         for agent_name in self._agent_list:
             thermal_inertia = self._agent_list[agent_name][0]
             G = self._agent_list[agent_name][1]
@@ -47,11 +47,7 @@ class TemperatureDaemon(Daemon):
             current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")
 
             self._catalog.set(f"{agent_name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-
             current_indoor_temperature = current_outdoor_temperature + 0 * G * (1 - exp(-time_step/thermal_inertia)) + (previous_indoor_temperature - previous_outdoor_temperature) * exp(-time_step/thermal_inertia)
 
             self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-            print(current_outdoor_temperature)
-            print(current_indoor_temperature)
-            print("\n")
 
