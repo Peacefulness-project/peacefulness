@@ -99,15 +99,15 @@ class NonControllableDevice(Device):
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
-        # dissatisfaction accounting
+        # dissatisfaction management
         dissatisfaction = 0
-        for nature in self._natures:
-            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
-            energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-            if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
-                dissatisfaction = 42  # j'ai mis 42 en attendant qu'on se mette d'accord
+        energy_wanted = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in self.natures])
+        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])
+        if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
+            dissatisfaction = 42  # j'ai mis 42 en attendant qu'on se mette d'accord
+            for nature in self.natures:
                 dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
-        self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+            self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
 
     # ##########################################################################################
     # Utility
@@ -326,19 +326,27 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
-        for nature in self._natures:
-            if self._catalog.get(f"{self.name}.{nature.name}.energy_wanted"):  # if the device is active
-                
-                if self._remaining_time:  # if it has started
-                    if self._catalog.get(f"{self.name}.{nature.name}.energy_accorded"):  # if it has not been interrupted
-                        self._remaining_time -= 1  # decrementing the remaining time of use
-                        self._interruption_data[2] += 1  # it has been working for one more time step
-                    else:  # if it has been interrupted
-                        self._interruption_data[0] = True  # it is flagged as "interrupted"
-                else:
-                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
+        activity = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in
+                        self.natures])  # activity is used as a boolean
+        # if the device asks for or proposes an energy, activity will be True
+
+        # dissatisfaction and interruption management
+        if activity:  # if the device is active
+            if self._remaining_time:  # if it has started
+                activity = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in
+                                self.natures])  # activity is used as a boolean
+                # if the device is served, activity will be True
+
+                if activity:  # if it has not been interrupted
+                    self._remaining_time -= 1  # decrementing the remaining time of use
+                    self._interruption_data[2] += 1  # it has been working for one more time step
+                else:  # if it has been interrupted
+                    self._interruption_data[0] = True  # it is flagged as "interrupted"
+            elif self._catalog.get(f"{self.name}.priority") == 1:  # if the device is inactive meanwhile its priority is 1
+                dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction") + 1
+                for nature in self.natures:
                     dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
-                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
+                self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)  # dissatisfaction increments
 
     # ##########################################################################################
     # Utility
@@ -485,24 +493,29 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
-        for nature in self._natures:
-            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
-            energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-            if energy_wanted:  # if the device is active
-                if self._remaining_time:  # decrementing the remaining time of use
-                    self._remaining_time -= 1
+        # dissatisfaction management
+        energy_wanted = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in self.natures])
+        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])
+        if energy_wanted:  # if the device is active
+            if self._remaining_time:  # decrementing the remaining time of use
+                self._remaining_time -= 1
 
-                if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy, then it creates dissatisfaction
-                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
-                    energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-                    energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
+            if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy, then it creates dissatisfaction
+                dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                energy_wanted_min = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum") for nature in self.natures])  # minimum quantity of energy
+                energy_wanted_max = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum") for nature in self.natures])  # maximum quantity of energy
 
-                    dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # ... dissatisfaction increases
+                dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # dissatisfaction increases
+                for nature in self.natures:
                     dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
 
-                    self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+                self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
 
-                    self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
+                self._latent_demand += energy_wanted - energy_accorded  # the energy in excess or in default
+
+                activity = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in
+                                self.natures])  # activity is used as a boolean
+                # if the device is served, activity will be True
 
     # ##########################################################################################
     # Utility
