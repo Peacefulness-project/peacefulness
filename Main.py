@@ -21,6 +21,10 @@
 # Importations
 from datetime import datetime
 
+from time import process_time
+
+from tools.Utilities import adapt_path
+
 from common.Core import World
 
 from common.Catalog import Catalog
@@ -36,6 +40,10 @@ from common.Cluster import Cluster
 from common.Datalogger import Datalogger
 
 import usr.UserDefinedClasses as User
+
+# ##############################################################################################
+# Performance measurement
+CPU_time = process_time()
 
 # ##############################################################################################
 # Minimum
@@ -115,6 +123,7 @@ nature_description = "Energy transported by a district heating network"
 heat = Nature(nature_name, nature_description)  # creation of a nature
 world.register_nature(heat)  # registration
 
+
 # ##############################################################################################
 # Cluster
 # this object is a collection of devices wanting to isolate themselves as much as they can
@@ -153,6 +162,7 @@ world.register_contract(classic_contract_heat)
 # all devices need an agent
 agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
+
 
 # ##############################################################################################
 # Devices
@@ -251,14 +261,49 @@ logger2.add("Heating1.Heat.energy_accorded")
 logger2.add("Heating1.priority")
 
 
-# ##############################################################################################
-# here we save our world to use it later
-world.save()
+# CPU time measurement
+CPU_time = process_time() - CPU_time  # time taken by the initialization
+filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+file = open(filename, "a")  # creation of the file
+file.write(f"time taken by the initialization phase: {CPU_time}\n")
+file.close()
 
+
+# ##############################################################################################
+# here we have the possibiblity to save the world to use it later
+save_wanted = True
+
+if save_wanted:
+    CPU_time = process_time()  # CPU time measurement
+
+    world.save()  # saving the world
+
+    # CPU time measurement
+    CPU_time = process_time() - CPU_time  # time taken by the initialization
+    filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+    file = open(filename, "a")  # creation of the file
+    file.write(f"time taken by the saving phase: {CPU_time}\n")
+    file.close()
 
 # ##############################################################################################
 # Work in progress
 # here begins the supervision, which is not implemented yet
-
+CPU_time = process_time()  # CPU time measurement
 world.start()
+
+# CPU time measurement
+CPU_time = process_time() - CPU_time  # time taken by the initialization
+filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+file = open(filename, "a")  # creation of the file
+file.write(f"time taken by the calculation phase: {CPU_time}\n")
+file.close()
+
+
+
+
+
+
+
+
+
 

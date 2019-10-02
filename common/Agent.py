@@ -26,18 +26,18 @@ class Agent:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
 
-        self._catalog.add(f"{self._name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy not delivered immediately
+        self._catalog.add(f"{self.name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy not delivered immediately
         # The higher it is, the higher is the chance of being served
-        self._catalog.add(f"{self._name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.add(f"{self._name}.energy", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.add(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
+        self._catalog.add(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
 
     # ##########################################################################################
     # Dynamic behaviour
     ############################################################################################
 
     def _update(self):
-        self._catalog.set(f"{self._name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.set(f"{self._name}.energy", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.set(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
+        self._catalog.set(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
 
     # ##########################################################################################
     # Utilities

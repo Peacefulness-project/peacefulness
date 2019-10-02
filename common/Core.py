@@ -747,6 +747,9 @@ class Device:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             self._natures[nature][1]._billing(energy_amount, self._agent.name, nature)  # call the method billing from the contract
 
+        energy_amount += self._catalog.get(f"{self.agent.name}.energy")
+        self._catalog.set(f"{self.agent.name}.energy", energy_amount)  # report the energy delivered/consumed by the device
+
     def _user_react(self):  # where users put device-specific behaviors
         pass
 
@@ -780,7 +783,6 @@ class Device:
 
 # Plus tard
 # class Storage
-# class Converter
 
 
 # Exception
