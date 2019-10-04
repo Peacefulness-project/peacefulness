@@ -41,6 +41,7 @@ from common.Datalogger import Datalogger
 
 import usr.UserDefinedClasses as User
 
+
 # ##############################################################################################
 # Performance measurement
 CPU_time = process_time()
@@ -171,21 +172,22 @@ world.register_agent(agent)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
+c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = User.Devices.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
-Light2 = User.Devices.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
+Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
+Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
 # shiftable device
-e2 = User.Devices.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
-# temperature-related device
+e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
+# adjustable device
+charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "", "")
+# temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
 thermal_parameters = {"G": 1,  # G in kJ/K
                       "thermal_inertia": 7200,  # thermal inertia in s
                       "initial_temperature": 17}  # initial temperature in °C
-e3 = User.Devices.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating", thermal_parameters)  # creation of a consumption point
+e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating", thermal_parameters)  # creation of a consumption point
 
-# the nature of these dummy devices is LVE by definition
 
 # print(e1)  # displays the name and the type of the device
 # print(c1)  # displays the name and the type of the device
@@ -228,7 +230,7 @@ world.register_daemon(price_manager_heat)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("je mettrai une betise bientot", 1, {"temperature": 10})
+temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("Azzie", 1, {"temperature": 10})
 world.register_daemon(temperature_daemon)  # registration
 
 

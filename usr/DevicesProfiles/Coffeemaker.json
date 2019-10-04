@@ -1,7 +1,7 @@
 {
   "device_consumption": {
     "default": {
-      "usage_profile": [[0.8, {"LVE": 0.5}, 1], [0.5, {"LVE": 0.4}, 1]],
+      "usage_profile": [[0.25, {"LVE": 1}, 1], [0.25, {"LVE": 0.4}, 1]],
       "consumption_variation": 0.1,
       "duration_variation": 0.1
 
@@ -10,8 +10,8 @@
 
   "user_profile":{
 
-    "family": {
-      "profile": [[8, 0], [16.999, 1], [17, 0]],
+    "default": {
+      "profile": [[0, 0], [6.999, 1], [7, 0], [7.5, 0], [16.999, 1], [17, 0]],
 
       "period": 24,
       "offset": 0,

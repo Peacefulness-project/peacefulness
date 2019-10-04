@@ -369,6 +369,8 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         self._latent_demand = 0  # the energy in excess or in default after being served
 
+        self._max_power = dict()  # the max power accepted by the device, defined by the profile
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -407,6 +409,9 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         for hour in data_user["profile"]:
             self._user_profile.append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+
+        # max power
+        self._max_power = data_device["max_power"]  # the maximum power is registered for each nature
 
         # usage_profile
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready

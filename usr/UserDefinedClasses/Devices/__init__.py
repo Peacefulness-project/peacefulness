@@ -1,7 +1,5 @@
-# The following lines allow to import all the user-defined
-from os import path
-from pkgutil import iter_modules
+import usr.UserDefinedClasses.Devices.NonControllableDevice
+import usr.UserDefinedClasses.Devices.AdjustableDevice
+import usr.UserDefinedClasses.Devices.ShiftableDevice
 
-__all__ = list(module for _, module, _ in iter_modules([path.dirname(__file__)]))
 
-from usr.UserDefinedClasses.Devices import *
