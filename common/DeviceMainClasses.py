@@ -411,7 +411,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             self._user_profile.append((hour // time_step) * time_step)  # changing the hour fo fit the time step
 
         # max power
-        self._max_power = data_device["max_power"]  # the maximum power is registered for each nature
+        self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
 
         # usage_profile
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
@@ -429,7 +429,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                     consumption[nature][1] += data_device["usage_profile"][i][1][nature][1]
                     consumption[nature][2] += data_device["usage_profile"][i][1][nature][2]
 
-            else:  # we add a part of the energy consumption on the current step and we report the other part and we store the values into the self
+            else:  # we add a part of the energy consumption on the current step and we report the other part and we store the values
 
                 # fulling the usage_profile
                 while duration // time_step:  # here we manage a constant consumption over several time steps

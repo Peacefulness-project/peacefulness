@@ -86,6 +86,9 @@ class Heating(AdjustableDevice):
         for hour in data_user["profile"]:
             self._user_profile.append((hour // time_step) * time_step)  # changing the hour fo fit the time step
 
+        # max power
+        self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
+
         # usage_profile
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
 
@@ -166,12 +169,15 @@ class Heating(AdjustableDevice):
                         # min power calculation:
                         deltaTnew = self._usage_profile[0][nature][0] - current_outdoor_temperature
                         consumption[nature][0] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        consumption[nature][0] = min(consumption[nature][2], self._max_power[nature])  # the real energy asked can't be suprior to the maximum power
                         # nominal power calculation:
                         deltaTnew = self._usage_profile[0][nature][1] - current_outdoor_temperature
                         consumption[nature][1] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        consumption[nature][1] = min(consumption[nature][2], self._max_power[nature])  # the real energy asked can't be suprior to the maximum power
                         # max power calculation:
                         deltaTnew = self._usage_profile[0][nature][2] - current_outdoor_temperature
                         consumption[nature][2] = time_step / self._thermal_inertia / self._G * (deltaTnew - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        consumption[nature][2] = min(consumption[nature][2], self._max_power[nature])  # the real energy asked can't be suprior to the maximum power
 
                     self._remaining_time = len(self._usage_profile) - 1  # incrementing usage duration
 

@@ -10,6 +10,7 @@ from math import ceil
 from inspect import getfile
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
+import common.lib.supervision_tools.supervision as sup
 from common.Catalog import Catalog
 from common.Nature import Nature
 from common.Contract import Contract
@@ -113,6 +114,18 @@ class World:
         self._time_limit = time_limit
 
     # the following methods concern objects modeling a case
+    def register_supervisor(self, supervisor):  # definition of the supervisor
+        if supervisor.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{supervisor.name} already in use")
+
+        if isinstance(supervisor, Supervisor) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        supervisor._register(self._catalog)   # linking the supervisor with the catalog of world
+        self._supervisors[supervisor.name] = supervisor  # registering the cluster in the dedicated dictionary
+        self._used_names.append(supervisor.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
     def register_nature(self, nature):  # definition of natures dictionary
         if nature.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{nature.name} already in use")
@@ -217,18 +230,6 @@ class World:
         self._used_names.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def register_supervisor(self, supervisor):  # definition of the supervisor
-        if supervisor.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{supervisor.name} already in use")
-
-        if isinstance(supervisor, Supervisor) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        supervisor._register(self._catalog)   # linking the supervisor with the catalog of world
-        self._supervisors[supervisor.name] = supervisor  # registering the cluster in the dedicated dictionary
-        self._used_names.append(supervisor.name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing
-
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -247,19 +248,24 @@ class World:
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
 
+            # creation of contracts
+            contract_list = []
+            for nature_name in data["contracts"]:  # for each nature, the relevant contract is set
+                contract_name = f"{agent_name}_{nature_name}_contract"
+                contract_class = self._user_classes[data["contracts"][nature_name][0]]
+                parameters = data["contracts"][nature_name][1]
+                nature = self._natures[nature_name]
+                contract = contract_class(contract_name, nature, parameters)
+                self.register_contract(contract)
+                contract_list.append(contract)
 
             # creation of devices
             for device_data in data["composition"].values():
                 for j in range(device_data[3]):
-                    device_name = f"{agent.name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                    device_name = f"{agent_name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
                     device_class = self._user_classes[device_data[0]]
 
-                    contracts = []
-                    for contract_name in data["contracts"].values():  # for each nature, the relevant contract is set
-                        contract = self._contracts[contract_name]
-                        contracts.append(contract)
-
-                    device = device_class(device_name, contracts, agent, clusters, device_data[1], device_data[2])  # creation of the device
+                    device = device_class(device_name, contract_list, agent, clusters, device_data[1], device_data[2])  # creation of the device
                     self.register_device(device)
 
     def _check(self):  # a method checking if the world has been well defined
@@ -286,13 +292,34 @@ class World:
 
         self._check()  # check if everything is fine in world definition
 
-        world = self
-        catalog = self._catalog
-
         for supervisor in self._supervisors:
             path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename])
 
-        exec(open(path).read())
+        # Resolution
+
+        sup.initialize(self, self._catalog)  # create relevant entries in the catalog
+
+        for i in range(0, self.time_limit, 1):
+            sup.start_round(self)  # order the devices to update their needs
+
+            sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
+
+            for device in self.devices.values():  # consumption and production balance
+
+                if self._catalog.get(f"{device.name}.priority") > 0.5:
+                    for nature in device.natures:
+                        # consumption balance
+                        consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+                        self._catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
+
+            for cluster in self.clusters.values():  # here, each cluster makes its local balance
+                cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
+
+
+            sup.end_round(self)  # activate the daemons, the dataloggers and increments time
+
+        self.catalog.print_debug()  # display the content of the catalog
+        print(self)  # give the name of the world and the quantity of productions and consumptions
 
     # ##########################################################################################
     # Dynamic behavior
@@ -363,7 +390,7 @@ class World:
         # contracts file
         contracts_list = {contract.name: [f"{type(contract).__name__}",
                                           contract.nature.name,
-                                          contract._operations_allowed
+                                          contract._parameters
                                           ] for contract in self._contracts.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Contracts.json"])
@@ -472,9 +499,9 @@ class World:
         for contract_name in data:
             contract_class = self._user_classes[data[contract_name][0]]
             contract_nature = self._natures[data[contract_name][1]]
-            operations_allowed = data[contract_name][2]
+            contract_parameters = data[contract_name][2]
 
-            contract = contract_class(contract_name, contract_nature, operations_allowed)
+            contract = contract_class(contract_name, contract_nature, contract_parameters)
             self.register_contract(contract)           
 
         file.close()
@@ -644,7 +671,6 @@ class Device:
                 self._natures[cluster.nature][0] = cluster
 
         contracts = into_list(contracts)  # make it iterable
-
         for contract in contracts:
             if self.natures[contract.nature][1]:
                 raise DeviceException(f"a contract has already been defined for nature {contract.nature}")
@@ -745,7 +771,7 @@ class Device:
 
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-            self._natures[nature][1]._billing(energy_amount, self._agent.name, nature)  # call the method billing from the contract
+            self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
         energy_amount += self._catalog.get(f"{self.agent.name}.energy")
         self._catalog.set(f"{self.agent.name}.energy", energy_amount)  # report the energy delivered/consumed by the device
