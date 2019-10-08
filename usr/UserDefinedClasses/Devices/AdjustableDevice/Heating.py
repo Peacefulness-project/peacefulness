@@ -55,29 +55,18 @@ class Heating(AdjustableDevice):
 
         self._offset_management()  # implementation of the offset
 
-        # creation of the consumption data
-        time_step = self._catalog.get("time_step")
-        self._period = int(data_user["period"]//time_step)  # the number of iteration corresponding to a period
-        self._offset = data_user["offset"]
-        # the period MUST be a multiple of the time step
-        year = self._catalog.get("physical_time").year
-        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds()/3600
-        beginning = (beginning - self._offset)/time_step % self._period
-        self._moment = ceil(beginning)  # the position in the period where the device starts
-
         # we randomize a bit in order to represent reality better
-        start_time_variation = (self._catalog.get("float")() - 0.5) * data_user["start_time_variation"]  # creation of a displacement in the user_profile
+        start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
         for start_time in data_user["profile"]:
-            start_time += start_time_variation
+            start_time *= start_time_variation
 
-        duration_variation = (self._catalog.get("float")() - 0.5) * data_user["duration_variation"]  # modification of the duration
-        consumption_variation = (self._catalog.get("float")() - 0.5) * data_device["consumption_variation"]  # modification of the consumption
+        duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
+        consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the consumption
         for line in data_device["usage_profile"]:
-            line[0] += duration_variation
+            line[0] *= duration_variation
             for nature in line[1]:
                 for element in line[1][nature]:
-                    element += consumption_variation
+                    element *= consumption_variation
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation

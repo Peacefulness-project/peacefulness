@@ -3,7 +3,7 @@
 # Native packages
 from datetime import datetime, timedelta
 from os import makedirs, remove
-from random import random, seed as random_generator_seed, randint
+from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
 from math import ceil
@@ -101,8 +101,12 @@ class World:
         def rand_int(min_int, max_int):  # function returning an int between min and max
             return randint(min_int, max_int)
 
+        def rand_gauss(standard_deviation):
+            return gauss(1, standard_deviation)
+
         self._catalog.add("float", rand_float)
         self._catalog.add("int", rand_int)
+        self._catalog.add("gaussian", rand_gauss)
 
     def set_time(self, start_date=datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
