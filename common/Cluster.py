@@ -7,13 +7,15 @@ from common.Nature import Nature
 
 class Cluster:
 
-    def __init__(self, name, nature, is_grid=False):
+    def __init__(self, name, nature, supervisor, is_grid=False):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the cluster
 
         self._is_grid = is_grid  # the local grid the cluster is connected with
 
         self._catalog = None  # the catalog in which some data are stored
+
+        self.supervisor = supervisor
 
     # ##########################################################################################
     # Initialization
@@ -24,6 +26,13 @@ class Cluster:
 
         self._catalog.add(f"{self.name}.energy_ flux")  # accounts for the energy exchanged by the cluster during the round
         self._catalog.add(f"{self.name}.money_flux")  # accounts for the money exchanged by the cluster during the round
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def supervision(self):  # here, the cluster chooses how to distribute energy and if it exchanges with others clusters
+        pass
 
     # ##########################################################################################
     # Utility

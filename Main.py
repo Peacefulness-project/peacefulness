@@ -82,21 +82,6 @@ world.set_random_seed("tournesol")
 
 
 # ##############################################################################################
-# Supervisor --> il est en stand-by
-# this object contains just the path to  your supervisor script and a brief description of what it does
-
-
-# TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
-
-description = "this supervisor is a really basic one. It just serves as a " \
-              "skeleton/example for your (more) clever supervisor."
-name_supervisor = "glaDOS"
-supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py", description)
-
-world.register_supervisor(supervisor)
-
-
-# ##############################################################################################
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
@@ -110,6 +95,20 @@ world.set_time(start_date,  # time management: start date
 # you need at least one local grid and one agent to create a device
 # no matter the type, you can create as much objects as you want
 # ##############################################################################################
+
+# ##############################################################################################
+# Supervisor --> il est en stand-by
+# this object contains just the path to  your supervisor script and a brief description of what it does
+
+# TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
+
+description = "this supervisor is a really basic one. It just serves as a " \
+              "skeleton/example for your (more) clever supervisor."
+name_supervisor = "glaDOS"
+supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py", description)
+
+world.register_supervisor(supervisor)
+
 
 # ##############################################################################################
 # Nature list
@@ -130,16 +129,16 @@ world.register_nature(heat)  # registration
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
-cluster_name = "general cluster"
-cluster_elec = Cluster(cluster_name, elec)  # creation of a cluster
+cluster_name = "general_cluster"
+cluster_elec = Cluster(cluster_name, elec, supervisor)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
 # here we add a grid, which represents an infinite producer
-elec_grid = Cluster("Enedis", elec, True)
+elec_grid = Cluster("Enedis", elec, supervisor, True)
 world.register_cluster(elec_grid)  # registration
 
-cluster_name = "Les tuyaux a toto"
-cluster_heat = Cluster(cluster_name, heat)  # creation of a cluster
+cluster_name = "Les_tuyaux_a_toto"
+cluster_heat = Cluster(cluster_name, heat, supervisor)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
 
 
@@ -147,13 +146,13 @@ world.register_cluster(cluster_heat)  # registration
 # Contracts
 # this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
-classic_contract_elec = User.Contracts.ClassicContract.ClassicContract("classic_contract_elec", elec)
+classic_contract_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_elec", elec)
 world.register_contract(classic_contract_elec)
 
-cooperative_contract_elec = User.Contracts.CooperativeContract.CooperativeContract("cooperative_contract_elec", elec)
+cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec)
 world.register_contract(cooperative_contract_elec)
 
-classic_contract_heat = User.Contracts.ClassicContract.ClassicContract("classic_contract_heat", heat)
+classic_contract_heat = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_heat", heat)
 world.register_contract(classic_contract_heat)
 
 

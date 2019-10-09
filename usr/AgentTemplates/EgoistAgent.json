@@ -1,5 +1,5 @@
 {
-  "template name": "profil_de_fer",
+  "template name": "Egoist",
 
   "composition": {
     "Dishwasher": ["Dishwasher", "family", "default", 1],
@@ -8,8 +8,8 @@
   },
 
   "contracts": {
-    "LVE":  ["TOUEgoistContract", {}],
-    "Heat":  ["TOUEgoistContract", {}]
+    "LVE":  "classic_contract_elec",
+    "Heat":  "classic_contract_heat"
   }
 
 }

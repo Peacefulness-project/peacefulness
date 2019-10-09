@@ -4,19 +4,19 @@
 
 class Contract:
 
-    def __init__(self, name, nature, operations_allowed):
+    def __init__(self, name, nature, parameters=None):
         self._name = name
         self._catalog = None
         self._nature = nature
 
-        # in the following list are listed the operations allowed for each type of device
-        # an empty list means that the supervisor has to accept
-        # otherwise, the keywords are "shiftable", "adjustable" or "wipable"
-        self._operations_allowed = {"non_controllable": operations_allowed[0],
-                                    "shiftable": operations_allowed[1],
-                                    "adjustable": operations_allowed[2],
-                                    "storage": operations_allowed[3]
-                                    }
+        self.description = ""  # a brief description of the contract
+
+        # parameters is an optional dictionary which stores additional information needed by user-defined classes
+        # putting these information there allow them to be saved/loaded via world method
+        if parameters:
+            self._parameters = parameters
+        else:  # if there are no parameters
+            self._parameters = {}  # they are put in an empty dictionary
 
     # ##########################################################################################
     # Initialization
@@ -25,27 +25,35 @@ class Contract:
     def _register(self, catalog):
         self._catalog = catalog
 
+        self._user_register()
+
+    def _user_register(self):
+        pass
+
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
     # billing
-    def _billing(self, energy_amount, agent_name, nature):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
+    def _billing(self, energy_amount, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
         if energy_amount > 0:
-            self._billing_buying(energy_amount, agent_name, nature)
+            self._billing_buying(energy_amount, agent_name)
         elif energy_amount < 0:
-            self._billing_selling(energy_amount, agent_name, nature)
+            self._billing_selling(energy_amount, agent_name)
+        self._user_billing(agent_name)
 
-    def _billing_buying(self, energy_amount, agent_name, nature):  # the way of billing an agent buying energy. It is user-defined
+    def _billing_buying(self, energy_amount, agent_name):  # the way of billing an agent buying energy. It is user-defined
         pass
 
-    def _billing_selling(self, energy_amount, agent_name, nature):  # the way of billing an agent selling energy. It is user-defined
+    def _billing_selling(self, energy_amount, agent_name):  # the way of billing an agent selling energy. It is user-defined
+        pass
+
+    def _user_billing(self, agent_name):  # here, the user can add specific operations
         pass
 
     # dissatisfaction management
-
-    def dissatisfaction_modification(self, dissatisfaction):
-        pass
+    def dissatisfaction_modification(self, dissatisfaction):  # this function modifies dissatisfaction according to the contract
+        return dissatisfaction  # If the function is not modified, it does not change the initial value
 
     # def non_controllable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for non controllable devices. It is user-defined
     #     pass
@@ -58,6 +66,10 @@ class Contract:
     #
     # def storage_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for storage devices. It is user-defined
     #     pass
+
+    # priority management
+    def priority_modification(self, priority):  # this function modifies the priority according to the contract
+        return priority  # If the function is not modified, it does not change the initial value
 
     # ##########################################################################################
     # Utilities
