@@ -2,12 +2,13 @@
 from common.Contract import Contract
 
 
-class TOUContract(Contract):
+class TOUErasableContract(Contract):
 
     def __init__(self, name, nature, parameters=None):
         super().__init__(name, nature)
 
-        self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
+        self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
+                           "Meanwhile, the customer can be shifted and erased, which means she accepts not be served at all."
 
     # ##########################################################################################
     # Dynamic behaviour

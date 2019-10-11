@@ -1,0 +1,24 @@
+{
+  "device_consumption": {
+    "laptop_charger": {
+      "usage_profile": {"LVE": 1},
+      "consumption_variation": 0.1,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 0.5}
+    }
+
+  },
+
+  "user_profile":{
+    "default": {
+      "profile": [[11, 19]],
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 1
+    }
+  }
+
+}

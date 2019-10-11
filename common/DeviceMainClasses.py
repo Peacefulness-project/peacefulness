@@ -32,12 +32,12 @@ class NonControllableDevice(Device):
         duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
         start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
-            line[0] *= start_time_variation
+            line[0] += start_time_variation
             line[1] *= duration_variation
 
-        consumption_variation = (self._catalog.get("float")() - 0.5) * data_device["consumption_variation"]  # modification of the consumption
+        consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the consumption
         for nature in data_device["usage_profile"]:
-            data_device["usage_profile"][nature] += consumption_variation
+            data_device["usage_profile"][nature] *= consumption_variation
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -148,6 +148,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
+        start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data_user["profile"]:
+            line[0] += start_time_variation
+
         duration_variation = self._catalog.get("gaussian")(data_device["duration_variation"])  # modification of the duration
         consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the consumption
         for line in data_device["usage_profile"]:
@@ -388,20 +392,15 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
-            line[0] *= start_time_variation
-
-        # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        for start_time in data_user["profile"]:
-            start_time *= start_time_variation
+            line[0] += start_time_variation
 
         duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
         consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the consumption
         for line in data_device["usage_profile"]:
-            line[0] += duration_variation
+            line[0] *= duration_variation
             for nature in line[1]:
                 for element in line[1][nature]:
-                    element += consumption_variation
+                    element *= consumption_variation
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -529,5 +528,158 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     @property
     def type(self):
         return "adjustable"
+
+
+# ##############################################################################################
+class ChargerDevice(Device):  # a consumption which is adjustable
+
+    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
+        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
+
+        self._use_ID = None  # this ID references the ongoing use
+        self._is_done = []  # list of usage already done during one period
+        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
+
+        self._demand = dict()  # the quantity of energy necessary to fulfill the need for each nature of energy
+
+        self._min_power = dict()  # the max power accepted by the device, defined by the profile for each nature of energy
+        self._max_power = dict()  # the max power accepted by the device, defined by the profile for each nature of energy
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def _user_register(self):  # make the initialization operations specific to the device
+
+        # Creation of specific entries
+        for nature in self._natures:
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
+    def _get_consumption(self):
+
+        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+
+        self._data_user_creation(data_user)  # creation of an empty user profile
+
+        self._offset_management()  # implementation of the offset
+
+        # we randomize a bit in order to represent reality better
+        start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data_user["profile"]:
+            line[0] += start_time_variation
+            line[1] += start_time_variation
+
+        consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the consumption
+        for nature in data_device["usage_profile"].values():
+            nature *= consumption_variation
+
+        # adaptation of the data to the time step
+        # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
+        time_step = self._catalog.get("time_step")
+
+        for i in range(len(data_user["profile"])):
+            self._user_profile.append([])
+            for hour in data_user["profile"][i]:
+                self._user_profile[-1].append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+
+        # min and max power allowed
+        # these power are converted into energy quantities according to the time step
+        self._min_power = {element: time_step * data_device["min_power"][element] for element in data_device["min_power"]}  # the minimum power is registered for each nature
+        self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
+
+        # usage_profile
+        self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
+
+        # removal of unused natures in the self._natures
+        nature_to_remove = []
+        for nature in self._natures:
+            if nature.name not in self._usage_profile.keys():
+                nature_to_remove.append(nature)
+        for nature in nature_to_remove:
+            self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def _update(self):  # method updating needs of the devices before the supervision
+
+        consumption = {nature: [0, 0, 0] for nature in self._usage_profile}  # consumption which will be asked eventually
+        priority = 0
+
+        if self._remaining_time == 0:  # checking if the device has to start
+            for usage in self._user_profile:
+                if usage[0] == self._moment:  # if the current hour matches with the start of an usage
+                    self._remaining_time = usage[1] - usage[0]  # incrementing usage duration
+                    self._demand = self._usage_profile  # the demand for each nature of energy
+
+        if self._remaining_time:  # if the device is active
+                    priority_list = []  # a list containing the priority calculated for each nature of energy
+                    for nature in consumption:
+                        consumption[nature][0] = self._min_power[nature]
+                        consumption[nature][1] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
+                        # but it needs to be between the min and the max value
+                        consumption[nature][2] = self._max_power[nature]
+                        try:  # calculus of the priority for a given nature of energy
+                            priority_list.append(self._demand[nature] / (self._max_power[nature] * (self._remaining_time - 1)))
+                        except:  # there is only 1 turn left, so the device must be served
+                            priority_list.append(1)
+                        # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand
+                    priority = min(1, max(priority_list))  # the value kept is the higher of the priorities for each energy, but it can't be more than 1
+
+        for nature in self.natures:
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
+        self._catalog.set(f"{self.name}.priority", priority)
+
+    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+
+        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
+
+        # dissatisfaction management
+        energy_wanted = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in self.natures])
+        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])
+        if energy_wanted:  # if the device is active
+            if self._remaining_time:  # decrementing the remaining time of use
+                self._remaining_time -= 1
+
+            if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy, then it creates dissatisfaction
+                dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+                energy_wanted_min = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum") for nature in self.natures])  # minimum quantity of energy
+                energy_wanted_max = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum") for nature in self.natures])  # maximum quantity of energy
+
+                if self._catalog.get(f"{self.name}.priority") == 1:
+                    dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # dissatisfaction increases
+                    for nature in self.natures:
+                        dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
+
+                self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
+
+            for nature in self._demand:
+                self._demand[nature] -= energy_accorded  # the energy which still has to be served
+                # /!\ if there is a minimum power, remember to change the line above to take into account the start-up costs
+                # otherwise, there is a risk that the total quantity of energy required is inferior to the minimum power necessary for the device to work
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "adjustable"
+
+
+
+
+
+
+
+
 
 

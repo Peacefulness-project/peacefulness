@@ -18,7 +18,7 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 0,
+      "start_time_variation": 1,
       "duration_variation": 0.1
     },
 
@@ -28,7 +28,7 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 0,
+      "start_time_variation": 1,
       "duration_variation": 0.1
     }
   }

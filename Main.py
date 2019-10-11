@@ -179,7 +179,7 @@ Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_
 # shiftable device
 e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
 # adjustable device
-charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "", "")
+charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "default", "laptop_charger")
 # temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
 thermal_parameters = {"G": 1,  # G in kJ/K
@@ -197,6 +197,7 @@ world.catalog.print_debug()  # displays the content of the catalog
 world.register_device(c1)  # registration of a production device
 world.register_device(Light1)  # registration of a consumption device
 world.register_device(Light2)  # registration of a consumption device
+world.register_device(charger)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
 

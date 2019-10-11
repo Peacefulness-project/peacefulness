@@ -15,7 +15,7 @@
       "period": 24,
       "offset": -4,
 
-      "start_time_variation": 0.1,
+      "start_time_variation": 1,
       "duration_variation": 0.1
     }
   }
