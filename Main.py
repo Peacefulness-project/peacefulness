@@ -174,10 +174,10 @@ world.register_agent(agent)  # registration
 c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "default", "residential_light")  # creation of a consumption point
-Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "residential_light")  # creation of a consumption point
+Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "family", "house")  # creation of a consumption point
+Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "house")  # creation of a consumption point
 # shiftable device
-e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "default")  # creation of a consumption point
+e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "medium_consumption")  # creation of a consumption point
 # adjustable device
 charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "default", "laptop_charger")
 # temperature-related devices are a sub-class of adjustable devices
@@ -185,7 +185,7 @@ charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_cont
 thermal_parameters = {"G": 1,  # G in kJ/K
                       "thermal_inertia": 7200,  # thermal inertia in s
                       "initial_temperature": 17}  # initial temperature in °C
-e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "default", "residential_heating", thermal_parameters)  # creation of a consumption point
+e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "family", "house", thermal_parameters)  # creation of a consumption point
 
 
 # print(e1)  # displays the name and the type of the device

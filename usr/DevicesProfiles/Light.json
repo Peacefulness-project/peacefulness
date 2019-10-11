@@ -1,11 +1,11 @@
 {
   "device_consumption": {
-    "residential_light": {
+    "house": {
       "usage_profile": {"LVE": 0.1},
       "consumption_variation": 0.1
     },
 
-    "commercial_light": {
+    "shop": {
       "usage_profile": {"LVE": 0.5},
       "consumption_variation": 0.1
     }
@@ -22,7 +22,7 @@
       "duration_variation": 0.1
     },
 
-    "default": {
+    "family": {
       "profile": [[19, 3]],
 
       "period": 24,

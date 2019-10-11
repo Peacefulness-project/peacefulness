@@ -2,9 +2,9 @@
   "template name": "profil_de_fer",
 
   "composition": {
-    "Dishwasher": ["Dishwasher", "family", "default", 1],
-    "Light": ["Light", "default", "residential_light", 1],
-    "PV": ["PV", "default", "residential_PV", 1]
+    "Dishwasher": [["Dishwasher", "family", "medium_consumption", [1,1]]],
+    "Light": [["Light", "family", "house", [1,1]]],
+    "PV": [["PV", "default", "residential_PV", [1,1]]]
   },
 
   "contracts": {

@@ -235,7 +235,7 @@ class World:
         # used_name is a general list: it avoids erasing
 
     # ##########################################################################################
-    # Initialization
+    # Automated generation of agents
     # ##########################################################################################
 
     def agent_generation(self, quantity, filename, clusters):  # this method creates several agents, each with a predefinite set of devices
@@ -265,12 +265,18 @@ class World:
 
             # creation of devices
             for device_data in data["composition"].values():
-                for j in range(device_data[3]):
-                    device_name = f"{agent_name}_{device_data[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                    device_class = self._user_classes[device_data[0]]
+                for profile in device_data:
+                    number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
+                    for j in range(number_of_devices):
+                        device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                        device_class = self._user_classes[profile[0]]
 
-                    device = device_class(device_name, contract_list, agent, clusters, device_data[1], device_data[2])  # creation of the device
-                    self.register_device(device)
+                        device = device_class(device_name, contract_list, agent, clusters, profile[1], profile[2])  # creation of the device
+                        self.register_device(device)
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
 
     def _check(self):  # a method checking if the world has been well defined
         # 4 things are necessary for world to be correctly defined:
@@ -318,7 +324,6 @@ class World:
 
             for cluster in self.clusters.values():  # here, each cluster makes its local balance
                 cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
-
 
             sup.end_round(self)  # activate the daemons, the dataloggers and increments time
 

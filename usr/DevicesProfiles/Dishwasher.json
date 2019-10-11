@@ -1,6 +1,6 @@
 {
   "device_consumption": {
-    "default": {
+    "medium_consumption": {
       "usage_profile": [[0.8, {"LVE": 0.5}, 1], [0.5, {"LVE": 0.4}, 1]],
       "consumption_variation": 0.1,
       "duration_variation": 0.1

@@ -1,0 +1,31 @@
+{
+  "template name": "egoist_single",
+
+  "composition": {
+    "Light": ["Light", "single", "apartment", [1,1]],
+    "Background": ["Background", "single", "single", [1,1]],
+    "Hob": ["ElectricHob", "single", "single", [1,1]],
+    "Iron": ["Iron", "single", "single", [0,1]],
+    "Oven": ["Oven", "single", "medium_consumption", [0,1]],
+
+
+    "Dishwasher": ["Dishwasher", "single", "medium_consumption", [0,1]],
+    "WashingMachine": ["WashingMachine", "single", "medium_consumption", [0,1]],
+    "Dryer": ["Dryer", "single", "medium_consumption", [0,1]],
+    "WaterHeater": ["CoffeeMaker", "single", "medium_consumption", [0,1]],
+
+    "Refrigerator": ["Refrigerator", "single", "medium_consumption", [1,1]],
+    "Heating": ["Heating", "single", "apartment", [1,1]],
+
+    "HotWaterTank": ["HotWaterTank", "single", "single", [1,1]],
+    "Charger": ["Charger", "single", "laptop", [0,4]],
+
+    "PV": ["PV", "default", "residential_PV", [1,1]]
+  },
+
+  "contracts": {
+    "LVE":  ["classic_contract_elec", {}],
+    "Heat":  ["classic_contract_heat", {}]
+  }
+
+}

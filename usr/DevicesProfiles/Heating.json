@@ -1,6 +1,6 @@
 {
   "device_consumption": {
-    "residential_heating": {
+    "house": {
       "usage_profile": [[0.5, {"Heat": [15, 18, 20]}], [2, {"Heat": [19, 20, 21]}]],
       "consumption_variation": 0.1,
       "max_power": {"Heat": 2}
@@ -9,7 +9,7 @@
   },
 
   "user_profile":{
-    "default": {
+    "family": {
       "profile": [19],
 
       "period": 24,

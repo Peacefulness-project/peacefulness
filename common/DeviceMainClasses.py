@@ -629,7 +629,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                             priority_list.append(self._demand[nature] / (self._max_power[nature] * (self._remaining_time - 1)))
                         except:  # there is only 1 turn left, so the device must be served
                             priority_list.append(1)
-                        # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand
+                        # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand and the number of remaining turns
                     priority = min(1, max(priority_list))  # the value kept is the higher of the priorities for each energy, but it can't be more than 1
 
         for nature in self.natures:
@@ -654,7 +654,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                 energy_wanted_min = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum") for nature in self.natures])  # minimum quantity of energy
                 energy_wanted_max = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum") for nature in self.natures])  # maximum quantity of energy
 
-                if self._catalog.get(f"{self.name}.priority") == 1:
+                if self._catalog.get(f"{self.name}.priority") == 1:  # only an urgent need can generate dissatisfaction
                     dissatisfaction += min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # dissatisfaction increases
                     for nature in self.natures:
                         dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
@@ -672,7 +672,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
     @property
     def type(self):
-        return "adjustable"
+        return "charger"
 
 
 

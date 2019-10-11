@@ -1,0 +1,32 @@
+{
+  "template name": "egoist_family",
+
+  "composition": {
+    "Light": [["Light", "family", "house", [1,1]]],
+    "Background": [["Background", "family", "family", [1,1]]],
+    "Hob": [["ElectricHob", "family", "family", [1,1]]],
+    "Iron": [["Iron", "family", "family", [1,1]]],
+    "Oven": [["Oven", "family", "medium_consumption", [1,1]]],
+
+
+    "Dishwasher": [["Dishwasher", "family", "medium_consumption", [1,1]]],
+    "WashingMachine": [["WashingMachine", "family", "medium_consumption", [1,1]]],
+    "Dryer": [["Dryer", "family", "medium_consumption", [1,1]]],
+    "WaterHeater": [["CoffeeMaker", "family", "medium_consumption", [1,1]]],
+
+    "Refrigerator": [["Refrigerator", "family", "medium_consumption", [1,1]],
+                     ["freezer", "family", "high_consumption", [0,1]]],
+    "Heating": [["Heating", "family", "house", [[1,1]]]],
+
+    "HotWaterTank": [["HotWaterTank", "family", "family", [[1,1]]]],
+    "Charger": [["Charger", "family", "laptop", [[0,4]]]],
+
+    "PV": ["PV", "default", "residential_PV", [[1,1]]]
+  },
+
+  "contracts": {
+    "LVE":  ["classic_contract_elec", {}],
+    "Heat":  ["classic_contract_heat", {}]
+  }
+
+}
