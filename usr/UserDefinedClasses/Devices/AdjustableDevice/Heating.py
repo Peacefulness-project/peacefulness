@@ -108,7 +108,7 @@ class Heating(AdjustableDevice):
 
 
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
-        
+
         print(self._user_profile)
 
         # removal of unused natures in the self._natures
