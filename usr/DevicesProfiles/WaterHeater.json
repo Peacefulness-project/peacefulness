@@ -1,6 +1,6 @@
 {
   "device_consumption": {
-    "default": {
+    "coffeemaker": {
       "usage_profile": [[0.25, {"LVE": 1}, 1], [0.25, {"LVE": 0.4}, 1]],
       "consumption_variation": 0.1,
       "duration_variation": 0.1
@@ -9,8 +9,16 @@
   },
 
   "user_profile":{
+    "single": {
+      "profile": [[0, 0], [6.999, 1], [7, 0], [7.5, 0], [16.999, 1], [17, 0]],
 
-    "default": {
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 1
+    },
+
+    "family": {
       "profile": [[0, 0], [6.999, 1], [7, 0], [7.5, 0], [16.999, 1], [17, 0]],
 
       "period": 24,

@@ -751,12 +751,23 @@ class Device:
 
         return [data_user, data_device]
 
-    def _data_user_creation(self, data_user):
+    def _data_user_creation(self, data_user):  # modification to enable the device to have a period starting a saturday at 0:00 AM
         # creation of the consumption data
+
         time_step = self._catalog.get("time_step")
         self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
-        self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
         # the period MUST be a multiple of the time step
+
+        if type(data_user["offset"]) is float or type(data_user["offset"]) is int:
+            self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
+        elif data_user["offset"] == "WE":  # if the usage takes place the WE, the offset is set at saturday at 0:00 AM
+            year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
+            weekday = datetime(year=year, month=1, day=1).weekday()  # the day corresponding to the first day of the year: 0 for Monday, 1 for Tuesday, etc
+            offset = max(5 - weekday, weekday - 5)  # delay in days between saturday and the day
+            # without the max(), for a sunday, offset would have been -1, which cause trouble if the period is superior to 1 week
+            offset *= 24  # delay in hours between saturday and the day
+
+            self._offset = offset
 
     def _offset_management(self):
         time_step = self._catalog.get("time_step")

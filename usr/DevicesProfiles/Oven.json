@@ -1,0 +1,31 @@
+{
+  "device_consumption": {
+    "medium_consumption": {
+      "usage_profile": {"LVE": 2.5},
+      "consumption_variation": 0.5
+    }
+  },
+
+  "user_profile":{
+    "family": {
+      "profile": [[19.5, 1]],
+
+      "period": 48,
+      "offset": 0,
+
+      "start_time_variation": 1.5,
+      "duration_variation": 0.5
+    },
+
+    "single": {
+      "profile": [[19.5, 1]],
+
+      "period": 72,
+      "offset": 0,
+
+      "start_time_variation": 1.5,
+      "duration_variation": 0.5
+    }
+  }
+
+}

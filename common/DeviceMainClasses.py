@@ -43,6 +43,7 @@ class NonControllableDevice(Device):
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
         time_step = self._catalog.get("time_step")
 
+        # user profile
         for line in data_user["profile"]:
             current_moment = int(line[0] // time_step)  # the moment when the device will be turned on
 
@@ -63,7 +64,7 @@ class NonControllableDevice(Device):
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
             self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
-        # usage_profile
+        # usage profile
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
 
         self._usage_profile = dict()
@@ -140,7 +141,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         pass
 
     def _get_consumption(self):
-
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile

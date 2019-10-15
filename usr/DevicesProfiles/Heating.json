@@ -1,22 +1,35 @@
 {
   "device_consumption": {
-    "house": {
-      "usage_profile": [[0.5, {"Heat": [15, 18, 20]}], [2, {"Heat": [19, 20, 21]}]],
+    "house_electric": {
+      "usage_profile": [{"LVE": 1}, 1, 7200],
+      "consumption_variation": 0.1,
+      "max_power": {"LVE": 2}
+    },
+
+    "house_heat": {
+      "usage_profile": [{"Heat": 1}, 1, 7200],
       "consumption_variation": 0.1,
       "max_power": {"Heat": 2}
+    },
+
+    "apartment_electric": {
+      "usage_profile": [{"LVE": 1}, 1, 7200],
+      "consumption_variation": 0.1,
+      "max_power": {"LVE": 2}
     }
 
   },
 
   "user_profile":{
-    "family": {
-      "profile": [19],
+    "residential": {
+      "profile": [[[5, 1], [19, 20, 25]], [[10, 2], [15, 17, 20]]],
 
       "period": 24,
-      "offset": -4,
+      "offset": 12,
 
       "start_time_variation": 1,
-      "duration_variation": 0.1
+      "temperature_variation": 1,
+      "duration_variation": 0
     }
   }
 

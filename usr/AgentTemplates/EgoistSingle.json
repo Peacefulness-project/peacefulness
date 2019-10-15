@@ -2,10 +2,10 @@
   "template name": "egoist_single",
 
   "composition": {
-    "Light": ["Light", "single", "apartment", [1,1]],
+    "Light": ["Light", "residential", "apartment", [1,1]],
     "Background": ["Background", "single", "single", [1,1]],
-    "Hob": ["ElectricHob", "single", "single", [1,1]],
-    "Iron": ["Iron", "single", "single", [0,1]],
+    "Hob": ["ElectricHob", "single", "medium_consumption", [1,1]],
+    "Iron": ["Iron", "single", "medium_consumption", [0,1]],
     "Oven": ["Oven", "single", "medium_consumption", [0,1]],
 
 
@@ -15,7 +15,7 @@
     "WaterHeater": ["CoffeeMaker", "single", "medium_consumption", [0,1]],
 
     "Refrigerator": ["Refrigerator", "single", "medium_consumption", [1,1]],
-    "Heating": ["Heating", "single", "apartment", [1,1]],
+    "Heating": ["Heating", "single", "apartment_electric", [1,1]],
 
     "HotWaterTank": ["HotWaterTank", "single", "single", [1,1]],
     "Charger": ["Charger", "single", "laptop", [0,4]],

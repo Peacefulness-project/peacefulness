@@ -1,6 +1,5 @@
 # this daemon is designed to manage teh temperature in the system
 # Here, it is very basic as it supposes that temperature is uniform and constant
-
 from common.Daemon import Daemon
 from math import pi, cos, exp
 
@@ -16,13 +15,19 @@ class TemperatureDaemon(Daemon):
         self._agent_list = None
 
     def _user_register(self):
+        # get back the list of agents needing temperature calculation
+        self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
+        self._catalog.remove("agents_with_temperature_devices")  # the entry is not useful anymore in the catalog, so it is deleted
+
         # create external temperatures
         self._catalog.add(f"current_outdoor_temperature", self._temperature)
         self._catalog.add(f"previous_outdoor_temperature", self._temperature)
 
-        # get back the list of agents needing temperature calculation
-        self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
-        self._catalog.remove("agents_with_temperature_devices")  # the entry is not useful anymore in the catalog, so it is deleted
+        # set initial indoor temperatures to the outdoor initial temperature
+        for agent_name in self._agent_list:
+            self._catalog.set(f"{agent_name}.previous_indoor_temperature", self._temperature)
+            self._catalog.set(f"{agent_name}.current_indoor_temperature", self._temperature)
+
 
     def _process(self):
 

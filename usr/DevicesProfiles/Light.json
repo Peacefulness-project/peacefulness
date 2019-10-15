@@ -5,10 +5,11 @@
       "consumption_variation": 0.1
     },
 
-    "shop": {
-      "usage_profile": {"LVE": 0.5},
+    "apartment": {
+      "usage_profile": {"LVE": 0.05},
       "consumption_variation": 0.1
     }
+
   },
 
   "user_profile":{
@@ -22,7 +23,7 @@
       "duration_variation": 0.1
     },
 
-    "family": {
+    "residential": {
       "profile": [[19, 3]],
 
       "period": 24,
