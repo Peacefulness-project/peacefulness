@@ -16,16 +16,15 @@
       "offset": 0,
 
       "start_time_variation": 1
+    },
+
+    "single": {
+      "profile": [[9.5, 0], [19.999, 1], [20, 0]],
+
+      "period": 168,
+      "offset": "WE",
+
+      "start_time_variation": 1
     }
-  },
-
-  "single": {
-    "profile": [[9.5, 0], [19.999, 1], [20, 0]],
-
-    "period": 168,
-    "offset": "WE",
-
-    "start_time_variation": 1
   }
-
 }

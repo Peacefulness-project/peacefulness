@@ -20,6 +20,7 @@ from common.Datalogger import Datalogger
 from common.Daemon import Daemon
 from common.Supervisor import Supervisor
 from tools.Utilities import middle_separation, big_separation, adapt_path, into_list
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 # ##############################################################################################
@@ -47,8 +48,9 @@ class World:
         self._random_seed = None  # the seed used in the random number generator of Python
 
         # dictionaries contained by world
-        self._user_classes = dict()  # this dictionary contains all the classes defined by the user
+        self._user_classes = user_classes_dictionary  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons and devices
+        # del user_classes_dictionary  # deletion of this variable which is not useful anymore
 
         self._natures = dict()  # energy present in world
 
@@ -164,9 +166,6 @@ class World:
         if isinstance(contract, Contract) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
         
-        if type(contract) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(contract).__name__}"] = type(contract)
-        
         contract._register(self._catalog)   # linking the agent with the catalog of world
         self._contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
         self._used_names.append(contract.name)  # adding the name to the list of used names
@@ -194,14 +193,6 @@ class World:
         # checking if the agent is defined correctly
         if device._agent.name not in self._agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
-
-        # # if the agent does not include the nature of the device
-        # for nature in device.natures:
-        #     if nature not in device.agent.natures:
-        #         raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
-
-        if type(device) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(device).__name__}"] = type(device)
         
         self._devices[device.name] = device
         device._register(self._catalog)  # registering of the device in the catalog
@@ -225,9 +216,6 @@ class World:
 
         if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
-        
-        if type(daemon) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(daemon).__name__}"] = type(daemon)
 
         daemon._register(self._catalog)  # registering of the device in the catalog
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
@@ -264,12 +252,12 @@ class World:
                 contract_list.append(contract)
 
             # creation of devices
-            for device_data in data["composition"].values():
-                for profile in device_data:
+            for device_data in data["composition"]:
+                for profile in data["composition"][device_data]:
                     number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                        device_class = self._user_classes[profile[0]]
+                        device_class = self._user_classes[device_data]
 
                         device = device_class(device_name, contract_list, agent, clusters, profile[1], profile[2])  # creation of the device
                         self.register_device(device)
@@ -739,13 +727,13 @@ class Device:
         try:
             data_user = data["user_profile"][self._user_profile_name]
         except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined user profiles for the class {type(self).__name__}: {data['user_profile'].keys()}")
 
         # getting the usage profile
         try:
             data_device = data["device_consumption"][self._usage_profile_name]
         except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
+            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
 
         file.close()
 

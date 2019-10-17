@@ -1,5 +1,6 @@
 # This contract is a contract in which the customer accepts to never be served.
 from common.Contract import Contract
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class TOUErasableContract(Contract):
@@ -29,5 +30,8 @@ class TOUErasableContract(Contract):
     def priority_modification(self, priority):
         return min(priority, 0.95)  # this contract forbids the priority to be equal to 1
         # it means that the devices of this agent will never be urgent
+
+
+user_classes_dictionary[f"{TOUErasableContract.__name__}"] = TOUErasableContract
 
 

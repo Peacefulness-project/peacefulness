@@ -1,5 +1,6 @@
 # This contract is a contract in which the customer makes no effort.
 from common.Contract import Contract
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class TOUEgoistContract(Contract):
@@ -27,5 +28,8 @@ class TOUEgoistContract(Contract):
     # priority management
     def priority_modification(self, priority):
         return 1  # this contract forces the priority to 1, which means it is always urgent
+
+
+user_classes_dictionary[f"{TOUEgoistContract.__name__}"] = TOUEgoistContract
 
 

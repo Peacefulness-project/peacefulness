@@ -41,7 +41,6 @@ from common.Datalogger import Datalogger
 
 import usr.UserDefinedClasses as User
 
-
 # ##############################################################################################
 # Performance measurement
 CPU_time = process_time()
@@ -187,10 +186,6 @@ thermal_parameters = {"G": 1,  # G in kJ/K
                       "initial_temperature": 17}  # initial temperature in °C
 e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
 
-# test
-iron = User.Devices.NonControllableDevice.Iron.Iron("test_iron", classic_contract_elec, agent, cluster_elec, "single", "medium_consumption")
-world.register_device(iron)
-
 # print(e1)  # displays the name and the type of the device
 # print(c1)  # displays the name and the type of the device
 world.catalog.print_debug()  # displays the content of the catalog
@@ -205,9 +200,18 @@ world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
 
 
+# Performance measurement
+CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-
+world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+# CPU time measurement
+CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
+filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+file = open(filename, "a")  # creation of the file
+file.write(f"time taken by the device generation phase: {CPU_time_generation_of_device}\n")
+file.close()
 
 # ##############################################################################################
 # Daemons

@@ -12,7 +12,7 @@
       "profile": [[9, 8]],
       "period": 24,
       "offset": 0,
-      "start_time_variation": 0,
+      "start_time_variation": 0.5,
       "duration_variation": 0
     }
   }

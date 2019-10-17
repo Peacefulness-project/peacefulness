@@ -1,21 +1,37 @@
 {
   "device_consumption": {
-    "laptop_charger": {
-      "usage_profile": {"LVE": 1},
+    "family": {
+      "usage_profile": {"LVE": 20},
+      "consumption_variation": 0.1,
+
+      "min_power": {"LVE": 0.5},
+      "max_power": {"LVE": 2}
+    },
+
+    "single": {
+      "usage_profile": {"LVE": 5},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0.5},
       "max_power": {"LVE": 2}
     }
-
   },
 
   "user_profile":{
-    "default": {
-      "profile": [11, 19],
+    "morning": {
+      "profile": [[11, 19]],
 
       "period": 24,
       "offset": 12,
+
+      "start_time_variation": 1
+    },
+
+    "evening": {
+      "profile": [[9, 19]],
+
+      "period": 24,
+      "offset": 0,
 
       "start_time_variation": 1
     }

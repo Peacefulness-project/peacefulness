@@ -29,8 +29,8 @@ class NonControllableDevice(Device):
         beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
         start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
+        duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
         for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
             line[0] += start_time_variation
             line[1] *= duration_variation
@@ -49,15 +49,18 @@ class NonControllableDevice(Device):
 
             # creation of the user profile, where there are hours associated with the use of the device
             # first time step
-            ratio = (beginning % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+
+            ratio = (beginning % time_step - line[0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+            if ratio <= 0:  # in case beginning - start is negative
+                ratio += 1
             self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
 
             # intermediate time steps
-            duration_residue = line[1] - (line[0] - (line[0] // time_step) * time_step)  # the residue of the duration is the remnant time during which the device is operating
+            duration_residue = line[1] - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
             while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
                 current_moment += 1
                 duration_residue -= 1
-                self._user_profile.append([current_moment, 1])  # ... a new entry is created with a ratio of 1 (full use)
+                self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
 
             # final time step
             current_moment += 1
@@ -392,6 +395,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
+            print(self.name)
             line[0] += start_time_variation
 
         duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration

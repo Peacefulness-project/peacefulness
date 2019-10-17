@@ -1,5 +1,6 @@
 # This contract is a contract in which the customer give poser to the supervisor but does not accept not be served.
 from common.Contract import Contract
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class TOUCooperativeContract(Contract):
@@ -29,6 +30,9 @@ class TOUCooperativeContract(Contract):
     # dissatisfaction management
     def dissatisfaction_modification(self, dissatisfaction):
         return dissatisfaction
+
+
+user_classes_dictionary[f"{TOUCooperativeContract.__name__}"] = TOUCooperativeContract
 
 
 

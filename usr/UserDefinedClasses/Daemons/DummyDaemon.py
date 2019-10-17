@@ -1,4 +1,5 @@
 from common.Daemon import Daemon
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class DummyDaemon(Daemon):
@@ -12,4 +13,7 @@ class DummyDaemon(Daemon):
     def _process(self):
         tick = self.catalog.get("tick")
         self.catalog.set("tick", tick+1)
+
+
+user_classes_dictionary[f"{DummyDaemon.__name__}"] = DummyDaemon
 

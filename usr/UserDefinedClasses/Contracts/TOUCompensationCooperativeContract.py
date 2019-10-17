@@ -1,5 +1,6 @@
 # This contract is the most basic in France: fixed tariffs, full freedom for users
 from common.Contract import Contract
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class TOUCompensationCooperativeContract(Contract):
@@ -39,6 +40,9 @@ class TOUCompensationCooperativeContract(Contract):
         compensation = self._parameters["effort_value"] * current_effort  # calculation of the compensation in money accorded by the contract
         money = self._catalog.get(f"{agent_name}.money") + compensation
         self._catalog.set(f"{agent_name}.money", money)  # stores the new value
+
+
+user_classes_dictionary[f"{TOUCompensationCooperativeContract.__name__}"] = TOUCompensationCooperativeContract
 
 
 

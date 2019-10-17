@@ -1,6 +1,7 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
 
 from common.Daemon import Daemon
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class PriceManagerDaemon(Daemon):
@@ -17,6 +18,9 @@ class PriceManagerDaemon(Daemon):
 
     def _process(self):
         pass
+
+
+user_classes_dictionary[f"{PriceManagerDaemon.__name__}"] = PriceManagerDaemon
 
 
 

@@ -2,6 +2,7 @@
 # it takes two special arguments, residual and duration_in_hours
 # the function used is f(x) = x*A where A verifies A**duration_in_hours = residual
 from common.Daemon import Daemon
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class DissatisfactionErosionDaemon(Daemon):
@@ -15,3 +16,7 @@ class DissatisfactionErosionDaemon(Daemon):
             if "dissatisfaction" in key:
                 new_dissatisfaction = self.catalog.get(key)*self._coefficient
                 self._catalog.set(key, new_dissatisfaction)
+
+
+user_classes_dictionary[f"{DissatisfactionErosionDaemon.__name__}"] = DissatisfactionErosionDaemon
+

@@ -2,6 +2,7 @@
 # Here, it is very basic as it supposes that temperature is uniform and constant
 from common.Daemon import Daemon
 from math import pi, cos, exp
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class TemperatureDaemon(Daemon):
@@ -27,7 +28,6 @@ class TemperatureDaemon(Daemon):
         for agent_name in self._agent_list:
             self._catalog.set(f"{agent_name}.previous_indoor_temperature", self._temperature)
             self._catalog.set(f"{agent_name}.current_indoor_temperature", self._temperature)
-
 
     def _process(self):
 
@@ -55,4 +55,7 @@ class TemperatureDaemon(Daemon):
             current_indoor_temperature = current_outdoor_temperature + 0 * G * (1 - exp(-time_step/thermal_inertia)) + (previous_indoor_temperature - previous_outdoor_temperature) * exp(-time_step/thermal_inertia)
 
             self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
+
+
+user_classes_dictionary[f"{TemperatureDaemon.__name__}"] = TemperatureDaemon
 
