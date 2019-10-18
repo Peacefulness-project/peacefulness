@@ -316,7 +316,7 @@ class World:
             sup.end_round(self)  # activate the daemons, the dataloggers and increments time
 
         self.catalog.print_debug()  # display the content of the catalog
-        print(self)  # give the name of the world and the quantity of productions and consumptions
+        # print(self)  # give the name of the world and the quantity of productions and consumptions
 
     # ##########################################################################################
     # Dynamic behavior

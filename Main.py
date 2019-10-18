@@ -204,8 +204,8 @@ world.register_device(e3)  # registration of a consumption device
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
-world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+world.agent_generation(300, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+world.agent_generation(300, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
