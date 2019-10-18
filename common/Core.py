@@ -250,6 +250,7 @@ class World:
                 contract = contract_class(contract_name, nature, parameters)
                 self.register_contract(contract)
                 contract_list.append(contract)
+                agent.set_contract(nature, contract)
 
             # creation of devices
             for device_data in data["composition"]:
@@ -316,7 +317,7 @@ class World:
             sup.end_round(self)  # activate the daemons, the dataloggers and increments time
 
         self.catalog.print_debug()  # display the content of the catalog
-        # print(self)  # give the name of the world and the quantity of productions and consumptions
+        print(self)  # give the name of the world and the quantity of productions and consumptions
 
     # ##########################################################################################
     # Dynamic behavior

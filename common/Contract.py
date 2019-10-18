@@ -51,20 +51,20 @@ class Contract:
     def _user_billing(self, agent_name):  # here, the user can add specific operations
         pass
 
-    # dissatisfaction management
-    def dissatisfaction_modification(self, dissatisfaction):  # this function modifies dissatisfaction according to the contract
-        return dissatisfaction  # If the function is not modified, it does not change the initial value
+    # effort management
+    def effort_modification(self, effort):  # this function modifies effort according to the contract
+        return effort  # If the function is not modified, it does not change the initial value
 
-    # def non_controllable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for non controllable devices. It is user-defined
+    # def non_controllable_effort(self, agent_name, device_name, natures):  # the function handling effort for non controllable devices. It is user-defined
     #     pass
     #
-    # def shiftable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for shiftable devices. It is user-defined
+    # def shiftable_effort(self, agent_name, device_name, natures):  # the function handling effort for shiftable devices. It is user-defined
     #     pass
     #
-    # def adjustable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for adjustable devices. It is user-defined
+    # def adjustable_effort(self, agent_name, device_name, natures):  # the function handling effort for adjustable devices. It is user-defined
     #     pass
     #
-    # def storage_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for storage devices. It is user-defined
+    # def storage_effort(self, agent_name, device_name, natures):  # the function handling effort for storage devices. It is user-defined
     #     pass
 
     # priority management

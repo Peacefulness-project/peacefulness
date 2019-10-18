@@ -34,7 +34,7 @@ class TOUCompensationCooperativeContract(Contract):
 
     def _user_billing(self, agent_name):  # here, the user_billing is used to compensate the agent for its effort
         current_effort = - self._accumulated_effort
-        self._accumulated_effort = self._catalog.get(f"{agent_name}.dissatisfaction")  # the new value of agregated dissatisfaction
+        self._accumulated_effort = self._catalog.get(f"{agent_name}.effort")  # the new value of agregated effort
         current_effort += self._accumulated_effort
 
         compensation = self._parameters["effort_value"] * current_effort  # calculation of the compensation in money accorded by the contract

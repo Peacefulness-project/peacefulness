@@ -27,9 +27,9 @@ class TOUCooperativeContract(Contract):
         money = self._catalog.get(f"{agent_name}.money") + price * energy_amount  # updating the amount of money spent/earned by the agent
         self._catalog.set(f"{agent_name}.money", money)  # stores the new value
 
-    # dissatisfaction management
-    def dissatisfaction_modification(self, dissatisfaction):
-        return dissatisfaction
+    # effort management
+    def effort_modification(self, effort):
+        return effort
 
 
 user_classes_dictionary[f"{TOUCooperativeContract.__name__}"] = TOUCooperativeContract
