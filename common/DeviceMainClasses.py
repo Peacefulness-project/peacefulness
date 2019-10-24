@@ -82,7 +82,9 @@ class NonControllableDevice(Device):
         for nature in nature_to_remove:
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -98,7 +100,9 @@ class NonControllableDevice(Device):
                     consumption[nature] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
 
         for nature in self.natures:  # publication of the consumption in the catalog
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name])
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
@@ -112,7 +116,7 @@ class NonControllableDevice(Device):
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
                 effort = 42  # j'ai mis 42 en attendant qu'on se mette d'accord
                 effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
-                effort = self._catalog.get(f"{self.agent.name}{nature.name}..effort") + effort
+                effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
                 self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)  # effort increments
 
     # ##########################################################################################
@@ -136,7 +140,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         # a list containing the data necessary to manage priority if the device is interrupted
         self._interruption_data = [False,  # if the device has been interrupted
                                    0,  # last time step to launch the device initially
-                                   0]  # duration during which the device has functionned
+                                   0]  # duration during which the device has functioned
 
     # ##########################################################################################
     # Initialization
@@ -290,8 +294,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
 
-        consumption = {nature: 0 for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
-        priority = 0  # priority of the consumption
+        consumption = {nature: [0, 0, 0] for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
+        # priority = 0  # priority of the consumption
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile which is taken into account
 
@@ -299,11 +303,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 line = self._user_profile[i]
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in consumption:
-                        consumption[nature] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
-                    priority = line[1]  # the current priority
+                        consumption[nature][2] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
+                        consumption[nature][1] = line[1] * self._usage_profile[0][0][nature]  # it modelizes the emergency
 
                     self._is_done.append(line[2])  # adding the usage to the list of already satisfied usages
-                    self._remaining_time = len(self._usage_profile)
                     # reinitialisation of the interruption data
                     self._interruption_data[0] = False
                     j = 0
@@ -316,41 +319,53 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         else:  # if the device is running then it's the usage_profile who matters
             for nature in consumption:
-                consumption[nature] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
-            priority = self._usage_profile[-self._remaining_time][1]  # priority associated
-            if self._interruption_data[0]:  # if the device has been interrupted
-                priority = (1 - self._catalog.get(f"{self.name}.priority")) / \
-                           (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + \
-                           self._catalog.get(f"{self.name}.priority")  # calculation of priority in case of interruption
+                consumption[nature][2] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
+                ratio = self._usage_profile[-self._remaining_time][1]  # emergency associated
+                consumption[nature][1] = ratio * consumption[nature][2]
 
-        for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name])
-        self._catalog.set(f"{self.name}.priority", priority)
+            if self._interruption_data[0]:  # if the device has been interrupted
+                nature = list(self.natures)[0]  # take the first nature registered in the device to measure the emergency
+                min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")
+                nom = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+                max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")
+                emergency = (nom - min) / (max - min)
+
+                ratio = (1 - emergency) / (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + emergency  # calculation of priority in case of interruption
+                nom = ratio * (max - min) + min
+                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", nom)
+
+        for nature in self.natures:  # publication of the needs of the device in the catalog
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
 
     def _user_react(self):
-
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
-        activity = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in
-                        self.natures])  # activity is used as a boolean
-        # if the device asks for or proposes an energy, activity will be True
+        energy_wanted = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted") for nature in self.natures])  # total energy wanted by the device
+        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])  # total energy accorded to the device
+
+        if self._remaining_time and energy_accorded < energy_wanted:  # if the device has started and not been served, then it has been interrupted
+            self._interruption_data[0] = True  # it is flagged as "interrupted"
 
         # effort and interruption management
-        if activity:  # if the device is active
-            if self._remaining_time:  # if it has started
-                activity = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])  # activity is used as a boolean
-                # if the device is served, activity will be True
+        if energy_wanted:  # if the device is active
 
-                if activity:  # if it has not been interrupted
+            if energy_accorded:  # if it has been served
+                if self._remaining_time:  # if it has started
                     self._remaining_time -= 1  # decrementing the remaining time of use
-                    self._interruption_data[2] += 1  # it has been working for one more time step
-                else:  # if it has been interrupted
-                    self._interruption_data[0] = True  # it is flagged as "interrupted"
-            elif self._catalog.get(f"{self.name}.priority") == 1:  # if the device is inactive meanwhile its priority is 1
+                else:  # if it has not started yet
+                    self._remaining_time = len(self._usage_profile)
+
+                self._interruption_data[2] += 1  # it has been working for one more time step
+
+            energy_min = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum") for nature in self.natures])
+
+            if energy_min > energy_accorded:  # if the device is inactive meanwhile its priority is 1
                 for nature in self.natures:
                     effort = 1
                     effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
-                    effort = self._catalog.get(f"{self.agent.name}{nature.name}..effort") + effort
+                    effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
                     self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)  # effort increments
 
     # ##########################################################################################
@@ -516,7 +531,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
                 effort = min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # effort increases
                 effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
-                effort = self._catalog.get(f"{self.agent.name}{nature}..effort") + effort
+                effort = self._catalog.get(f"{self.agent.name}.{nature}.effort") + effort
                 self._catalog.set(f"{self.agent.name}.{nature}.effort", effort)  # effort increments
 
                 self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
@@ -555,11 +570,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-
-        # Creation of specific entries
-        for nature in self._natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        pass
 
     def _get_consumption(self):
 
@@ -616,7 +627,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     def _update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: [0, 0, 0] for nature in self._usage_profile}  # consumption which will be asked eventually
-        priority = 0
+        # priority = 0
 
         if self._remaining_time == 0:  # checking if the device has to start
             for usage in self._user_profile:
@@ -625,28 +636,30 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                     self._demand = self._usage_profile  # the demand for each nature of energy
 
         if self._remaining_time:  # if the device is active
-                    priority_list = []  # a list containing the priority calculated for each nature of energy
+                    # priority_list = []  # a list containing the priority calculated for each nature of energy
                     for nature in consumption:
                         consumption[nature][0] = self._min_power[nature]
                         consumption[nature][1] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
                         # but it needs to be between the min and the max value
                         consumption[nature][2] = self._max_power[nature]
-                        try:  # calculus of the priority for a given nature of energy
-                            priority_list.append(self._demand[nature] / (self._max_power[nature] * (self._remaining_time - 1)))
-                        except:  # there is only 1 turn left, so the device must be served
-                            priority_list.append(1)
-                        # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand and the number of remaining turns
-                    priority = min(1, max(priority_list))  # the value kept is the higher of the priorities for each energy, but it can't be more than 1
+                        # try:  # calculus of the priority for a given nature of energy
+                        #     priority_list.append(self._demand[nature] / (self._max_power[nature] * (self._remaining_time - 1)))
+                        # except:  # there is only 1 turn left, so the device must be served
+                        #     priority_list.append(1)
+                        # # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand and the number of remaining turns
+                    # priority = min(1, max(priority_list))  # the value kept is the higher of the priorities for each energy, but it can't be more than 1
 
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
-        self._catalog.set(f"{self.name}.priority", priority)
+        # self._catalog.set(f"{self.name}.priority", priority)
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
+
+        # print(self.name)
 
         # effort management
         energy_wanted = dict()
@@ -660,14 +673,13 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                     energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
                     energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
 
-                    if self._catalog.get(f"{self.name}.priority") == 1:  # only an urgent need can generate effort
+                    if energy_wanted == energy_wanted_max:  # only an urgent need can generate effort
                         effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
                         effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
                         effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
                         self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)
 
             for nature in self._natures:
-                print(self._demand)
                 self._demand[nature.name] -= energy_accorded[nature]  # the energy which still has to be served
                 # /!\ if there is a minimum power, remember to change the line above to take into account the start-up costs
                 # otherwise, there is a risk that the total quantity of energy required is inferior to the minimum power necessary for the device to work

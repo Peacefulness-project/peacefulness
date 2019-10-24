@@ -22,11 +22,7 @@ class Refrigerator(AdjustableDevice):
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-
-        # Creation of specific entries
-        for nature in self._natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        pass
 
     def _get_consumption(self):
 

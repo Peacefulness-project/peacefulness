@@ -304,8 +304,12 @@ class World:
             sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
 
             for device in self.devices.values():  # consumption and production balance
+                nature = list(device.natures)[0]  # take the first nature registered in the device to measure the emergency
+                min = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_minimum")
+                nom = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+                max = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_maximum")
 
-                if self._catalog.get(f"{device.name}.priority") > 0.5:
+                if nom - min == (max-min):
                     for nature in device.natures:
                         # consumption balance
                         consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
@@ -697,10 +701,12 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
-        self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
-                                                        # ...being satisfied in the current time step
+        # self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
+        #                                                 # ...being satisfied in the current time step
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 

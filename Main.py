@@ -209,6 +209,7 @@ CPU_time_generation_of_device = process_time()
 world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
 world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
 world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+world.agent_generation(3, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
@@ -270,7 +271,6 @@ logger2.add("physical_time")
 # logger2.add("Dishwasher1.priority")
 logger2.add("Heating1.Heat.energy_wanted")
 logger2.add("Heating1.Heat.energy_accorded")
-logger2.add("Heating1.priority")
 
 
 # CPU time measurement
