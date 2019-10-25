@@ -74,17 +74,7 @@ class NonControllableDevice(Device):
         for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
             self._usage_profile[nature] = data_device["usage_profile"][nature]
 
-        # removal of unused natures in the self._natures i.e natures with no profiles
-        nature_to_remove = []  # buffer (as it is not possible to remove keys in a dictionary being read)
-        for nature in self._natures:
-            if nature.name not in self._usage_profile.keys():
-                nature_to_remove.append(nature)
-        for nature in nature_to_remove:
-            self._natures.pop(nature)
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        self._unused_nature_removal()  # remove unused natures
 
     # ##########################################################################################
     # Dynamic behavior
@@ -269,7 +259,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     consumption[nature] = data_device["usage_profile"][i][1][nature] * duration / data_device["usage_profile"][i][0]  # energy reported
 
         # then, we affect the residue of energy if one, with the appropriate priority, to the usage_profile
-        if duration:  # to know if the device need more time
+        if duration:  # to know if the device needs more time
             self._usage_profile.append([0, 0])  # creation of the entry
             priority = data_device["usage_profile"][-1][2]
             self._usage_profile[-1][0] = consumption
@@ -283,7 +273,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         for nature in nature_to_remove:
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -479,17 +471,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         if duration:  # to know if the device need more time
             self._usage_profile.append(consumption)
 
-        # removal of unused natures in the self._natures
-        nature_to_remove = []
-        for nature in self._natures:
-            if nature.name not in self._usage_profile[0].keys():
-                nature_to_remove.append(nature)
-        for nature in nature_to_remove:
-            self._natures.pop(nature)
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        self._unused_nature_removal()  # remove unused natures
 
     # ##########################################################################################
     # Dynamic behavior
@@ -608,17 +590,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
         self._demand = self._usage_profile  # if the simulation begins during an usage, the demand has to be initialized
 
-        # removal of unused natures in the self._natures
-        nature_to_remove = []
-        for nature in self._natures:
-            if nature.name not in self._usage_profile.keys():
-                nature_to_remove.append(nature)
-        for nature in nature_to_remove:
-            self._natures.pop(nature)
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        self._unused_nature_removal()  # remove unused natures
 
     # ##########################################################################################
     # Dynamic behavior
@@ -642,24 +614,15 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                         consumption[nature][1] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
                         # but it needs to be between the min and the max value
                         consumption[nature][2] = self._max_power[nature]
-                        # try:  # calculus of the priority for a given nature of energy
-                        #     priority_list.append(self._demand[nature] / (self._max_power[nature] * (self._remaining_time - 1)))
-                        # except:  # there is only 1 turn left, so the device must be served
-                        #     priority_list.append(1)
-                        # # priority is calculated regarding the number of turns at max power needed to fulfill the energy demand and the number of remaining turns
-                    # priority = min(1, max(priority_list))  # the value kept is the higher of the priorities for each energy, but it can't be more than 1
 
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
-        # self._catalog.set(f"{self.name}.priority", priority)
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
-        # print(self.name)
 
         # effort management
         energy_wanted = dict()

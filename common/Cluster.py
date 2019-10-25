@@ -17,6 +17,8 @@ class Cluster:
 
         self.supervisor = supervisor
 
+        self._devices = list()  # a list of all the devices managed by the cluster
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -45,6 +47,10 @@ class Cluster:
     @property
     def name(self):  # shortcut for read-only
         return self._name
+
+    @property
+    def devices(self):  # shortcut for read-only
+        return self._devices
 
     @property
     def is_grid(self):  # shortcut for read-only

@@ -120,7 +120,9 @@ class Heating(AdjustableDevice):
         for nature in nature_to_remove:
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent

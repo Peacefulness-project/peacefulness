@@ -193,8 +193,11 @@ class World:
         # checking if the agent is defined correctly
         if device._agent.name not in self._agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
-        
-        self._devices[device.name] = device
+
+        for nature in device.natures:  # adding the device name to its cluster list of device
+            device._natures[nature][0]._devices.append(device.name)
+
+        self._devices[device.name] = device  # registering the device in the dedicated dictionary
         device._register(self._catalog)  # registering of the device in the catalog
         self._used_names.append(device.name)  # adding the name to the list of used names
 
@@ -206,7 +209,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         datalogger._register(self._catalog)   # linking the datalogger with the catalog of world
-        self._dataloggers[datalogger.name] = datalogger  # registering the cluster in the dedicated dictionary
+        self._dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -382,7 +385,9 @@ class World:
         file.close()
 
         # clusters file
-        clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
+        clusters_list = {cluster.name: [cluster.nature.name,
+                                        cluster.devices
+                                        ]for cluster in self._clusters.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")
@@ -773,6 +778,20 @@ class Device:
         self._moment = ceil(beginning)  # the position in the period where the device starts
 
         return beginning
+
+    def _unused_nature_removal(self):  # removal of unused natures in the self._natures i.e natures with no profiles
+        nature_to_remove = []  # buffer (as it is not possible to remove keys in a dictionary being read)
+
+        for nature in self._natures:
+            if nature.name not in self._usage_profile.keys():
+                nature_to_remove.append(nature)
+
+        for nature in nature_to_remove:
+            self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     # ##########################################################################################
     # Dynamic behavior
