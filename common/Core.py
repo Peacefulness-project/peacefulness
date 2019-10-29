@@ -53,6 +53,8 @@ class World:
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
+        self._exchanges = dict()  # a dictionary containing, for each cluster, a list of the cluster they can interact with
+        # each link between clusters is unidirectional and is associated with a static value of efficiency and of capacity
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -152,10 +154,15 @@ class World:
             # it serves a default cluster for the corresponding nature
             self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
 
+        self._exchanges[cluster] = list()  # add an entry for the cluster in the exchanges table
+
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_names.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
+
+    def link_clusters(self, source_cluster, destination_cluster, efficiency, capacity):  # create a link between two clusters
+        self._exchanges[source_cluster] = [destination_cluster, efficiency, capacity]
 
     def register_contract(self, contract):
         if contract.name in self._used_names:  # checking if the name is already used

@@ -27,12 +27,13 @@ class Cluster:
         self._catalog.add(f"{self.name}.energy_ flux")  # accounts for the energy exchanged by the cluster during the round
         self._catalog.add(f"{self.name}.money_flux")  # accounts for the money exchanged by the cluster during the round
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
     def supervision(self):  # here, the cluster chooses how to distribute energy and if it exchanges with others clusters
         pass
+        # for key in :
+        #     world._devices[key]._update()
+        #
+        # for key in world.agents:
+        #     world._agents[key]._update()
 
     # ##########################################################################################
     # Utility
