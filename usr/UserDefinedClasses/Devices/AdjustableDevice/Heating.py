@@ -147,7 +147,7 @@ class Heating(AdjustableDevice):
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: [0, 0, 0] for nature in self._repartition}  # consumption which will be asked eventually
 

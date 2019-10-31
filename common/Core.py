@@ -55,6 +55,7 @@ class World:
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
+        self._exchanges = dict()  # a dict containing
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -158,6 +159,15 @@ class World:
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_names.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
+
+    def create_link_between_clusters(self, cluster_source, cluster_destination, efficiency, capacity):  # enables the possbility for cluster source to sell energy to cluster destination
+        if isinstance(cluster_destination, Cluster) is False:
+            raise WorldException(f"{cluster_destination} is not a cluster")
+
+        try:
+            self._exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
+        except:
+            raise WorldException(f"{cluster_source} is not a registered cluster")
 
     def register_contract(self, contract):
         if contract.name in self._used_names:  # checking if the name is already used
@@ -302,7 +312,17 @@ class World:
         sup.initialize(self, self._catalog)  # create relevant entries in the catalog
 
         for i in range(0, self.time_limit, 1):
-            sup.start_round(self)  # order the devices to update their needs
+
+            # # remontee d'info
+            # for cluster super_supervisor.clusters:
+                # cluster.ask()  # fonction recursive => balayage en profondeur
+            #
+            # self.exchange_leader.organise_exchange()  # decides of the match between clusters
+            #
+            # # info qui redescend avec repartition
+            # for cluster in super_supervisor.clusters:
+                # cluster.repartition()  # fonction recusrsive => balayage en profondeur
+            #
 
             sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
 
@@ -710,8 +730,6 @@ class Device:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
-        # self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
-        #                                                 # ...being satisfied in the current time step
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
@@ -797,7 +815,7 @@ class Device:
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor

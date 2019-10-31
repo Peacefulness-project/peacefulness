@@ -28,10 +28,10 @@ def initialize(world, catalog):  # initialization of the supervisor by adding en
 def start_round(world):  # function updating data to the current timestep
 
     for key in world.devices:
-        world._devices[key]._update()
+        world._devices[key].update()
 
     for key in world.agents:
-        world._agents[key]._update()
+        world._agents[key].update()
 
 
 def end_round(world):  # function incrementing the time step and calling dataloggers and daemons

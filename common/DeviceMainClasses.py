@@ -80,7 +80,7 @@ class NonControllableDevice(Device):
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: 0 for nature in self._usage_profile}  # consumption that will be asked eventually
 
@@ -281,7 +281,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):
+    def update(self):
 
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
@@ -477,7 +477,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: [0, 0, 0] for nature in self._usage_profile[0]}  # consumption which will be asked eventually
 
@@ -596,7 +596,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: [0, 0, 0] for nature in self._usage_profile}  # consumption which will be asked eventually
         # priority = 0
