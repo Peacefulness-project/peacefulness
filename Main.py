@@ -127,13 +127,16 @@ world.register_nature(heat)  # registration
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
+
+# here we create a first cluster dedicated to electricity
+sup_cluster_elec = Cluster("Enedis", elec, supervisor)
+world.register_cluster(sup_cluster_elec)  # registration
+
+# here we create a second one put under the orders of the first
 cluster_name = "general_cluster"
-cluster_elec = Cluster(cluster_name, elec, supervisor)  # creation of a cluster
+cluster_elec = Cluster(cluster_name, elec, supervisor, sup_cluster_elec)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
-# here we add a grid, which represents an infinite producer
-elec_grid = Cluster("Enedis", elec, supervisor)
-world.register_cluster(elec_grid)  # registration
 
 cluster_name = "Les_tuyaux_a_toto"
 cluster_heat = Cluster(cluster_name, heat, supervisor)  # creation of a cluster
@@ -172,15 +175,15 @@ agent.set_contract(heat, classic_contract_heat)
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
+c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "residential", "house")  # creation of a consumption point
-Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "house")  # creation of a consumption point
+Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, sup_cluster_elec, "residential", "house")  # creation of a consumption point
+Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, sup_cluster_elec, "offset", "house")  # creation of a consumption point
 # shiftable device
-e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "medium_consumption")  # creation of a consumption point
+e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, sup_cluster_elec, "family", "medium_consumption")  # creation of a consumption point
 # adjustable device
-charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "default", "laptop_charger")
+charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, sup_cluster_elec, "default", "laptop_charger")
 # temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
 thermal_parameters = {"G": 1,  # G in kJ/K

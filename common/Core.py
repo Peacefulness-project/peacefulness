@@ -157,7 +157,7 @@ class World:
         #     self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
 
         if isinstance(cluster.superior, Cluster):
-            cluster.superior._clusters = cluster
+            cluster.superior._clusters.append(cluster)
         elif cluster.superior == "exchange":
             self._exchange_leader.exchanges[cluster] = []
 
