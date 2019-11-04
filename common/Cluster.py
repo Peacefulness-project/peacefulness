@@ -7,13 +7,15 @@ from common.Nature import Nature
 
 class Cluster:
 
-    def __init__(self, name, nature, supervisor):
+    def __init__(self, name, nature, supervisor, superior="exchange"):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the cluster
 
         self._catalog = None  # the catalog in which some data are stored
 
-        self.supervisor = supervisor
+        self._supervisor = supervisor
+
+        self.superior = superior
 
         self._devices = list()  # a list of all the devices managed by the cluster
 
@@ -41,20 +43,15 @@ class Cluster:
         for under_cluster in self.clusters:  # recursive function to go as deep as possible
             under_cluster.ask()
 
-        for device in self.devices:
-            device.update()
-
-        self.supervisor.publish_needs()  # determine lots price/quantities regarding tariffs and penalties under it
+        self._supervisor.distribute_local_energy()  # makes the balance between local producers and consumers
+        self._supervisor.publish_needs()  # determines lots price/quantities regarding tariffs and penalties under it
 
     def distribute(self):
 
-        self.supervisor.distribute()  # determines who gets what
+        self._supervisor.distribute_remote_energy()  # distribute the energy acquired or sold by the exterior
 
         for under_cluster in self.clusters:  # recursive function to go as deep as possible
             under_cluster.distribute()
-
-        for device in self.devices:
-            device.react()
 
     # ##########################################################################################
     # Utility

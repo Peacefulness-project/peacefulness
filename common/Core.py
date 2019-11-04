@@ -12,6 +12,7 @@ from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 import common.lib.supervision_tools.supervision as sup
 from common.Catalog import Catalog
+from common.ExchangeLeader import ExchangeLeader
 from common.Nature import Nature
 from common.Contract import Contract
 from common.Agent import Agent
@@ -55,7 +56,7 @@ class World:
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._exchanges = dict()  # a dict containing
+        self._exchange_leader = ExchangeLeader()  # an object organizing exchanges between clusters
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -151,9 +152,14 @@ class World:
         if isinstance(cluster, Cluster) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        if cluster.is_grid:  # if the cluster is identified as a greater grid than world
-            # it serves a default cluster for the corresponding nature
-            self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
+        # if cluster.is_grid:  # if the cluster is identified as a greater grid than world
+        #     # it serves a default cluster for the corresponding nature
+        #     self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
+
+        if isinstance(cluster.superior, Cluster):
+            cluster.superior._clusters = cluster
+        elif cluster.superior == "exchange":
+            self._exchange_leader.exchanges[cluster] = []
 
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
@@ -164,10 +170,13 @@ class World:
         if isinstance(cluster_destination, Cluster) is False:
             raise WorldException(f"{cluster_destination} is not a cluster")
 
-        try:
-            self._exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
+        try:  # check if the cluster destination is registered in the exchange leader
+            self._exchange_leader.exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
         except:
-            raise WorldException(f"{cluster_source} is not a registered cluster")
+            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
+
+        if cluster_destination not in self._exchange_leader.exchanges:  # check if the cluster destination is registered in the exchange leader
+            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
     def register_contract(self, contract):
         if contract.name in self._used_names:  # checking if the name is already used
@@ -296,16 +305,13 @@ class World:
         if "path" not in self.catalog.keys:
             raise WorldException(f"A path is specified for the results files")
 
-        # checking if a supervisor is defined
-        if not self._supervisors:
-            raise WorldException(f"At least one supervisor is needed")
+        # # checking if a supervisor is defined
+        # if not self._supervisors:
+        #     raise WorldException(f"At least one supervisor is needed")
 
     def start(self):
 
         self._check()  # check if everything is fine in world definition
-
-        for supervisor in self._supervisors:
-            path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename])
 
         # Resolution
 
@@ -313,36 +319,43 @@ class World:
 
         for i in range(0, self.time_limit, 1):
 
-            # # remontee d'info
-            # for cluster super_supervisor.clusters:
-                # cluster.ask()  # fonction recursive => balayage en profondeur
-            #
-            # self.exchange_leader.organise_exchange()  # decides of the match between clusters
-            #
-            # # info qui redescend avec repartition
-            # for cluster in super_supervisor.clusters:
-                # cluster.repartition()  # fonction recusrsive => balayage en profondeur
-            #
+            # remontee d'info
+            for device in self.devices.values():  # each device updates its needs
+                device.update()
 
-            sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
+            for cluster in self._exchange_leader.exchanges:  # cluster makes local balances and then publish their needs
+                cluster.ask()  # fonction recursive => balayage en profondeur
 
-            for device in self.devices.values():  # consumption and production balance
-                nature = list(device.natures)[0]  # take the first nature registered in the device to measure the emergency
-                min = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_minimum")
-                nom = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-                max = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_maximum")
+            # resolution macroscopique
+            self._exchange_leader.organise_exchanges()  # decides of who exchange what with who
 
-                if nom - min == (max-min):
-                    for nature in device.natures:
-                        # consumption balance
-                        consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-                        self._catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
+            # info qui redescend avec repartition
+            for cluster in self._exchange_leader.exchanges:  # clusters distribute the energy they exchanged with outside
+                cluster.distribute()  # fonction recusrsive => balayage en profondeur
 
-            for cluster in self.clusters.values():  # here, each cluster makes its local balance
-                cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
+            for device in self.devices.values():  # devices update their state according to the quantity of energy recieved/given
+                device.react()
 
-            sup.end_round(self)  # activate the daemons, the dataloggers and increments time
 
+        #     sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
+        #
+        #     for device in self.devices.values():  # consumption and production balance
+        #         nature = list(device.natures)[0]  # take the first nature registered in the device to measure the emergency
+        #         min = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_minimum")
+        #         nom = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+        #         max = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_maximum")
+        #
+        #         if nom - min == (max-min):
+        #             for nature in device.natures:
+        #                 # consumption balance
+        #                 consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
+        #                 self._catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
+        #
+        #     for cluster in self.clusters.values():  # here, each cluster makes its local balance
+        #         cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
+        #
+        #     sup.end_round(self)  # activate the daemons, the dataloggers and increments time
+        #
         self.catalog.print_debug()  # display the content of the catalog
         print(self)  # give the name of the world and the quantity of productions and consumptions
 

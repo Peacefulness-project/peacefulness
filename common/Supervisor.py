@@ -19,6 +19,19 @@ class Supervisor:
         self._catalog = catalog  # linking the local grid with the catalog of world
 
     # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def distribute_local_energy(self):
+        pass
+
+    def publish_needs(self):
+        pass
+
+    def distribute_remote_energy(self):
+        pass
+
+    # ##########################################################################################
     # Utility
     # ##########################################################################################
 

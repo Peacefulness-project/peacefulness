@@ -99,7 +99,6 @@ world.set_time(start_date,  # time management: start date
 # Supervisor --> il est en stand-by
 # this object contains just the path to  your supervisor script and a brief description of what it does
 
-# TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
 
 description = "this supervisor is a really basic one. It just serves as a " \
               "skeleton/example for your (more) clever supervisor."
@@ -133,7 +132,7 @@ cluster_elec = Cluster(cluster_name, elec, supervisor)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
 # here we add a grid, which represents an infinite producer
-elec_grid = Cluster("Enedis", elec, supervisor, True)
+elec_grid = Cluster("Enedis", elec, supervisor)
 world.register_cluster(elec_grid)  # registration
 
 cluster_name = "Les_tuyaux_a_toto"
