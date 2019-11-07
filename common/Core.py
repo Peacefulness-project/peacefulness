@@ -7,10 +7,8 @@ from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
 from math import ceil
-from inspect import getfile
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
-import common.lib.supervision_tools.supervision as sup
 from common.Catalog import Catalog
 from common.ExchangeNode import ExchangeNode
 from common.Nature import Nature
@@ -301,10 +299,21 @@ class World:
 
         self._check()  # check if everything is fine in world definition
 
+        for nature in self.natures:  # these entries correspond to the balance made for each nature
+            self._catalog.add(f"{self.name}_{nature}_balance", 0)
+
+        for nature in self.natures:  # these entries correspond to the balance made for each nature
+            for name in self.agents:
+                self._catalog.add(f"{name}_{nature}_balance", 0)
+
+        for name in self.clusters:  # these entries correspond to the balance made for each cluster
+            self._catalog.add(f"{name}_balance", 0)
+
+        # add tot
+
+        # add for each type of contracts
+
         # Resolution
-
-        sup.initialize(self, self._catalog)  # create relevant entries in the catalog
-
         for i in range(0, self.time_limit, 1):
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
@@ -429,6 +438,7 @@ class World:
         file = open(filename, "w")
         file.write(dumps(devices_list, indent=2))
         file.close()
+
         # dataloggers file
         dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 

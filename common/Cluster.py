@@ -28,8 +28,12 @@ class Cluster:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the local grid with the catalog of world
 
-        self._catalog.add(f"{self.name}.energy_ flux")  # accounts for the energy exchanged by the cluster during the round
-        self._catalog.add(f"{self.name}.money_flux")  # accounts for the money exchanged by the cluster during the round
+        self._catalog.add(f"{self.name}.{self.nature.name}.energy_needs", dict())  # couples price/quantities sent by the cluster to its superior
+        self._catalog.add(f"{self.name}.{self.nature.name}.energy_flux", 0)  # accounts for the energy exchanged by the cluster during the round
+
+        self._catalog.add(f"{self.name}.{self.nature.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.add(f"{self.name}.{self.nature.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energergy during the round
+        self._catalog.add(f"{self.name}.{self.nature.name}.profit", 0)  # accounts for the money earned by the cluster during the round
 
     # ##########################################################################################
     # Dynamic behavior
@@ -40,12 +44,12 @@ class Cluster:
         for managed_cluster in self.clusters:  # recursive function to make sure all clusters are reached
             managed_cluster.ask()
 
-        self._supervisor.distribute_local_energy()  # makes the balance between local producers and consumers
-        self._supervisor.publish_needs()  # determines lots price/quantities regarding tariffs and penalties under it
+        self._supervisor.distribute_local_energy(self)  # makes the balance between local producers and consumers
+        self._supervisor.publish_needs(self)  # determines lots price/quantities regarding tariffs and penalties under it
 
     def distribute(self):
 
-        self._supervisor.distribute_remote_energy()  # distribute the energy acquired from or sold to the exterior
+        self._supervisor.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior
 
         for managed_cluster in self.clusters:  # recursive function to make sure all clusters are reached
             managed_cluster.distribute()
