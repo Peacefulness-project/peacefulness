@@ -27,8 +27,6 @@ from tools.Utilities import adapt_path
 
 from common.Core import World
 
-from common.Catalog import Catalog
-
 from common.Supervisor import Supervisor
 
 from common.Nature import Nature
@@ -60,15 +58,6 @@ world = World(name_world)  # creation
 
 
 # ##############################################################################################
-# Creation of a data catalog
-# this object is a dictionary where goes all data needing to be seen by several objects
-data = Catalog()  # creation
-world.set_catalog(data)  # registration
-
-world.catalog.print_debug()  # displays the content of the catalog
-
-
-# ##############################################################################################
 # Definition of the path to the files
 pathExport = "./Results"  #
 world.set_directory(pathExport)  # registration
@@ -96,10 +85,8 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Supervisor --> il est en stand-by
-# this object contains just the path to  your supervisor script and a brief description of what it does
-
-
+# Supervisor
+# this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 description = "this supervisor is a really basic one. It just serves as a " \
               "skeleton/example for your (more) clever supervisor."
 name_supervisor = "glaDOS"

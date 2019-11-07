@@ -35,23 +35,20 @@ class Cluster:
     # Dynamic behavior
     # ##########################################################################################
 
-    def supervision(self):  # here, the cluster chooses how to distribute energy and if it exchanges with others clusters
-        pass
-
     def ask(self):
 
-        for under_cluster in self.clusters:  # recursive function to go as deep as possible
-            under_cluster.ask()
+        for managed_cluster in self.clusters:  # recursive function to make sure all clusters are reached
+            managed_cluster.ask()
 
         self._supervisor.distribute_local_energy()  # makes the balance between local producers and consumers
         self._supervisor.publish_needs()  # determines lots price/quantities regarding tariffs and penalties under it
 
     def distribute(self):
 
-        self._supervisor.distribute_remote_energy()  # distribute the energy acquired or sold by the exterior
+        self._supervisor.distribute_remote_energy()  # distribute the energy acquired from or sold to the exterior
 
-        for under_cluster in self.clusters:  # recursive function to go as deep as possible
-            under_cluster.distribute()
+        for managed_cluster in self.clusters:  # recursive function to make sure all clusters are reached
+            managed_cluster.distribute()
 
     # ##########################################################################################
     # Utility

@@ -12,7 +12,7 @@ from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 import common.lib.supervision_tools.supervision as sup
 from common.Catalog import Catalog
-from common.ExchangeLeader import ExchangeLeader
+from common.ExchangeNode import ExchangeNode
 from common.Nature import Nature
 from common.Contract import Contract
 from common.Agent import Agent
@@ -39,7 +39,7 @@ class World:
         else:  # By default, world is named after the date
             self._name = f"Unnamed ({datetime.now()})"
 
-        self._catalog = None  # data catalog which gathers all data
+        self._catalog = Catalog()  # data catalog which gathers all data
 
         # Time management
         self._timestep_value = None  # value of the timestep used during the simulation (in hours)
@@ -50,13 +50,12 @@ class World:
 
         # dictionaries contained by world
         self._user_classes = user_classes_dictionary  # this dictionary contains all the classes defined by the user
-        # it serves to re-instantiate daemons and devices
-        # del user_classes_dictionary  # deletion of this variable which is not useful anymore
+        # it serves to re-instantiate daemons, devices and supervisors
 
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._exchange_leader = ExchangeLeader()  # an object organizing exchanges between clusters
+        self._exchange_leader = ExchangeNode()  # an object organizing exchanges between clusters
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -78,12 +77,6 @@ class World:
     # ##########################################################################################
 
     # the following methods concern objects absolutely needed for world to perform a calculus
-    def set_catalog(self, catalog):  # definition of a catalog
-        if not isinstance(catalog, Catalog):  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        self._catalog = catalog
-
     def set_directory(self, path):  # definition of a case directory and creation of the directory
         instant_date = datetime.now()  # get the current time
         instant_date = instant_date.strftime("%d_%m_%Y-%H_%M_%S")  # the directory is named after the date
@@ -152,13 +145,9 @@ class World:
         if isinstance(cluster, Cluster) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        # if cluster.is_grid:  # if the cluster is identified as a greater grid than world
-        #     # it serves a default cluster for the corresponding nature
-        #     self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
-
-        if isinstance(cluster.superior, Cluster):
+        if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
             cluster.superior._clusters.append(cluster)
-        elif cluster.superior == "exchange":
+        elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
             self._exchange_leader.exchanges[cluster] = []
 
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
@@ -290,24 +279,23 @@ class World:
     # ##########################################################################################
 
     def _check(self):  # a method checking if the world has been well defined
-        # 4 things are necessary for world to be correctly defined:
-        # 1/ the time manager,
-        # 2/ the case directory,
-        # 3/ the nature list,
-        # 4/ the supervisor
+        # 2 things are necessary for world to be correctly defined:
+        # 1/ time parameters
+        # 2/ the random seed
+        # 3/ the case directory
 
         # first, we check the presence of the necessary objects:
-        # checking if a time manager is defined
+        # checking if time parameters are defined
         if "physical_time" not in self.catalog.keys or "simulation_time" not in self.catalog.keys:
-            raise WorldException(f"A time manager is needed")
+            raise WorldException(f"Time parameters are needed")
+
+        # checking if a random seed is defined
+        if "path" not in self.catalog.keys:
+            raise WorldException(f"A random seed is needed")
 
         # checking if a path is defined
         if "path" not in self.catalog.keys:
-            raise WorldException(f"A path is specified for the results files")
-
-        # # checking if a supervisor is defined
-        # if not self._supervisors:
-        #     raise WorldException(f"At least one supervisor is needed")
+            raise WorldException(f"A path is to the results files is needed")
 
     def start(self):
 
@@ -319,43 +307,23 @@ class World:
 
         for i in range(0, self.time_limit, 1):
 
-            # remontee d'info
-            for device in self.devices.values():  # each device updates its needs
+            # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
+            for device in self.devices.values():  # devices update their needs (both in demand and in offer)
                 device.update()
 
-            for cluster in self._exchange_leader.exchanges:  # cluster makes local balances and then publish their needs
-                cluster.ask()  # fonction recursive => balayage en profondeur
+            for cluster in self._exchange_leader.exchanges:  # clusters make local balances and then publish their needs (both in demand and in offer)
+                cluster.ask()  # recursive function to make sure all clusters are reached
 
-            # resolution macroscopique
-            self._exchange_leader.organise_exchanges()  # decides of who exchange what with who
+            # high-level exchange phase
+            self._exchange_leader.organise_exchanges()  # decides of who exchanges what with who
 
-            # info qui redescend avec repartition
+            # descendant phase: balances with remote energy
             for cluster in self._exchange_leader.exchanges:  # clusters distribute the energy they exchanged with outside
-                cluster.distribute()  # fonction recusrsive => balayage en profondeur
+                cluster.distribute()  # recursive function to make sure all clusters are reached
 
-            for device in self.devices.values():  # devices update their state according to the quantity of energy recieved/given
+            for device in self.devices.values():  # devices update their state according to the quantity of energy received/given
                 device.react()
 
-
-        #     sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
-        #
-        #     for device in self.devices.values():  # consumption and production balance
-        #         nature = list(device.natures)[0]  # take the first nature registered in the device to measure the emergency
-        #         min = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_minimum")
-        #         nom = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-        #         max = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted_maximum")
-        #
-        #         if nom - min == (max-min):
-        #             for nature in device.natures:
-        #                 # consumption balance
-        #                 consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-        #                 self._catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
-        #
-        #     for cluster in self.clusters.values():  # here, each cluster makes its local balance
-        #         cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
-        #
-        #     sup.end_round(self)  # activate the daemons, the dataloggers and increments time
-        #
         self.catalog.print_debug()  # display the content of the catalog
         print(self)  # give the name of the world and the quantity of productions and consumptions
 

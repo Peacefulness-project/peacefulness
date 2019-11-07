@@ -1,7 +1,7 @@
-# the exchange leader is the object who resolves the "exchanges between clusters" phase.
+# the exchange node is the object who resolves the "exchanges between clusters" phase.
 
 
-class ExchangeLeader:
+class ExchangeNode:
 
     def __init__(self):
         self.clusters = dict()  # this dict contains all the clusters which do not obey to any other cluster
