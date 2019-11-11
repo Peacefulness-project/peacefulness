@@ -22,6 +22,9 @@ class Supervisor:
     # Dynamic behavior
     # ##########################################################################################
 
+    def reinitialize(self):
+        pass
+
     def distribute_local_energy(self, cluster):  # before communicating with the exterior, the cluster makes its local balances
         pass
 

@@ -27,12 +27,26 @@ class Contract:
 
         self._user_register()
 
+        # Creation of specific entries
+        self._catalog.add(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
+        self._catalog.add(f"{self.name}.money_spent"), 0  # the money spent by all the devices ruled by this contract during this round
+
+        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
+        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
+
     def _user_register(self):
         pass
 
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
+
+    def reinitialize(self):
+        self._catalog.set(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
+        self._catalog.set(f"{self.name}.money_spent", 0)  # the money spent by all the devices ruled by this contract during this round
+
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
 
     # billing
     def _billing(self, energy_amount, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
@@ -54,18 +68,6 @@ class Contract:
     # effort management
     def effort_modification(self, effort):  # this function modifies effort according to the contract
         return effort  # If the function is not modified, it does not change the initial value
-
-    # def non_controllable_effort(self, agent_name, device_name, natures):  # the function handling effort for non controllable devices. It is user-defined
-    #     pass
-    #
-    # def shiftable_effort(self, agent_name, device_name, natures):  # the function handling effort for shiftable devices. It is user-defined
-    #     pass
-    #
-    # def adjustable_effort(self, agent_name, device_name, natures):  # the function handling effort for adjustable devices. It is user-defined
-    #     pass
-    #
-    # def storage_effort(self, agent_name, device_name, natures):  # the function handling effort for storage devices. It is user-defined
-    #     pass
 
     # priority management
     def priority_modification(self, priority):  # this function modifies the priority according to the contract

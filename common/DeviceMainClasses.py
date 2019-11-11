@@ -395,7 +395,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     def _get_consumption(self):
-
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -478,7 +477,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-
         consumption = {nature: [0, 0, 0] for nature in self._usage_profile[0]}  # consumption which will be asked eventually
 
         if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
@@ -497,7 +495,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                 self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
-
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
         # effort management

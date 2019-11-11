@@ -26,16 +26,23 @@ class Agent:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
 
-        self._catalog.add(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.add(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
+        # Creation of specific entries
+        self._catalog.add(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energergy during the round
+
+        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy received or delivered by the agent during the current round
 
     # ##########################################################################################
     # Dynamic behaviour
     ############################################################################################
 
-    def _update(self):
-        self._catalog.set(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.set(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
+    def reinitialize(self):  # reinitialization of the values
+        self._catalog.set(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energergy during the round
+
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy received or delivered by the agent during the current round
 
     # ##########################################################################################
     # Utilities
@@ -52,3 +59,7 @@ class Agent:
     @property
     def contracts(self):  # shortcut for read-only
         return self._contracts.values()
+
+
+
+

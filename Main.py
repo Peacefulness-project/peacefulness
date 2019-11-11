@@ -277,7 +277,7 @@ save_wanted = True
 if save_wanted:
     CPU_time = process_time()  # CPU time measurement
 
-    world.save()  # saving the world
+    # world.save()  # saving the world
 
     # CPU time measurement
     CPU_time = process_time() - CPU_time  # time taken by the initialization

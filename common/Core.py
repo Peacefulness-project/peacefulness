@@ -53,7 +53,7 @@ class World:
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._exchange_leader = ExchangeNode()  # an object organizing exchanges between clusters
+        self._exchange_node = ExchangeNode()  # an object organizing exchanges between clusters
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -65,6 +65,7 @@ class World:
         self._daemons = dict()  # dict containing the daemons
 
         self._supervisors = dict()  # objects which perform the calculus
+        self._forecasters = dict()  # objects which are responsible for predicting both quantities produced and consumed
 
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
@@ -146,7 +147,7 @@ class World:
         if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
             cluster.superior._clusters.append(cluster)
         elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
-            self._exchange_leader.exchanges[cluster] = []
+            self._exchange_node.exchanges[cluster] = []
 
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
@@ -158,11 +159,11 @@ class World:
             raise WorldException(f"{cluster_destination} is not a cluster")
 
         try:  # check if the cluster destination is registered in the exchange leader
-            self._exchange_leader.exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
+            self._exchange_node.exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
         except:
             raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
-        if cluster_destination not in self._exchange_leader.exchanges:  # check if the cluster destination is registered in the exchange leader
+        if cluster_destination not in self._exchange_node.exchanges:  # check if the cluster destination is registered in the exchange leader
             raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
     def register_contract(self, contract):
@@ -296,7 +297,6 @@ class World:
             raise WorldException(f"A path is to the results files is needed")
 
     def start(self):
-
         self._check()  # check if everything is fine in world definition
 
         for nature in self.natures:  # these entries correspond to the balance made for each nature
@@ -316,22 +316,61 @@ class World:
         # Resolution
         for i in range(0, self.time_limit, 1):
 
-            # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for device in self.devices.values():  # devices update their needs (both in demand and in offer)
+            # ###########################
+            # Beginning of the turn
+            # ###########################
+
+            # reinitialization of values in the catalog
+            for supervisor in self._supervisors.values():
+                supervisor.reinitialize()
+
+            for contract in self._contracts.values():
+                contract.reinitialize()
+
+            for agent in self.agents.values():
+                agent.reinitialize()
+
+            for cluster in self.clusters.values():
+                cluster.reinitialize()
+
+            # devices update their needs (both in demand and in offer)
+            for device in self.devices.values():
                 device.update()
 
-            for cluster in self._exchange_leader.exchanges:  # clusters make local balances and then publish their needs (both in demand and in offer)
+            # ###########################
+            # Calculus phase
+            # ###########################
+
+            # forecasting
+            for forecaster in self._forecasters.values():
+                forecaster.fait_quelque_chose()
+
+            # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
+            for cluster in self._exchange_node.exchanges:  # clusters make local balances and then publish their needs (both in demand and in offer)
                 cluster.ask()  # recursive function to make sure all clusters are reached
 
             # high-level exchange phase
-            self._exchange_leader.organise_exchanges()  # decides of who exchanges what with who
+            self._exchange_node.organise_exchanges()  # decides of who exchanges what with who
 
             # descendant phase: balances with remote energy
-            for cluster in self._exchange_leader.exchanges:  # clusters distribute the energy they exchanged with outside
+            for cluster in self._exchange_node.exchanges:  # clusters distribute the energy they exchanged with outside
                 cluster.distribute()  # recursive function to make sure all clusters are reached
 
-            for device in self.devices.values():  # devices update their state according to the quantity of energy received/given
+            # ###########################
+            # End of the turn
+            # ###########################
+
+            # devices update their state according to the quantity of energy received/given
+            for device in self.devices.values():
                 device.react()
+
+            # data exporting
+            for datalogger in self.dataloggers.values():
+                datalogger.launch()
+
+            # daemons activation
+            for daemon in self.daemons.values():
+                daemon.launch()
 
         self.catalog.print_debug()  # display the content of the catalog
         print(self)  # give the name of the world and the quantity of productions and consumptions
@@ -341,7 +380,6 @@ class World:
     ############################################################################################
 
     def _update_time(self):  # update the time entries in the catalog to the next iteration step
-
         current_time = self._catalog.get("simulation_time")
 
         physical_time = self._catalog.get("physical_time")
@@ -353,11 +391,11 @@ class World:
     # ##########################################################################################
     # save/load system
     # ##########################################################################################
+    # this method allows to export world
+    # the idea is to save the minimum information given by the user in the main
+    # to be able to reconstruct it later
 
-    def save(self):  # this method allows to export world
-        # the idea is to save the minimum information given by the user in the main
-        # to be able to reconstruct it later
-
+    def save(self):
         filepath = adapt_path([self._catalog.get("path"), "inputs", "save"])
         makedirs(filepath)
 
@@ -657,7 +695,6 @@ class World:
 class Device:
 
     def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device, parameters=None):
-
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -761,8 +798,8 @@ class Device:
         return [data_user, data_device]
 
     def _data_user_creation(self, data_user):  # modification to enable the device to have a period starting a saturday at 0:00 AM
-        # creation of the consumption data
 
+        # creation of the consumption data
         time_step = self._catalog.get("time_step")
         self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
         # the period MUST be a multiple of the time step
@@ -815,9 +852,9 @@ class Device:
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
-
-        energy_amount += self._catalog.get(f"{self.agent.name}.energy")
-        self._catalog.set(f"{self.agent.name}.energy", energy_amount)  # report the energy delivered/consumed by the device
+# disjonction des cas vendu/acheté
+        energy_amount += self._catalog.get(f"{self.agent.name}.energy_bought")
+        self._catalog.set(f"{self.agent.name}.energy_bought", energy_amount)  # report the energy delivered/consumed by the device
 
     def _user_react(self):  # where users put device-specific behaviors
         pass
