@@ -22,7 +22,7 @@ class Contract:
     # Initialization
     # ##########################################################################################
 
-    def _register(self, catalog):
+    def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
         self._user_register()
@@ -41,7 +41,7 @@ class Contract:
     # Dynamic behaviour
     # ##########################################################################################
 
-    def reinitialize(self):
+    def reinitialize(self):  # reinitialization of the values
         self._catalog.set(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
         self._catalog.set(f"{self.name}.money_spent", 0)  # the money spent by all the devices ruled by this contract during this round
 
@@ -67,11 +67,11 @@ class Contract:
 
     # effort management
     def effort_modification(self, effort):  # this function modifies effort according to the contract
-        return effort  # If the function is not modified, it does not change the initial value
+        return effort  # of the function is not modified, it does not change the initial value
 
     # priority management
     def priority_modification(self, priority):  # this function modifies the priority according to the contract
-        return priority  # If the function is not modified, it does not change the initial value
+        return priority  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################
     # Utilities

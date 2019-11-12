@@ -133,6 +133,7 @@ class World:
         if isinstance(nature, Nature) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
+        nature.register(self._catalog)
         self._natures[nature.name] = nature
         self._used_names.append(nature.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -299,18 +300,6 @@ class World:
     def start(self):
         self._check()  # check if everything is fine in world definition
 
-        for nature in self.natures:  # these entries correspond to the balance made for each nature
-            self._catalog.add(f"{self.name}_{nature}_balance", 0)
-
-        for nature in self.natures:  # these entries correspond to the balance made for each nature
-            for name in self.agents:
-                self._catalog.add(f"{name}_{nature}_balance", 0)
-
-        for name in self.clusters:  # these entries correspond to the balance made for each cluster
-            self._catalog.add(f"{name}_balance", 0)
-
-        # add tot
-
         # add for each type of contracts
 
         # Resolution
@@ -321,8 +310,12 @@ class World:
             # ###########################
 
             # reinitialization of values in the catalog
+            # these values are, globally, the money and energy balances
             for supervisor in self._supervisors.values():
                 supervisor.reinitialize()
+
+            for nature in self._natures.values():
+                nature.reinitialize()
 
             for contract in self._contracts.values():
                 contract.reinitialize()
@@ -333,7 +326,7 @@ class World:
             for cluster in self.clusters.values():
                 cluster.reinitialize()
 
-            # devices update their needs (both in demand and in offer)
+            # devices publish the quantities they are interested in (both in demand and in offer)
             for device in self.devices.values():
                 device.update()
 
@@ -849,12 +842,20 @@ class Device:
     def react(self):  # method updating the device according to the decisions taken by the supervisor
         self._user_react()
 
+        energy_sold = self._catalog.get(f"{self.agent.name}.energy_sold")
+        energy_bought = self._catalog.get(f"{self.agent.name}.energy_bought")
+
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
-# disjonction des cas vendu/acheté
-        energy_amount += self._catalog.get(f"{self.agent.name}.energy_bought")
-        self._catalog.set(f"{self.agent.name}.energy_bought", energy_amount)  # report the energy delivered/consumed by the device
+
+            if energy_amount < 0:  # if the device consumes energy
+                energy_sold += energy_amount
+            else:  # if the device delivers energy
+                energy_bought += energy_amount
+
+        self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold)  # report the energy delivered by the device
+        self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought)  # report the energy consumed by the device
 
     def _user_react(self):  # where users put device-specific behaviors
         pass

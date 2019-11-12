@@ -17,7 +17,6 @@ class AlwaysServed(Supervisor):
         pass
 
     def publish_needs(self, cluster):  # once the cluster has made made local arrangements, it publishes its needs (both in demand and in offer)
-        # forecast there ?
         # here, send price = +inf to buy and -inf to sell
         pass
 

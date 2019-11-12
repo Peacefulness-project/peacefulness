@@ -15,12 +15,28 @@ class Nature:  # this class contains the different natures
             Nature._list.append(name)
             self._name = name  # the name of the nature, which is used as a keyword
 
+        self._catalog = None  # the catalog in which some data are stored
+
         self.description = description  # a description of the nature
         self._grid = False  # a flag indicating if this nature is linked to a major grid
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
+
+    def register(self, catalog):  # add a catalog and create relevant entries
+        self._catalog = catalog
+
+        self._catalog.add(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
+        self._catalog.add(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def reinitialize(self):  # reinitialization of the values
+        self._catalog.set(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
+        self._catalog.set(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
 
     # ##########################################################################################
     # Utility

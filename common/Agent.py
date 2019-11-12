@@ -28,10 +28,10 @@ class Agent:
 
         # Creation of specific entries
         self._catalog.add(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energergy during the round
+        self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
 
-        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy received or delivered by the agent during the current round
-        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy received by the agent during the current round
+        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy delivered by the agent during the current round
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -39,10 +39,19 @@ class Agent:
 
     def reinitialize(self):  # reinitialization of the values
         self._catalog.set(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energergy during the round
+        self._catalog.set(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
 
-        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy received or delivered by the agent during the current round
-        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy received or delivered by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy received by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy delivered by the agent during the current round
+
+    def make_balance(self):
+
+        for nature in self.natures:  # balance on energy nature
+            energy_produced = self._catalog.get(f"{self.name}.energy_sold")
+            self._catalog.set(f"{nature.name}.energy_produced", energy_produced)
+
+            energy_consumed = self._catalog.get(f"{self.name}.energy_bought")
+            self._catalog.set(f"{nature.name}.energy_consumed", energy_consumed)
 
     # ##########################################################################################
     # Utilities

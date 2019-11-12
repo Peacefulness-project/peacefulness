@@ -35,26 +35,25 @@ class Cluster:
 
         self._catalog.add(f"{self.name}.{self.nature.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
         self._catalog.add(f"{self.name}.{self.nature.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
-        # self._catalog.add(f"{self.name}.{self.nature.name}.profit", 0)  # accounts for the money earned by the cluster during the round
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
-        self._catalog.set(f"{self.name}.{self.nature.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.name}.{self.nature.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
-
         self._catalog.set(f"{self.name}.{self.nature.name}.energy_needs", dict())  # couples price/quantities sent by the cluster to its superior
         self._catalog.set(f"{self.name}.{self.nature.name}.energy_bought", 0)  # accounts for the energy bought by the cluster during the round
         self._catalog.set(f"{self.name}.{self.nature.name}.energy_sold", 0)  # accounts for the energy sold by the cluster during the round
+
+        self._catalog.set(f"{self.name}.{self.nature.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.name}.{self.nature.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
 
     def ask(self):  # clusters make local balances and then publish their needs (both in demand and in offer)
         for managed_cluster in self.clusters:  # recursive function to reach all clusters
             managed_cluster.ask()
 
         self._supervisor.distribute_local_energy(self)  # makes the balance between local producers and consumers
-        self._supervisor.publish_needs(self)  # determines lots price/quantities regarding tariffs and penalties under it
+        self._supervisor.publish_needs(self)  # determines couples price/quantities regarding tariffs and penalties under it
 
     def distribute(self):  # clusters distribute the energy they exchanged with outside
         self._supervisor.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior
