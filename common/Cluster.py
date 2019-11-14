@@ -20,7 +20,7 @@ class Cluster:
 
         self._devices = list()  # a list of all the devices managed by the cluster
 
-        self._clusters = list()  # a list of all the clusters managed by the cluster
+        self._subclusters = list()  # a list of all the clusters managed by the cluster
 
     # ##########################################################################################
     # Initialization
@@ -29,7 +29,9 @@ class Cluster:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the local grid with the catalog of world
 
-        self._catalog.add(f"{self.name}.{self.nature.name}.energy_needs", dict())  # couples price/quantities sent by the cluster to its superior
+        self._catalog.add(f"{self.name}.{self.nature.name}.quantities_asked", [[0, 0]])  # couples price/quantities sent by the cluster to its superior
+        self._catalog.add(f"{self.name}.{self.nature.name}.quantities_given", [[0, 0]])  # couple price/quantities accorded by the cluster superior
+
         self._catalog.add(f"{self.name}.{self.nature.name}.energy_bought", 0)  # accounts for the energy bought by the cluster during the round
         self._catalog.add(f"{self.name}.{self.nature.name}.energy_sold", 0)  # accounts for the energy sold by the cluster during the round
 
@@ -41,7 +43,9 @@ class Cluster:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
-        self._catalog.set(f"{self.name}.{self.nature.name}.energy_needs", dict())  # couples price/quantities sent by the cluster to its superior
+        self._catalog.set(f"{self.name}.{self.nature.name}.quantities_asked", [[0, 0]])  # couples price/quantities sent by the cluster to its superior
+        self._catalog.set(f"{self.name}.{self.nature.name}.quantities_given", [[0, 0]])  # couple price/quantities accorded by the cluster superior
+
         self._catalog.set(f"{self.name}.{self.nature.name}.energy_bought", 0)  # accounts for the energy bought by the cluster during the round
         self._catalog.set(f"{self.name}.{self.nature.name}.energy_sold", 0)  # accounts for the energy sold by the cluster during the round
 
@@ -49,16 +53,15 @@ class Cluster:
         self._catalog.set(f"{self.name}.{self.nature.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
 
     def ask(self):  # clusters make local balances and then publish their needs (both in demand and in offer)
-        for managed_cluster in self.clusters:  # recursive function to reach all clusters
+        for managed_cluster in self.subclusters:  # recursive function to reach all clusters
             managed_cluster.ask()
 
-        self._supervisor.distribute_local_energy(self)  # makes the balance between local producers and consumers
-        self._supervisor.publish_needs(self)  # determines couples price/quantities regarding tariffs and penalties under it
+        self._supervisor.ascendant_phase(self)  # makes the balance between local producers and consumers and  determines couples price/quantities regarding tariffs and penalties under it
 
     def distribute(self):  # clusters distribute the energy they exchanged with outside
         self._supervisor.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior
 
-        for managed_cluster in self.clusters:  # recursive function to reach all clusters
+        for managed_cluster in self.subclusters:  # recursive function to reach all clusters
             managed_cluster.distribute()
 
     # ##########################################################################################
@@ -78,6 +81,6 @@ class Cluster:
         return self._devices
 
     @property
-    def clusters(self):  # shortcut for read-only
-        return self._clusters
+    def subclusters(self):  # shortcut for read-only
+        return self._subclusters
 

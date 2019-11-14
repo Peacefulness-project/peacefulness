@@ -30,6 +30,9 @@ class Nature:  # this class contains the different natures
         self._catalog.add(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
         self._catalog.add(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
 
+        self._catalog.add(f"{self.name}.money_spent", 0)  # energy received by the nature during the current round
+        self._catalog.add(f"{self.name}.money_earned", 0)  # energy delivered by the nature during the current round
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -37,6 +40,9 @@ class Nature:  # this class contains the different natures
     def reinitialize(self):  # reinitialization of the values
         self._catalog.set(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
         self._catalog.set(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
+
+        self._catalog.set(f"{self.name}.money_spent", 0)  # energy received by the agent during the current round
+        self._catalog.set(f"{self.name}.money_earned", 0)  # energy delivered by the agent during the current round
 
     # ##########################################################################################
     # Utility

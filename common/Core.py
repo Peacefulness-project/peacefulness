@@ -25,7 +25,7 @@ from tools.UserClassesDictionary import user_classes_dictionary
 # ##############################################################################################
 # ##############################################################################################
 # The world is the background of a case: it contains and organizes all elements of the code,
-# from devices to supervisors.
+# from devices to Supervisors.
 # First, it contains the catalog the time manager, the case directory and the supervisor, which are all necessary
 # Then, it contains dictionaries of elements that describe the studied case, such as devices or agents
 # Lastly, it contains a dictionary, of so-called data-loggers, who are in charge of exporting the data into files
@@ -48,7 +48,7 @@ class World:
 
         # dictionaries contained by world
         self._user_classes = user_classes_dictionary  # this dictionary contains all the classes defined by the user
-        # it serves to re-instantiate daemons, devices and supervisors
+        # it serves to re-instantiate daemons, devices and Supervisors
 
         self._natures = dict()  # energy present in world
 
@@ -146,7 +146,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
-            cluster.superior._clusters.append(cluster)
+            cluster.superior._subclusters.append(cluster)
         elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
             self._exchange_node.exchanges[cluster] = []
 
@@ -364,6 +364,9 @@ class World:
             # daemons activation
             for daemon in self.daemons.values():
                 daemon.launch()
+
+            # time update
+            self._update_time()
 
         self.catalog.print_debug()  # display the content of the catalog
         print(self)  # give the name of the world and the quantity of productions and consumptions
@@ -826,6 +829,7 @@ class Device:
                 nature_to_remove.append(nature)
 
         for nature in nature_to_remove:
+            self._natures[nature][0].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
@@ -842,20 +846,63 @@ class Device:
     def react(self):  # method updating the device according to the decisions taken by the supervisor
         self._user_react()
 
-        energy_sold = self._catalog.get(f"{self.agent.name}.energy_sold")
-        energy_bought = self._catalog.get(f"{self.agent.name}.energy_bought")
+        energy_sold = dict()
+        energy_bought = dict()
 
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
             if energy_amount < 0:  # if the device consumes energy
-                energy_sold += energy_amount
+                energy_sold[nature.name] = energy_amount
+                energy_bought[nature.name] = 0
             else:  # if the device delivers energy
-                energy_bought += energy_amount
+                energy_bought[nature.name] = energy_amount
+                energy_sold[nature.name] = 0
 
-        self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold)  # report the energy delivered by the device
-        self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought)  # report the energy consumed by the device
+            # balance at the cluster level
+            energy_sold_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_sold")
+            energy_bought_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_bought")
+            money_spent_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_spent")
+            money_earned_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_earned")
+
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_sold", energy_sold_cluster + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_bought", energy_bought_cluster + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_spent", money_spent_cluster)  # money spent by the cluster to buy energy during the round
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_earned", money_earned_cluster)  # money earned by the cluster by selling energy during the round
+
+            # balance for different natures
+            energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
+            energy_bought_nature = self._catalog.get(f"{nature.name}.energy_consumed")
+            money_spent_nature = self._catalog.get(f"{nature.name}.money_spent")
+            money_earned_nature = self._catalog.get(f"{nature.name}.money_earned")
+
+            self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature)  # money spent by the cluster to buy energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature)  # money earned by the cluster by selling energy during the round
+
+            # balance at the contract level
+            energy_sold_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_sold")
+            energy_bought_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_bought")
+            money_spent_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_spent")
+            money_earned_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_earned")
+
+            self._catalog.set(f"{self.natures[nature][1].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.natures[nature][1].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature][1].name}.money_spent", money_spent_contract)  # money spent by the contract to buy energy during the round
+            self._catalog.set(f"{self.natures[nature][1].name}.money_earned", money_earned_contract)  # money earned by the contract by selling energy during the round
+
+        # balance at the agent level
+        energy_sold_agent = self._catalog.get(f"{self.agent.name}.energy_sold")
+        energy_bought_agent = self._catalog.get(f"{self.agent.name}.energy_bought")
+        money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
+        money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
+
+        self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold_agent + sum(energy_sold.values()))  # report the energy delivered by the device
+        self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought_agent + sum(energy_bought.values()))  # report the energy consumed by the device
+        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent)  # money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent)  # money earned by the cluster by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
         pass
@@ -886,10 +933,6 @@ class Device:
 
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
-
-
-# Plus tard
-# class Storage
 
 
 # Exception

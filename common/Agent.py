@@ -38,11 +38,11 @@ class Agent:
     ############################################################################################
 
     def reinitialize(self):  # reinitialization of the values
-        self._catalog.set(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
+        self._catalog.set(f"{self.name}.money_spent", 0)  # money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.name}.money_earned", 0)  # money earned by the cluster by selling energy during the round
 
-        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy received by the agent during the current round
-        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy delivered by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # energy received by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # energy delivered by the agent during the current round
 
     def make_balance(self):
 

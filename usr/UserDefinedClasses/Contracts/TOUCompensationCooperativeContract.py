@@ -23,14 +23,14 @@ class TOUCompensationCooperativeContract(Contract):
 
     # billing
     def _billing_buying(self, energy_amount, agent_name):
-        price = self._catalog.get(f"{self._nature.name}_buying_price")  # getting the price per kW.h
-        money = self._catalog.get(f"{agent_name}.money") + price * energy_amount  # updating the amount of money spent/earned by the agent
-        self._catalog.set(f"{agent_name}.money", money)  # stores the new value
+        price = self._catalog.get(f"{self._nature.name}.buying_price")  # getting the price per kW.h
+        money = self._catalog.get(f"{agent_name}.money_spent") + price * energy_amount  # updating the amount of money spent/earned by the agent
+        self._catalog.set(f"{agent_name}.money_spent", money)  # stores the new value
 
     def _billing_selling(self, energy_amount, agent_name):
-        price = self._catalog.get(f"{self._nature.name}_selling_price")  # getting the price per kW.h
-        money = self._catalog.get(f"{agent_name}.money") + price * energy_amount  # updating the amount of money spent/earned by the agent
-        self._catalog.set(f"{agent_name}.money", money)  # stores the new value
+        price = self._catalog.get(f"{self._nature.name}.selling_price")  # getting the price per kW.h
+        money = self._catalog.get(f"{agent_name}.money_earned") + price * energy_amount  # updating the amount of money spent/earned by the agent
+        self._catalog.set(f"{agent_name}.money_earned", money)  # stores the new value
 
     def _user_billing(self, agent_name):  # here, the user_billing is used to compensate the agent for its effort
         current_effort = - self._accumulated_effort
@@ -38,8 +38,8 @@ class TOUCompensationCooperativeContract(Contract):
         current_effort += self._accumulated_effort
 
         compensation = self._parameters["effort_value"] * current_effort  # calculation of the compensation in money accorded by the contract
-        money = self._catalog.get(f"{agent_name}.money") + compensation
-        self._catalog.set(f"{agent_name}.money", money)  # stores the new value
+        money = self._catalog.get(f"{agent_name}.money_spent") + compensation
+        self._catalog.set(f"{agent_name}.money_spent", money)  # stores the new value
 
 
 user_classes_dictionary[f"{TOUCompensationCooperativeContract.__name__}"] = TOUCompensationCooperativeContract

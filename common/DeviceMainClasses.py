@@ -271,6 +271,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             if nature.name not in self._usage_profile[0][0]:
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
+            self._natures[nature][0].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")

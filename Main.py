@@ -90,10 +90,14 @@ world.set_time(start_date,  # time management: start date
 description = "this supervisor is a really basic one. It just serves as a " \
               "skeleton/example for your (more) clever supervisor."
 name_supervisor = "glaDOS"
-supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py", description)
-
+supervisor = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
 world.register_supervisor(supervisor)
 
+# the supervisor grid, which always proposes an infinite quantity to sell and to buy
+description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
+name_supervisor = "benevolent_operator"
+grid_supervisor = User.Supervisors.Grid.Grid(name_supervisor, description)
+world.register_supervisor(grid_supervisor)
 
 # ##############################################################################################
 # Nature list
@@ -116,7 +120,8 @@ world.register_nature(heat)  # registration
 # there is also a third argument to precise if the cluster is considered as an infinite grid
 
 # here we create a first cluster dedicated to electricity
-sup_cluster_elec = Cluster("Enedis", elec, supervisor)
+cluster_name = "elec_mesh"
+sup_cluster_elec = Cluster(cluster_name, elec, supervisor)
 world.register_cluster(sup_cluster_elec)  # registration
 
 # here we create a second one put under the orders of the first
@@ -124,7 +129,12 @@ cluster_name = "general_cluster"
 cluster_elec = Cluster(cluster_name, elec, supervisor, sup_cluster_elec)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
+# and then we create a third who represents the grid
+cluster_name = "Enedis"
+cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+world.register_cluster(cluster_grid)  # registration
 
+# here we create another cluster dedicated to heat
 cluster_name = "Les_tuyaux_a_toto"
 cluster_heat = Cluster(cluster_name, heat, supervisor)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
@@ -209,11 +219,6 @@ file.close()
 # ##############################################################################################
 # Daemons
 # this object updates entries of the catalog which do not belong to any other object
-# as an example, it can update some meteorological data
-
-# daemons need 2 arguments: a name and a period of activation
-daemon = User.Daemons.DummyDaemon.DummyDaemon("MonDemonDeMidi", 10)  # creation
-world.register_daemon(daemon)  # registration
 
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
@@ -221,12 +226,14 @@ world.register_daemon(daemon)  # registration
 dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 
-# Price Manager
+# Price Managers
 # this daemon fixes a price for a given nature of energy
-price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 1, "selling_price": 0.5})
-price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 1, "selling_price": 0.5})
+price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices for flat rate
+price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices fro flat rate
+price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("EDF_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
+world.register_daemon(price_elec_grid)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
@@ -271,7 +278,7 @@ file.close()
 
 
 # ##############################################################################################
-# here we have the possibiblity to save the world to use it later
+# here we have the possibility to save the world to use it later
 save_wanted = True
 
 if save_wanted:
