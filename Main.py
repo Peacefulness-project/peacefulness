@@ -27,8 +27,6 @@ from tools.Utilities import adapt_path
 
 from common.Core import World
 
-from common.Catalog import Catalog
-
 from common.Supervisor import Supervisor
 
 from common.Nature import Nature
@@ -40,7 +38,6 @@ from common.Cluster import Cluster
 from common.Datalogger import Datalogger
 
 import usr.UserDefinedClasses as User
-
 
 # ##############################################################################################
 # Performance measurement
@@ -58,15 +55,6 @@ CPU_time = process_time()
 # a world needs just a name
 name_world = "Disc World"
 world = World(name_world)  # creation
-
-
-# ##############################################################################################
-# Creation of a data catalog
-# this object is a dictionary where goes all data needing to be seen by several objects
-data = Catalog()  # creation
-world.set_catalog(data)  # registration
-
-world.catalog.print_debug()  # displays the content of the catalog
 
 
 # ##############################################################################################
@@ -97,18 +85,19 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Supervisor --> il est en stand-by
-# this object contains just the path to  your supervisor script and a brief description of what it does
-
-# TODO -> PAS BEAU -> ATTENDRE LA REFONTE DE LA PARTIE SUPERVISEUR
-
+# Supervisor
+# this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 description = "this supervisor is a really basic one. It just serves as a " \
               "skeleton/example for your (more) clever supervisor."
 name_supervisor = "glaDOS"
-supervisor = Supervisor(name_supervisor, "DummySupervisorMain.py", description)
-
+supervisor = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
 world.register_supervisor(supervisor)
 
+# the supervisor grid, which always proposes an infinite quantity to sell and to buy
+description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
+name_supervisor = "benevolent_operator"
+grid_supervisor = User.Supervisors.Grid.Grid(name_supervisor, description)
+world.register_supervisor(grid_supervisor)
 
 # ##############################################################################################
 # Nature list
@@ -129,14 +118,23 @@ world.register_nature(heat)  # registration
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
+
+# here we create a first cluster dedicated to electricity
+cluster_name = "elec_mesh"
+sup_cluster_elec = Cluster(cluster_name, elec, supervisor)
+world.register_cluster(sup_cluster_elec)  # registration
+
+# here we create a second one put under the orders of the first
 cluster_name = "general_cluster"
-cluster_elec = Cluster(cluster_name, elec, supervisor)  # creation of a cluster
+cluster_elec = Cluster(cluster_name, elec, supervisor, sup_cluster_elec)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
-# here we add a grid, which represents an infinite producer
-elec_grid = Cluster("Enedis", elec, supervisor, True)
-world.register_cluster(elec_grid)  # registration
+# and then we create a third who represents the grid
+cluster_name = "Enedis"
+cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+world.register_cluster(cluster_grid)  # registration
 
+# here we create another cluster dedicated to heat
 cluster_name = "Les_tuyaux_a_toto"
 cluster_heat = Cluster(cluster_name, heat, supervisor)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
@@ -163,6 +161,9 @@ world.register_contract(classic_contract_heat)
 agent = Agent("James Bond")  # creation of an agent
 world.register_agent(agent)  # registration
 
+agent.set_contract(elec, classic_contract_elec)
+agent.set_contract(heat, classic_contract_heat)
+
 
 # ##############################################################################################
 # Devices
@@ -171,25 +172,21 @@ world.register_agent(agent)  # registration
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, cluster_elec, "default", "residential_PV")  # creation of a production point
+c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a production point
 
 # basic device
-Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, cluster_elec, "residential", "house")  # creation of a consumption point
-Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, cluster_elec, "offset", "house")  # creation of a consumption point
+Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, sup_cluster_elec, "residential", "house")  # creation of a consumption point
+Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, sup_cluster_elec, "offset", "house")  # creation of a consumption point
 # shiftable device
-e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, cluster_elec, "family", "medium_consumption")  # creation of a consumption point
+e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, sup_cluster_elec, "family", "medium_consumption")  # creation of a consumption point
 # adjustable device
-charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, cluster_elec, "default", "laptop_charger")
+charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, sup_cluster_elec, "default", "laptop_charger")
 # temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
 thermal_parameters = {"G": 1,  # G in kJ/K
                       "thermal_inertia": 7200,  # thermal inertia in s
                       "initial_temperature": 17}  # initial temperature in °C
 e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
-
-# test
-iron = User.Devices.NonControllableDevice.Iron.Iron("test_iron", classic_contract_elec, agent, cluster_elec, "single", "medium_consumption")
-world.register_device(iron)
 
 # print(e1)  # displays the name and the type of the device
 # print(c1)  # displays the name and the type of the device
@@ -205,18 +202,23 @@ world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
 
 
+# Performance measurement
+CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-
+world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+world.agent_generation(3, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
+# CPU time measurement
+CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
+filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+file = open(filename, "a")  # creation of the file
+file.write(f"time taken by the device generation phase: {CPU_time_generation_of_device}\n")
+file.close()
 
 # ##############################################################################################
 # Daemons
 # this object updates entries of the catalog which do not belong to any other object
-# as an example, it can update some meteorological data
-
-# daemons need 2 arguments: a name and a period of activation
-daemon = User.Daemons.DummyDaemon.DummyDaemon("MonDemonDeMidi", 10)  # creation
-world.register_daemon(daemon)  # registration
 
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
@@ -224,12 +226,14 @@ world.register_daemon(daemon)  # registration
 dissatisfaction_management = User.Daemons.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
 world.register_daemon(dissatisfaction_management)  # registration
 
-# Price Manager
+# Price Managers
 # this daemon fixes a price for a given nature of energy
-price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 1, "selling_price": 0.5})
-price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 1, "selling_price": 0.5})
+price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices for flat rate
+price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices fro flat rate
+price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("EDF_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
+world.register_daemon(price_elec_grid)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
@@ -263,7 +267,6 @@ logger2.add("physical_time")
 # logger2.add("Dishwasher1.priority")
 logger2.add("Heating1.Heat.energy_wanted")
 logger2.add("Heating1.Heat.energy_accorded")
-logger2.add("Heating1.priority")
 
 
 # CPU time measurement
@@ -275,13 +278,13 @@ file.close()
 
 
 # ##############################################################################################
-# here we have the possibiblity to save the world to use it later
+# here we have the possibility to save the world to use it later
 save_wanted = True
 
 if save_wanted:
     CPU_time = process_time()  # CPU time measurement
 
-    world.save()  # saving the world
+    # world.save()  # saving the world
 
     # CPU time measurement
     CPU_time = process_time() - CPU_time  # time taken by the initialization

@@ -22,10 +22,17 @@ class Contract:
     # Initialization
     # ##########################################################################################
 
-    def _register(self, catalog):
+    def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
         self._user_register()
+
+        # Creation of specific entries
+        self._catalog.add(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
+        self._catalog.add(f"{self.name}.money_spent"), 0  # the money spent by all the devices ruled by this contract during this round
+
+        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
+        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
 
     def _user_register(self):
         pass
@@ -33,6 +40,13 @@ class Contract:
     # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
+
+    def reinitialize(self):  # reinitialization of the values
+        self._catalog.set(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
+        self._catalog.set(f"{self.name}.money_spent", 0)  # the money spent by all the devices ruled by this contract during this round
+
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
 
     # billing
     def _billing(self, energy_amount, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
@@ -51,25 +65,13 @@ class Contract:
     def _user_billing(self, agent_name):  # here, the user can add specific operations
         pass
 
-    # dissatisfaction management
-    def dissatisfaction_modification(self, dissatisfaction):  # this function modifies dissatisfaction according to the contract
-        return dissatisfaction  # If the function is not modified, it does not change the initial value
-
-    # def non_controllable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for non controllable devices. It is user-defined
-    #     pass
-    #
-    # def shiftable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for shiftable devices. It is user-defined
-    #     pass
-    #
-    # def adjustable_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for adjustable devices. It is user-defined
-    #     pass
-    #
-    # def storage_dissatisfaction(self, agent_name, device_name, natures):  # the function handling dissatisfaction for storage devices. It is user-defined
-    #     pass
+    # effort management
+    def effort_modification(self, effort):  # this function modifies effort according to the contract
+        return effort  # of the function is not modified, it does not change the initial value
 
     # priority management
     def priority_modification(self, priority):  # this function modifies the priority according to the contract
-        return priority  # If the function is not modified, it does not change the initial value
+        return priority  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################
     # Utilities

@@ -1,5 +1,6 @@
 from common.DeviceMainClasses import NonControllableDevice
 from math import sin, pi
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class PV(NonControllableDevice):
@@ -15,6 +16,9 @@ class PV(NonControllableDevice):
         for line in self._user_profile:
             solar_prod = sin((line[0] - 8.5) * pi / 9) * line[1]
             line[1] = max(0, solar_prod)
+
+
+user_classes_dictionary[f"{PV.__name__}"] = PV
 
 
 

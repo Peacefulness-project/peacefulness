@@ -6,7 +6,6 @@ from common.Catalog import Catalog
 class Daemon:
 
     def __init__(self, name, period=0, parameters=None):
-
         if name is None:
             raise DaemonException("Daemon needs a name")
 
@@ -40,8 +39,7 @@ class Daemon:
     # Dynamic behavior
     # ##########################################################################################
 
-    def _launch(self):  # modify the catalog at the given period
-
+    def launch(self):  # modify the catalog at the given period
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period

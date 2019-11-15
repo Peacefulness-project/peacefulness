@@ -65,8 +65,7 @@ class Datalogger:
     # Writing in the file
     # ##########################################################################################
 
-    def _launch(self):  # write data at the given frequency
-
+    def launch(self):  # write data at the given frequency
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
         if self._period > 1:
@@ -124,4 +123,3 @@ class Datalogger:
 class DataLoggerException(Exception):
     def __init__(self, message):
         super().__init__(message)
-

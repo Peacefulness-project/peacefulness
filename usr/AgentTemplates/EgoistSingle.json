@@ -1,0 +1,28 @@
+{
+  "template name": "egoist_single",
+
+  "composition": {
+    "Light": [["Light", "residential", "apartment", [1,1]]],
+    "Background": [["Background", "single", "single", [1,1]]],
+    "Hob": [["ElectricHob", "single", "medium_consumption", [1,1]]],
+    "Iron": [["Iron", "single", "medium_consumption", [0,1]]],
+    "Oven": [["Oven", "single", "medium_consumption", [0,1]]],
+
+    "Dishwasher": [["Dishwasher", "single", "medium_consumption", [0,1]]],
+    "WashingMachine": [["WashingMachine", "single", "medium_consumption", [0,1]]],
+    "WaterHeater": [["CoffeeMaker", "single", "coffeemaker", [0,1]]],
+
+    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1]]],
+    "Heating": [["Heating", "residential", "apartment_electric", [1,1]]],
+
+    "HotWaterTank": [["HotWaterTank", "morning", "single", [1,1]]],
+    "Charger": [["Charger", "default", "laptop_charger", [0,1]]],
+
+    "PV": [["PV", "default", "residential_PV", [1,1]]]
+  },
+
+  "contracts": {
+    "LVE":  ["TOUEgoistContract", {}]
+  }
+
+}

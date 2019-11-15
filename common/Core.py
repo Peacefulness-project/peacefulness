@@ -7,11 +7,10 @@ from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
 from math import ceil
-from inspect import getfile
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
-import common.lib.supervision_tools.supervision as sup
 from common.Catalog import Catalog
+from common.ExchangeNode import ExchangeNode
 from common.Nature import Nature
 from common.Contract import Contract
 from common.Agent import Agent
@@ -20,12 +19,13 @@ from common.Datalogger import Datalogger
 from common.Daemon import Daemon
 from common.Supervisor import Supervisor
 from tools.Utilities import middle_separation, big_separation, adapt_path, into_list
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 # ##############################################################################################
 # ##############################################################################################
 # The world is the background of a case: it contains and organizes all elements of the code,
-# from devices to supervisors.
+# from devices to Supervisors.
 # First, it contains the catalog the time manager, the case directory and the supervisor, which are all necessary
 # Then, it contains dictionaries of elements that describe the studied case, such as devices or agents
 # Lastly, it contains a dictionary, of so-called data-loggers, who are in charge of exporting the data into files
@@ -37,7 +37,7 @@ class World:
         else:  # By default, world is named after the date
             self._name = f"Unnamed ({datetime.now()})"
 
-        self._catalog = None  # data catalog which gathers all data
+        self._catalog = Catalog()  # data catalog which gathers all data
 
         # Time management
         self._timestep_value = None  # value of the timestep used during the simulation (in hours)
@@ -47,14 +47,13 @@ class World:
         self._random_seed = None  # the seed used in the random number generator of Python
 
         # dictionaries contained by world
-        self._user_classes = dict()  # this dictionary contains all the classes defined by the user
-        # it serves to re-instantiate daemons and devices
+        self._user_classes = user_classes_dictionary  # this dictionary contains all the classes defined by the user
+        # it serves to re-instantiate daemons, devices and Supervisors
 
         self._natures = dict()  # energy present in world
 
         self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._exchanges = dict()  # a dictionary containing, for each cluster, a list of the cluster they can interact with
-        # each link between clusters is unidirectional and is associated with a static value of efficiency and of capacity
+        self._exchange_node = ExchangeNode()  # an object organizing exchanges between clusters
         self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
         # they serve as a default cluster
         
@@ -66,6 +65,7 @@ class World:
         self._daemons = dict()  # dict containing the daemons
 
         self._supervisors = dict()  # objects which perform the calculus
+        self._forecasters = dict()  # objects which are responsible for predicting both quantities produced and consumed
 
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
@@ -76,12 +76,6 @@ class World:
     # ##########################################################################################
 
     # the following methods concern objects absolutely needed for world to perform a calculus
-    def set_catalog(self, catalog):  # definition of a catalog
-        if not isinstance(catalog, Catalog):  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        self._catalog = catalog
-
     def set_directory(self, path):  # definition of a case directory and creation of the directory
         instant_date = datetime.now()  # get the current time
         instant_date = instant_date.strftime("%d_%m_%Y-%H_%M_%S")  # the directory is named after the date
@@ -139,6 +133,7 @@ class World:
         if isinstance(nature, Nature) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
+        nature.register(self._catalog)
         self._natures[nature.name] = nature
         self._used_names.append(nature.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -150,19 +145,27 @@ class World:
         if isinstance(cluster, Cluster) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        if cluster.is_grid:  # if the cluster is identified as a greater grid than world
-            # it serves a default cluster for the corresponding nature
-            self._grids[cluster.nature] = cluster.name  # and is indexed in a special dict
-
-        self._exchanges[cluster] = list()  # add an entry for the cluster in the exchanges table
+        if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
+            cluster.superior._subclusters.append(cluster)
+        elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
+            self._exchange_node.exchanges[cluster] = []
 
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
         self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_names.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def link_clusters(self, source_cluster, destination_cluster, efficiency, capacity):  # create a link between two clusters
-        self._exchanges[source_cluster] = [destination_cluster, efficiency, capacity]
+    def create_link_between_clusters(self, cluster_source, cluster_destination, efficiency, capacity):  # enables the possbility for cluster source to sell energy to cluster destination
+        if isinstance(cluster_destination, Cluster) is False:
+            raise WorldException(f"{cluster_destination} is not a cluster")
+
+        try:  # check if the cluster destination is registered in the exchange leader
+            self._exchange_node.exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
+        except:
+            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
+
+        if cluster_destination not in self._exchange_node.exchanges:  # check if the cluster destination is registered in the exchange leader
+            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
     def register_contract(self, contract):
         if contract.name in self._used_names:  # checking if the name is already used
@@ -170,9 +173,6 @@ class World:
     
         if isinstance(contract, Contract) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
-        
-        if type(contract) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(contract).__name__}"] = type(contract)
         
         contract._register(self._catalog)   # linking the agent with the catalog of world
         self._contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
@@ -202,15 +202,10 @@ class World:
         if device._agent.name not in self._agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        # # if the agent does not include the nature of the device
-        # for nature in device.natures:
-        #     if nature not in device.agent.natures:
-        #         raise WorldException(f"{device._agent.name} has no contracts for nature {nature.name}")
+        for nature in device.natures:  # adding the device name to its cluster list of device
+            device._natures[nature][0]._devices.append(device.name)
 
-        if type(device) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(device).__name__}"] = type(device)
-        
-        self._devices[device.name] = device
+        self._devices[device.name] = device  # registering the device in the dedicated dictionary
         device._register(self._catalog)  # registering of the device in the catalog
         self._used_names.append(device.name)  # adding the name to the list of used names
 
@@ -222,7 +217,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         datalogger._register(self._catalog)   # linking the datalogger with the catalog of world
-        self._dataloggers[datalogger.name] = datalogger  # registering the cluster in the dedicated dictionary
+        self._dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -232,9 +227,6 @@ class World:
 
         if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
-        
-        if type(daemon) not in self._user_classes:  # saving the class in the dedicated dict
-            self._user_classes[f"{type(daemon).__name__}"] = type(daemon)
 
         daemon._register(self._catalog)  # registering of the device in the catalog
         self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
@@ -269,14 +261,15 @@ class World:
                 contract = contract_class(contract_name, nature, parameters)
                 self.register_contract(contract)
                 contract_list.append(contract)
+                agent.set_contract(nature, contract)
 
             # creation of devices
-            for device_data in data["composition"].values():
-                for profile in device_data:
+            for device_data in data["composition"]:
+                for profile in data["composition"][device_data]:
                     number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                        device_class = self._user_classes[profile[0]]
+                        device_class = self._user_classes[device_data]
 
                         device = device_class(device_name, contract_list, agent, clusters, profile[1], profile[2])  # creation of the device
                         self.register_device(device)
@@ -286,53 +279,94 @@ class World:
     # ##########################################################################################
 
     def _check(self):  # a method checking if the world has been well defined
-        # 4 things are necessary for world to be correctly defined:
-        # 1/ the time manager,
-        # 2/ the case directory,
-        # 3/ the nature list,
-        # 4/ the supervisor
+        # 2 things are necessary for world to be correctly defined:
+        # 1/ time parameters
+        # 2/ the random seed
+        # 3/ the case directory
 
         # first, we check the presence of the necessary objects:
-        # checking if a time manager is defined
+        # checking if time parameters are defined
         if "physical_time" not in self.catalog.keys or "simulation_time" not in self.catalog.keys:
-            raise WorldException(f"A time manager is needed")
+            raise WorldException(f"Time parameters are needed")
+
+        # checking if a random seed is defined
+        if "path" not in self.catalog.keys:
+            raise WorldException(f"A random seed is needed")
 
         # checking if a path is defined
         if "path" not in self.catalog.keys:
-            raise WorldException(f"A path is specified for the results files")
-
-        # checking if a supervisor is defined
-        if not self._supervisors:
-            raise WorldException(f"At least one supervisor is needed")
+            raise WorldException(f"A path is to the results files is needed")
 
     def start(self):
-
         self._check()  # check if everything is fine in world definition
 
-        for supervisor in self._supervisors:
-            path = adapt_path(["usr", "supervisors", self.supervisors[supervisor].filename])
+        # add for each type of contracts
 
         # Resolution
-
-        sup.initialize(self, self._catalog)  # create relevant entries in the catalog
-
         for i in range(0, self.time_limit, 1):
-            sup.start_round(self)  # order the devices to update their needs
 
-            sup.make_balance(self, self._catalog)  # sum the needs and the production for each nature
+            # ###########################
+            # Beginning of the turn
+            # ###########################
 
-            for device in self.devices.values():  # consumption and production balance
+            # reinitialization of values in the catalog
+            # these values are, globally, the money and energy balances
+            for supervisor in self._supervisors.values():
+                supervisor.reinitialize()
 
-                if self._catalog.get(f"{device.name}.priority") > 0.5:
-                    for nature in device.natures:
-                        # consumption balance
-                        consumption = self._catalog.get(f"{device.name}.{nature.name}.energy_wanted")
-                        self._catalog.set(f"{device.name}.{nature.name}.energy_accorded", consumption)
+            for nature in self._natures.values():
+                nature.reinitialize()
 
-            for cluster in self.clusters.values():  # here, each cluster makes its local balance
-                cluster.supervision()  # this method resolves the balancing according to the local rules of the cluster
+            for contract in self._contracts.values():
+                contract.reinitialize()
 
-            sup.end_round(self)  # activate the daemons, the dataloggers and increments time
+            for agent in self.agents.values():
+                agent.reinitialize()
+
+            for cluster in self.clusters.values():
+                cluster.reinitialize()
+
+            # devices publish the quantities they are interested in (both in demand and in offer)
+            for device in self.devices.values():
+                device.update()
+
+            # ###########################
+            # Calculus phase
+            # ###########################
+
+            # forecasting
+            for forecaster in self._forecasters.values():
+                forecaster.fait_quelque_chose()
+
+            # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
+            for cluster in self._exchange_node.exchanges:  # clusters make local balances and then publish their needs (both in demand and in offer)
+                cluster.ask()  # recursive function to make sure all clusters are reached
+
+            # high-level exchange phase
+            self._exchange_node.organise_exchanges()  # decides of who exchanges what with who
+
+            # descendant phase: balances with remote energy
+            for cluster in self._exchange_node.exchanges:  # clusters distribute the energy they exchanged with outside
+                cluster.distribute()  # recursive function to make sure all clusters are reached
+
+            # ###########################
+            # End of the turn
+            # ###########################
+
+            # devices update their state according to the quantity of energy received/given
+            for device in self.devices.values():
+                device.react()
+
+            # data exporting
+            for datalogger in self.dataloggers.values():
+                datalogger.launch()
+
+            # daemons activation
+            for daemon in self.daemons.values():
+                daemon.launch()
+
+            # time update
+            self._update_time()
 
         self.catalog.print_debug()  # display the content of the catalog
         print(self)  # give the name of the world and the quantity of productions and consumptions
@@ -342,7 +376,6 @@ class World:
     ############################################################################################
 
     def _update_time(self):  # update the time entries in the catalog to the next iteration step
-
         current_time = self._catalog.get("simulation_time")
 
         physical_time = self._catalog.get("physical_time")
@@ -354,11 +387,11 @@ class World:
     # ##########################################################################################
     # save/load system
     # ##########################################################################################
+    # this method allows to export world
+    # the idea is to save the minimum information given by the user in the main
+    # to be able to reconstruct it later
 
-    def save(self):  # this method allows to export world
-        # the idea is to save the minimum information given by the user in the main
-        # to be able to reconstruct it later
-
+    def save(self):
         filepath = adapt_path([self._catalog.get("path"), "inputs", "save"])
         makedirs(filepath)
 
@@ -396,7 +429,9 @@ class World:
         file.close()
 
         # clusters file
-        clusters_list = {cluster.name: cluster.nature.name for cluster in self._clusters.values()}
+        clusters_list = {cluster.name: [cluster.nature.name,
+                                        cluster.devices
+                                        ]for cluster in self._clusters.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")
@@ -437,6 +472,7 @@ class World:
         file = open(filename, "w")
         file.write(dumps(devices_list, indent=2))
         file.close()
+
         # dataloggers file
         dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
 
@@ -655,7 +691,6 @@ class World:
 class Device:
 
     def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device, parameters=None):
-
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -715,10 +750,10 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
-        self._catalog.add(f"{self.name}.priority", 1)   # the higher the priority, the higher the chance of...
-                                                        # ...being satisfied in the current time step
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
@@ -746,21 +781,21 @@ class Device:
         try:
             data_user = data["user_profile"][self._user_profile_name]
         except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined profiles: {data['user_profile'].keys()}")
+            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined user profiles for the class {type(self).__name__}: {data['user_profile'].keys()}")
 
         # getting the usage profile
         try:
             data_device = data["device_consumption"][self._usage_profile_name]
         except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles: {data['usage_profile'].keys()}")
+            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
 
         file.close()
 
         return [data_user, data_device]
 
     def _data_user_creation(self, data_user):  # modification to enable the device to have a period starting a saturday at 0:00 AM
-        # creation of the consumption data
 
+        # creation of the consumption data
         time_step = self._catalog.get("time_step")
         self._period = int(data_user["period"]//time_step)  # the number of rounds corresponding to a period
         # the period MUST be a multiple of the time step
@@ -786,22 +821,88 @@ class Device:
 
         return beginning
 
+    def _unused_nature_removal(self):  # removal of unused natures in the self._natures i.e natures with no profiles
+        nature_to_remove = []  # buffer (as it is not possible to remove keys in a dictionary being read)
+
+        for nature in self._natures:
+            if nature.name not in self._usage_profile.keys():
+                nature_to_remove.append(nature)
+
+        for nature in nature_to_remove:
+            self._natures[nature][0].devices.remove(self.name)
+            self._natures.pop(nature)
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor
         self._user_react()
 
+        energy_sold = dict()
+        energy_bought = dict()
+
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
-        energy_amount += self._catalog.get(f"{self.agent.name}.energy")
-        self._catalog.set(f"{self.agent.name}.energy", energy_amount)  # report the energy delivered/consumed by the device
+            if energy_amount < 0:  # if the device consumes energy
+                energy_sold[nature.name] = energy_amount
+                energy_bought[nature.name] = 0
+            else:  # if the device delivers energy
+                energy_bought[nature.name] = energy_amount
+                energy_sold[nature.name] = 0
+
+            # balance at the cluster level
+            energy_sold_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_sold")
+            energy_bought_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_bought")
+            money_spent_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_spent")
+            money_earned_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_earned")
+
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_sold", energy_sold_cluster + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_bought", energy_bought_cluster + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_spent", money_spent_cluster)  # money spent by the cluster to buy energy during the round
+            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_earned", money_earned_cluster)  # money earned by the cluster by selling energy during the round
+
+            # balance for different natures
+            energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
+            energy_bought_nature = self._catalog.get(f"{nature.name}.energy_consumed")
+            money_spent_nature = self._catalog.get(f"{nature.name}.money_spent")
+            money_earned_nature = self._catalog.get(f"{nature.name}.money_earned")
+
+            self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature)  # money spent by the cluster to buy energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature)  # money earned by the cluster by selling energy during the round
+
+            # balance at the contract level
+            energy_sold_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_sold")
+            energy_bought_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_bought")
+            money_spent_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_spent")
+            money_earned_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_earned")
+
+            self._catalog.set(f"{self.natures[nature][1].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.natures[nature][1].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature][1].name}.money_spent", money_spent_contract)  # money spent by the contract to buy energy during the round
+            self._catalog.set(f"{self.natures[nature][1].name}.money_earned", money_earned_contract)  # money earned by the contract by selling energy during the round
+
+        # balance at the agent level
+        energy_sold_agent = self._catalog.get(f"{self.agent.name}.energy_sold")
+        energy_bought_agent = self._catalog.get(f"{self.agent.name}.energy_bought")
+        money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
+        money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
+
+        self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold_agent + sum(energy_sold.values()))  # report the energy delivered by the device
+        self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought_agent + sum(energy_bought.values()))  # report the energy consumed by the device
+        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent)  # money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent)  # money earned by the cluster by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
         pass
@@ -832,10 +933,6 @@ class Device:
 
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
-
-
-# Plus tard
-# class Storage
 
 
 # Exception

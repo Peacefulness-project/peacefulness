@@ -14,19 +14,18 @@
     "Dryer": [["Dryer", "family", "medium_consumption", [1,1]]],
     "WaterHeater": [["CoffeeMaker", "family", "coffeemaker", [1,1]]],
 
-    "Refrigerator": [["Refrigerator", "family", "medium_consumption", [1,1]],
-                     ["freezer", "family", "high_consumption", [0,1]]],
-    "Heating": [["Heating", "family", "house_electric", [[1,1]]]],
+    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1]],
+                     ["Freezer", "refrigerator", "medium_consumption", [0,1]]],
+    "Heating": [["Heating", "residential", "house_electric", [1,1]]],
 
-    "HotWaterTank": [["HotWaterTank", "family", "family", [[1,1]]]],
-    "Charger": [["Charger", "family", "laptop", [[0,4]]]],
+    "HotWaterTank": [["HotWaterTank", "morning", "family", [1,1]]],
+    "Charger": [["Charger", "default", "laptop_charger", [0,4]]],
 
-    "PV": ["PV", "default", "residential_PV", [[1,1]]]
+    "PV": [["PV", "default", "residential_PV", [1,1]]]
   },
 
   "contracts": {
-    "LVE":  ["classic_contract_elec", {}],
-    "Heat":  ["classic_contract_heat", {}]
+    "LVE":  ["TOUEgoistContract", {}]
   }
 
 }

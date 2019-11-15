@@ -2,6 +2,7 @@
 import os
 import numpy as np
 import random as rnd
+from math import copysign
 
 # normalized separations
 little_separation = "---------------------------------------------------------"
@@ -49,3 +50,8 @@ def into_list(object):  # if the object is not a list, this function will return
         object = [object]
 
     return object
+
+
+def sign(number):  # returns the sign of a number
+    return copysign(1, number)
+

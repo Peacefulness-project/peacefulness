@@ -21,23 +21,37 @@ class Agent:
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
         self._contracts[nature] = contract  # add a contract for an energy nature
-        # self._catalog.add(f"{self._name}.{nature.name}", contract)
+        self._catalog.add(f"{self.name}.{nature.name}.effort", 0)  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
 
-        self._catalog.add(f"{self.name}.dissatisfaction", 0)  # dissatisfaction accounts for the energy not delivered immediately
-        # The higher it is, the higher is the chance of being served
-        self._catalog.add(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.add(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
+        # Creation of specific entries
+        self._catalog.add(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
+
+        self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy received by the agent during the current round
+        self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy delivered by the agent during the current round
 
     # ##########################################################################################
     # Dynamic behaviour
     ############################################################################################
 
-    def _update(self):
-        self._catalog.set(f"{self.name}.money", 0)  # the money earned or spent by the agent during the current round
-        self._catalog.set(f"{self.name}.energy", 0)  # the energy received or delivered by the agent during the current round
+    def reinitialize(self):  # reinitialization of the values
+        self._catalog.set(f"{self.name}.money_spent", 0)  # money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.name}.money_earned", 0)  # money earned by the cluster by selling energy during the round
+
+        self._catalog.set(f"{self.name}.energy_bought", 0)  # energy received by the agent during the current round
+        self._catalog.set(f"{self.name}.energy_sold", 0)  # energy delivered by the agent during the current round
+
+    def make_balance(self):
+
+        for nature in self.natures:  # balance on energy nature
+            energy_produced = self._catalog.get(f"{self.name}.energy_sold")
+            self._catalog.set(f"{nature.name}.energy_produced", energy_produced)
+
+            energy_consumed = self._catalog.get(f"{self.name}.energy_bought")
+            self._catalog.set(f"{nature.name}.energy_consumed", energy_consumed)
 
     # ##########################################################################################
     # Utilities
@@ -54,3 +68,7 @@ class Agent:
     @property
     def contracts(self):  # shortcut for read-only
         return self._contracts.values()
+
+
+
+

@@ -4,9 +4,8 @@
 
 class Supervisor:
 
-    def __init__(self, name, filename, description):
+    def __init__(self, name, description):
         self._name = name  # the name of the supervisor  in the catalog
-        self._filename = filename  # the name of the file, who must be in usr.supervisors
         self.description = description  # a description of the objective/choice/process of the supervisor
 
         self._catalog = None  # the catalog in which some data are stored
@@ -19,6 +18,20 @@ class Supervisor:
         self._catalog = catalog  # linking the local grid with the catalog of world
 
     # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def reinitialize(self):
+        pass
+
+    def ascendant_phase(self, cluster):  # before communicating with the exterior, the cluster makes its local balances
+        # once the cluster has made made local arrangements, it publishes its needs (both in demand and in offer)
+        pass
+
+    def distribute_remote_energy(self, cluster):  # after having exchanged with the exterior, the cluster
+        pass
+
+    # ##########################################################################################
     # Utility
     # ##########################################################################################
 
@@ -26,7 +39,4 @@ class Supervisor:
     def name(self):  # shortcut for read-only
         return self._name
 
-    @property
-    def filename(self):  # shortcut for read-only
-        return self._filename
 

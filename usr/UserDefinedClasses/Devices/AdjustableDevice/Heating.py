@@ -5,6 +5,7 @@ from math import exp
 # Current packages
 from common.DeviceMainClasses import AdjustableDevice
 from common.Core import DeviceException
+from tools.UserClassesDictionary import user_classes_dictionary
 
 
 class Heating(AdjustableDevice):
@@ -14,6 +15,7 @@ class Heating(AdjustableDevice):
 
         self._G = None  # this value represents the quantity of energy to necessary to heat
         self._thermal_inertia = None  # this value represents the velocity with which the house
+        self._temperature_range = None
         self._repartition = None  # this dictionary contains the repartition of energy between the different energies used by the device
         # normally, the sum of these coefficients must be 1
 
@@ -22,11 +24,11 @@ class Heating(AdjustableDevice):
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-
-        # Creation of specific entries
-        for nature in self._natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+        pass
+        # # Creation of specific entries
+        # for nature in self._natures:
+        #     self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
+        #     self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     def _get_consumption(self):
 
@@ -38,8 +40,8 @@ class Heating(AdjustableDevice):
 
         # we randomize a bit in order to represent reality better
         start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        temperature_variation = self._catalog.get("gaussian")(data_user["temperature_variation"])  # modification of the temperature
         duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
+        temperature_variation = self._catalog.get("gaussian")(data_user["temperature_variation"])  # modification of the temperature
         for line in data_user["profile"]:
             line[0][0] += start_time_variation  # modification of the starting hour of activity for an usage of the device
             line[0][1] *= duration_variation  #  modification of the ending hour of activity for an usage of the device
@@ -83,33 +85,32 @@ class Heating(AdjustableDevice):
             temperature_range[1] += line[1][1]  # the nominal of temperature accepted by the agent
             temperature_range[2] += line[1][2]  # the maximum of temperature accepted by the agent
 
-            ratio = ((line[0][0] - beginning) % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+            ratio = (beginning % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+            if ratio <= 0:  # in case beginning - start is negative
+                ratio += 1
             for nature in self.natures:  # affecting a coeff of energy to each nature used inb the process
                 repartition[nature.name] = ratio * self._repartition[nature.name]
 
             self._user_profile.append([current_moment, repartition, temperature_range])  # adding the first time step when it will be turned on
 
             # intermediate time steps
-            duration_residue = line[0][1] - (line[0][0] - (line[0][0] // time_step) * time_step)  # the residue of the duration is the remnant time during which the device is operating
+            duration_residue = line[0][1] - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
+            self._user_profile[-1].append([])
             while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
                 current_moment += 1
                 duration_residue -= 1
-                self._user_profile.append([current_moment, 1])  # ... a new entry is created with a ratio of 1 (full use)
+                self._user_profile[-1][-1] = [current_moment, 1]  # ...a new entry is created with a ratio of 1 (full use)
 
             # final time step
             current_moment += 1
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
-            for nature in self.natures:  # affecting a coeff of energy to each nature used inb the process
+            for nature in self.natures:  # affecting a coeff of energy to each nature used in the process
                 repartition[nature.name] = ratio * self._repartition[nature.name]
 
             self._user_profile.append([current_moment, repartition, temperature_range])  # adding the final time step before it will be turned off
 
         # usage profile
-
-
         self._usage_profile = []  # creation of an empty usage_profile with all cases ready
-
-        print(self._user_profile)
 
         # removal of unused natures in the self._natures
         nature_to_remove = []
@@ -119,7 +120,9 @@ class Heating(AdjustableDevice):
         for nature in nature_to_remove:
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent
@@ -144,7 +147,7 @@ class Heating(AdjustableDevice):
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):  # method updating needs of the devices before the supervision
+    def update(self):  # method updating needs of the devices before the supervision
 
         consumption = {nature: [0, 0, 0] for nature in self._repartition}  # consumption which will be asked eventually
 
@@ -163,7 +166,7 @@ class Heating(AdjustableDevice):
                     time_step = self._catalog.get("time_step") * 3600
 
                     deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
-
+                    self._temperature_range = line[2]
                     deltaTmin = line[2][0] - current_outdoor_temperature
                     deltaTnom = line[2][1] - current_outdoor_temperature
                     deltaTmax = line[2][2] - current_outdoor_temperature
@@ -188,8 +191,6 @@ class Heating(AdjustableDevice):
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
         for nature in self._natures:
             energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
             energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
@@ -200,24 +201,23 @@ class Heating(AdjustableDevice):
 
                 if not (energy_wanted_min < energy_accorded < energy_wanted_max):  # if the energy given is not in the borders defined by the user
                     # be careful when the adjustable device is a producer, as the notion of maximum and minimum can create confusion (negative values)
-                    dissatisfaction = self._catalog.get(f"{self.agent.name}.dissatisfaction")
+
+                    Tnom = self._temperature_range[1]  # ideal temperature
+                    Tint = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")  # temperature inside
+
+                    Tmin = self._temperature_range[0]  # inferior accepted temperature
+                    TminDis = Tnom - 2*(Tnom - Tmin)  # inferior temperature at which maximal effort is reached
+                    Tmax = self._temperature_range[2]  # superior accepted temperature
+                    TmaxDis = Tnom + 2*(Tmax - Tnom)  # superior temperature at which maximal effort is reached
+
+
                     for nature in self.natures:
-
-                        Tnom = self._usage_profile[0][nature][1]  # ideal temperature
-                        Tint = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")  # temperature inside
-
-                        Tmin = self._usage_profile[0][nature][0]  # inferior accepted temperature
-                        TminDis = Tnom - 2*(Tnom - Tmin)  # inferior temperature at which maximal dissatisfaction is reached
-                        Tmax = self._usage_profile[0][nature][2]  # superior accepted temperature
-                        TmaxDis = Tnom + 2*(Tmax - Tnom)  # superior temperature at which maximal dissatisfaction is reached
-
-                        # dissatisfaction generated by a too cold temperature
-                        dissatisfaction += min(1, (Tint - TminDis)/(Tmin - TminDis))*(Tint < Tmin) \
-                                         + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # dissatisfaction generated by a too hot temperature
-
-                        dissatisfaction = self.natures[nature][1].dissatisfaction_modification(dissatisfaction)  # here, the contract may modify dissatisfaction
-                        self._catalog.set(f"{self.agent.name}.dissatisfaction", dissatisfaction)
-                        self._natures[nature][1].adjustable_dissatisfaction(self.agent.name, self.name, self.natures)
+                        # effort generated by a too cold temperature
+                        effort = min(1, (Tint - TminDis)/(Tmin - TminDis))*(Tint < Tmin) \
+                                         + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # effort generated by a too hot temperature
+                        effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
+                        effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort                        self._catalog.set(f"{self.agent.name}.effort", effort)
+                        self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)
 
         # recalculating the temperature
         current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
@@ -240,7 +240,10 @@ class Heating(AdjustableDevice):
 
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
+        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
+
+user_classes_dictionary[f"{Heating.__name__}"] = Heating
 
 
 
