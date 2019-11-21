@@ -750,9 +750,8 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", 0)  # the energy asked or proposed by the device
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", [[0, 0, 0], None])  # the energy asked or proposed by the device ant the price associated
+            # [ [Emin, Enom, Emax], price]
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
@@ -832,9 +831,7 @@ class Device:
             self._natures[nature][0].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -860,16 +857,16 @@ class Device:
                 energy_bought[nature.name] = energy_amount
                 energy_sold[nature.name] = 0
 
-            # balance at the cluster level
-            energy_sold_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_sold")
-            energy_bought_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_bought")
-            money_spent_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_spent")
-            money_earned_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_earned")
-
-            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_sold", energy_sold_cluster + energy_sold[nature.name])  # report the energy delivered by the device
-            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_bought", energy_bought_cluster + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_spent", money_spent_cluster)  # money spent by the cluster to buy energy during the round
-            self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_earned", money_earned_cluster)  # money earned by the cluster by selling energy during the round
+            # # balance at the cluster level
+            # energy_sold_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_sold")["inside"]
+            # energy_bought_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_bought")["inside"]
+            # money_spent_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_spent")
+            # money_earned_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_earned")
+            #
+            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_sold", energy_sold_cluster + energy_sold[nature.name])  # report the energy delivered by the device
+            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_bought", energy_bought_cluster + energy_bought[nature.name])  # report the energy consumed by the device
+            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_spent", money_spent_cluster)  # money spent by the cluster to buy energy during the round
+            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_earned", money_earned_cluster)  # money earned by the cluster by selling energy during the round
 
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")

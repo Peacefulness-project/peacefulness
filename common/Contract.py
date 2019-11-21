@@ -25,6 +25,9 @@ class Contract:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
+        self._catalog.add(f"{self.name}.{self.nature.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
+        self._catalog.add(f"{self.name}.{self.nature.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
+
         self._user_register()
 
         # Creation of specific entries
@@ -70,8 +73,8 @@ class Contract:
         return effort  # of the function is not modified, it does not change the initial value
 
     # priority management
-    def priority_modification(self, priority):  # this function modifies the priority according to the contract
-        return priority  # if the function is not modified, it does not change the initial value
+    def quantity_modification(self, quantity):  # this function modifies the priority according to the contract
+        return quantity  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################
     # Utilities

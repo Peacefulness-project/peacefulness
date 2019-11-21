@@ -120,9 +120,7 @@ class Heating(AdjustableDevice):
         for nature in nature_to_remove:
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent
@@ -184,16 +182,16 @@ class Heating(AdjustableDevice):
 
                     self._remaining_time = len(self._user_profile) - 1  # incrementing usage duration
 
-            for nature in self.natures:
-                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_minimum", consumption[nature.name][0])
-                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", consumption[nature.name][1])
-                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted_maximum", consumption[nature.name][2])
+            for nature in self.natures:  # publication of the consumption in the catalog
+                energy_wanted = [[consumption[nature.name][i] for i in range(3)], None]  # Emin, Enom, Emax (which are the same as it is urgent) and the price
+                energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted)  # the contract may modify the energy wanted
+                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)  # publication of the energy wanted in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
         for nature in self._natures:
-            energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
-            energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
+            energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")[0][0]  # minimum quantity of energy
+            energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")[0][2]  # maximum quantity of energy
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
             if energy_wanted_min:  # if the device is active
                 if self._remaining_time:  # decrementing the remaining time of use

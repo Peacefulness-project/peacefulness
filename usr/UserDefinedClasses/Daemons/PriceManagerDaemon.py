@@ -13,8 +13,8 @@ class PriceManagerDaemon(Daemon):
         self._selling_price = parameters["selling_price"]
 
     def _user_register(self):
-        self._catalog.add(f"{self._nature}.buying_price", self._buying_price)
-        self._catalog.add(f"{self._nature}.selling_price", self._selling_price)
+        self._catalog.add(f"{self.name}.{self._nature}.buying_price", self._buying_price)
+        self._catalog.add(f"{self.name}.{self._nature}.selling_price", self._selling_price)
 
     def _process(self):
         pass

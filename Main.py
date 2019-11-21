@@ -144,13 +144,13 @@ world.register_cluster(cluster_heat)  # registration
 # Contracts
 # this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
-classic_contract_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_elec", elec)
+classic_contract_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
 world.register_contract(classic_contract_elec)
 
-cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec)
+cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
 world.register_contract(cooperative_contract_elec)
 
-classic_contract_heat = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_heat", heat)
+classic_contract_heat = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.05})
 world.register_contract(classic_contract_heat)
 
 
@@ -205,10 +205,10 @@ world.register_device(e3)  # registration of a consumption device
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
-world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
-world.agent_generation(3, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
+# world.agent_generation(1, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
+# world.agent_generation(3, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+# world.agent_generation(3, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+# world.agent_generation(3, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
@@ -231,9 +231,11 @@ world.register_daemon(dissatisfaction_management)  # registration
 price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices for flat rate
 price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices fro flat rate
 price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("EDF_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
+price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("DHN_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
 world.register_daemon(price_elec_grid)  # registration
+world.register_daemon(price_heat_grid)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog

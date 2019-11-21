@@ -1,7 +1,7 @@
 {
   "device_consumption": {
     "medium_consumption": {
-      "usage_profile": [{"LVE": 1}, 0.05, 1200],
+      "usage_profile": [{"LVE": 1}, 1, 1200],
       "consumption_variation": 0.1,
       "max_power": {"LVE": 0.1}
     }
