@@ -21,7 +21,7 @@ class Agent:
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
         self._contracts[nature] = contract  # add a contract for an energy nature
-        self._catalog.add(f"{self.name}.{nature.name}.effort", 0)  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
+        self._catalog.add(f"{self.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
@@ -44,6 +44,10 @@ class Agent:
         self._catalog.set(f"{self.name}.energy_bought", 0)  # energy received by the agent during the current round
         self._catalog.set(f"{self.name}.energy_sold", 0)  # energy delivered by the agent during the current round
 
+        for nature in self.natures:  # effort management
+            cumulated_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["cumulated_effort"]
+            self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": cumulated_effort})  # current effort is reinitialized
+
     def make_balance(self):
 
         for nature in self.natures:  # balance on energy nature
@@ -56,6 +60,11 @@ class Agent:
     # ##########################################################################################
     # Utilities
     # ##########################################################################################
+
+    def add_effort(self, effort, nature):
+        current_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["current_round_effort"] + effort
+        cumulated_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["cumulated_effort"] + effort
+        self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": effort, "cumulated_effort": cumulated_effort})  # current effort is reinitialized
 
     @property
     def name(self):  # shortcut for read-only

@@ -752,7 +752,7 @@ class Device:
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", [[0, 0, 0], None])  # the energy asked or proposed by the device ant the price associated
             # [ [Emin, Enom, Emax], price]
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", 0)  # the energy delivered or accepted by the supervisor
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
@@ -847,8 +847,8 @@ class Device:
         energy_bought = dict()
 
         for nature in self._natures:
-            energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
-            self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
+            energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
+            # self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
             if energy_amount < 0:  # if the device consumes energy
                 energy_sold[nature.name] = energy_amount

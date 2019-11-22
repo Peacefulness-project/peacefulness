@@ -78,7 +78,8 @@ class AlwaysSatisfied(Supervisor):
         if quantities_given == quantities_asked:  # if each device got what it wanted
             for device_name in cluster.devices:  # quantities concerning devices
                 energy = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[0][2]  # the maximum quantity of energy asked
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", energy)
+                price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]  # the price of the energy asked
+                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
 
                 # balances
                 if energy > 0:
@@ -86,8 +87,7 @@ class AlwaysSatisfied(Supervisor):
                     price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                     money_earned_outside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy
-                else:
-                    print(self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted"))
+                elif energy < 0:
                     price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]
                     price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                     money_spent_outside += - energy * price  # money spent by buying energy from the device
@@ -110,14 +110,15 @@ class AlwaysSatisfied(Supervisor):
 
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
-            raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
+            pass
+            # raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
 
         # updates the balances
-        self._catalog.set(f"{self.name}.{cluster.nature.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
-        self._catalog.set(f"{self.name}.{cluster.nature.name}.energy_sold", {"inside": energy_sold_outside, "outside": energy_sold_inside})
+        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
+        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_sold", {"inside": energy_sold_outside, "outside": energy_sold_inside})
 
-        self._catalog.set(f"{self.name}.{cluster.nature.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
-        self._catalog.set(f"{self.name}.{cluster.nature.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
+        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
 
 
 user_classes_dictionary[f"{AlwaysSatisfied.__name__}"] = AlwaysSatisfied

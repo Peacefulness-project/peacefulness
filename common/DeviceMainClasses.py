@@ -91,7 +91,7 @@ class NonControllableDevice(Device):
 
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted = [[consumption[nature.name] for i in range(3)], None]  # Emin, Enom, Emax (which are the same as it is urgent) and the price
-            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted)
+            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted, self.agent.name)
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
@@ -102,12 +102,11 @@ class NonControllableDevice(Device):
         energy_accorded = dict()
         for nature in self.natures:
             energy_wanted[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
-            energy_accorded[nature] = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])
+            energy_accorded[nature] = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] for nature in self.natures])
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy...
                 effort = 42  # j'ai mis 42 en attendant qu'on se mette d'accord
-                effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
-                effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
-                self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)  # effort increments
+                effort = self.natures[nature][1].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
+                self.agent.add_effort(effort, nature)  # effort increments
 
     # ##########################################################################################
     # Utility
@@ -274,9 +273,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._natures[nature][0].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-            self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -330,14 +327,14 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted = [[consumption[nature.name][i] for i in range(3)], None]  # Emin, Enom, Emax (which are the same as it is urgent) and the price
-            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted)  # the contract may modify the energy wanted
+            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted, self.agent.name)  # the contract may modify the energy wanted
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)  # publication of the energy wanted in the catalog
 
     def _user_react(self):
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
         energy_wanted = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")[0][1] for nature in self.natures])  # total energy wanted by the device
-        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded") for nature in self.natures])  # total energy accorded to the device
+        energy_accorded = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] for nature in self.natures])  # total energy accorded to the device
 
         if self._remaining_time and energy_accorded < energy_wanted:  # if the device has started and not been served, then it has been interrupted
             self._interruption_data[0] = True  # it is flagged as "interrupted"
@@ -358,9 +355,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             if energy_min > energy_accorded:  # if the device is inactive meanwhile its priority is 1
                 for nature in self.natures:
                     effort = 1
-                    effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
-                    effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
-                    self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)  # effort increments
+                    effort = self.natures[nature][1].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
+                    self.agent.add_effort(effort, nature)  # effort increments
 
     # ##########################################################################################
     # Utility
@@ -504,16 +500,16 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         energy_accorded = dict()
         for nature in self._natures:
             energy_wanted[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
-            energy_accorded[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+            energy_accorded[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
 
             if energy_wanted[nature] != energy_accorded[nature]:  # if it is not the nominal wanted energy, then it creates effort
                 energy_wanted_min = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_minimum")  # minimum quantity of energy
                 energy_wanted_max = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted_maximum")  # maximum quantity of energy
 
                 effort = min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # effort increases
-                effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
+                effort = self.natures[nature][1].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                 effort = self._catalog.get(f"{self.agent.name}.{nature}.effort") + effort
-                self._catalog.set(f"{self.agent.name}.{nature}.effort", effort)  # effort increments
+                self.agent.add_effort(effort, nature)  # effort increments
 
                 self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
 
@@ -616,7 +612,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted = [[consumption[nature.name][i] for i in range(3)], None]  # Emin, Enom, Emax (which are the same as it is urgent) and the price
-            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted)  # the contract may modify the energy wanted
+            energy_wanted = self.natures[nature][1].quantity_modification(energy_wanted, self.agent.name)  # the contract may modify the energy wanted
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)  # publication of the energy wanted in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
@@ -628,7 +624,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         energy_accorded = dict()
         for nature in self._natures:
             energy_wanted[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")[0][1]  # the nominal quantity of energy wanted
-            energy_accorded[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+            energy_accorded[nature] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
 
             if energy_wanted != energy_accorded:  # if it is not the nominal wanted energy, then it creates effort
                 for nature in self.natures:
@@ -639,7 +635,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                         effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
                         effort = self.natures[nature][1].effort_modification(effort)  # here, the contract may modify effort
                         effort = self._catalog.get(f"{self.agent.name}.{nature.name}.effort") + effort
-                        self._catalog.set(f"{self.agent.name}.{nature.name}.effort", effort)
+                        self.agent.add_effort(effort, nature)  # effort increments
 
             for nature in self._natures:
                 self._demand[nature.name] -= energy_accorded[nature]  # the energy which still has to be served

@@ -119,6 +119,11 @@ world.register_nature(heat)  # registration
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
 
+# and then we create a third who represents the grid
+cluster_name = "Enedis"
+cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+world.register_cluster(cluster_grid)  # registration
+
 # here we create a first cluster dedicated to electricity
 cluster_name = "elec_mesh"
 sup_cluster_elec = Cluster(cluster_name, elec, supervisor)
@@ -128,11 +133,6 @@ world.register_cluster(sup_cluster_elec)  # registration
 cluster_name = "general_cluster"
 cluster_elec = Cluster(cluster_name, elec, supervisor, sup_cluster_elec)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
-
-# and then we create a third who represents the grid
-cluster_name = "Enedis"
-cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
-world.register_cluster(cluster_grid)  # registration
 
 # here we create another cluster dedicated to heat
 cluster_name = "Les_tuyaux_a_toto"

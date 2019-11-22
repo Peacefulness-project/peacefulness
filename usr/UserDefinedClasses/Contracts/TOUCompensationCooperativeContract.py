@@ -13,8 +13,6 @@ class TOUCompensationCooperativeContract(Contract):
                            "and to define a range of energy instead of a nominal energy for adjustable devices." \
                            "Meanwhile, she gets money when it furnishes an effort."
 
-        self._accumulated_effort = 0
-
         self._parameters = [parameters["buying_price"], parameters["selling_price"], parameters["effort_value"]]
 
     # ##########################################################################################
@@ -30,23 +28,21 @@ class TOUCompensationCooperativeContract(Contract):
     # ##########################################################################################
 
     # billing
-    def _billing_buying(self, energy_amount, agent_name):
+    def _billing_buying(self, quantity):
         price = self._catalog.get(f"{self.name}.{self.nature.name}.buying_price")  # getting the price per kW.h
-        money = self._catalog.get(f"{agent_name}.money_spent") + price * energy_amount  # updating the amount of money spent/earned by the agent
-        self._catalog.set(f"{agent_name}.money_spent", money)  # stores the new value
 
-    def _billing_selling(self, energy_amount, agent_name):
+        return price
+
+    def _billing_selling(self, quantity):
         price = self._catalog.get(f"{self.name}.{self.nature.name}.selling_price")  # getting the price per kW.h
-        money = self._catalog.get(f"{agent_name}.money_earned") + price * energy_amount  # updating the amount of money spent/earned by the agent
-        self._catalog.set(f"{agent_name}.money_earned", money)  # stores the new value
+
+        return price
 
     def _user_billing(self, agent_name):  # here, the user_billing is used to compensate the agent for its effort
-        current_effort = - self._accumulated_effort
-        self._accumulated_effort = self._catalog.get(f"{agent_name}.effort")  # the new value of aggregated effort
-        current_effort += self._accumulated_effort
-
+        current_effort = self._catalog.get(f"{agent_name}.{self.nature.name}.effort")["current_round_effort"]  # the new value of aggregated effort
         compensation = self._parameters[0] * current_effort  # calculation of the compensation in money accorded by the contract
-        money = self._catalog.get(f"{agent_name}.money_spent") + compensation
+
+        money = self._catalog.get(f"{agent_name}.money_spent") - compensation  # the compensation reduces the bill of the agent
         self._catalog.set(f"{agent_name}.money_spent", money)  # stores the new value
 
 

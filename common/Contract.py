@@ -52,28 +52,29 @@ class Contract:
         self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
 
     # billing
-    def _billing(self, energy_amount, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
-        if energy_amount > 0:
-            self._billing_buying(energy_amount, agent_name)
-        elif energy_amount < 0:
-            self._billing_selling(energy_amount, agent_name)
+    def _billing(self, quantity, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
+        if quantity[2] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
+            self._billing_buying(quantity[2])
+        elif quantity[2] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
+            self._billing_selling(quantity[2])
         self._user_billing(agent_name)
 
-    def _billing_buying(self, energy_amount, agent_name):  # the way of billing an agent buying energy. It is user-defined
-        pass
+    def _billing_buying(self, quantity):  # the way of billing an agent buying energy. It is user-defined
+        return None
 
-    def _billing_selling(self, energy_amount, agent_name):  # the way of billing an agent selling energy. It is user-defined
-        pass
+    def _billing_selling(self, quantity):  # the way of billing an agent selling energy. It is user-defined
+        return None
 
     def _user_billing(self, agent_name):  # here, the user can add specific operations
         pass
 
     # effort management
-    def effort_modification(self, effort):  # this function modifies effort according to the contract
+    def effort_modification(self, effort, agent_name):  # this function modifies effort according to the contract
         return effort  # of the function is not modified, it does not change the initial value
 
     # priority management
-    def quantity_modification(self, quantity):  # this function modifies the priority according to the contract
+    def quantity_modification(self, quantity, agent_name):  # this function modifies the priority according to the contract
+        quantity[1] = self._billing(quantity[0], agent_name)
         return quantity  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################
