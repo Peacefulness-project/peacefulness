@@ -203,7 +203,7 @@ class World:
             raise WorldException(f"{device._agent.name} does not exist")
 
         for nature in device.natures:  # adding the device name to its cluster list of device
-            device._natures[nature][0]._devices.append(device.name)
+            device._natures[nature]["cluster"]._devices.append(device.name)
 
         self._devices[device.name] = device  # registering the device in the dedicated dictionary
         device._register(self._catalog)  # registering of the device in the catalog
@@ -718,16 +718,16 @@ class Device:
             if cluster.nature in self.natures:
                 raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
             else:
-                self._natures[cluster.nature] = [None, None]
-                self._natures[cluster.nature][0] = cluster
+                self._natures[cluster.nature] = {"cluster": None, "contract": None}
+                self._natures[cluster.nature]["cluster"] = cluster
 
         contracts = into_list(contracts)  # make it iterable
         for contract in contracts:
-            if self.natures[contract.nature][1]:
+            if self.natures[contract.nature]["contract"]:
                 raise DeviceException(f"a contract has already been defined for nature {contract.nature}")
             else:
                 try:  # "try" allows to test if self._natures[nature of the contract] was created in the cluster definition step
-                    self._natures[contract.nature][1] = contract  # add the contract
+                    self._natures[contract.nature]["contract"] = contract  # add the contract
                 except:
                     raise DeviceException(f"a cluster is missing for nature {contract.nature}")
 
@@ -750,7 +750,7 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", [[0, 0, 0], None])  # the energy asked or proposed by the device ant the price associated
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_min": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
             # [ [Emin, Enom, Emax], price]
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
 
@@ -880,15 +880,15 @@ class Device:
             self._catalog.set(f"{nature.name}.money_earned", money_earned_nature)  # money earned by the cluster by selling energy during the round
 
             # balance at the contract level
-            energy_sold_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_sold")
-            energy_bought_contract = self._catalog.get(f"{self.natures[nature][1].name}.energy_bought")
-            money_spent_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_spent")
-            money_earned_contract = self._catalog.get(f"{self.natures[nature][1].name}.money_earned")
+            energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
+            energy_bought_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_bought")
+            money_spent_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.money_spent")
+            money_earned_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.money_earned")
 
-            self._catalog.set(f"{self.natures[nature][1].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
-            self._catalog.set(f"{self.natures[nature][1].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{self.natures[nature][1].name}.money_spent", money_spent_contract)  # money spent by the contract to buy energy during the round
-            self._catalog.set(f"{self.natures[nature][1].name}.money_earned", money_earned_contract)  # money earned by the contract by selling energy during the round
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract)  # money spent by the contract to buy energy during the round
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract)  # money earned by the contract by selling energy during the round
 
         # balance at the agent level
         energy_sold_agent = self._catalog.get(f"{self.agent.name}.energy_sold")
@@ -907,6 +907,48 @@ class Device:
     # ##########################################################################################
     # Utility
     # ##########################################################################################
+
+    # getter/setter for the accorded energy
+    def get_energy_accorded_quantity(self, nature):  # return the quantity of energy accorded to the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
+
+    def set_energy_accorded_quantity(self, nature, value):  # set the quantity of energy accorded to the device during the round
+        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+        energy_accorded["quantity"] = value
+        self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", energy_accorded)
+
+    def get_energy_accorded_price(self, nature):  # return the price of the energy accorded to the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
+
+    def set_energy_accorded_price(self, nature, value):  # set the price of the energy accorded to the device during the round
+        energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+        energy_accorded["price"] = value
+        self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", energy_accorded)
+        
+    # getter/setter for the wanted energy
+    def get_energy_wanted_min(self, nature):  # return the minimum quantity of energy wanted by the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["minimum"]
+
+    def get_energy_wanted_nom(self, nature):  # return the nominal quantity of energy wanted by the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["nominal"]
+
+    def get_energy_wanted_max(self, nature):  # return the maximum quantity of energy wanted by the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["maximum"]
+
+    def get_energy_wanted_price(self, nature):  # return the price for the quantity of energy wanted by the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["price"]
+
+    def set_energy_wanted_quantity(self, nature, Emin, Enom, Emax):  # set the quantity of energy wanted by the device during the round
+        energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+        energy_wanted["minimum"] = Emin
+        energy_wanted["nominal"] = Enom
+        energy_wanted["maximum"] = Emax
+        self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)
+
+    def set_energy_wanted_price(self, nature, value):  # set the price for the quantity of energy wanted by the device during the round
+        energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+        energy_wanted["price"] = value
+        self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)
 
     @property
     def name(self):  # shortcut for read-only

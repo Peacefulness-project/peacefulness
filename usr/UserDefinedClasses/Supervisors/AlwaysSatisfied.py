@@ -84,6 +84,7 @@ class AlwaysSatisfied(Supervisor):
                 # balances
                 if energy > 0:
                     price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]
+                    # print(price)
                     price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                     money_earned_outside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy

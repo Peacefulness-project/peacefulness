@@ -64,7 +64,7 @@ class Agent:
     def add_effort(self, effort, nature):
         current_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["current_round_effort"] + effort
         cumulated_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["cumulated_effort"] + effort
-        self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": effort, "cumulated_effort": cumulated_effort})  # current effort is reinitialized
+        self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": current_effort, "cumulated_effort": cumulated_effort})
 
     @property
     def name(self):  # shortcut for read-only
