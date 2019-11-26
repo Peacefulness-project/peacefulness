@@ -21,9 +21,6 @@ class AlwaysSatisfied(Supervisor):
         for device_name in cluster.devices:
             Emax = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_maximum"]  # maximal quantity of energy wanted by the device
 
-            if Emax == 0:  # if the device is inactive
-                break  # we do nothing and we go to the other device
-
             energy_difference += Emax  # incrementing the total
             cluster.quantities[device_name] = [Emax, sign(Emax) * inf, 0, 0]  # the local quantities are updated in the cluster dedicated dictionary
 
@@ -40,83 +37,102 @@ class AlwaysSatisfied(Supervisor):
         self._catalog.set(f"{cluster.name}.{cluster.nature.name}.quantities_asked", quantities_and_prices)
 
     def distribute_remote_energy(self, cluster):  # after having exchanged with the exterior, the cluster distributes the energy among its devices and clusters
-        quantities_asked = 0
-        quantities_given = 0
+        print(cluster.name)
+        # preparing balances
+        quantities_asked = {"bought": 0, "sold": 0}
+        quantities_given = {"bought": 0, "sold": 0}
 
-        energy_bought_outside = 0
-        energy_sold_outside = 0
-        energy_bought_inside = 0
-        energy_sold_inside = 0
+        energy_bought_outside = 0  # the absolute value of energy bought outside
+        energy_sold_outside = 0  # the absolute value of energy sold outside
+        energy_bought_inside = 0  # the absolute value of energy bought inside
+        energy_sold_inside = 0  # the absolute value of energy sold inside
 
+        money_earned_outside = 0  # the absolute value of money earned outside
+        money_spent_outside = 0  # the absolute value of money spent outside
+        money_earned_inside = 0  # the absolute value of money earned inside
+        money_spent_inside = 0  # the absolute value of money spent inside
 
-        # self._catalog.add(f"{self.name}.{self.nature.name}.energy_bought", 0)  # accounts for the energy bought by the cluster during the round
-        # self._catalog.add(f"{self.name}.{self.nature.name}.energy_sold", 0)  # accounts for the energy sold by the cluster during the round
+        # counting the offers and the demands at its own level
+        # what was asked
+        for couple in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_asked"):
+            if couple[0] > 0:  # energy the aggregator wanted to buy
+                quantities_asked["bought"] += couple[0]  # the quantity of energy asked the cluster wanted to buy
+            elif couple[0] < 0:  # energy the aggregator wanted to sell
+                quantities_asked["sold"] += couple[0]  # the quantity of energy asked the cluster wanted to sell
 
-        money_earned_outside = 0
-        money_spent_outside = 0
-        money_earned_inside = 0
-        money_spent_inside = 0
+        # what is given
+        for couple in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_given"):
+            if couple[0] > 0:  # energy bought by the aggregator
+                quantities_given["bought"] += couple[0]  # the quantity of energy sold to the cluster
 
-        for element in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_asked"):
-            quantities_asked += element[0]  # the quantity of energy asked
+                # making balances
+                # energy bought
+                energy_bought_outside += quantities_given["bought"]  # the absolute value of energy bought outside
+                money_spent_outside += quantities_given["bought"] * couple[1]  # the absolute value of money spent outside
 
-            # making balances
-            energy_bought_outside += quantities_asked
-            price = max(element[1], 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-            # normalement, prix donne par etage du dessus
-            money_spent_outside += - quantities_asked * price
+            elif couple[0] < 0:  # energy sold by the aggregator
+                quantities_given["sold"] += couple[0]  # the quantity of energy bought by the cluster
 
-        for element in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_given"):
-            quantities_given += element[0]  # the quantity of energy given
+                # making balances
+                # energy sold
+                energy_sold_outside -= quantities_given["sold"]  # the absolute value of energy sold outside
+                money_earned_outside -= quantities_given["sold"] * couple[1]  # the absolute value of money earned outside
 
-            # making balances
-            energy_sold_outside += quantities_given
-            price = min(element[0], 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-            # normalement, prix donne par etage du dessus
-            money_earned_outside += quantities_given * price
+        # energy distribution and billing
+        print(f"given catalog:{self._catalog.get(f'{cluster.name}.{cluster.nature.name}.quantities_given')} local:{quantities_given}")
+        print(f"asked catalog:{self._catalog.get(f'{cluster.name}.{cluster.nature.name}.quantities_asked')} local:{quantities_asked}")
+        if quantities_given == quantities_asked:  # if the cluster got what it wanted
 
-        if quantities_given == quantities_asked:  # if each device got what it wanted
-            for device_name in cluster.devices:  # quantities concerning devices
+            # quantities concerning devices
+            for device_name in cluster.devices:
                 energy = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
                 price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]  # the price of the energy asked
+
                 self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
 
                 # balances
-                if energy > 0:
+                if energy > 0:  # energy bought
                     price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
-                    # print(price)
-                    price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-                    money_earned_outside += energy * price  # money earned by selling energy to the device
-                    energy_sold_inside += energy
-                elif energy < 0:
+                    money_earned_inside += energy * price  # money earned by selling energy to the device
+                    energy_sold_inside += energy  # the absolute value of energy sold inside
+                elif energy < 0:  # energy sold
                     price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
-                    price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-                    money_spent_outside += - energy * price  # money spent by buying energy from the device
-                    energy_bought_inside += energy
+                    money_spent_inside -= energy * price  # money spent by buying energy from the device
+                    energy_bought_inside -= energy  # the absolute value of energy bought inside
 
-            for managed_cluster in cluster.subclusters:  # quantities concerning clusters
-                quantities_and_prices = self._catalog.get(f"{managed_cluster.name}.{cluster.nature.name}.quantities_asked")
-                self._catalog.set(f"{managed_cluster.name}.{cluster.nature.name}.quantities_given", quantities_and_prices)
+            # quantities concerning subclusters
+            for subcluster in cluster.subclusters:  # quantities concerning clusters
+                quantities_and_prices = self._catalog.get(f"{subcluster.name}.{cluster.nature.name}.quantities_asked")
+                self._catalog.set(f"{subcluster.name}.{cluster.nature.name}.quantities_given", quantities_and_prices)
 
                 # balances
                 for couple in quantities_and_prices:  # for each couple energy/price
-                    if couple[0] > 0:
-                        price = min(42, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-                        money_earned_outside += couple[1] * price  # money earned by selling energy to the device
-                        energy_sold_inside += couple[0]
-                    elif couple[0] < 0:
-                        price = min(42, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
-                        money_spent_outside += - couple[1] * price  # money spent by buying energy from the device
-                        energy_bought_inside += couple[0]
-
+                    if couple[0] > 0:  # energy bought
+                        grid_price = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")  # the price at which the grid sells energy
+                        max_price = grid_price + abs(grid_price)/2  # maximum price the cluster is allowed to bill
+                        couple[1] = min(couple[1], max_price)  # maximum price is artificially limited
+                        money_earned_inside += couple[0] * couple[1]  # money earned by selling energy to the subcluster
+                        energy_sold_inside += couple[0]  # the absolute value of energy sold inside
+                    elif couple[0] < 0:  # energy sold
+                        grid_price = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")  # the price at which the grid buys energy
+                        min_price = grid_price - abs(grid_price)/2  # minimum price the cluster is allowed to bill
+                        couple[1] = max(couple[1], min_price)  # minimum price is artificially limited
+                        money_spent_inside -= couple[0] * couple[1]  # money spent by buying energy from the subcluster
+                        energy_bought_inside -= couple[0]  # the absolute value of energy bought inside
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
             pass
             # raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
 
+        print(f"from outside  money earned:{money_earned_outside}/spent:{money_spent_outside}, energy bought:{energy_bought_outside}/sold:{energy_sold_outside}")
+        print(f"from inside  money earned:{money_earned_inside}/spent:{money_spent_inside},  energy bought:{energy_bought_inside}/sold:{energy_sold_inside}")
+        print(f"sum          money:{money_earned_outside - money_spent_outside + money_earned_inside - money_spent_inside},"
+              f" energy:{energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside}")
+        print("\n")
+
         # updates the balances
         self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_sold", {"inside": energy_sold_outside, "outside": energy_sold_inside})
+        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
 
         self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
         self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})

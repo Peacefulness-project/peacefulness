@@ -25,7 +25,7 @@
   },
 
   "contracts": {
-    "LVE":  ["TOUEgoistContract", {"selling_price": 0.05, "buying_price": 0.15}]
+    "LVE":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.07}]
   }
 
 }

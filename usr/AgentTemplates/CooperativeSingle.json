@@ -22,7 +22,7 @@
   },
 
   "contracts": {
-    "LVE":  ["TOUCooperativeContract", {"selling_price": 0.05, "buying_price": 0.15}]
+    "LVE":  ["TOUCooperativeContract", {"selling_price": 0.12, "buying_price": 0.07}]
   }
 
 }
