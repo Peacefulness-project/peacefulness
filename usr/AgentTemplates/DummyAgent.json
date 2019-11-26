@@ -8,8 +8,8 @@
   },
 
   "contracts": {
-    "LVE":  ["TOUEgoistContract", {}],
-    "Heat":  ["TOUEgoistContract", {}]
+    "LVE":  ["TOUEgoistContract", {"selling_price": 0.05, "buying_price": 0.15}],
+    "Heat":  ["TOUEgoistContract", {"selling_price": 0.05, "buying_price": 0.15}]
   }
 
 }

@@ -25,10 +25,6 @@ class Heating(AdjustableDevice):
 
     def _user_register(self):  # make the initialization operations specific to the device
         pass
-        # # Creation of specific entries
-        # for nature in self._natures:
-        #     self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-        #     self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
 
     def _get_consumption(self):
 
@@ -70,7 +66,6 @@ class Heating(AdjustableDevice):
         # G coefficient
         self._thermal_inertia = data_device["usage_profile"][2]  # this value represents the velocity with which the house
 
-
         # user profile
         temperature_range = [0, 0, 0]  # temperature contains the min temperature, the nominal temperature and the max temperature
         repartition = dict()
@@ -104,7 +99,7 @@ class Heating(AdjustableDevice):
             # final time step
             current_moment += 1
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
-            for nature in self.natures:  # affecting a coeff of energy to each nature used in the process
+            for nature in self.natures:  # affecting a coef of energy to each nature used in the process
                 repartition[nature.name] = ratio * self._repartition[nature.name]
 
             self._user_profile.append([current_moment, repartition, temperature_range])  # adding the final time step before it will be turned off
@@ -147,7 +142,8 @@ class Heating(AdjustableDevice):
 
     def update(self):  # method updating needs of the devices before the supervision
 
-        energy_wanted = {nature: [0, 0, 0] for nature in self._repartition}  # consumption which will be asked eventually
+        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
+                         for nature in self._repartition}  # Emin, Enom, Emax and the price
 
         if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
 
@@ -171,21 +167,18 @@ class Heating(AdjustableDevice):
 
                     for nature in energy_wanted:
                         # min power calculation:
-                        energy_wanted[nature][0] = time_step / self._thermal_inertia / self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature][0] = min(energy_wanted[nature][2] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                        energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia / self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        energy_wanted[nature]["energy_minimum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                         # nominal power calculation:
-                        energy_wanted[nature][1] = time_step / self._thermal_inertia / self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature][1] = min(energy_wanted[nature][2] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                        energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia / self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        energy_wanted[nature]["energy_nominal"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                         # max power calculation:
-                        energy_wanted[nature][2] = time_step / self._thermal_inertia / self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature][2] = min(energy_wanted[nature][2] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                        energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia / self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
+                        energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
 
                     self._remaining_time = len(self._user_profile) - 1  # incrementing usage duration
 
-            for nature in self.natures:  # publication of the consumption in the catalog
-                # energy_wanted = [[consumption[nature.name][i] for i in range(3)], None]  # Emin, Enom, Emax (which are the same as it is urgent) and the price
-                # energy_wanted = self.natures[nature]["contract"].quantity_modification(energy_wanted, self.agent.name)  # the contract may modify the energy wanted
-                self.set_energy_wanted_quantity(nature, energy_wanted[nature][0], energy_wanted[nature][1], energy_wanted[nature][2])  # publication of the energy wanted in the catalog
+            self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
@@ -210,7 +203,7 @@ class Heating(AdjustableDevice):
 
                     for nature in self.natures:
                         # effort generated by a too cold temperature
-                        effort = min(1, (TminDis- Tint)/(Tmin - TminDis))*(Tint < Tmin) \
+                        effort = min(1, (TminDis - Tint)/(Tmin - TminDis))*(Tint < Tmin) \
                                          + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # effort generated by a too hot temperature
 
                         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort

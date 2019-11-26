@@ -750,7 +750,7 @@ class Device:
         self._catalog = catalog  # linking the catalog to the device
 
         for nature in self.natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_min": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
             # [ [Emin, Enom, Emax], price]
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
 
@@ -828,10 +828,18 @@ class Device:
                 nature_to_remove.append(nature)
 
         for nature in nature_to_remove:
-            self._natures[nature][0].devices.remove(self.name)
+            self._natures[nature]["cluster"].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+
+    def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
+        for nature in self.natures:  # publication of the consumption in the catalog
+            energy_wanted[nature.name] = self.natures[nature]["contract"].quantity_modification(energy_wanted[nature.name], self.agent.name)  # the contract may modify the energy wanted
+            self.set_energy_wanted_quantity(nature, energy_wanted[nature.name]["energy_minimum"],
+                                            energy_wanted[nature.name]["energy_nominal"],
+                                            energy_wanted[nature.name]["energy_maximum"])  # publication of the energy wanted in the catalog
+            self.set_energy_wanted_price(nature, energy_wanted[nature.name]["price"])  # publication of the price of the energy wanted in the catalog
 
     # ##########################################################################################
     # Dynamic behavior
@@ -927,22 +935,22 @@ class Device:
         
     # getter/setter for the wanted energy
     def get_energy_wanted_min(self, nature):  # return the minimum quantity of energy wanted by the device during the round
-        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["minimum"]
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_minimum"]
 
     def get_energy_wanted_nom(self, nature):  # return the nominal quantity of energy wanted by the device during the round
-        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["nominal"]
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_nominal"]
 
     def get_energy_wanted_max(self, nature):  # return the maximum quantity of energy wanted by the device during the round
-        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["maximum"]
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
 
     def get_energy_wanted_price(self, nature):  # return the price for the quantity of energy wanted by the device during the round
         return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["price"]
 
     def set_energy_wanted_quantity(self, nature, Emin, Enom, Emax):  # set the quantity of energy wanted by the device during the round
         energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
-        energy_wanted["minimum"] = Emin
-        energy_wanted["nominal"] = Enom
-        energy_wanted["maximum"] = Emax
+        energy_wanted["energy_minimum"] = Emin
+        energy_wanted["energy_nominal"] = Enom
+        energy_wanted["energy_maximum"] = Emax
         self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted)
 
     def set_energy_wanted_price(self, nature, value):  # set the price for the quantity of energy wanted by the device during the round

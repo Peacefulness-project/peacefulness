@@ -38,11 +38,11 @@ class TOUErasableContract(Contract):
 
     # quantity management
     def quantity_modification(self, quantity, agent_name):
-        quantity[0][0] = 0  # set the minimal quantity of energy to 0
-        quantity[0][1] = min(quantity[0][1]*0.95, quantity[0][2])  # this contract forbids the quantity to be urgent
+        quantity["energy_minimum"] = 0  # set the minimal quantity of energy to 0
+        quantity["energy_nominal"][1] = min(quantity["energy_nominal"]*0.95, quantity["energy_maximum"])  # this contract forbids the quantity to be urgent
         # it means that the devices will never be sure to be served
 
-        quantity[1] = self._billing(quantity[0], agent_name)
+        quantity["price"] = self._billing(quantity, agent_name)
 
         return quantity
 

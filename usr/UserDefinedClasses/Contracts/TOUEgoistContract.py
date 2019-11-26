@@ -35,11 +35,11 @@ class TOUEgoistContract(Contract):
 
     # quantity management
     def quantity_modification(self, quantity, agent_name):
-        Emax = quantity[0][2]  # it is the maximal quantity of energy asked/received
-        quantity[0][0] = Emax  # the minimal quantity of energy is put at the maximum to mean that it is urgent
-        quantity[0][1] = Emax  # the nominal quantity of energy is put at the maximum to mean that it is urgent
+        Emax = quantity["energy_maximum"]  # it is the maximal quantity of energy asked/received
+        quantity["energy_minimum"] = Emax  # the minimal quantity of energy is put at the maximum to mean that it is urgent
+        quantity["energy_nominal"] = Emax  # the nominal quantity of energy is put at the maximum to mean that it is urgent
 
-        quantity[1] = self._billing(quantity[0], agent_name)  # attributing a price to the quantity
+        quantity["price"] = self._billing(quantity, agent_name)  # attributing a price to the quantity
 
         return quantity  # this contract forces the priority to 1, which means it is always urgent
 

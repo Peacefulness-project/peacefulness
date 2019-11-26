@@ -53,10 +53,10 @@ class Contract:
 
     # billing
     def _billing(self, quantity, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
-        if quantity[2] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
-           price = self._billing_buying(quantity[2])
-        elif quantity[2] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
-            price = self._billing_selling(quantity[2])
+        if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
+           price = self._billing_buying(quantity["energy_maximum"])
+        elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
+            price = self._billing_selling(quantity["energy_maximum"])
         self._user_billing(agent_name)
 
         try:
@@ -79,7 +79,7 @@ class Contract:
 
     # quantities management
     def quantity_modification(self, quantity, agent_name):  # this function modifies the priority according to the contract
-        quantity[1] = self._billing(quantity[0], agent_name)
+        quantity["price"] = self._billing(quantity, agent_name)
         return quantity  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################

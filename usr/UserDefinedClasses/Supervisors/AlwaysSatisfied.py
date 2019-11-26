@@ -19,7 +19,7 @@ class AlwaysSatisfied(Supervisor):
 
         # getting back the needs for every device --> standard probably
         for device_name in cluster.devices:
-            Emax = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[0][2]  # maximal quantity of energy wanted by the device
+            Emax = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_maximum"]  # maximal quantity of energy wanted by the device
 
             if Emax == 0:  # if the device is inactive
                 break  # we do nothing and we go to the other device
@@ -77,19 +77,19 @@ class AlwaysSatisfied(Supervisor):
 
         if quantities_given == quantities_asked:  # if each device got what it wanted
             for device_name in cluster.devices:  # quantities concerning devices
-                energy = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[0][2]  # the maximum quantity of energy asked
-                price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]  # the price of the energy asked
+                energy = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
+                price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]  # the price of the energy asked
                 self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
 
                 # balances
                 if energy > 0:
-                    price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]
+                    price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
                     # print(price)
                     price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                     money_earned_outside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy
                 elif energy < 0:
-                    price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")[1]
+                    price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
                     price = min(price, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                     money_spent_outside += - energy * price  # money spent by buying energy from the device
                     energy_bought_inside += energy
@@ -104,7 +104,7 @@ class AlwaysSatisfied(Supervisor):
                         price = min(42, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                         money_earned_outside += couple[1] * price  # money earned by selling energy to the device
                         energy_sold_inside += couple[0]
-                    else:
+                    elif couple[0] < 0:
                         price = min(42, 1)  # TODO: il faut trouver un truc pour éviter les prix inf
                         money_spent_outside += - couple[1] * price  # money spent by buying energy from the device
                         energy_bought_inside += couple[0]
