@@ -271,6 +271,11 @@ logger2.add("Heating1.Heat.energy_wanted")
 logger2.add("Heating1.Heat.energy_accorded")
 
 
+# datalogger for balances
+# this datalogger puts all the balances, i.e for each agent, contract, nature, cluster and the total
+agent_balances_logger = Datalogger("agent_balances_logger", "agent_balances.txt", 1, 1)
+
+
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS

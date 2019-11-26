@@ -49,6 +49,50 @@ class Catalog:
         print(little_separation)
         for key in self._data:
             print(f"{key} = {self.get(key)}")
+    
+    # ##########################################################################################
+    # Dictionaries direct access
+    # ##########################################################################################            
+
+    @property
+    def forecasters(self):  # for read only
+        return self._data["dictionaries"]["forecasters"]
+
+    @property
+    def supervisors(self):  # for read only
+        return self._data["dictionaries"]["supervisors"]
+
+    @property
+    def natures(self):  # for read only
+        return self._data["dictionaries"]["natures"]
+
+    @property
+    def clusters(self):  # for read only
+        return self._data["dictionaries"]["clusters"]
+
+    @property
+    def exchange_nodes(self):  # for read only
+        return self._data["dictionaries"]["exchange_nodes"]
+
+    @property
+    def contracts(self):  # for read only
+        return self._data["dictionaries"]["contracts"]
+    
+    @property
+    def agents(self):  # for read only
+        return self._data["dictionaries"]["agents"]
+
+    @property
+    def devices(self):  # for read only
+        return self._data["dictionaries"]["devices"]
+
+    @property
+    def dataloggers(self):  # for read only
+        return self._data["dictionaries"]["dataloggers"]
+
+    @property
+    def daemons(self):  # for read only
+        return self._data["dictionaries"]["daemons"]
 
 
 # Exception

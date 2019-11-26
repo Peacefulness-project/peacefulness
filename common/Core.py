@@ -49,23 +49,24 @@ class World:
         # dictionaries contained by world
         self._user_classes = user_classes_dictionary  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons, devices and Supervisors
+        dictionaries = dict()
 
-        self._natures = dict()  # energy present in world
+        dictionaries["forecasters"] = dict()  # objects which are responsible for predicting both quantities produced and consumed
+        dictionaries["supervisors"] = dict()  # objects which perform the calculus
 
-        self._clusters = dict()  # a mono-energy sub-environment which favours self-consumption
-        self._exchange_node = ExchangeNode()  # an object organizing exchanges between clusters
-        self._grids = dict()  # this dict repertories clusters which are identified as grids greater than world
-        # they serve as a default cluster
+        dictionaries["natures"] = dict()  # types of energy presents in world
+
+        dictionaries["clusters"] = dict()  # a mono-energy sub-environment which favours self-consumption
+        dictionaries["exchange_nodes"] = dict()  # objects organizing exchanges between clusters
         
-        self._contracts = dict()  # dict containing the different contracts
-        self._agents = dict()  # it represents an economic agent, and is attached to, in particular, a contract
-        self._devices = dict()  # dict containing the devices
+        dictionaries["contracts"] = dict()  # dict containing the different contracts
+        dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        dictionaries["devices"] = dict()  # dict containing the devices
 
-        self._dataloggers = dict()  # dict containing the dataloggers
-        self._daemons = dict()  # dict containing the daemons
+        dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
+        dictionaries["daemons"] = dict()  # dict containing the daemons
 
-        self._supervisors = dict()  # objects which perform the calculus
-        self._forecasters = dict()  # objects which are responsible for predicting both quantities produced and consumed
+        self._catalog.add("dictionaries", dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
@@ -122,7 +123,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         supervisor._register(self._catalog)   # linking the supervisor with the catalog of world
-        self._supervisors[supervisor.name] = supervisor  # registering the cluster in the dedicated dictionary
+        self._catalog.supervisors[supervisor.name] = supervisor  # registering the cluster in the dedicated dictionary
         self._used_names.append(supervisor.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -134,7 +135,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         nature.register(self._catalog)
-        self._natures[nature.name] = nature
+        self._catalog.natures[nature.name] = nature
         self._used_names.append(nature.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -148,10 +149,10 @@ class World:
         if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
             cluster.superior._subclusters.append(cluster)
         elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
-            self._exchange_node.exchanges[cluster] = []
+            self._catalog.exchange_nodes[cluster] = []
 
         cluster._register(self._catalog)  # linking the cluster with the catalog of world
-        self._clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
+        self._catalog.clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
         self._used_names.append(cluster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -164,7 +165,7 @@ class World:
         except:
             raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
-        if cluster_destination not in self._exchange_node.exchanges:  # check if the cluster destination is registered in the exchange leader
+        if cluster_destination not in self._catalog.exchange_nodes:  # check if the cluster destination is registered in the exchange leader
             raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
     def register_contract(self, contract):
@@ -175,7 +176,7 @@ class World:
             raise WorldException("The object is not of the correct type")
         
         contract._register(self._catalog)   # linking the agent with the catalog of world
-        self._contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
+        self._catalog.contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
         self._used_names.append(contract.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing   
         
@@ -187,7 +188,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         agent._register(self._catalog)   # linking the agent with the catalog of world
-        self._agents[agent.name] = agent  # registering the agent in the dedicated dictionary
+        self._catalog.agents[agent.name] = agent  # registering the agent in the dedicated dictionary
         self._used_names.append(agent.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -199,13 +200,13 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         # checking if the agent is defined correctly
-        if device._agent.name not in self._agents:  # if the specified agent does not exist
+        if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
         for nature in device.natures:  # adding the device name to its cluster list of device
             device._natures[nature]["cluster"]._devices.append(device.name)
 
-        self._devices[device.name] = device  # registering the device in the dedicated dictionary
+        self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         device._register(self._catalog)  # registering of the device in the catalog
         self._used_names.append(device.name)  # adding the name to the list of used names
 
@@ -217,7 +218,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         datalogger._register(self._catalog)   # linking the datalogger with the catalog of world
-        self._dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
+        self._catalog.dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -229,7 +230,7 @@ class World:
             raise WorldException("The object is not of the correct type")
 
         daemon._register(self._catalog)  # registering of the device in the catalog
-        self._daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
+        self._catalog.daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
         self._used_names.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -257,7 +258,7 @@ class World:
                 contract_name = f"{agent_name}_{nature_name}_contract"
                 contract_class = self._user_classes[data["contracts"][nature_name][0]]
                 parameters = data["contracts"][nature_name][1]
-                nature = self._natures[nature_name]
+                nature = self._catalog.natures[nature_name]
                 contract = contract_class(contract_name, nature, parameters)
                 self.register_contract(contract)
                 contract_list.append(contract)
@@ -311,23 +312,23 @@ class World:
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
-            for supervisor in self._supervisors.values():
+            for supervisor in self._catalog.supervisors.values():
                 supervisor.reinitialize()
 
-            for nature in self._natures.values():
+            for nature in self._catalog.natures.values():
                 nature.reinitialize()
 
-            for contract in self._contracts.values():
+            for contract in self._catalog.contracts.values():
                 contract.reinitialize()
 
-            for agent in self.agents.values():
+            for agent in self._catalog.agents.values():
                 agent.reinitialize()
 
-            for cluster in self.clusters.values():
+            for cluster in self._catalog.clusters.values():
                 cluster.reinitialize()
 
             # devices publish the quantities they are interested in (both in demand and in offer)
-            for device in self.devices.values():
+            for device in self._catalog.devices.values():
                 device.update()
 
             # ###########################
@@ -335,18 +336,18 @@ class World:
             # ###########################
 
             # forecasting
-            for forecaster in self._forecasters.values():
+            for forecaster in self._catalog.forecasters.values():
                 forecaster.fait_quelque_chose()
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for cluster in self._exchange_node.exchanges:  # clusters make local balances and then publish their needs (both in demand and in offer)
+            for cluster in self._catalog.exchange_nodes:  # clusters make local balances and then publish their needs (both in demand and in offer)
                 cluster.ask()  # recursive function to make sure all clusters are reached
 
             # high-level exchange phase
-            self._exchange_node.organise_exchanges()  # decides of who exchanges what with who
+            # self._catalog.exchange_nodes.organise_exchanges()  # decides of who exchanges what with who
 
             # descendant phase: balances with remote energy
-            for cluster in self._exchange_node.exchanges:  # clusters distribute the energy they exchanged with outside
+            for cluster in self._catalog.exchange_nodes:  # clusters distribute the energy they exchanged with outside
                 cluster.distribute()  # recursive function to make sure all clusters are reached
 
             # ###########################
@@ -354,15 +355,15 @@ class World:
             # ###########################
 
             # devices update their state according to the quantity of energy received/given
-            for device in self.devices.values():
+            for device in self._catalog.devices.values():
                 device.react()
 
             # data exporting
-            for datalogger in self.dataloggers.values():
+            for datalogger in self._catalog.dataloggers.values():
                 datalogger.launch()
 
             # daemons activation
-            for daemon in self.daemons.values():
+            for daemon in self._catalog.daemons.values():
                 daemon.launch()
 
             # time update
@@ -653,36 +654,36 @@ class World:
         return self._time_limit
 
     def __str__(self):
-        return big_separation + f'\nWORLD = {self._name} : {len(self.devices)} devices'
+        return big_separation + f'\nWORLD = {self._name} : {len(self._catalog.devices)} devices'
 
-    # shortcuts to access the dictionaries
-    @property
-    def natures(self):  # shortcut for read-only
-        return self._natures
-
-    @property
-    def clusters(self):  # shortcut for read-only
-        return self._clusters
-
-    @property
-    def agents(self):  # shortcut for read-only
-        return self._agents
-
-    @property
-    def devices(self):  # shortcut for read-only
-        return self._devices
-
-    @property
-    def daemons(self):  # shortcut for read-only
-        return self._daemons
-
-    @property
-    def dataloggers(self):  # shortcut for read-only
-        return self._dataloggers
-
-    @property
-    def supervisors(self):  # shortcut for read-only
-        return self._supervisors
+    # # shortcuts to access the dictionaries
+    # @property
+    # def natures(self):  # shortcut for read-only
+    #     return self._natures
+    #
+    # @property
+    # def clusters(self):  # shortcut for read-only
+    #     return self._clusters
+    #
+    # @property
+    # def agents(self):  # shortcut for read-only
+    #     return self._agents
+    #
+    # @property
+    # def devices(self):  # shortcut for read-only
+    #     return self._devices
+    #
+    # @property
+    # def daemons(self):  # shortcut for read-only
+    #     return self._daemons
+    #
+    # @property
+    # def dataloggers(self):  # shortcut for read-only
+    #     return self._dataloggers
+    #
+    # @property
+    # def supervisors(self):  # shortcut for read-only
+    #     return self._supervisors
 
 
 # ##############################################################################################
