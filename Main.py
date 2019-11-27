@@ -35,7 +35,7 @@ from common.Agent import Agent
 
 from common.Cluster import Cluster
 
-from common.Datalogger import Datalogger
+from common.Datalogger import Datalogger, AgentBalanceDatalogger, ClusterBalanceDatalogger, ContractBalanceDatalogger, NatureBalanceDatalogger
 
 import usr.UserDefinedClasses as User
 
@@ -272,8 +272,16 @@ logger2.add("Heating1.Heat.energy_accorded")
 
 
 # datalogger for balances
-# this datalogger puts all the balances, i.e for each agent, contract, nature, cluster and the total
-agent_balances_logger = Datalogger("agent_balances_logger", "agent_balances.txt", 1, 1)
+# these dataloggers record the balances for each agent, contract, nature and  cluster
+contract_balances = ContractBalanceDatalogger()
+cluster_balances = ClusterBalanceDatalogger()
+agent_balances = AgentBalanceDatalogger()
+nature_balances = NatureBalanceDatalogger()
+
+world.register_datalogger(contract_balances)  # registration
+world.register_datalogger(cluster_balances)  # registration
+world.register_datalogger(agent_balances)  # registration
+world.register_datalogger(nature_balances)  # registration
 
 
 # CPU time measurement

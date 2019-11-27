@@ -25,7 +25,7 @@ class AlwaysSatisfied(Supervisor):
             cluster.quantities[device_name] = [Emax, sign(Emax) * inf, 0, 0]  # the local quantities are updated in the cluster dedicated dictionary
 
         for managed_cluster in cluster.subclusters:
-            managed_cluster_quantities = self._catalog.get(f"{managed_cluster.name}.{managed_cluster.nature.name}.quantities_asked")  # couples prices/quantities asked by the managed clusters
+            managed_cluster_quantities = self._catalog.get(f"{managed_cluster.name}.quantities_asked")  # couples prices/quantities asked by the managed clusters
             i = 0  # an arbitrary number given to couples price/quantities
             for element in managed_cluster_quantities:
                 energy_difference += element[0]
@@ -34,10 +34,10 @@ class AlwaysSatisfied(Supervisor):
 
         quantities_and_prices = [[energy_difference, sign(energy_difference)*inf]]  # wants to satisfy everyone, regardless the price (i.e sells even at -inf and buys even at +inf)
 
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.quantities_asked", quantities_and_prices)
+        self._catalog.set(f"{cluster.name}.quantities_asked", quantities_and_prices)
 
     def distribute_remote_energy(self, cluster):  # after having exchanged with the exterior, the cluster distributes the energy among its devices and clusters
-        print(cluster.name)
+        # print(cluster.name)
         # preparing balances
         quantities_asked = {"bought": 0, "sold": 0}
         quantities_given = {"bought": 0, "sold": 0}
@@ -54,14 +54,14 @@ class AlwaysSatisfied(Supervisor):
 
         # counting the offers and the demands at its own level
         # what was asked
-        for couple in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_asked"):
+        for couple in self._catalog.get(f"{cluster.name}.quantities_asked"):
             if couple[0] > 0:  # energy the aggregator wanted to buy
                 quantities_asked["bought"] += couple[0]  # the quantity of energy asked the cluster wanted to buy
             elif couple[0] < 0:  # energy the aggregator wanted to sell
                 quantities_asked["sold"] += couple[0]  # the quantity of energy asked the cluster wanted to sell
 
         # what is given
-        for couple in self._catalog.get(f"{cluster.name}.{cluster.nature.name}.quantities_given"):
+        for couple in self._catalog.get(f"{cluster.name}.quantities_given"):
             if couple[0] > 0:  # energy bought by the aggregator
                 quantities_given["bought"] += couple[0]  # the quantity of energy sold to the cluster
 
@@ -79,8 +79,8 @@ class AlwaysSatisfied(Supervisor):
                 money_earned_outside -= quantities_given["sold"] * couple[1]  # the absolute value of money earned outside
 
         # energy distribution and billing
-        print(f"given catalog:{self._catalog.get(f'{cluster.name}.{cluster.nature.name}.quantities_given')} local:{quantities_given}")
-        print(f"asked catalog:{self._catalog.get(f'{cluster.name}.{cluster.nature.name}.quantities_asked')} local:{quantities_asked}")
+        # print(f"given catalog:{self._catalog.get(f'{cluster.name}.quantities_given')} local:{quantities_given}")
+        # print(f"asked catalog:{self._catalog.get(f'{cluster.name}.quantities_asked')} local:{quantities_asked}")
         if quantities_given == quantities_asked:  # if the cluster got what it wanted
 
             # quantities concerning devices
@@ -102,8 +102,8 @@ class AlwaysSatisfied(Supervisor):
 
             # quantities concerning subclusters
             for subcluster in cluster.subclusters:  # quantities concerning clusters
-                quantities_and_prices = self._catalog.get(f"{subcluster.name}.{cluster.nature.name}.quantities_asked")
-                self._catalog.set(f"{subcluster.name}.{cluster.nature.name}.quantities_given", quantities_and_prices)
+                quantities_and_prices = self._catalog.get(f"{subcluster.name}.quantities_asked")
+                self._catalog.set(f"{subcluster.name}.quantities_given", quantities_and_prices)
 
                 # balances
                 for couple in quantities_and_prices:  # for each couple energy/price
@@ -124,18 +124,18 @@ class AlwaysSatisfied(Supervisor):
             pass
             # raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
 
-        print(f"from outside  money earned:{money_earned_outside}/spent:{money_spent_outside}, energy bought:{energy_bought_outside}/sold:{energy_sold_outside}")
-        print(f"from inside  money earned:{money_earned_inside}/spent:{money_spent_inside},  energy bought:{energy_bought_inside}/sold:{energy_sold_inside}")
-        print(f"sum          money:{money_earned_outside - money_spent_outside + money_earned_inside - money_spent_inside},"
-              f" energy:{energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside}")
-        print("\n")
+        # print(f"from outside  money earned:{money_earned_outside}/spent:{money_spent_outside}, energy bought:{energy_bought_outside}/sold:{energy_sold_outside}")
+        # print(f"from inside  money earned:{money_earned_inside}/spent:{money_spent_inside},  energy bought:{energy_bought_inside}/sold:{energy_sold_inside}")
+        # print(f"sum          money:{money_earned_outside - money_spent_outside + money_earned_inside - money_spent_inside},"
+        #       f" energy:{energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside}")
+        # print("\n")
 
         # updates the balances
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
+        self._catalog.set(f"{cluster.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
+        self._catalog.set(f"{cluster.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
 
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
-        self._catalog.set(f"{cluster.name}.{cluster.nature.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+        self._catalog.set(f"{cluster.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
+        self._catalog.set(f"{cluster.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
 
 
 user_classes_dictionary[f"{AlwaysSatisfied.__name__}"] = AlwaysSatisfied

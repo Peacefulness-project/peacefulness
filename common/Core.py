@@ -161,7 +161,7 @@ class World:
             raise WorldException(f"{cluster_destination} is not a cluster")
 
         try:  # check if the cluster destination is registered in the exchange leader
-            self._exchange_node.exchanges[cluster_source] = [cluster_destination, efficiency, capacity]
+            self._catalog.exchange_nodes[cluster_source] = [cluster_destination, efficiency, capacity]
         except:
             raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
 
@@ -655,35 +655,6 @@ class World:
 
     def __str__(self):
         return big_separation + f'\nWORLD = {self._name} : {len(self._catalog.devices)} devices'
-
-    # # shortcuts to access the dictionaries
-    # @property
-    # def natures(self):  # shortcut for read-only
-    #     return self._natures
-    #
-    # @property
-    # def clusters(self):  # shortcut for read-only
-    #     return self._clusters
-    #
-    # @property
-    # def agents(self):  # shortcut for read-only
-    #     return self._agents
-    #
-    # @property
-    # def devices(self):  # shortcut for read-only
-    #     return self._devices
-    #
-    # @property
-    # def daemons(self):  # shortcut for read-only
-    #     return self._daemons
-    #
-    # @property
-    # def dataloggers(self):  # shortcut for read-only
-    #     return self._dataloggers
-    #
-    # @property
-    # def supervisors(self):  # shortcut for read-only
-    #     return self._supervisors
 
 
 # ##############################################################################################

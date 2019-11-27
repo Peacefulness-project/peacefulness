@@ -30,28 +30,28 @@ class Cluster:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the local grid with the catalog of world
 
-        self._catalog.add(f"{self.name}.{self.nature.name}.quantities_asked", [])  # couples price/quantities sent by the cluster to its superior
-        self._catalog.add(f"{self.name}.{self.nature.name}.quantities_given", [])  # couple price/quantities accorded by the cluster superior
+        self._catalog.add(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the cluster to its superior
+        self._catalog.add(f"{self.name}.quantities_given", [])  # couple price/quantities accorded by the cluster superior
 
-        self._catalog.add(f"{self.name}.{self.nature.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the cluster during the round
-        self._catalog.add(f"{self.name}.{self.nature.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the cluster during the round
+        self._catalog.add(f"{self.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the cluster during the round
+        self._catalog.add(f"{self.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the cluster during the round
 
-        self._catalog.add(f"{self.name}.{self.nature.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.add(f"{self.name}.{self.nature.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the cluster by selling energy during the round
+        self._catalog.add(f"{self.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.add(f"{self.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the cluster by selling energy during the round
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
-        self._catalog.set(f"{self.name}.{self.nature.name}.quantities_asked", [])  # couples price/quantities sent by the cluster to its superior
-        self._catalog.set(f"{self.name}.{self.nature.name}.quantities_given", [])  # couple price/quantities accorded by the cluster superior
+        self._catalog.set(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the cluster to its superior
+        self._catalog.set(f"{self.name}.quantities_given", [])  # couple price/quantities accorded by the cluster superior
 
-        self._catalog.set(f"{self.name}.{self.nature.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the cluster during the round
-        self._catalog.set(f"{self.name}.{self.nature.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the cluster during the round
+        self._catalog.set(f"{self.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the cluster during the round
+        self._catalog.set(f"{self.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the cluster during the round
 
-        self._catalog.set(f"{self.name}.{self.nature.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.name}.{self.nature.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the cluster by selling energy during the round
+        self._catalog.set(f"{self.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the cluster by selling energy during the round
 
     def ask(self):  # clusters make local balances and then publish their needs (both in demand and in offer)
         for managed_cluster in self.subclusters:  # recursive function to reach all clusters
