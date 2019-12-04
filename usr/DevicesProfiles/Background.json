@@ -5,7 +5,17 @@
       "consumption_variation": 0.5
     },
 
-    "ECOS": {
+    "ECOS_1": {
+      "usage_profile": {"LVE": 0},
+      "consumption_variation": 0.5
+    },
+
+    "ECOS_2": {
+      "usage_profile": {"LVE": 0},
+      "consumption_variation": 0.5
+    },
+
+      "ECOS_5": {
       "usage_profile": {"LVE": 0},
       "consumption_variation": 0.5
     },

@@ -1,11 +1,11 @@
 {
-  "template name": "profil_de_fer",
+  "template name": "5_people",
 
   "composition": {
-    "Background": [["Background", "ECOS", "ECOS", [1,1]]],
-    "Dishwasher": [["Dishwasher", "ECOS", "ECOS", [1,1]]],
-    "WashingMachine": [["WashingMachine", "ECOS", "ECOS", [0,0]]],
-    "Dryer": [["Dryer", "ECOS", "ECOS", [0,0]]],
+    "Background": [["Background", "ECOS", "ECOS_5", [1,1]]],
+    "Dishwasher": [["Dishwasher", "ECOS_5", "ECOS", [1,1]]],
+    "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1]]],
+    "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1]]],
 
     "Heating": [["Heating", "residential", "house_heat", [1,1]]],
     "HotWaterTank": [["HotWaterTank", "morning", "5_people_heat", [0,0]]]

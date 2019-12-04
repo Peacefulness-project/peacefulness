@@ -145,12 +145,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         self._offset_management()  # implementation of the offset
 
-        print(data_user)
-
         # we randomize a bit in order to represent reality better
-        print(data_user["start_time_variation"])
         start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        print(start_time_variation)
         for line in data_user["profile"]:
             line[0] += start_time_variation
 
@@ -179,10 +175,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         previous_point = data_user["profile"][j]  # the last point of data encountered
         next_point = data_user["profile"][j+1]  # the next point of data that will be encountered
         usage_number = 0
-
-        print(data_user)
-        print(previous_point)
-        print(next_point)
 
         for line in self._user_profile:  # filling the user profile with priority
 
@@ -283,10 +275,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
-        print(self.name)
-        print(self._user_profile)
-        print(self._usage_profile)
-        print("\n")
+        # print(self.name)
+        # print(self._user_profile)
+        # print(self._usage_profile)
+        # print("\n")
 
     # ##########################################################################################
     # Dynamic behavior

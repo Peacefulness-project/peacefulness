@@ -73,8 +73,7 @@ world.set_random_seed("tournesol")
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
-# start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-print(start_date)
+start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -207,7 +206,9 @@ world.catalog.print_debug()  # displays the content of the catalog
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "usr/AgentTemplates/AgentECOS.json", [cluster_elec, cluster_heat])
+# world.agent_generation(1, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat])
+# world.agent_generation(1, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat])
+world.agent_generation(1, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat])
 # world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
 # world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
 # world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
@@ -272,7 +273,6 @@ logger2.add("physical_time")
 # logger2.add("Dishwasher1.priority")
 # logger2.add("Heating1.Heat.energy_wanted")
 # logger2.add("Heating1.Heat.energy_accorded")
-logger2.add("profil_de_fer_0_Dishwasher_0.LVE.energy_wanted")
 
 
 # datalogger for balances

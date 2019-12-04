@@ -24,11 +24,29 @@
       "start_time_variation": 1
     },
 
-    "ECOS": {
-      "profile": [[18, 0], [20.999, 1], [21, 0]],
+    "ECOS_1": {
+      "profile": [[8, 0], [16.999, 1], [17, 0]],
+
+      "period": 168,
+      "offset": 0,
+
+      "start_time_variation": 0
+    },
+
+    "ECOS_2": {
+      "profile": [[8, 0], [16.999, 1], [17, 0]],
+
+      "period": 168,
+      "offset": 0,
+
+      "start_time_variation": 0
+    },
+
+    "ECOS_5": {
+      "profile": [[8, 0], [18.999, 1], [19, 0]],
 
       "period": 24,
-      "offset": 0,
+      "offset": 12,
 
       "start_time_variation": 0
     },

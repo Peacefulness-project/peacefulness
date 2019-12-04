@@ -1,0 +1,17 @@
+{
+  "template name": "1_people",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_1", [1,1]]],
+    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1]]],
+
+    "Heating": [["Heating", "residential", "apartment_heat", [1,1]]],
+    "HotWaterTank": [["HotWaterTank", "morning", "1_people_heat", [0,0]]]
+  },
+
+  "contracts": {
+    "LVE":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}],
+    "Heat":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}]
+  }
+
+}
