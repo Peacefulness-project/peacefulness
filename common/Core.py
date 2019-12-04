@@ -99,8 +99,8 @@ class World:
         def rand_int(min_int, max_int):  # function returning an int between min and max
             return randint(min_int, max_int)
 
-        def rand_gauss(standard_deviation):
-            return gauss(1, standard_deviation)
+        def rand_gauss(mean, standard_deviation):
+            return gauss(mean, standard_deviation)
 
         self._catalog.add("float", rand_float)
         self._catalog.add("int", rand_int)

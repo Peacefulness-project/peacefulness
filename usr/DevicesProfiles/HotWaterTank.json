@@ -1,15 +1,23 @@
 {
   "device_consumption": {
     "family": {
-      "usage_profile": {"LVE": 20},
+      "usage_profile": {"LVE": 6},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0.5},
       "max_power": {"LVE": 2}
     },
 
+    "5_people_heat": {
+      "usage_profile": {"Heat": 8.75},
+      "consumption_variation": 0.1,
+
+      "min_power": {"Heat": 0.5},
+      "max_power": {"Heat": 2}
+    },
+
     "single": {
-      "usage_profile": {"LVE": 5},
+      "usage_profile": {"LVE": 1.75},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0.5},

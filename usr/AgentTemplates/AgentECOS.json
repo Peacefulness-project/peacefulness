@@ -1,0 +1,19 @@
+{
+  "template name": "profil_de_fer",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS", [1,1]]],
+    "Dishwasher": [["Dishwasher", "ECOS", "ECOS", [1,1]]],
+    "WashingMachine": [["WashingMachine", "ECOS", "ECOS", [0,0]]],
+    "Dryer": [["Dryer", "ECOS", "ECOS", [0,0]]],
+
+    "Heating": [["Heating", "residential", "house_heat", [1,1]]],
+    "HotWaterTank": [["HotWaterTank", "morning", "5_people_heat", [0,0]]]
+  },
+
+  "contracts": {
+    "LVE":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}],
+    "Heat":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}]
+  }
+
+}

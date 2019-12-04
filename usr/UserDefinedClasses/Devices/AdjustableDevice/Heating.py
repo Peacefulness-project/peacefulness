@@ -35,16 +35,16 @@ class Heating(AdjustableDevice):
         beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        duration_variation = self._catalog.get("gaussian")(data_user["duration_variation"])  # modification of the duration
-        temperature_variation = self._catalog.get("gaussian")(data_user["temperature_variation"])  # modification of the temperature
+        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
+        duration_variation = self._catalog.get("gaussian")(1, data_user["duration_variation"])  # modification of the duration
+        temperature_variation = self._catalog.get("gaussian")(0, data_user["temperature_variation"])  # modification of the temperature
         for line in data_user["profile"]:
             line[0][0] += start_time_variation  # modification of the starting hour of activity for an usage of the device
             line[0][1] *= duration_variation  #  modification of the ending hour of activity for an usage of the device
 
             line[1] = [line[1][i] + temperature_variation for i in range(3)]
 
-        consumption_variation = self._catalog.get("gaussian")(data_device["consumption_variation"])  # modification of the G coefficient
+        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the G coefficient
         data_device["usage_profile"][1] *= consumption_variation
 
         # adaptation of the data to the time step
@@ -83,8 +83,11 @@ class Heating(AdjustableDevice):
             ratio = (beginning % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             if ratio <= 0:  # in case beginning - start is negative
                 ratio += 1
-            for nature in self.natures:  # affecting a coeff of energy to each nature used inb the process
-                repartition[nature.name] = ratio * self._repartition[nature.name]
+            for nature in self.natures:  # affecting a coefficient of energy to each nature used inb the process
+                try:
+                    repartition[nature.name] = ratio * self._repartition[nature.name]
+                except:
+                    pass
 
             self._user_profile.append([current_moment, repartition, temperature_range])  # adding the first time step when it will be turned on
 
@@ -99,13 +102,13 @@ class Heating(AdjustableDevice):
             # final time step
             current_moment += 1
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
-            for nature in self.natures:  # affecting a coef of energy to each nature used in the process
-                repartition[nature.name] = ratio * self._repartition[nature.name]
+            for nature in self.natures:  # affecting a coefficient of energy to each nature used in the process
+                try:
+                    repartition[nature.name] = ratio * self._repartition[nature.name]
+                except:
+                    pass
 
             self._user_profile.append([current_moment, repartition, temperature_range])  # adding the final time step before it will be turned off
-
-        # usage profile
-        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
 
         # removal of unused natures in the self._natures
         nature_to_remove = []
@@ -113,6 +116,7 @@ class Heating(AdjustableDevice):
             if nature.name not in self._repartition.keys():
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
+            self._natures[nature]["cluster"].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")

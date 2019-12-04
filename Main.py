@@ -73,6 +73,8 @@ world.set_random_seed("tournesol")
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
+# start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+print(start_date)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -194,21 +196,22 @@ world.catalog.print_debug()  # displays the content of the catalog
 
 # registration of our devices
 # note that the same method is used for all kind of devices
-world.register_device(c1)  # registration of a production device
-world.register_device(Light1)  # registration of a consumption device
-world.register_device(Light2)  # registration of a consumption device
-world.register_device(charger)  # registration of a consumption device
-world.register_device(e2)  # registration of a consumption device
-world.register_device(e3)  # registration of a consumption device
+# world.register_device(c1)  # registration of a production device
+# world.register_device(Light1)  # registration of a consumption device
+# world.register_device(Light2)  # registration of a consumption device
+# world.register_device(charger)  # registration of a consumption device
+# world.register_device(e2)  # registration of a consumption device
+# world.register_device(e3)  # registration of a consumption device
 
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
-world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
-world.agent_generation(30, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
+world.agent_generation(1, "usr/AgentTemplates/AgentECOS.json", [cluster_elec, cluster_heat])
+# world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
+# world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+# world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+# world.agent_generation(30, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
@@ -267,8 +270,9 @@ logger2.add("physical_time")
 # logger2.add("Dishwasher1.LVE.energy_wanted")
 # logger2.add("Dishwasher1.LVE.energy_accorded")
 # logger2.add("Dishwasher1.priority")
-logger2.add("Heating1.Heat.energy_wanted")
-logger2.add("Heating1.Heat.energy_accorded")
+# logger2.add("Heating1.Heat.energy_wanted")
+# logger2.add("Heating1.Heat.energy_accorded")
+logger2.add("profil_de_fer_0_Dishwasher_0.LVE.energy_wanted")
 
 
 # datalogger for balances

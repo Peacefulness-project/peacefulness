@@ -4,6 +4,12 @@
       "usage_profile": {"LVE": 2},
       "consumption_variation": 0.5
     },
+
+    "ECOS": {
+      "usage_profile": {"LVE": 0},
+      "consumption_variation": 0.5
+    },
+
     "family": {
       "usage_profile": {"LVE": 2},
       "consumption_variation": 0.5
@@ -19,6 +25,16 @@
 
       "start_time_variation": 1.5,
       "duration_variation": 0.5
+    },
+
+    "ECOS": {
+      "profile": [[19.5, 0.5]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "duration_variation": 0
     },
 
     "single": {
