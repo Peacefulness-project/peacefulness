@@ -369,6 +369,8 @@ class World:
             # time update
             self._update_time()
 
+            print("\n")
+
         # self.catalog.print_debug()  # display the content of the catalog
         # print(self)  # give the name of the world and the quantity of productions and consumptions
 
@@ -773,10 +775,10 @@ class Device:
 
         if type(data_user["offset"]) is float or type(data_user["offset"]) is int:
             self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
-        elif data_user["offset"] == "WE":  # if the usage takes place the WE, the offset is set at saturday at 0:00 AM
+        elif data_user["offset"] == "Week":  # if the usage takes place the WE, the offset is set at saturday at 0:00 AM
             year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
             weekday = datetime(year=year, month=1, day=1).weekday()  # the day corresponding to the first day of the year: 0 for Monday, 1 for Tuesday, etc
-            offset = max(5 - weekday, weekday - 5)  # delay in days between saturday and the day
+            offset = weekday  # delay in days between monday and the day
             # without the max(), for a sunday, offset would have been -1, which cause trouble if the period is superior to 1 week
             offset *= 24  # delay in hours between saturday and the day
 

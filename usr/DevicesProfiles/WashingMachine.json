@@ -24,19 +24,19 @@
     },
 
     "ECOS_1": {
-      "profile": [[8, 0], [16.999, 1], [17, 0]],
+      "profile": [[130, 0], [137.999, 1], [138, 0]],
 
-      "period": 24,
-      "offset": 0,
+      "period": 168,
+      "offset": "Week",
 
       "start_time_variation": 0
     },
 
     "ECOS_2": {
-      "profile": [[8, 0], [16.999, 1], [17, 0]],
+      "profile": [[56, 0], [62.999, 1], [63, 0], [131, 0], [138.999, 1], [139, 0]],
 
-      "period": 24,
-      "offset": 0,
+      "period": 168,
+      "offset": "Week",
 
       "start_time_variation": 0
     },
@@ -54,7 +54,7 @@
       "profile": [[9.5, 0], [19.999, 1], [20, 0]],
 
       "period": 168,
-      "offset": "WE",
+      "offset": "Week",
 
       "start_time_variation": 1
     }

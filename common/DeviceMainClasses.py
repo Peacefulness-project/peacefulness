@@ -35,7 +35,7 @@ class NonControllableDevice(Device):
             line[0] += start_time_variation
             line[1] *= duration_variation
 
-        consumption_variation = self._catalog.get("gaussian")(0, data_device["consumption_variation"])  # modification of the consumption
+        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
         for nature in data_device["usage_profile"]:
             data_device["usage_profile"][nature] *= consumption_variation
 
@@ -81,7 +81,6 @@ class NonControllableDevice(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-
         energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self._usage_profile}  # consumption that will be asked eventually
 
@@ -314,10 +313,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         else:  # if the device is running then it's the usage_profile who matters
             for nature in energy_wanted:
-                energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
                 ratio = self._usage_profile[-self._remaining_time][1]  # emergency associated
-                energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
                 energy_wanted[nature]["energy_minimum"] = ratio * energy_wanted[nature]["energy_maximum"]
+                energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
+                energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
 
             if self._interruption_data[0]:  # if the device has been interrupted
                 nature = list(self.natures)[0]  # take the first nature registered in the device to measure the emergency
@@ -348,7 +347,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 if self._remaining_time:  # if it has started
                     self._remaining_time -= 1  # decrementing the remaining time of use
                 else:  # if it has not started yet
-                    self._remaining_time = len(self._usage_profile)
+                    self._remaining_time = len(self._usage_profile) - 1
 
                 self._interruption_data[2] += 1  # it has been working for one more time step
 
@@ -601,12 +600,11 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                     self._demand = self._usage_profile  # the demand for each nature of energy
 
         if self._remaining_time:  # if the device is active
-                    # priority_list = []  # a list containing the priority calculated for each nature of energy
-                    for nature in energy_wanted:
-                        energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
-                        energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
-                        # but it needs to be between the min and the max value
-                        energy_wanted[nature]["energy_maximum"] = self._max_power[nature]
+            for nature in energy_wanted:
+                energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
+                energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
+                # but it needs to be between the min and the max value
+                energy_wanted[nature]["energy_maximum"] = self._max_power[nature]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

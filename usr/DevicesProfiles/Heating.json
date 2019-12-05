@@ -8,7 +8,7 @@
 
     "house_heat": {
       "usage_profile": [{"Heat": 1}, 1, 7200],
-      "consumption_variation": 0.1,
+      "consumption_variation": 0,
       "max_power": {"Heat": 2}
     },
 
@@ -19,21 +19,21 @@
     },
 
     "apartment_heat": {
-      "usage_profile": [{"Heat": 1}, 1, 7200],
-      "consumption_variation": 0.1,
+      "usage_profile": [{"Heat": 1}, 0.7, 7200],
+      "consumption_variation": 0,
       "max_power": {"Heat": 2}
     }
   },
 
   "user_profile":{
     "residential": {
-      "profile": [[[5, 5], [19, 20, 25]], [[10, 9], [15, 17, 20]]],
+      "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [15, 17, 20]]],
 
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 1,
-      "temperature_variation": 1,
+      "start_time_variation": 0,
+      "temperature_variation": 0,
       "duration_variation": 0
     }
   }

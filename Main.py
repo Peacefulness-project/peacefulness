@@ -73,7 +73,7 @@ world.set_random_seed("tournesol")
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
-start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+start_date = start_date.replace(year=2019, month=12, day=2, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -125,6 +125,11 @@ cluster_name = "Enedis"
 cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
 world.register_cluster(cluster_grid)  # registration
 
+# and then we create a third who represents the grid
+cluster_name = "RDC"
+cluster_grid_heat = Cluster(cluster_name, heat, grid_supervisor)
+world.register_cluster(cluster_grid_heat)  # registration
+
 # here we create a first cluster dedicated to electricity
 cluster_name = "elec_mesh"
 sup_cluster_elec = Cluster(cluster_name, elec, supervisor, cluster_grid)
@@ -137,7 +142,7 @@ world.register_cluster(cluster_elec)  # registration
 
 # here we create another cluster dedicated to heat
 cluster_name = "Les_tuyaux_a_toto"
-cluster_heat = Cluster(cluster_name, heat, supervisor)  # creation of a cluster
+cluster_heat = Cluster(cluster_name, heat, supervisor, cluster_grid_heat)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
 
 
@@ -243,7 +248,7 @@ world.register_daemon(price_heat_grid)  # registration
 
 # Temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.TemperatureDaemon.TemperatureDaemon("Azzie", 1, {"temperature": 10})
+temperature_daemon = User.Daemons.PauTemperatureDaemon.PauTemperatureDaemon("Azzie", 1)
 world.register_daemon(temperature_daemon)  # registration
 
 

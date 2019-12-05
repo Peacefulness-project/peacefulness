@@ -10,7 +10,7 @@
 
     "5_people_heat": {
       "usage_profile": {"Heat": 8.75},
-      "consumption_variation": 0.1,
+      "consumption_variation": 0,
 
       "min_power": {"Heat": 0.5},
       "max_power": {"Heat": 2}
@@ -18,7 +18,7 @@
 
     "2_people_heat": {
       "usage_profile": {"Heat": 3.5},
-      "consumption_variation": 0.1,
+      "consumption_variation": 0,
 
       "min_power": {"Heat": 0.5},
       "max_power": {"Heat": 2}
@@ -26,7 +26,7 @@
 
     "1_people_heat": {
       "usage_profile": {"Heat": 1.75},
-      "consumption_variation": 0.1,
+      "consumption_variation": 0,
 
       "min_power": {"Heat": 0.5},
       "max_power": {"Heat": 2}
@@ -48,7 +48,7 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 1
+      "start_time_variation": 0
     },
 
     "evening": {
@@ -57,7 +57,7 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 1
+      "start_time_variation": 0
     }
   }
 

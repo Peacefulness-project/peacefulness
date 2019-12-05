@@ -182,7 +182,11 @@ class Heating(AdjustableDevice):
 
                     self._remaining_time = len(self._user_profile) - 1  # incrementing usage duration
 
+            print(energy_wanted)
+
             self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
+
+            print(energy_wanted)
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 

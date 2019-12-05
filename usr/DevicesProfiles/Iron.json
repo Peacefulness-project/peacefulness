@@ -9,20 +9,20 @@
 
   "user_profile":{
     "single": {
-      "profile": [[14, 0.30]],
+      "profile": [[134, 0.30]],
 
       "period": 168,
-      "offset": "WE",
+      "offset": "Week",
 
       "start_time_variation": 4,
       "duration_variation": 0.3
     },
 
     "family": {
-      "profile": [[14, 3]],
+      "profile": [[134, 3]],
 
       "period": 168,
-      "offset": "WE",
+      "offset": "Week",
 
       "start_time_variation": 4,
       "duration_variation": 0.3

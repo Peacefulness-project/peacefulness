@@ -8,7 +8,7 @@
     "Dryer": [["Dryer", "ECOS_2", "ECOS", [1,1]]],
 
     "Heating": [["Heating", "residential", "apartment_heat", [1,1]]],
-    "HotWaterTank": [["HotWaterTank", "morning", "5_people_heat", [0,0]]]
+    "HotWaterTank": [["HotWaterTank", "morning", "2_people_heat", [1,1]]]
   },
 
   "contracts": {
