@@ -228,14 +228,8 @@ class Heating(AdjustableDevice):
         for nature in self._natures:
             power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] / time_step
 
-        print(current_outdoor_temperature)
-        print(current_indoor_temperature)
-        print(deltaT0)
-        print(deltaT0 * exp(-time_step/self._thermal_inertia))
         current_indoor_temperature = power / self._G * self._thermal_inertia\
                                      + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
-        print(current_indoor_temperature)
-        print()
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period

@@ -56,21 +56,5 @@ class PauTemperatureDaemon(Daemon):
 
         self._catalog.set(f"current_outdoor_temperature", self._temperatures[current_month][current_hour])
 
-        # # indoor temperature update
-        # previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
-        # time_step = self._catalog.get("time_step") * 3600  # the duration of a time step in seconds
-        # for agent_name in self._agent_list:
-        #     thermal_inertia = self._agent_list[agent_name][0]
-        #     G = self._agent_list[agent_name][1]
-        #
-        #     previous_indoor_temperature = self._catalog.get(f"{agent_name}.previous_indoor_temperature")
-        #     current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")
-        #
-        #     self._catalog.set(f"{agent_name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-        #     current_indoor_temperature = current_outdoor_temperature + G * (1 - exp(-time_step/thermal_inertia)) + (previous_indoor_temperature - previous_outdoor_temperature) * exp(-time_step/thermal_inertia)
-        #
-        #     self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-
-
 user_classes_dictionary[f"{PauTemperatureDaemon.__name__}"] = PauTemperatureDaemon
 
