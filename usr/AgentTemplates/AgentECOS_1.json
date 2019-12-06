@@ -6,7 +6,7 @@
     "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1]]],
 
     "Heating": [["Heating", "residential", "apartment_heat", [1,1]]],
-    "HotWaterTank": [["HotWaterTank", "morning", "1_people_heat", [1,1]]]
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [0,0]]]
   },
 
   "contracts": {

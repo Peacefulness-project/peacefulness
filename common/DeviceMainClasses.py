@@ -274,11 +274,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
-        # print(self.name)
-        # print(self._user_profile)
-        # print(self._usage_profile)
-        # print("\n")
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

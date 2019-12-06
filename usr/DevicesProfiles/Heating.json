@@ -7,9 +7,9 @@
     },
 
     "house_heat": {
-      "usage_profile": [{"Heat": 1}, 1, 7200],
+      "usage_profile": [{"Heat": 1}, 1.5, 18000],
       "consumption_variation": 0,
-      "max_power": {"Heat": 2}
+      "max_power": {"Heat": 5}
     },
 
     "apartment_electric": {
@@ -19,7 +19,7 @@
     },
 
     "apartment_heat": {
-      "usage_profile": [{"Heat": 1}, 0.7, 7200],
+      "usage_profile": [{"Heat": 1}, 0.7, 18000],
       "consumption_variation": 0,
       "max_power": {"Heat": 2}
     }

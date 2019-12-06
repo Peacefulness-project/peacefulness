@@ -73,7 +73,7 @@ world.set_random_seed("tournesol")
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
-start_date = start_date.replace(year=2019, month=12, day=2, hour=0, minute=0, second=0, microsecond=0)
+# start_date = start_date.replace(year=2019, month=12, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -246,11 +246,15 @@ world.register_daemon(price_manager_heat)  # registration
 world.register_daemon(price_elec_grid)  # registration
 world.register_daemon(price_heat_grid)  # registration
 
-# Temperature
+# Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
 temperature_daemon = User.Daemons.PauTemperatureDaemon.PauTemperatureDaemon("Azzie", 1)
 world.register_daemon(temperature_daemon)  # registration
 
+# Water temperature
+# this daemon is responsible for the value of the water temperature in the catalog
+water_temperature_daemon = User.Daemons.ColdWaterDaemon.ColdWaterDaemon("Mephisto", 1)
+world.register_daemon(water_temperature_daemon)  # registration
 
 # ##############################################################################################
 # Dataloggers

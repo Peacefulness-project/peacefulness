@@ -76,9 +76,9 @@ class Heating(AdjustableDevice):
             # creation of the user profile, where there are hours associated with the use of the device
             # first time step
 
-            temperature_range[0] += line[1][0]  # the minimum of temperature accepted by the agent
-            temperature_range[1] += line[1][1]  # the nominal of temperature accepted by the agent
-            temperature_range[2] += line[1][2]  # the maximum of temperature accepted by the agent
+            temperature_range[0] = line[1][0]  # the minimum of temperature accepted by the agent
+            temperature_range[1] = line[1][1]  # the nominal of temperature accepted by the agent
+            temperature_range[2] = line[1][2]  # the maximum of temperature accepted by the agent
 
             ratio = (beginning % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             if ratio <= 0:  # in case beginning - start is negative
@@ -93,11 +93,11 @@ class Heating(AdjustableDevice):
 
             # intermediate time steps
             duration_residue = line[0][1] - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
-            self._user_profile[-1].append([])
             while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                self._user_profile.append([])
                 current_moment += 1
                 duration_residue -= 1
-                self._user_profile[-1][-1] = [current_moment, 1]  # ...a new entry is created with a ratio of 1 (full use)
+                self._user_profile[-1] = [current_moment, 1, temperature_range]  # ...a new entry is created with a ratio of 1 (full use)
 
             # final time step
             current_moment += 1
@@ -149,44 +149,39 @@ class Heating(AdjustableDevice):
         energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self._repartition}  # Emin, Enom, Emax and the price
 
-        if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
+        for line in self._user_profile:
 
-            for line in self._user_profile:
+            if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
 
-                if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
+                current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
+                previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
 
-                    current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
-                    previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
+                current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
+                previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
 
-                    current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
-                    previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
+                time_step = self._catalog.get("time_step") * 3600
 
-                    time_step = self._catalog.get("time_step") * 3600
+                deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
+                self._temperature_range = line[2]
+                deltaTmin = line[2][0] - current_outdoor_temperature
+                deltaTnom = line[2][1] - current_outdoor_temperature
+                deltaTmax = line[2][2] - current_outdoor_temperature
 
-                    deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
-                    self._temperature_range = line[2]
-                    deltaTmin = line[2][0] - current_outdoor_temperature
-                    deltaTnom = line[2][1] - current_outdoor_temperature
-                    deltaTmax = line[2][2] - current_outdoor_temperature
+                for nature in energy_wanted:
+                    # min power calculation:
+                    energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia * self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_minimum"] = min(energy_wanted[nature]["energy_minimum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                    energy_wanted[nature]["energy_minimum"] = max(0, energy_wanted[nature]["energy_minimum"])
+                    # nominal power calculation:
+                    energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia * self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_nominal"] = min(energy_wanted[nature]["energy_nominal"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                    energy_wanted[nature]["energy_nominal"] = max(0, energy_wanted[nature]["energy_nominal"])
+                    # max power calculation:
+                    energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
+                    energy_wanted[nature]["energy_maximum"] = max(0, energy_wanted[nature]["energy_maximum"])
 
-                    for nature in energy_wanted:
-                        # min power calculation:
-                        energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia / self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature]["energy_minimum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
-                        # nominal power calculation:
-                        energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia / self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature]["energy_nominal"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
-                        # max power calculation:
-                        energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia / self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia)) / (1 - exp(-time_step/self._thermal_inertia))
-                        energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
-
-                    self._remaining_time = len(self._user_profile) - 1  # incrementing usage duration
-
-            print(energy_wanted)
-
-            self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
-
-            print(energy_wanted)
+        self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
 
@@ -227,15 +222,20 @@ class Heating(AdjustableDevice):
 
         time_step = self._catalog.get("time_step") * 3600
 
-        deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
+        deltaT0 = current_indoor_temperature - current_outdoor_temperature
 
         power = 0
         for nature in self._natures:
             power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] / time_step
 
-        current_indoor_temperature = power * self._G * self._thermal_inertia * (1 - exp(-time_step/self._thermal_inertia)) \
-                                     + 0 * deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
-
+        print(current_outdoor_temperature)
+        print(current_indoor_temperature)
+        print(deltaT0)
+        print(deltaT0 * exp(-time_step/self._thermal_inertia))
+        current_indoor_temperature = power / self._G * self._thermal_inertia\
+                                     + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
+        print(current_indoor_temperature)
+        print()
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
@@ -243,9 +243,7 @@ class Heating(AdjustableDevice):
 
 user_classes_dictionary[f"{Heating.__name__}"] = Heating
 
-
-
-
+# * (1 - exp(-time_step / self._thermal_inertia))
 
 
 
