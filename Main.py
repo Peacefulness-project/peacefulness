@@ -76,7 +76,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24*365)  # number of time steps simulated
+               24)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -166,27 +166,27 @@ world.register_cluster(cluster_DHW)  # registration
 # this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 classic_contract_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
-world.register_contract(classic_contract_elec)
+# world.register_contract(classic_contract_elec)
 
 cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
-world.register_contract(cooperative_contract_elec)
+# world.register_contract(cooperative_contract_elec)
 
 classic_contract_heat = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.05})
-world.register_contract(classic_contract_heat)
+# world.register_contract(classic_contract_heat)
 
 classic_contract_DHW = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_DHW", DHW, {"selling_price": 0.1, "buying_price": 0.05})
-world.register_contract(classic_contract_DHW)
+# world.register_contract(classic_contract_DHW)
 
 
 # ##############################################################################################
-# Agent
-# this object represents the owner of devices
-# all devices need an agent
-agent = Agent("James Bond")  # creation of an agent
-world.register_agent(agent)  # registration
-
-agent.set_contract(elec, classic_contract_elec)
-agent.set_contract(heat, classic_contract_heat)
+# # Agent
+# # this object represents the owner of devices
+# # all devices need an agent
+# agent = Agent("James Bond")  # creation of an agent
+# # world.register_agent(agent)  # registration
+#
+# agent.set_contract(elec, classic_contract_elec)
+# agent.set_contract(heat, classic_contract_heat)
 
 
 # ##############################################################################################
@@ -196,21 +196,18 @@ agent.set_contract(heat, classic_contract_heat)
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a production point
+# c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a production point
 
-# basic device
-Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, sup_cluster_elec, "residential", "house")  # creation of a consumption point
-Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, sup_cluster_elec, "offset", "house")  # creation of a consumption point
-# shiftable device
-e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, sup_cluster_elec, "family", "medium_consumption")  # creation of a consumption point
-# adjustable device
-charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, sup_cluster_elec, "default", "laptop_charger")
+# # basic device
+# Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, sup_cluster_elec, "residential", "house")  # creation of a consumption point
+# Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, sup_cluster_elec, "offset", "house")  # creation of a consumption point
+# # shiftable device
+# e2 = User.Devices.ShiftableDevice.Dishwasher.Dishwasher("Dishwasher1", classic_contract_elec, agent, sup_cluster_elec, "family", "medium_consumption")  # creation of a consumption point
+# # adjustable device
+# charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_contract_elec, agent, sup_cluster_elec, "default", "laptop_charger")
 # temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
-thermal_parameters = {"G": 1,  # G in kJ/K
-                      "thermal_inertia": 7200,  # thermal inertia in s
-                      "initial_temperature": 17}  # initial temperature in °C
-e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
+# e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
 
 # print(e1)  # displays the name and the type of the device
 # print(c1)  # displays the name and the type of the device
@@ -229,9 +226,9 @@ world.catalog.print_debug()  # displays the content of the catalog
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat, cluster_DHW])
-world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat, cluster_DHW])
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat, cluster_DHW])
+world.agent_generation(1, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat, cluster_DHW])
+# world.agent_generation(100, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat, cluster_DHW])
+# world.agent_generation(50, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat, cluster_DHW])
 # world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
 # world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
 # world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)

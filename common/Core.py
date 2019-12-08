@@ -817,6 +817,23 @@ class Device:
                                             energy_wanted[nature.name]["energy_maximum"])  # publication of the energy wanted in the catalog
             self.set_energy_wanted_price(nature, energy_wanted[nature.name]["price"])  # publication of the price of the energy wanted in the catalog
 
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
+            line[0] += start_time_variation
+
+    def _randomize_duration(self, data):
+        duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
+        duration_variation = min(0, duration_variation)  # to avoid negative durations
+        for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
+            line[1] *= duration_variation
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        for nature in data["usage_profile"]:
+            data["usage_profile"][nature] *= consumption_variation
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
