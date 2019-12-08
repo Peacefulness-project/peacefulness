@@ -8,8 +8,8 @@
 
     "ECOS": {
       "usage_profile": [[1, {"LVE": 0.4}, 1]],
-      "consumption_variation": 0,
-      "duration_variation": 0
+      "consumption_variation": 0.25,
+      "duration_variation": 0.25
     }
   },
 
@@ -29,7 +29,7 @@
       "period": 168,
       "offset": "Week",
 
-      "start_time_variation": 0
+      "start_time_variation": 2
     },
 
     "ECOS_2": {
@@ -38,7 +38,7 @@
       "period": 168,
       "offset": "Week",
 
-      "start_time_variation": 0
+      "start_time_variation": 2
     },
 
     "ECOS_5": {
@@ -47,7 +47,7 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 0
+      "start_time_variation": 2
     },
 
     "single": {

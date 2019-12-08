@@ -57,7 +57,7 @@ class Cluster:
         for managed_cluster in self.subclusters:  # recursive function to reach all clusters
             managed_cluster.ask()
 
-        self._supervisor.ascendant_phase(self)  # makes the balance between local producers and consumers and  determines couples price/quantities regarding tariffs and penalties under it
+        self._supervisor.ascendant_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
 
     def distribute(self):  # clusters distribute the energy they exchanged with outside
         self._supervisor.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior

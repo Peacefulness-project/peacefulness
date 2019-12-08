@@ -267,6 +267,8 @@ class World:
             # creation of devices
             for device_data in data["composition"]:
                 for profile in data["composition"][device_data]:
+                    if profile[3][0] > profile[3][1]:
+                        raise WorldException(f"The minimum number of devices {profile[0]} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
                     number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
@@ -368,6 +370,9 @@ class World:
 
             # time update
             self._update_time()
+
+            print(self._catalog.get("simulation_intérêt"
+                                    "time"))
 
         # self.catalog.print_debug()  # display the content of the catalog
         # print(self)  # give the name of the world and the quantity of productions and consumptions

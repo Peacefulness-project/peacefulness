@@ -17,7 +17,7 @@ class ColdWaterDaemon(Daemon):
         month = (self._catalog.get("physical_time").month - 2) % 12  # the number of the month, delayed to be centered on August, the warmest month
         # January is 11, February is 0, March is 1 and so on...
 
-        water_temperature = 21 - 2 * (6 - month)  # the value, in °C, of the cold water in housings
+        water_temperature = 21 - 2 * abs(6 - month)  # the value, in °C, of the cold water in housings
 
         self._catalog.add("cold_water_temperature", water_temperature)
 
@@ -26,7 +26,7 @@ class ColdWaterDaemon(Daemon):
         month = (self._catalog.get("physical_time").month - 2) % 12  # the number of the month, delayed to be centered on August, the warmest month
         # January is 11, February is 0, March is 1 and so on...
 
-        water_temperature = 21 - 2 * (6 - month)  # the value, in °C, of the cold water in housings
+        water_temperature = 21 - 2 * abs(6 - month)  # the value, in °C, of the cold water in housings
 
         self._catalog.set("cold_water_temperature", water_temperature)
 

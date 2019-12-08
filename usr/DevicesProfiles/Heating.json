@@ -8,7 +8,7 @@
 
     "house_heat": {
       "usage_profile": [{"Heat": 1}, 1.5, 18000],
-      "consumption_variation": 0,
+      "consumption_variation": 0.25,
       "max_power": {"Heat": 5}
     },
 
@@ -20,7 +20,7 @@
 
     "apartment_heat": {
       "usage_profile": [{"Heat": 1}, 0.7, 18000],
-      "consumption_variation": 0,
+      "consumption_variation": 0.25,
       "max_power": {"Heat": 2}
     }
   },
