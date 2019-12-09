@@ -25,14 +25,8 @@ class HotWaterTank(ChargerDevice):
         self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        for line in data_user["profile"]:
-            line[0] += start_time_variation
-            line[1] += start_time_variation
-
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
-        for nature in data_device["usage_profile"].values():
-            nature *= consumption_variation
+        self._randomize_start_variation(data_user)
+        self._randomize_consumption(data_device)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -89,6 +83,17 @@ class HotWaterTank(ChargerDevice):
             self._demand[nature] = 0  # the demand is initialized
 
         self._unused_nature_removal()  # remove unused natures
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:
+            line[0] += start_time_variation
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        for nature in data["usage_profile"]:
+            data["usage_profile"][nature] *= consumption_variation
 
     # ##########################################################################################
     # Dynamic behavior

@@ -29,15 +29,9 @@ class NonControllableDevice(Device):
         beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        duration_variation = self._catalog.get("gaussian")(1, data_user["duration_variation"])  # modification of the duration
-        for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
-            line[0] += start_time_variation
-            line[1] *= duration_variation
-
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
-        for nature in data_device["usage_profile"]:
-            data_device["usage_profile"][nature] *= consumption_variation
+        self._randomize_start_variation(data_user)
+        self._randomize_consumption(data_device)
+        self._randomize_duration(data_user)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -75,6 +69,23 @@ class NonControllableDevice(Device):
             self._usage_profile[nature] = data_device["usage_profile"][nature]
 
         self._unused_nature_removal()  # remove unused natures
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
+            line[0] += start_time_variation
+
+    def _randomize_duration(self, data):
+        duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
+        duration_variation = max(0, duration_variation)  # to avoid negative durations
+        for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
+            line[1] *= duration_variation
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        for nature in data["usage_profile"]:
+            data["usage_profile"][nature] *= consumption_variation
 
     # ##########################################################################################
     # Dynamic behavior
@@ -145,16 +156,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        for line in data_user["profile"]:
-            line[0] += start_time_variation
-
-        duration_variation = self._catalog.get("gaussian")(1, data_device["duration_variation"])  # modification of the duration
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
-        for line in data_device["usage_profile"]:
-            line[0] *= duration_variation
-            for nature in line[1]:
-                line[1][nature] *= consumption_variation
+        self._randomize_start_variation(data_user)
+        self._randomize_consumption(data_device)
+        self._randomize_duration(data_device)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -273,6 +277,24 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:
+            line[0] += start_time_variation
+
+    def _randomize_duration(self, data):
+        duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
+        duration_variation = max(0, duration_variation)  # to avoid negative durations
+        for line in data["usage_profile"]:  # modification of the basic user_profile according to the results of random generation
+            line[0] *= duration_variation
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        for line in data["usage_profile"]:  # modification of the basic user_profile according to the results of random generation
+            for nature in line[1]:
+                line[1][nature] *= consumption_variation
 
     # ##########################################################################################
     # Dynamic behavior
@@ -550,14 +572,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        for line in data_user["profile"]:
-            line[0] += start_time_variation
-            line[1] += start_time_variation
-
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
-        for nature in data_device["usage_profile"].values():
-            nature *= consumption_variation
+        self._randomize_start_variation(data_user)
+        self._randomize_consumption(data_device)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -578,6 +594,18 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         self._demand = self._usage_profile  # if the simulation begins during an usage, the demand has to be initialized
 
         self._unused_nature_removal()  # remove unused natures
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:
+            line[0] += start_time_variation
+            line[1] += start_time_variation
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        for nature in data["usage_profile"]:
+            data["usage_profile"][nature] *= consumption_variation
 
     # ##########################################################################################
     # Dynamic behavior

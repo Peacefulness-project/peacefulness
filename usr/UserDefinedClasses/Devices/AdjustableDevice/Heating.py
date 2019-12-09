@@ -35,17 +35,9 @@ class Heating(AdjustableDevice):
         beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
-        start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
-        duration_variation = self._catalog.get("gaussian")(1, data_user["duration_variation"])  # modification of the duration
-        temperature_variation = self._catalog.get("gaussian")(0, data_user["temperature_variation"])  # modification of the temperature
-        for line in data_user["profile"]:
-            line[0][0] += start_time_variation  # modification of the starting hour of activity for an usage of the device
-            line[0][1] *= duration_variation  #  modification of the ending hour of activity for an usage of the device
-
-            line[1] = [line[1][i] + temperature_variation for i in range(3)]
-
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the G coefficient
-        data_device["usage_profile"][1] *= consumption_variation
+        self._randomize_start_variation(data_user)
+        self._randomize_consumption(data_device)
+        self._randomize_duration(data_user)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -139,6 +131,27 @@ class Heating(AdjustableDevice):
 
         except:
             pass
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        for line in data["profile"]:
+            line[0][0] += start_time_variation  # modification of the starting hour of activity for an usage of the device
+
+    def _randomize_temperature(self, data):
+        temperature_variation = self._catalog.get("gaussian")(0, data["temperature_variation"])  # modification of the temperature
+        for line in data["profile"]:
+            line[1] = [line[1][i] + temperature_variation for i in range(3)]
+
+    def _randomize_duration(self, data):
+        duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
+        duration_variation = max(0, duration_variation)  # to avoid negative durations
+        for line in data["profile"]:
+            line[0][1] *= duration_variation  # modification of the ending hour of activity for an usage of the device
+
+    def _randomize_consumption(self, data):
+        consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
+        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        data["usage_profile"][1] *= consumption_variation
 
     # ##########################################################################################
     # Dynamic behavior
@@ -236,8 +249,6 @@ class Heating(AdjustableDevice):
 
 
 user_classes_dictionary[f"{Heating.__name__}"] = Heating
-
-# * (1 - exp(-time_step / self._thermal_inertia))
 
 
 

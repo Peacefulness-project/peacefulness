@@ -2,12 +2,18 @@
   "template name": "profil_de_fer",
 
   "composition": {
-    "Dishwasher": [["Dishwasher", "single", "medium_consumption", [0,0]]],
+    "Light": [["Light", "residential", "house", [1,1]]],
+
+
+    "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1]]],
     "WashingMachine": [["WashingMachine", "single", "medium_consumption", [1,1]]],
-    "Dryer": [["Dryer", "family", "medium_consumption", [0,0]]],
+    "Dryer": [["Dryer", "family", "medium_consumption", [1,1]]],
 
     "HotWaterTank": [["HotWaterTank", "morning", "single", [1,1]]],
     "Heating": [["Heating", "residential", "house_heat", [1,1]]],
+
+    "Charger": [["Charger", "default", "laptop_charger", [1,1]]],
+
 
     "Background": [["Background", "single", "single", [1,1]]]
   },

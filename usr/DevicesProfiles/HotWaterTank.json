@@ -43,12 +43,12 @@
 
   "user_profile":{
     "morning": {
-      "profile": [[11, 19]],
+      "profile": [[7, 1]],
 
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 0
+      "start_time_variation": 1
     },
 
     "ECOS_1": {
@@ -75,7 +75,7 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 0
+      "start_time_variation": 1
     }
   }
 

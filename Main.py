@@ -226,10 +226,10 @@ world.catalog.print_debug()  # displays the content of the catalog
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat, cluster_DHW])
-# world.agent_generation(100, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat, cluster_DHW])
-# world.agent_generation(50, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat, cluster_DHW])
-# world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
+# world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat, cluster_DHW])
+# world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat, cluster_DHW])
+# world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat, cluster_DHW])
+world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
 # world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
 # world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
 # world.agent_generation(30, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
