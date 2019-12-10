@@ -12,7 +12,7 @@
     "WashingMachine": [["WashingMachine", "single", "medium_consumption", [0,1]]],
     "WaterHeater": [["CoffeeMaker", "single", "coffeemaker", [0,1]]],
 
-    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1]]],
+    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [0,0]]],
     "Heating": [["Heating", "residential", "apartment_electric", [1,1]]],
 
     "HotWaterTank": [["HotWaterTank", "morning", "single", [1,1]]],
