@@ -245,24 +245,26 @@ class World:
         data = load(file)
         file.close()
 
+        # creation of contracts
+        contract_list = []
+        for nature_name in data["contracts"]:  # for each nature, the relevant contract is set
+            contract_name = f"{data['template name']}_{nature_name}_contract"
+            contract_class = self._user_classes[data["contracts"][nature_name][0]]
+            parameters = data["contracts"][nature_name][1]
+            nature = self._catalog.natures[nature_name]
+            contract = contract_class(contract_name, nature, parameters)
+            self.register_contract(contract)
+            contract_list.append(contract)
+
         for i in range(quantity):
 
             # creation of an agent
             agent_name = f"{data['template name']}_{str(i)}"
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
-
-            # creation of contracts
-            contract_list = []
-            for nature_name in data["contracts"]:  # for each nature, the relevant contract is set
-                contract_name = f"{agent_name}_{nature_name}_contract"
-                contract_class = self._user_classes[data["contracts"][nature_name][0]]
-                parameters = data["contracts"][nature_name][1]
+            for nature_name in data["contracts"]:
                 nature = self._catalog.natures[nature_name]
-                contract = contract_class(contract_name, nature, parameters)
-                self.register_contract(contract)
-                contract_list.append(contract)
-                agent.set_contract(nature, contract)
+                agent.set_contract(nature, data["contracts"][nature_name])
 
             # creation of devices
             for device_data in data["composition"]:

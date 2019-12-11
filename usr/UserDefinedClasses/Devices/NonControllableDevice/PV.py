@@ -1,3 +1,4 @@
+# device representing a photovoltaic panel
 from common.DeviceMainClasses import NonControllableDevice
 from math import sin, pi
 from tools.UserClassesDictionary import user_classes_dictionary

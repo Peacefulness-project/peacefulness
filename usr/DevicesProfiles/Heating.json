@@ -32,7 +32,7 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 0,
+      "start_time_variation": 1.5,
       "temperature_variation": 0,
       "duration_variation": 0
     }

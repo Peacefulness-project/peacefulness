@@ -295,11 +295,13 @@ contract_balances = User.Dataloggers.Balances.ContractBalanceDatalogger()
 cluster_balances = User.Dataloggers.Balances.ClusterBalanceDatalogger()
 agent_balances = User.Dataloggers.Balances.AgentBalanceDatalogger()
 nature_balances = User.Dataloggers.Balances.NatureBalanceDatalogger()
+ECOS_datalogger = User.Dataloggers.ECOS.ECOS()
 
 world.register_datalogger(contract_balances)  # registration
 world.register_datalogger(cluster_balances)  # registration
 world.register_datalogger(agent_balances)  # registration
 world.register_datalogger(nature_balances)  # registration
+world.register_datalogger(ECOS_datalogger)  # registration
 
 
 # CPU time measurement

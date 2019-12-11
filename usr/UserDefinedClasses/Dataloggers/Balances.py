@@ -11,6 +11,9 @@ class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed
     def _register(self, catalog):
         self._catalog = catalog
 
+        self.add("simulation_time")
+        self.add("physical_time")
+
         self._agents_list = self._catalog.get("dictionaries")['agents'].keys()  # get all the names
 
         for agent_name in self._agents_list:  # for each agent registered into world, all the relevant keys are added
@@ -27,6 +30,9 @@ class ClusterBalanceDatalogger(Datalogger):  # a sub-class of dataloggers design
 
     def _register(self, catalog):
         self._catalog = catalog
+
+        self.add("simulation_time")
+        self.add("physical_time")
 
         self._clusters_list = self._catalog.get("dictionaries")['clusters'].keys()  # get all the names
 
@@ -45,6 +51,9 @@ class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers desig
     def _register(self, catalog):
         self._catalog = catalog
 
+        self.add("simulation_time")
+        self.add("physical_time")
+
         self._contracts_list = self._catalog.get("dictionaries")['contracts'].keys()  # get all the names
 
         for contract_name in self._contracts_list:  # for each contract registered into world, all the relevant keys are added
@@ -61,6 +70,9 @@ class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designe
 
     def _register(self, catalog):
         self._catalog = catalog
+
+        self.add("simulation_time")
+        self.add("physical_time")
 
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 

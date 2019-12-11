@@ -79,7 +79,7 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _save(self):  # write all the chosen data in the catalog on a line
-        file = open(adapt_path([self._catalog.get('path'), "outputs", self._filename]), 'a+')
+        file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
 
         for key in self._list:
             file.write(f"{self._catalog.get(key)}\t")
