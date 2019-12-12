@@ -10,8 +10,8 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, parameters=None, filename="usr/DevicesProfiles/Heating.json"):
-        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/Heating.json", user_profile_name, usage_profile_name)
 
         self._G = None  # this value represents the quantity of energy to necessary to heat
         self._thermal_inertia = None  # this value represents the velocity with which the house

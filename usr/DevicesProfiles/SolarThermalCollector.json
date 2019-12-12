@@ -1,0 +1,19 @@
+{
+  "device_consumption": {
+    "ECOS": {
+      "usage_profile": {"a0": 0.833, "a1": 2.7095,"a2": 0},
+      "fluid_temperature": 45,
+      "consumption_variation": 0.1
+    }
+
+  },
+
+  "user_profile": {
+    "ECOS": {
+      "location": "Pau",
+
+      "offset": 0,
+      "period": 24
+    }
+  }
+}

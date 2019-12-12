@@ -27,6 +27,21 @@ class PauTemperatureDaemon(Daemon):
             12: [6.02, 5.9, 5.78, 5.66, 5.55, 5.43, 5.31, 5.97, 6.62, 7.28, 8.68, 10.08, 11.48, 11.55, 11.61, 11.68, 10.69, 9.7, 8.71, 8.02, 7.34, 6.65, 6.44, 6.23]
         }
 
+        self._reference_temperatures = {  # reference temperature for the exergy calculation for each month
+            1: 5.2,
+            2: 4.67,
+            3: 6.45,
+            4: 9.68,
+            5: 12.97,
+            6: 15.99,
+            7: 18.59,
+            8: 17.98,
+            9: 15.75,
+            10: 12.89,
+            11: 8.62,
+            12: 5.31
+        }
+
     def _user_register(self):
         # get back the list of agents needing temperature calculation
         self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
@@ -45,6 +60,8 @@ class PauTemperatureDaemon(Daemon):
             self._catalog.set(f"{agent_name}.previous_indoor_temperature", 17)
             self._catalog.set(f"{agent_name}.current_indoor_temperature", 17)
 
+        self._catalog.add(f"reference_temperature", self._reference_temperatures[current_month])  # reference temperature used for the calculation of exergy
+
     def _process(self):
 
         # outdoor temperature update
@@ -55,6 +72,9 @@ class PauTemperatureDaemon(Daemon):
         self._catalog.set(f"previous_outdoor_temperature", current_outdoor_temperature)  # updating the previous temperature
 
         self._catalog.set(f"current_outdoor_temperature", self._temperatures[current_month][current_hour])
+
+        self._catalog.set(f"reference_temperature", self._reference_temperatures[current_month])  # reference temperature used for the calculation of exergy
+
 
 user_classes_dictionary[f"{PauTemperatureDaemon.__name__}"] = PauTemperatureDaemon
 

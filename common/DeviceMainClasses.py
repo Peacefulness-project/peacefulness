@@ -10,8 +10,10 @@ from common.Contract import Contract
 # ##############################################################################################
 class NonControllableDevice(Device):
 
-    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                 parameters=None):
+        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                         parameters)
 
     # ##########################################################################################
     # Initialization
@@ -130,8 +132,10 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, contracts,  agent_name, clusters, filename, user_type, consumption_device, parameters):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                 parameters=None):
+        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                         parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
@@ -388,8 +392,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                 parameters=None):
+        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                         parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
@@ -544,8 +550,10 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters):
-        super().__init__(name, contracts, agent_name, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                 parameters=None):
+        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+                         parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period

@@ -668,7 +668,7 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_type, consumption_device, parameters=None):
+    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -677,11 +677,11 @@ class Device:
         self._period = None  # the duration of a classic cycle of use for the user of the device
         self._offset = None  # the delay between the beginning of the period and the beginning of the year
 
-        self._user_profile_name = user_type
+        self._user_profile_name = user_profile_name
         self._user_profile = []  # user profile of utilisation, describing user's priority
         # the content differs depending on the kind of device
 
-        self._usage_profile_name = consumption_device
+        self._usage_profile_name = usage_profile_name
         self._usage_profile = []  # energy profile dor one usage of the device
         # the content differs depending on the kind of device
 

@@ -1,8 +1,8 @@
 {
   "device_consumption": {
     "residential_PV": {
-      "usage_profile": {"LVE": -0.2},
-      "consumption_variation": 0
+      "usage_profile": {"LVE": 0.14},
+      "consumption_variation": 0.1
     }
 
   },

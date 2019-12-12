@@ -196,8 +196,6 @@ agent.set_contract(heat, classic_contract_heat)
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 # creation of our devices
-c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a production point
-
 # basic device
 Light1 = User.Devices.NonControllableDevice.Light.Light("Light_basic", classic_contract_elec, agent, sup_cluster_elec, "residential", "house")  # creation of a consumption point
 Light2 = User.Devices.NonControllableDevice.Light.Light("Light_offset", classic_contract_elec, agent, sup_cluster_elec, "offset", "house")  # creation of a consumption point
@@ -208,17 +206,22 @@ charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_cont
 # temperature-related devices are a sub-class of adjustable devices
 # these devices need additional parameters to model their physic
 e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
+# production devices
+st = User.Devices.NonControllableDevice.SolarThermalCollector.SolarThermalCollector("solar_captor", classic_contract_heat, agent, cluster_heat, "ECOS", "ECOS")  # creation of a solar thermal collector
+# c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a photovoltaic panel
+
 
 world.catalog.print_debug()  # displays the content of the catalog
 
 # registration of our devices
 # note that the same method is used for all kind of devices
-world.register_device(c1)  # registration of a production device
 world.register_device(Light1)  # registration of a consumption device
 world.register_device(Light2)  # registration of a consumption device
 world.register_device(charger)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
+# world.register_device(c1)  # registration of a production device
+world.register_device(st)  # registration of a production device
 
 
 # Performance measurement
@@ -267,6 +270,11 @@ world.register_daemon(temperature_daemon)  # registration
 # this daemon is responsible for the value of the water temperature in the catalog
 water_temperature_daemon = User.Daemons.ColdWaterDaemon.ColdWaterDaemon("Mephisto", 1)
 world.register_daemon(water_temperature_daemon)  # registration
+
+# Irradiation
+# this daemon is responsible for updating the value of raw solar irradiation
+irradiation_daemon = User.Daemons.IrradiationDaemon.IrradiationDaemon("Pau")
+world.register_daemon(irradiation_daemon)  # registration
 
 # ##############################################################################################
 # Dataloggers

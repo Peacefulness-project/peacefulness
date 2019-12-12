@@ -6,8 +6,8 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_type, consumption_device, parameters=None, filename="usr/DevicesProfiles/PV.json"):
-        super().__init__(name, contracts, agent, clusters, filename, user_type, consumption_device, parameters)
+    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, "usr/DevicesProfiles/PV.json", clusters, user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization

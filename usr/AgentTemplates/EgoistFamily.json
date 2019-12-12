@@ -21,7 +21,7 @@
     "HotWaterTank": [["HotWaterTank", "morning", "family", [1,1]]],
     "Charger": [["Charger", "default", "laptop_charger", [0,4]]],
 
-    "PV": [["PV", "default", "residential_PV", [1,1]]]
+    "PV": [["PV", "default", "residential_PV", [0,0]]]
   },
 
   "contracts": {
