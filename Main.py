@@ -207,8 +207,8 @@ charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_cont
 # these devices need additional parameters to model their physic
 e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
 # production devices
-st = User.Devices.NonControllableDevice.SolarThermalCollector.SolarThermalCollector("solar_captor", classic_contract_heat, agent, cluster_heat, "ECOS", "ECOS")  # creation of a solar thermal collector
-# c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "default", "residential_PV")  # creation of a photovoltaic panel
+st = User.Devices.NonControllableDevice.SolarThermalCollector.SolarThermalCollector("solar_captor", classic_contract_heat, agent, cluster_heat, "ECOS", "ECOS", {"surface": 2})  # creation of a solar thermal collector
+c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "ECOS", "ECOS", {"surface": 2})  # creation of a photovoltaic panel
 
 
 world.catalog.print_debug()  # displays the content of the catalog
@@ -220,7 +220,7 @@ world.register_device(Light2)  # registration of a consumption device
 world.register_device(charger)  # registration of a consumption device
 world.register_device(e2)  # registration of a consumption device
 world.register_device(e3)  # registration of a consumption device
-# world.register_device(c1)  # registration of a production device
+world.register_device(c1)  # registration of a production device
 world.register_device(st)  # registration of a production device
 
 

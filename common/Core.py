@@ -682,7 +682,7 @@ class Device:
         # the content differs depending on the kind of device
 
         self._usage_profile_name = usage_profile_name
-        self._usage_profile = []  # energy profile dor one usage of the device
+        self._usage_profile = []  # energy profile for one usage of the device
         # the content differs depending on the kind of device
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
@@ -842,17 +842,6 @@ class Device:
             else:  # if the device delivers energy
                 energy_bought[nature.name] = energy_amount
                 energy_sold[nature.name] = 0
-
-            # # balance at the cluster level
-            # energy_sold_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_sold")["inside"]
-            # energy_bought_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.energy_bought")["inside"]
-            # money_spent_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_spent")
-            # money_earned_cluster = self._catalog.get(f"{self.natures[nature][0].name}.{nature.name}.money_earned")
-            #
-            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_sold", energy_sold_cluster + energy_sold[nature.name])  # report the energy delivered by the device
-            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.energy_bought", energy_bought_cluster + energy_bought[nature.name])  # report the energy consumed by the device
-            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_spent", money_spent_cluster)  # money spent by the cluster to buy energy during the round
-            # self._catalog.set(f"{self.natures[nature][0].name}.{nature.name}.money_earned", money_earned_cluster)  # money earned by the cluster by selling energy during the round
 
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")

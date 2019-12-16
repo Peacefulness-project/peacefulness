@@ -5,7 +5,7 @@ from tools.UserClassesDictionary import user_classes_dictionary
 class HotWaterTank(ChargerDevice):
 
     def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name)
+        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
         self._month_dependency = [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
 
