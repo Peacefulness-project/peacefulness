@@ -76,7 +76,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24)  # number of time steps simulated
+               24*365)  # number of time steps simulated
 
 
 # ##############################################################################################

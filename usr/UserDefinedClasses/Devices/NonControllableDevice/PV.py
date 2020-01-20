@@ -6,7 +6,8 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters):
+    # TODO: remettre bien quand paramètres gérés dans génération automatique
+    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters={"surface": 2}):
         super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/PV.json", user_profile_name, usage_profile_name, parameters)
 
         self._surface = parameters["surface"]
@@ -49,18 +50,19 @@ class PV(NonControllableDevice):
     # Dynamic behavior
     # ##########################################################################################
 
-    def _update(self):
+    def update(self):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
         irradiation = self._catalog.get(f"{self._location}_irradiation_value")
 
-        energy_received = self._surface * irradiation
+        energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
         for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = 0  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_nominal"] = energy_received * self._efficiency  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_maximum"] = energy_received * self._efficiency  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_minimum"] = - energy_received * self._efficiency  # energy produced by the device
+            energy_wanted[nature]["energy_nominal"] = - energy_received * self._efficiency  # energy produced by the device
+            energy_wanted[nature]["energy_maximum"] = - energy_received * self._efficiency  # energy produced by the device
+            # the value is negative because it is produced
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

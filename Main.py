@@ -73,7 +73,7 @@ world.set_random_seed("tournesol")
 # Time Manager
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
-start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = start_date.replace(year=2019, month=6, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -91,7 +91,7 @@ world.set_time(start_date,  # time management: start date
 description = "this supervisor is a really basic one. It just serves as a " \
               "skeleton/example for your (more) clever supervisor."
 name_supervisor = "glaDOS"
-supervisor = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
+supervisor = User.Supervisors.WhenProfitable.WhenProfitable(name_supervisor, description)
 world.register_supervisor(supervisor)
 
 # the supervisor grid, which always proposes an infinite quantity to sell and to buy
@@ -168,7 +168,7 @@ world.register_cluster(cluster_DHW)  # registration
 classic_contract_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
 world.register_contract(classic_contract_elec)
 
-cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
+cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.09, "buying_price": 0.07})
 world.register_contract(cooperative_contract_elec)
 
 classic_contract_heat = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.05})
@@ -177,6 +177,19 @@ world.register_contract(classic_contract_heat)
 classic_contract_DHW = User.Contracts.TOUEgoistContract.TOUEgoistContract("classic_contract_DHW", DHW, {"selling_price": 0.1, "buying_price": 0.05})
 world.register_contract(classic_contract_DHW)
 
+# toto
+#
+# classic_contract_elec = User.Contracts.TOUCurtailmentContract.TOUCurtailmentContract("classic_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
+# world.register_contract(classic_contract_elec)
+#
+# cooperative_contract_elec = User.Contracts.TOUCurtailmentContract.TOUCurtailmentContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.05})
+# world.register_contract(cooperative_contract_elec)
+#
+# classic_contract_heat = User.Contracts.TOUCurtailmentContract.TOUCurtailmentContract("classic_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.05})
+# world.register_contract(classic_contract_heat)
+#
+# classic_contract_DHW = User.Contracts.TOUCurtailmentContract.TOUCurtailmentContract("classic_contract_DHW", DHW, {"selling_price": 0.1, "buying_price": 0.05})
+# world.register_contract(classic_contract_DHW)
 
 # ##############################################################################################
 # Agent
@@ -208,7 +221,7 @@ charger = User.Devices.AdjustableDevice.Charger.Charger("Charger1", classic_cont
 e3 = User.Devices.AdjustableDevice.Heating.Heating("Heating1", classic_contract_heat, agent, cluster_heat, "residential", "house_heat")  # creation of a consumption point
 # production devices
 st = User.Devices.NonControllableDevice.SolarThermalCollector.SolarThermalCollector("solar_captor", classic_contract_heat, agent, cluster_heat, "ECOS", "ECOS", {"surface": 2})  # creation of a solar thermal collector
-c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "ECOS", "ECOS", {"surface": 2})  # creation of a photovoltaic panel
+c1 = User.Devices.NonControllableDevice.PV.PV("PV", classic_contract_elec, agent, sup_cluster_elec, "ECOS", "ECOS", {"surface": 10})  # creation of a photovoltaic panel
 
 
 world.catalog.print_debug()  # displays the content of the catalog
@@ -227,10 +240,10 @@ world.register_device(st)  # registration of a production device
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(10, "usr/AgentTemplates/DummyAgent.json", [cluster_elec, cluster_heat])
-world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
-world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
-world.agent_generation(30, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
+world.agent_generation(100, "usr/AgentTemplates/DummyAgent.json", [sup_cluster_elec, cluster_heat])
+# world.agent_generation(30, "usr/AgentTemplates/EgoistFamily.json", cluster_elec)
+# world.agent_generation(30, "usr/AgentTemplates/EgoistSingle.json", cluster_elec)
+# world.agent_generation(30, "usr/AgentTemplates/CooperativeSingle.json", cluster_elec)
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
 filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
@@ -252,9 +265,9 @@ world.register_daemon(dissatisfaction_management)  # registration
 # this daemon fixes a price for a given nature of energy
 price_manager_elec = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Picsou", 1, {"nature": elec.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices for flat rate
 price_manager_heat = User.Daemons.PriceManagerDaemon.PriceManagerDaemon("Flairsou", 1, {"nature": heat.name, "buying_price": 0.1, "selling_price": 0.05})  # sets prices fro flat rate
-price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("EDF_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
-price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("DHN_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
-price_DHW_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("DHW_tariffs", 1, {"nature": DHW.name, "grid_buying_price": 0.05, "grid_selling_price": 0.15})  # sets prices for the system operator
+price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("EDF_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.2, "grid_selling_price": 0.01})  # sets prices for the system operator
+price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("DHN_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.15, "grid_selling_price": 0.05})  # sets prices for the system operator
+price_DHW_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("DHW_tariffs", 1, {"nature": DHW.name, "grid_buying_price": 0.15, "grid_selling_price": 0.05})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_manager_heat)  # registration
 world.register_daemon(price_elec_grid)  # registration

@@ -276,6 +276,7 @@ class World:
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
                         device_class = self._user_classes[device_data]
 
+                        # TODO: gérer paramètres
                         device = device_class(device_name, contract_list, agent, clusters, profile[1], profile[2])  # creation of the device
                         self.register_device(device)
 
@@ -305,14 +306,14 @@ class World:
     def start(self):
         self._check()  # check if everything is fine in world definition
 
-        # add for each type of contracts
-
         # Resolution
         for i in range(0, self.time_limit, 1):
 
             # ###########################
             # Beginning of the turn
             # ###########################
+
+            print(self._catalog.get("simulation_time"))
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
@@ -373,7 +374,7 @@ class World:
             # time update
             self._update_time()
 
-            # print(self._catalog.get("simulation_time"))
+            print()
 
         # self.catalog.print_debug()  # display the content of the catalog
         # print(self)  # give the name of the world and the quantity of productions and consumptions
@@ -687,7 +688,7 @@ class Device:
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
-        self._natures = dict() # contains, for each energy nature used by the device, the cluster and the nature associated
+        self._natures = dict()  # contains, for each energy nature used by the device, the cluster and the nature associated
         self._inputs = dict()
         self._outputs = dict()
 

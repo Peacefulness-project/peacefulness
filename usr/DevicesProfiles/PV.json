@@ -2,7 +2,7 @@
   "device_consumption": {
     "ECOS": {
       "usage_profile": {"nature": "LVE", "efficiency": 0.15},
-      "consumption_variation": 0.1
+      "efficiency_variation": 0.1
     }
   },
 

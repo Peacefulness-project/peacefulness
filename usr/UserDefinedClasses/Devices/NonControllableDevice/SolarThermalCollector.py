@@ -54,17 +54,17 @@ class SolarThermalCollector(NonControllableDevice):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}_irradiation_value")
+        irradiation = self._catalog.get(f"{self._location}_irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
         temperature = self._catalog.get("current_outdoor_temperature")
 
-        efficiency = self._a0 * irradiation - self._a1 * (self._fluid_temperature - temperature) - self._a2 * (self._fluid_temperature - temperature) ** 2
+        efficiency = max(self._a0 * irradiation - self._a1 / (self._fluid_temperature - temperature) - self._a2 / (self._fluid_temperature - temperature) ** 2, 0)  # the efficiency cannot be negative
 
         energy_received = self._surface * irradiation
 
         for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = 0  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_nominal"] = energy_received * efficiency  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_maximum"] = energy_received * efficiency  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_minimum"] = - energy_received * efficiency  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_nominal"] = - energy_received * efficiency  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_maximum"] = - energy_received * efficiency  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -79,6 +79,7 @@ class SolarThermalCollector(NonControllableDevice):
 
         self._catalog.set(f"{self.name}_exergy_in", exergy_in)
         self._catalog.set(f"{self.name}_exergy_out", exergy_out)
+        # print(energy_wanted)
 
 
 user_classes_dictionary[f"{SolarThermalCollector.__name__}"] = SolarThermalCollector
