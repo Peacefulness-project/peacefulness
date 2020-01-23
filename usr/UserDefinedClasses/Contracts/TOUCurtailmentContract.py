@@ -1,9 +1,10 @@
 # This contract is a contract in which the customer accepts to never be served.
 from common.Contract import Contract
 from tools.UserClassesDictionary import user_classes_dictionary
+from tools.Utilities import sign
 
 
-class TOUErasableContract(Contract):
+class TOUCurtailmentContract(Contract):
 
     def __init__(self, name, nature, parameters=None):
         super().__init__(name, nature)
@@ -18,8 +19,7 @@ class TOUErasableContract(Contract):
     # ##########################################################################################
 
     def _user_register(self):
-        self._catalog.set(f"{self.name}.{self.nature}.buying_price", self._parameters[0])  # the price paid to buy energy of a given nature with this contract
-        self._catalog.set(f"{self.name}.{self.nature}.selling_price", self._parameters[1])  # the price received by selling energy  of a given nature with this contract
+        pass
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -27,19 +27,20 @@ class TOUErasableContract(Contract):
 
     # billing
     def _billing_buying(self, quantity):
-        price = self._catalog.get(f"{self.name}.{self.nature.name}.buying_price")  # getting the price per kW.h
+        price = self._catalog.get(f"{self.nature.name}.buying_price_TOU") * 0.8   # getting the price per kW.h
 
         return price
 
     def _billing_selling(self, quantity):
-        price = self._catalog.get(f"{self.name}.{self.nature.name}.selling_price")  # getting the price per kW.h
+        price = self._catalog.get(f"{self.nature.name}.selling_price_TOU") * 0.8   # getting the price per kW.h
 
         return price
 
     # quantity management
     def quantity_modification(self, quantity, agent_name):
         quantity["energy_minimum"] = 0  # set the minimal quantity of energy to 0
-        quantity["energy_nominal"][1] = min(quantity["energy_nominal"]*0.95, quantity["energy_maximum"])  # this contract forbids the quantity to be urgent
+        quantity["energy_nominal"] = min(abs(quantity["energy_maximum"]*0.95), abs(quantity["energy_nominal"])) * sign(quantity["energy_maximum"])  # the abs() allows to manage both consumptions and productions
+        # this contract forbids the quantity to be urgent
         # it means that the devices will never be sure to be served
 
         quantity["price"] = self._billing(quantity, agent_name)
@@ -47,6 +48,6 @@ class TOUErasableContract(Contract):
         return quantity
 
 
-user_classes_dictionary[f"{TOUErasableContract.__name__}"] = TOUErasableContract
+user_classes_dictionary[f"{TOUCurtailmentContract.__name__}"] = TOUCurtailmentContract
 
 

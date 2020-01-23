@@ -1,5 +1,5 @@
 {
-  "template name": "profil_de_fer",
+  "template name": "profil_de_l_eau",
 
   "composition": {
     "Light": [["Light", "residential", "house", [1,1]]],
@@ -15,12 +15,14 @@
     "Charger": [["Charger", "default", "laptop_charger", [1,1]]],
 
 
-    "Background": [["Background", "single", "single", [1,1]]]
-  },
+    "Background": [["Background", "single", "single", [1,1]]],
+
+    "PV": [["PV", "ECOS", "ECOS", [1,1]]]
+ },
 
   "contracts": {
-    "LVE":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}],
-    "Heat":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.03}]
+    "LVE":  ["TOUCurtailmentContract", {"selling_price": 0.11, "buying_price": 0.045}],
+    "Heat":  ["TOUCurtailmentContract", {"selling_price": 0.11, "buying_price": 0.045}]
   }
 
 }

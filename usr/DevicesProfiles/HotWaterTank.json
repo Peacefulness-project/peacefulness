@@ -9,27 +9,27 @@
     },
 
     "5_people_heat": {
-      "usage_profile": {"DHW": 220},
+      "usage_profile": {"Heat": 220},
       "consumption_variation": 0.2,
 
-      "min_power": {"DHW": 0},
-      "max_power": {"DHW": 42}
+      "min_power": {"Heat": 0},
+      "max_power": {"Heat": 42}
     },
 
     "2_people_heat": {
-      "usage_profile": {"DHW": 110},
+      "usage_profile": {"Heat": 110},
       "consumption_variation": 0.2,
 
-      "min_power": {"DHW": 0},
-      "max_power": {"DHW": 42}
+      "min_power": {"Heat": 0},
+      "max_power": {"Heat": 42}
     },
 
     "1_people_heat": {
-      "usage_profile": {"DHW": 65},
+      "usage_profile": {"Heat": 65},
       "consumption_variation": 0.2,
 
-      "min_power": {"DHW": 0},
-      "max_power": {"DHW": 42}
+      "min_power": {"Heat": 0},
+      "max_power": {"Heat": 42}
     },
 
     "single": {

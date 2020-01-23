@@ -20,8 +20,8 @@ class Agent:
     # ##########################################################################################
 
     def set_contract(self, nature, contract):  # a method which defines the contract of the agent
-        self._contracts[nature] = contract  # add a contract for an energy nature
-        self._catalog.add(f"{self.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
+        # self._contracts[nature] = contract  # add a contract for an energy nature
+        pass
 
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog  # linking the agent with the catalog of world
@@ -29,6 +29,8 @@ class Agent:
         # Creation of specific entries
         self._catalog.add(f"{self.name}.money_spent", 0)  # accounts for the money spent by the cluster to buy energy during the round
         self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the cluster by selling energy during the round
+
+        self._catalog.add(f"{self.name}.energy_erased", 0)
 
         self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy received by the agent during the current round
         self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy delivered by the agent during the current round
@@ -40,6 +42,8 @@ class Agent:
     def reinitialize(self):  # reinitialization of the values
         self._catalog.set(f"{self.name}.money_spent", 0)  # money spent by the cluster to buy energy during the round
         self._catalog.set(f"{self.name}.money_earned", 0)  # money earned by the cluster by selling energy during the round
+
+        self._catalog.set(f"{self.name}.energy_erased", 0)
 
         self._catalog.set(f"{self.name}.energy_bought", 0)  # energy received by the agent during the current round
         self._catalog.set(f"{self.name}.energy_sold", 0)  # energy delivered by the agent during the current round

@@ -29,10 +29,13 @@ class Grid(Supervisor):
             quantities = self._catalog.get(f"{managed_cluster.name}.quantities_asked")
             for couple in quantities:  # attribution of the correct price
                 if couple[0] > 0:
-                    couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")
+                    if couple[1] < self._catalog.get(f"{cluster.nature.name}.grid_buying_price"):
+                        couple = [0, 0]
                 elif couple[0] < 0:
-                    couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")
-            self._catalog.set(f"{managed_cluster.name}.quantities_given", quantities)
+                    if couple[1] > self._catalog.get(f"{cluster.nature.name}.grid_selling_price"):
+                        couple = [0, 0]
+
+                self._catalog.set(f"{managed_cluster.name}.quantities_given", quantities)
 
 
 user_classes_dictionary[f"{Grid.__name__}"] = Grid

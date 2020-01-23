@@ -4,10 +4,12 @@
 from common.Catalog import Catalog
 from common.Nature import Nature
 
+from math import inf
+
 
 class Cluster:
 
-    def __init__(self, name, nature, supervisor, superior="exchange"):
+    def __init__(self, name, nature, supervisor, superior="exchange", efficiency=1, capacity=inf):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the cluster
 
@@ -22,6 +24,12 @@ class Cluster:
         self._subclusters = list()  # a list of all the clusters managed by the cluster
 
         self.quantities = dict()  # a dictionary containing, for each device and each subcluster, the quantity asked, the price billed, the quantity delivered and the price it cost it
+
+        # todo: me virer ce merdier et le faire proprement
+        # hors de question que ce soit fige a la declaration comme ça
+        # a stocker dans un dico au niveau de world plutot
+        self.efficiency = efficiency
+        self.capacity = capacity
 
     # ##########################################################################################
     # Initialization

@@ -76,7 +76,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24)  # number of time steps simulated
+               24*365)  # number of time steps simulated
 
 
 # ##############################################################################################
@@ -190,9 +190,9 @@ classic_contract_DHW = User.Contracts.TOUEgoistContract.TOUEgoistContract("class
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1.json", [cluster_elec, cluster_heat, cluster_DHW])
-world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2.json", [cluster_elec, cluster_heat, cluster_DHW])
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5.json", [cluster_elec, cluster_heat, cluster_DHW])
+world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat, cluster_DHW])
+world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat, cluster_DHW])
+world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat, cluster_DHW])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

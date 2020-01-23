@@ -1,0 +1,17 @@
+{
+  "device_consumption": {
+    "ECOS": {
+      "usage_profile": {"nature": "LVE", "efficiency": 0.3, "max_power": 1500, "surface": 13500},
+      "efficiency_variation": 0
+    }
+  },
+
+  "user_profile": {
+    "ECOS": {
+      "location": "Pau",
+
+      "offset": 0,
+      "period": 24
+    }
+  }
+}

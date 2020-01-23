@@ -113,6 +113,7 @@ class World:
         self._catalog.add("time_step", timestep_value)  # value of a time step, used to adapt hourly-defined profiles
         self._timestep_value = timedelta(hours=timestep_value)
         self._time_limit = time_limit
+        self._catalog.add("time_limit", time_limit)
 
     # the following methods concern objects modeling a case
     def register_supervisor(self, supervisor):  # definition of the supervisor
@@ -246,15 +247,16 @@ class World:
         file.close()
 
         # creation of contracts
-        contract_list = []
-        for nature_name in data["contracts"]:  # for each nature, the relevant contract is set
-            contract_name = f"{data['template name']}_{nature_name}_contract"
-            contract_class = self._user_classes[data["contracts"][nature_name][0]]
-            parameters = data["contracts"][nature_name][1]
+        contract_dict = {}
+        for contract_type in data["contracts"]:  # for each contract
+            nature_name = data["contracts"][contract_type][0]
+            contract_name = f"{data['template name']}_{nature_name}_{contract_type}"
+            contract_class = self._user_classes[data["contracts"][contract_type][1]]
+            parameters = data["contracts"][contract_type][2]
             nature = self._catalog.natures[nature_name]
             contract = contract_class(contract_name, nature, parameters)
             self.register_contract(contract)
-            contract_list.append(contract)
+            contract_dict[contract_type] = contract
 
         for i in range(quantity):
 
@@ -262,9 +264,9 @@ class World:
             agent_name = f"{data['template name']}_{str(i)}"
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
-            for nature_name in data["contracts"]:
-                nature = self._catalog.natures[nature_name]
-                agent.set_contract(nature, data["contracts"][nature_name])
+            for contract in contract_dict.values():
+                nature = self._catalog.natures[contract.nature.name]
+                agent.set_contract(nature, contract)
 
             # creation of devices
             for device_data in data["composition"]:
@@ -276,7 +278,13 @@ class World:
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
                         device_class = self._user_classes[device_data]
 
-                        device = device_class(device_name, contract_list, agent, clusters, profile[1], profile[2])  # creation of the device
+                        contracts = []
+                        for contract_type in contract_dict:
+                            if profile[4] == contract_type:
+                                contracts.append(contract_dict[contract_type])
+
+                        # TODO: gérer paramètres
+                        device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2])  # creation of the device
                         self.register_device(device)
 
     # ##########################################################################################
@@ -305,14 +313,14 @@ class World:
     def start(self):
         self._check()  # check if everything is fine in world definition
 
-        # add for each type of contracts
-
         # Resolution
         for i in range(0, self.time_limit, 1):
 
             # ###########################
             # Beginning of the turn
             # ###########################
+
+            print(f"iteration {self._catalog.get('simulation_time')}")
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
@@ -373,7 +381,7 @@ class World:
             # time update
             self._update_time()
 
-            # print(self._catalog.get("simulation_time"))
+            print()
 
         # self.catalog.print_debug()  # display the content of the catalog
         # print(self)  # give the name of the world and the quantity of productions and consumptions
@@ -687,7 +695,7 @@ class Device:
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
-        self._natures = dict() # contains, for each energy nature used by the device, the cluster and the nature associated
+        self._natures = dict()  # contains, for each energy nature used by the device, the cluster and the nature associated
         self._inputs = dict()
         self._outputs = dict()
 
@@ -729,8 +737,12 @@ class Device:
 
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
-            # [ [Emin, Enom, Emax], price]
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
+
+            try:  # creates an entry for effort in agent if there is not
+                self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
+            except:
+                pass
 
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
@@ -831,9 +843,11 @@ class Device:
 
         energy_sold = dict()
         energy_bought = dict()
+        energy_erased = dict()
 
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
+            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
             # self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
             if energy_amount < 0:  # if the device consumes energy
@@ -842,6 +856,8 @@ class Device:
             else:  # if the device delivers energy
                 energy_bought[nature.name] = energy_amount
                 energy_sold[nature.name] = 0
+
+            energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the supervisor
 
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
@@ -868,11 +884,13 @@ class Device:
         # balance at the agent level
         energy_sold_agent = self._catalog.get(f"{self.agent.name}.energy_sold")
         energy_bought_agent = self._catalog.get(f"{self.agent.name}.energy_bought")
+        energy_erased_agent = self._catalog.get(f"{self.agent.name}.energy_erased")
         money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
         money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
 
         self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold_agent + sum(energy_sold.values()))  # report the energy delivered by the device
         self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought_agent + sum(energy_bought.values()))  # report the energy consumed by the device
+        self._catalog.set(f"{self.agent.name}.energy_erased", energy_erased_agent + sum(energy_erased.values()))  # report the energy consumed by the device
         self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent)  # money spent by the cluster to buy energy during the round
         self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent)  # money earned by the cluster by selling energy during the round
 

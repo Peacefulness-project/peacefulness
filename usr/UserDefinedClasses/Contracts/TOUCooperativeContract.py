@@ -19,8 +19,7 @@ class TOUCooperativeContract(Contract):
     # ##########################################################################################
 
     def _user_register(self):
-        self._catalog.set(f"{self.name}.{self.nature.name}.buying_price", self._parameters[0])  # the price paid to buy energy of a given nature with this contract
-        self._catalog.set(f"{self.name}.{self.nature.name}.selling_price", self._parameters[1])  # the price received by selling energy  of a given nature with this contract
+        pass
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -28,12 +27,12 @@ class TOUCooperativeContract(Contract):
 
     # billing
     def _billing_buying(self, quantity):
-        price = self._catalog.get(f"{self.name}.{self.nature.name}.buying_price")  # getting the price per kW.h
+        price = self._catalog.get(f"{self.nature.name}.buying_price_TOU") * 0.9  # getting the price per kW.h
 
         return price
 
     def _billing_selling(self, quantity):
-        price = self._catalog.get(f"{self.name}.{self.nature.name}.selling_price")  # getting the price per kW.h
+        price = self._catalog.get(f"{self.nature.name}.selling_price_TOU") * 0.9  # getting the price per kW.h
 
         return price
 

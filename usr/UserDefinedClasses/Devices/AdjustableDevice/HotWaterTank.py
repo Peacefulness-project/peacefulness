@@ -7,6 +7,7 @@ class HotWaterTank(ChargerDevice):
     def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
         super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
+        # todo: passer ça en paramètres
         self._month_dependency = [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
 
     # ##########################################################################################
@@ -80,7 +81,7 @@ class HotWaterTank(ChargerDevice):
         self._demand = dict()
         self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
         for nature in self.natures:
-            self._demand[nature] = 0  # the demand is initialized
+            self._demand[nature.name] = 0  # the demand is initialized
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -103,33 +104,43 @@ class HotWaterTank(ChargerDevice):
         energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                        for nature in self._usage_profile}  # consumption which will be asked eventually
 
-        # if self._remaining_time == 0:  # checking if the device has to start
+        # first we update the time remaining until the next need
+        if self._remaining_time:  # if we know when will be the next need
+            self._remaining_time -= 1
+        else:  # if we don't know when it will happen
+            self._remaining_time = self._period  # we reinitialize the remaining_time
+            for usage in self._user_profile:
+                if usage[0] - self._moment > 0:  # if the need occurs during the ongoing period
+                    remaining_time = usage[0] - self._moment
+                else:  # if the need occurs during the next period
+                    remaining_time = usage[0] - self._moment + self._period  # a period is added to know the real time remaining
 
-        for usage in self._user_profile:
-            if usage[0] == self._moment:  # if the current hour matches with the start of an usage
-                # self._remaining_time = 1  # incrementing usage duration
+                if remaining_time < self._remaining_time:
+                    self._remaining_time = remaining_time  # the time kept is the shortest
+                    for nature in self._usage_profile:
+                        self._demand[nature] = usage[1] * self._usage_profile[nature]  # and the quantity associated is kept
 
-                for nature in self._usage_profile:  # creating the demand in energy
-                    # physical data
-                    Cp = 4.18 * 10 ** 3  # thermal capacity of water in J.kg-1.K-1
-                    rho = 1  # density of water in kg.L-1
-                    hot_water_temperature = 60  # the temperature of the DHW in °C
-                    wanted_water_temperature = 40  # the final temperature of water in °C
-                    cold_water_temperature = self._catalog.get("cold_water_temperature")  # the temperature of cold water in °C
-                    # we suppose this temperature will not change until the fulfillment of the need
-                    month = self._catalog.get("physical_time").month - 1  # as months go from 1 to 12 but the list goes from 0 to 11
+        for nature in self._usage_profile:  # creating the demand in energy
+            # physical data
+            Cp = 4.18 * 10 ** 3  # thermal capacity of water in J.kg-1.K-1
+            rho = 1  # density of water in kg.L-1
+            hot_water_temperature = 60  # the temperature of the DHW in °C
+            wanted_water_temperature = 40  # the final temperature of water in °C
+            cold_water_temperature = self._catalog.get("cold_water_temperature")  # the temperature of cold water in °C
+            # we suppose this temperature will not change until the fulfillment of the need
+            month = self._catalog.get("physical_time").month - 1  # as months go from 1 to 12 but the list goes from 0 to 11
 
-                    # calculus of volume of hot water
-                    water_volume = self._usage_profile[nature] * usage[1] * self._month_dependency[month] * \
-                                   (wanted_water_temperature - cold_water_temperature) / \
-                                   (   hot_water_temperature - cold_water_temperature)  # the volume of water in L
-                    # calculated through the proportion of hot water (60°C) necessary to have water at the wanted temperature (40°C)
+            # calculus of volume of hot water
+            water_volume = self._demand[nature] * self._month_dependency[month] * \
+                           (wanted_water_temperature - cold_water_temperature) / \
+                           (   hot_water_temperature - cold_water_temperature)  # the volume of water in L
+            # calculated through the proportion of hot water (60°C) necessary to have water at the wanted temperature (40°C)
 
-                    # calculus of energy
-                    energy_to_heat = water_volume * rho * Cp * (hot_water_temperature - cold_water_temperature)  # the energy needed to heat the water, in J
-                    energy_wanted[nature]["energy_minimum"] = 0  # the energy needed to heat the water, in kWh
-                    energy_wanted[nature]["energy_nominal"] = energy_to_heat / (3.6 * 10 ** 6)  # the energy needed to heat the water, in kWh
-                    energy_wanted[nature]["energy_maximum"] = energy_to_heat / (3.6 * 10 ** 6)  # the energy needed to heat the water, in kWh
+            # calculus of energy
+            energy_to_heat = water_volume * rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6)  # the energy needed to heat the water, in kWh
+            energy_wanted[nature]["energy_minimum"] = 0  # the energy needed to heat the water, in kWh
+            energy_wanted[nature]["energy_nominal"] = min(energy_to_heat / (self._remaining_time + 1), self._max_power[nature])  # the energy needed to heat the water, in kWh
+            energy_wanted[nature]["energy_maximum"] = min(energy_to_heat, self._max_power[nature])  # the energy needed to heat the water, in kWh
 
         # if self._remaining_time:  # if the device is active
         #     for nature in energy_wanted:
@@ -150,15 +161,15 @@ class HotWaterTank(ChargerDevice):
             energy_wanted[nature] = self.get_energy_wanted_nom(nature)
             energy_accorded[nature] = self.get_energy_accorded_quantity(nature)
 
-            if energy_wanted[nature] != energy_accorded[nature]:  # if it is not the nominal wanted energy, then it creates effort
+            if energy_wanted[nature] > energy_accorded[nature]:  # if it is less than the nominal wanted energy, then it creates effort
                 energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
 
-                effort = min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # effort increases
+                effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
                 effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                 self.agent.add_effort(effort, nature)  # effort increments
 
-                self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
+                self._demand[nature.name] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
 
         # activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean
         # if activity:  # if the device is active
