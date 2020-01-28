@@ -6,7 +6,7 @@ from tools.UserClassesDictionary import user_classes_dictionary
 class GenericProducer(NonControllableDevice):
 
     def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name):
-        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/WindTurbine.json", user_profile_name, usage_profile_name, None)
+        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/GenericProducer.json", user_profile_name, usage_profile_name, None)
 
         self._usage_profile = dict()
 
@@ -31,7 +31,8 @@ class GenericProducer(NonControllableDevice):
 
         self._max_power = data_device["usage_profile"]["max_power"]  # max power
 
-        self._unused_nature_removal()
+        # todo: trouver problème
+        # self._unused_nature_removal()
 
     # ##########################################################################################
     # Dynamic behavior

@@ -247,16 +247,16 @@ class WhenProfitableRevenues(Supervisor):
 
         # distribution among consumptions
         i = 0
-        while energy_available_consumption > sorted_demands[i][1] and i < len(sorted_demands) - 1:  # as long as there is energy available
+        while energy_available_consumption > sorted_demands[i][1] and i < len(sorted_demands)-1:  # as long as there is energy available
             device_name = sorted_demands[i][3]
 
             energy = sorted_demands[i][1]  # the quantity of energy needed
             price = sorted_demands[i][2]  # the price of energy
 
             try:  # if it is a subcluster
-                quantities_and_prices = [+energy, price]
-
-                self._catalog.set(f"{device_name}.quantities_given", quantities_and_prices)  # it is served
+                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                quantities_given.append([energy, price])
+                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
                 energy_available_production -= energy
 
                 money_earned_inside += energy * price  # money earned by selling energy to the device
@@ -273,22 +273,19 @@ class WhenProfitableRevenues(Supervisor):
         # this line gives the remnant of energy to the last unserved device
         if sorted_demands[i][1]:  # if the demand really exists
             device_name = sorted_demands[i][3]
-
             price = sorted_demands[i][2]  # the price of energy
 
             try:
-                price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
-
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded",
-                                  {"quantity": energy_available_production, "price": price})
+                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                quantities_given.append([energy_available_consumption, price])
+                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
 
                 money_earned_inside += energy_available_consumption * price  # money earned by selling energy to the subcluster
                 energy_sold_inside += energy_available_consumption  # the absolute value of energy sold inside
 
                 energy_available_consumption = 0
             except:
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded",
-                                  {"quantity": energy_available_consumption, "price": price})
+                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy_available_consumption, "price": price})
 
                 money_earned_inside += energy_available_consumption * price  # money earned by selling energy to the device
                 energy_sold_inside += energy_available_consumption  # the absolute value of energy sold inside
@@ -297,25 +294,23 @@ class WhenProfitableRevenues(Supervisor):
 
         # distribution among productions
         i = 0
-        while energy_available_production > - sorted_offers[i][1] and i < len(
-                sorted_offers) - 1:  # as long as there is energy available
+        while energy_available_production > - sorted_offers[i][1] and i < len(sorted_offers)-1:  # as long as there is energy available
             device_name = sorted_offers[i][3]
 
             energy = - sorted_offers[i][1]  # the quantity of energy needed
-            price = sorted_demands[i][2]  # the price of energy
+            price = sorted_offers[i][2]  # the price of energy
 
             try:  # if it is a subcluster
-                quantities_and_prices = [-energy, price]
+                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                quantities_given.append([-energy, price])
+                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
 
-                self._catalog.set(f"{device_name}.quantities_given", quantities_and_prices)  # it is served
                 energy_available_production -= energy
 
                 money_spent_inside += energy * price  # money spent by buying energy from the subcluster
                 energy_bought_inside += energy  # the absolute value of energy bought inside
             except:  # if it is a device
-
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded",
-                                  {"quantity": -energy, "price": price})
+                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": -energy, "price": price})
                 energy_available_production -= energy  # the difference between the max and the min is consumed
 
                 money_spent_inside += energy * price  # money spent by buying energy from the device
@@ -327,22 +322,19 @@ class WhenProfitableRevenues(Supervisor):
         if sorted_offers[i][1]:  # if the demand really exists
             device_name = sorted_offers[i][3]
 
-            price = sorted_demands[i][2]  # the price of energy
+            price = sorted_offers[i][2]  # the price of energy
 
-            try:
-                quantities_and_prices = [-energy_available_production, price]
-
-                self._catalog.set(f"{device_name}.quantities_given", quantities_and_prices)  # it is served
+            try:  # cluster
+                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                quantities_given.append([-energy_available_production, price])
+                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
 
                 money_spent_inside += energy_available_production * price  # money spent by buying energy from the subcluster
                 energy_bought_inside += energy_available_production  # the absolute value of energy bought inside
 
                 energy_available_production = 0  # the difference between the max and the min is consumed
-            except:
-                price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]
-
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded",
-                                  {"quantity": -energy_available_production, "price": price})
+            except:  # device
+                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": -energy_available_production, "price": price})
 
                 money_spent_inside += energy_available_production * price  # money spent by buying energy from the device
                 energy_bought_inside += energy_available_production  # the absolute value of energy bought inside
@@ -355,14 +347,12 @@ class WhenProfitableRevenues(Supervisor):
         # print(self._catalog.get(f"{cluster.name}.quantities_asked"))
 
         # updates the balances
-        self._catalog.set(f"{cluster.name}.energy_bought",
-                          {"inside": energy_bought_inside, "outside": energy_bought_outside})
+        self._catalog.set(f"{cluster.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
         self._catalog.set(f"{cluster.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
 
         self._catalog.set(f"{cluster.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
-        self._catalog.set(f"{cluster.name}.money_earned",
-                          {"inside": money_earned_inside, "outside": money_earned_outside})
-        #
+        self._catalog.set(f"{cluster.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+
         # print(f"bought outside {energy_bought_outside}; sold outside {energy_sold_outside}; bought inside {energy_bought_inside}; sold inside {energy_sold_inside}")
         # print(self._quantities_exchanged_internally)
         #

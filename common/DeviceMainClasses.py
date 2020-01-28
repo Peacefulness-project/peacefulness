@@ -332,20 +332,16 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         else:  # if the device is running then it's the usage_profile who matters
             for nature in energy_wanted:
                 ratio = self._usage_profile[-self._remaining_time][1]  # emergency associated
-                energy_wanted[nature]["energy_minimum"] = ratio * energy_wanted[nature]["energy_maximum"]
+                energy_wanted[nature]["energy_minimum"] = 0
                 energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
                 energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
 
-            if self._interruption_data[0]:  # if the device has been interrupted
-                nature = list(self.natures)[0]  # take the first nature registered in the device to measure the emergency
-                min = self.get_energy_wanted_min(nature)
-                nom = self.get_energy_wanted_nom(nature)
-                max = self.get_energy_wanted_max(nature)
-                emergency = (nom - min) / (max - min)
-
-                ratio = (1 - emergency) / (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + emergency  # calculation of priority in case of interruption
-                nom = ratio * (max - min) + min
-                self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", nom)
+                # todo: gérer interruption pour cause de blackout
+                # if self._interruption_data[0]:  # if the device has been interrupted
+                #     emergency = (energy_wanted[nature]["energy_nominal"] - energy_wanted[nature]["energy_minimum"]) / (energy_wanted[nature]["energy_maximum"] - energy_wanted[nature]["energy_minimum"])
+                #     ratio = (1 - emergency) / (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + emergency  # calculation of priority in case of interruption
+                #
+                #     energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

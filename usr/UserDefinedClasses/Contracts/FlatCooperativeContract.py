@@ -33,7 +33,7 @@ class FlatCooperativeContract(Contract):
     def _billing_selling(self, quantity):
         price = self._catalog.get(f"{self.name}.{self.nature.name}.selling_price")  # getting the price per kW.h
 
-        return price()
+        return price
 
 
 user_classes_dictionary[f"{FlatCooperativeContract.__name__}"] = FlatCooperativeContract

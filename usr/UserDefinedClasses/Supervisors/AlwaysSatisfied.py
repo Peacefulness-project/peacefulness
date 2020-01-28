@@ -57,6 +57,11 @@ class AlwaysSatisfied(Supervisor):
         money_earned_inside = 0  # the absolute value of money earned inside
         money_spent_inside = 0  # the absolute value of money spent inside
 
+        min_grid_price = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")  # the price at which the grid sells energy
+        max_grid_price = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")  # the price at which the grid sells energy
+        max_price = max_grid_price + abs(max_grid_price) / 2  # maximum price the cluster is allowed to bill
+        min_price = min_grid_price - abs(min_grid_price) / 2  # minimum price the cluster is allowed to bill
+
         # counting the offers and the demands at its own level
         # what was asked
         for couple in self._catalog.get(f"{cluster.name}.quantities_asked"):
@@ -69,6 +74,7 @@ class AlwaysSatisfied(Supervisor):
         for couple in self._catalog.get(f"{cluster.name}.quantities_given"):
             if couple[0] > 0:  # energy bought by the aggregator
                 quantities_given["bought"] += couple[0]  # the quantity of energy sold to the cluster
+                couple[1] = min(couple[1], max_price)  # maximum price is artificially limited
 
                 # making balances
                 # energy bought
@@ -77,6 +83,7 @@ class AlwaysSatisfied(Supervisor):
 
             elif couple[0] < 0:  # energy sold by the aggregator
                 quantities_given["sold"] += couple[0]  # the quantity of energy bought by the cluster
+                couple[1] = max(couple[1], min_price)  # minimum price is artificially limited
 
                 # making balances
                 # energy sold
@@ -91,13 +98,19 @@ class AlwaysSatisfied(Supervisor):
                 energy = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
                 price = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["price"]  # the price of the energy asked
 
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
-
                 # balances
                 if energy > 0:  # energy bought
+                    price = min(price, max_price)
+
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+
                     money_earned_inside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                 elif energy < 0:  # energy sold
+                    price = max(price, min_price)
+
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+
                     money_spent_inside -= energy * price  # money spent by buying energy from the device
                     energy_bought_inside -= energy  # the absolute value of energy bought inside
 
@@ -109,17 +122,11 @@ class AlwaysSatisfied(Supervisor):
                 # balances
                 for couple in quantities_and_prices:  # for each couple energy/price
                     if couple[0] > 0:  # energy bought
-                        grid_price = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")  # the price at which the grid sells energy
-
-                        max_price = grid_price + abs(grid_price) / 2  # maximum price the cluster is allowed to bill
                         couple[1] = min(couple[1], max_price)  # maximum price is artificially limited
 
                         money_earned_inside += couple[0] * couple[1]  # money earned by selling energy to the subcluster
                         energy_sold_inside += couple[0]  # the absolute value of energy sold inside
                     elif couple[0] < 0:  # energy sold
-                        grid_price = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")  # the price at which the grid buys energy
-
-                        min_price = grid_price - abs(grid_price)/2  # minimum price the cluster is allowed to bill
                         couple[1] = max(couple[1], min_price)  # minimum price is artificially limited
 
                         money_spent_inside -= couple[0] * couple[1]  # money spent by buying energy from the subcluster
@@ -132,7 +139,8 @@ class AlwaysSatisfied(Supervisor):
         # print(f"from inside  money earned:{money_earned_inside}/spent:{money_spent_inside},  energy bought:{energy_bought_inside}/sold:{energy_sold_inside}")
         # print(f"sum          money:{money_earned_outside - money_spent_outside + money_earned_inside - money_spent_inside},"
         #       f" energy:{energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside}")
-        # print("\n")
+        print(energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside)
+        # print()
 
         # updates the balances
         self._catalog.set(f"{cluster.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})

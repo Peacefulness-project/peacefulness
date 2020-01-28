@@ -7,7 +7,7 @@ from tools.Utilities import sign
 from math import inf
 
 
-class WhenProfitable(Supervisor):
+class WhenProfitableFullService(Supervisor):
 
     def __init__(self, name, description):
         super().__init__(name, description)
@@ -382,5 +382,5 @@ class WhenProfitable(Supervisor):
         # print()
 
 
-user_classes_dictionary[f"{WhenProfitable.__name__}"] = WhenProfitable
+user_classes_dictionary[f"{WhenProfitableFullService.__name__}"] = WhenProfitableFullService
 

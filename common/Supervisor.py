@@ -47,6 +47,7 @@ class Supervisor:
                 emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
 
             if Emax > 0:  # if the energy is strictly positive, it means that the device or the cluster is asking for energy
+
                 sorted_demands.append([emergency, Emax, price, device_name])
             elif Emax < 0:  # if the energy is strictly negative, it means that the device or the cluster is proposing energy
                 sorted_offers.append([emergency, Emax, price, device_name])

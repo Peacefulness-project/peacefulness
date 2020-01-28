@@ -48,7 +48,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "published_cases/SFT2020/Results/WhenProfitable_EFS_low_DSM"
+pathExport = "published_cases/SFT2020/Results/Autarky_partial_medium_DSM"
 world.set_directory(pathExport)  # registration
 
 
@@ -80,13 +80,13 @@ world.set_time(start_date,  # time management: start date
 # elec supervisor
 description = "Refuses to exchange with outside."
 name_supervisor = "NoExchange"
-supervisor_elec = User.Supervisors.WhenProfitable.WhenProfitable(name_supervisor, description)
+supervisor_elec = User.Supervisors.AutarkyPartial.AutarkyPartial(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
 description = "Always serves everybody, whatever it can cost to him."
 name_supervisor = "heat_supervisor"
-supervisor_heat = User.Supervisors.SubclusterHeat.SubclusterHeat(name_supervisor, description)
+supervisor_heat = User.Supervisors.SubclusterHeatPartial.SubclusterHeatPartial(name_supervisor, description)
 world.register_supervisor(supervisor_heat)
 
 # the supervisor grid, which always proposes an infinite quantity to sell and to buy
@@ -139,10 +139,10 @@ world.register_cluster(cluster_heat)  # registration
 BAU_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("BAU_elec", elec, {"selling_price": 0.1, "buying_price": 0.11})
 world.register_contract(BAU_elec)
 
-cooperative_contract_elec = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.12})
+cooperative_contract_elec = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.12})
 world.register_contract(cooperative_contract_elec)
 
-cooperative_contract_heat = User.Contracts.TOUCooperativeContract.TOUCooperativeContract("cooperative_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.14})
+cooperative_contract_heat = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_heat", heat, {"selling_price": 0.1, "buying_price": 0.14})
 world.register_contract(cooperative_contract_heat)
 
 # ##############################################################################################
@@ -182,19 +182,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(335, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(670, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(335, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(250, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(250, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(100, "usr/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(200, "usr/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(100, "usr/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(150, "usr/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(300, "usr/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(150, "usr/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(65, "usr/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(130, "usr/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(65, "usr/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "usr/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "usr/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "usr/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -264,6 +264,16 @@ world.register_datalogger(ECOS_agent_datalogger)  # registration
 world.register_datalogger(ECOS_cluster_datalogger)  # registration
 world.register_datalogger(global_values_datalogger)  # registration
 
+# datalogger used to get back producer outputs
+producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+world.register_datalogger(producer_datalogger)  # registration
+
+producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
+producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_erased")
+producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
+producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
+producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_sold")
+producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization

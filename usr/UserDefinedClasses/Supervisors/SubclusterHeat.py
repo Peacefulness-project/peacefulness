@@ -38,7 +38,7 @@ class SubclusterHeat(Supervisor):
                 energy_difference += element[0]
                 cluster.quantities[f"{subcluster.name}_lot_{i}"] = [element[0], element[1], 0, 0]
 
-                if element[0] < 0: # if it is produced
+                if element[0] < 0:  # if it is produced
                     offer += element[0]
                 elif element[0] > 0:  # if it is consumed
                     demand += element[0]
@@ -50,7 +50,7 @@ class SubclusterHeat(Supervisor):
 
         # todo: faire ca proprement
         for element in quantities_and_prices:
-            element[0] = min(element[0] * cluster.efficiency, cluster.capacity)
+            element[0] = min(element[0] / cluster.efficiency, cluster.capacity)
             element[1] = element[1] / cluster.efficiency
 
         self._catalog.set(f"{cluster.name}.quantities_asked", quantities_and_prices)  # publish its needs

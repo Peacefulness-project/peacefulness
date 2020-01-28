@@ -292,7 +292,7 @@ class World:
     # ##########################################################################################
 
     def _check(self):  # a method checking if the world has been well defined
-        # 2 things are necessary for world to be correctly defined:
+        # 3 things are necessary for world to be correctly defined:
         # 1/ time parameters
         # 2/ the random seed
         # 3/ the case directory
@@ -303,12 +303,12 @@ class World:
             raise WorldException(f"Time parameters are needed")
 
         # checking if a random seed is defined
-        if "path" not in self.catalog.keys:
+        if "float" not in self.catalog.keys:
             raise WorldException(f"A random seed is needed")
 
         # checking if a path is defined
         if "path" not in self.catalog.keys:
-            raise WorldException(f"A path is to the results files is needed")
+            raise WorldException(f"A path to the results files is needed")
 
     def start(self):
         self._check()  # check if everything is fine in world definition
@@ -338,6 +338,9 @@ class World:
 
             for cluster in self._catalog.clusters.values():
                 cluster.reinitialize()
+
+            for device in self._catalog.devices.values():
+                device.reinitialize()
 
             # devices publish the quantities they are interested in (both in demand and in offer)
             for device in self._catalog.devices.values():
@@ -744,6 +747,24 @@ class Device:
             except:
                 pass
 
+            if nature not in self.agent.natures:  # complete the list of natures of the agent
+                self.agent._contracts[nature] = None
+
+            try:  # creates an entry for energy erased in agent if there is not
+                self._catalog.add(f"{self.agent.name}.{nature.name}.energy_erased", 0)
+            except:
+                pass
+
+            try:  # creates an entry for energy erased in agent if there is not
+                self._catalog.add(f"{self.agent.name}.{nature.name}.energy_bought", 0)
+            except:
+                pass
+
+            try:  # creates an entry for energy erased in agent if there is not
+                self._catalog.add(f"{self.agent.name}.{nature.name}.energy_sold", 0)
+            except:
+                pass
+
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
         if self._filename != "loaded device":  # if a filename has been defined...
@@ -835,6 +856,11 @@ class Device:
     # Dynamic behavior
     # ##########################################################################################
 
+    def reinitialize(self):
+        for nature in self.natures:
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
+
     def update(self):  # method updating needs of the devices before the supervision
         pass
 
@@ -844,31 +870,39 @@ class Device:
         energy_sold = dict()
         energy_bought = dict()
         energy_erased = dict()
+        money_spent = dict()
+        money_earned = dict()
 
         for nature in self._natures:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
+            price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
             # self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
             if energy_amount < 0:  # if the device consumes energy
                 energy_sold[nature.name] = energy_amount
                 energy_bought[nature.name] = 0
+                money_earned[nature.name] = price * energy_amount
+                money_spent[nature.name] = 0
+
             else:  # if the device delivers energy
                 energy_bought[nature.name] = energy_amount
                 energy_sold[nature.name] = 0
+                money_earned[nature.name] = 0
+                money_spent[nature.name] = price * energy_amount
 
             energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the supervisor
 
             # balance for different natures
-            energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
+            energy_sold_nature = - self._catalog.get(f"{nature.name}.energy_produced")
             energy_bought_nature = self._catalog.get(f"{nature.name}.energy_consumed")
             money_spent_nature = self._catalog.get(f"{nature.name}.money_spent")
             money_earned_nature = self._catalog.get(f"{nature.name}.money_earned")
 
             self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature)  # money spent by the cluster to buy energy during the round
-            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature)  # money earned by the cluster by selling energy during the round
+            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the cluster to buy energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the cluster by selling energy during the round
 
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
@@ -878,21 +912,24 @@ class Device:
 
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract)  # money spent by the contract to buy energy during the round
-            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract)  # money earned by the contract by selling energy during the round
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract + money_spent[nature.name])  # money spent by the contract to buy energy during the round
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract - money_earned[nature.name])  # money earned by the contract by selling energy during the round
 
         # balance at the agent level
-        energy_sold_agent = self._catalog.get(f"{self.agent.name}.energy_sold")
-        energy_bought_agent = self._catalog.get(f"{self.agent.name}.energy_bought")
-        energy_erased_agent = self._catalog.get(f"{self.agent.name}.energy_erased")
+        for nature in self.natures:
+            energy_erased_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_erased")
+            self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", energy_erased_agent + energy_erased[nature.name])  # report the energy consumed by the device
+
+            energy_sold_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_sold")
+            energy_bought_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_bought")
+            self._catalog.set(f"{self.agent.name}.{nature.name}.energy_sold", energy_sold_agent + energy_sold[nature.name])  # report the energy delivered by the device
+            self._catalog.set(f"{self.agent.name}.{nature.name}.energy_bought", energy_bought_agent + energy_bought[nature.name])  # report the energy consumed by the device
+
         money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
         money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
 
-        self._catalog.set(f"{self.agent.name}.energy_sold", energy_sold_agent + sum(energy_sold.values()))  # report the energy delivered by the device
-        self._catalog.set(f"{self.agent.name}.energy_bought", energy_bought_agent + sum(energy_bought.values()))  # report the energy consumed by the device
-        self._catalog.set(f"{self.agent.name}.energy_erased", energy_erased_agent + sum(energy_erased.values()))  # report the energy consumed by the device
-        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent)  # money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent)  # money earned by the cluster by selling energy during the round
+        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values())) # money spent by the cluster to buy energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the cluster by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
         pass
