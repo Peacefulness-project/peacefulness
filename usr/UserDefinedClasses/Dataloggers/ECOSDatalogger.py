@@ -51,22 +51,22 @@ class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed 
 
         # aggregated agent data
         quantity_erased = 0
-        quantity_given = 0
+        quantity_got = 0
         bill = 0
         for nature_name in self._natures_list:
 
             for agent_name in self._agents_list:
                 try:  # if the nature is present in the agent
                     quantity_erased += abs(self._catalog.get(f"{agent_name}.{nature_name}.energy_erased"))
-                    quantity_given += abs(self._catalog.get(f"{agent_name}.{nature_name}.energy_bought") + 0 * self._catalog.get(f"{agent_name}.{nature_name}.energy_sold"))
+                    quantity_got += abs(self._catalog.get(f"{agent_name}.{nature_name}.energy_bought") + 0 * self._catalog.get(f"{agent_name}.{nature_name}.energy_sold"))
                 except:
                     pass
                 bill += self._catalog.get(f"{agent_name}.money_spent")
 
-            if quantity_given != 0:
-                canceled_ratio = quantity_erased / ( quantity_given + quantity_erased)
+            if (quantity_got + quantity_erased) != 0:
+                canceled_ratio = quantity_erased / (quantity_got + quantity_erased)
             else:
-                canceled_ratio = 1
+                canceled_ratio = 0
 
             file.write(f"{canceled_ratio}\t")
             file.write(f"{bill}\t")

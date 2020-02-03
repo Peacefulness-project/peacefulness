@@ -139,8 +139,8 @@ class HotWaterTank(ChargerDevice):
             # calculus of energy
             energy_to_heat = water_volume * rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6)  # the energy needed to heat the water, in kWh
             energy_wanted[nature]["energy_minimum"] = 0  # the energy needed to heat the water, in kWh
-            energy_wanted[nature]["energy_nominal"] = min(energy_to_heat / (self._remaining_time + 1), self._max_power[nature])  # the energy needed to heat the water, in kWh
-            energy_wanted[nature]["energy_maximum"] = min(energy_to_heat, self._max_power[nature])  # the energy needed to heat the water, in kWh
+            energy_wanted[nature]["energy_nominal"] = max(min(energy_to_heat / (self._remaining_time + 1), self._max_power[nature]), 0)  # the energy needed to heat the water, in kWh
+            energy_wanted[nature]["energy_maximum"] = max(min(energy_to_heat, self._max_power[nature]), 0)  # the energy needed to heat the water, in kWh
 
         # if self._remaining_time:  # if the device is active
         #     for nature in energy_wanted:

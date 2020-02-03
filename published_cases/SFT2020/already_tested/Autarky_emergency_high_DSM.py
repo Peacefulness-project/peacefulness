@@ -48,7 +48,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "published_cases/SFT2020/Results/WhenProfitable_partial_low_DSM"
+pathExport = "published_cases/SFT2020/Results/Autarky_emergency_high_DSM"
 world.set_directory(pathExport)  # registration
 
 
@@ -80,13 +80,13 @@ world.set_time(start_date,  # time management: start date
 # elec supervisor
 description = "Refuses to exchange with outside."
 name_supervisor = "NoExchange"
-supervisor_elec = User.Supervisors.WhenProfitablePartial.WhenProfitablePartial(name_supervisor, description)
+supervisor_elec = User.Supervisors.AutarkyEmergency.AutarkyEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
 description = "Always serves everybody, whatever it can cost to him."
 name_supervisor = "heat_supervisor"
-supervisor_heat = User.Supervisors.SubclusterHeatPartial.SubclusterHeatPartial(name_supervisor, description)
+supervisor_heat = User.Supervisors.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_heat)
 
 # the supervisor grid, which always proposes an infinite quantity to sell and to buy
@@ -182,19 +182,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(335, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(670, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(335, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(165, "usr/AgentTemplates/SFT2020/AgentSFT_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(330, "usr/AgentTemplates/SFT2020/AgentSFT_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(165, "usr/AgentTemplates/SFT2020/AgentSFT_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(100, "usr/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(200, "usr/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(100, "usr/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "usr/AgentTemplates/SFT2020/AgentSFT_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(400, "usr/AgentTemplates/SFT2020/AgentSFT_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "usr/AgentTemplates/SFT2020/AgentSFT_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(65, "usr/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(130, "usr/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(65, "usr/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(135, "usr/AgentTemplates/SFT2020/AgentSFT_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(270, "usr/AgentTemplates/SFT2020/AgentSFT_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(135, "usr/AgentTemplates/SFT2020/AgentSFT_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

@@ -65,7 +65,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               365+1)  # number of time steps simulated
+               24*365+1)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -199,19 +199,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "usr/AgentTemplates/SFT2020/AgentSFT_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(1000, "usr/AgentTemplates/SFT2020/AgentSFT_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "usr/AgentTemplates/SFT2020/AgentSFT_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

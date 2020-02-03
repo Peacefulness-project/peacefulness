@@ -6,7 +6,7 @@ from tools.GraphAndTex import graph_SFT
 chdir("../../")
 
 # set the relative path to the project root
-root_path = "published_cases/SFT2020/cases/"
+root_path = "published_cases/ECOS_collab_2020/cases/"
 
 simulation_mains = listdir(root_path)  # the main corresponding to each case we want tot test
 

@@ -34,16 +34,9 @@ class AlwaysSatisfied(Supervisor):
 
         quantities_and_prices = [[energy_difference, sign(energy_difference)*inf]]  # wants to satisfy everyone, regardless the price (i.e sells even at -inf and buys even at +inf)
 
-        # todo: faire ca proprement
-        for element in quantities_and_prices:
-            element[0] = min(element[0] * cluster.efficiency, cluster.capacity)
-            element[1] = element[1] / cluster.efficiency
-
-        self._catalog.set(f"{cluster.name}.quantities_asked", quantities_and_prices)  # publish its needs
+        self._publish_needs(cluster, quantities_and_prices)
 
     def distribute_remote_energy(self, cluster):  # after having exchanged with the exterior, the cluster distributes the energy among its devices and clusters
-        # print(cluster.name)
-        # preparing balances
         quantities_asked = {"bought": 0, "sold": 0}
         quantities_given = {"bought": 0, "sold": 0}
 
@@ -57,10 +50,7 @@ class AlwaysSatisfied(Supervisor):
         money_earned_inside = 0  # the absolute value of money earned inside
         money_spent_inside = 0  # the absolute value of money spent inside
 
-        min_grid_price = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")  # the price at which the grid sells energy
-        max_grid_price = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")  # the price at which the grid sells energy
-        max_price = max_grid_price + abs(max_grid_price) / 2  # maximum price the cluster is allowed to bill
-        min_price = min_grid_price - abs(min_grid_price) / 2  # minimum price the cluster is allowed to bill
+        [min_price, max_price] = self._limit_prices(cluster)  # min and max prices allowed
 
         # counting the offers and the demands at its own level
         # what was asked

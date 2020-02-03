@@ -79,7 +79,6 @@ class SolarThermalCollector(NonControllableDevice):
 
         self._catalog.set(f"{self.name}_exergy_in", exergy_in)
         self._catalog.set(f"{self.name}_exergy_out", exergy_out)
-        # print(energy_wanted)
 
 
 user_classes_dictionary[f"{SolarThermalCollector.__name__}"] = SolarThermalCollector

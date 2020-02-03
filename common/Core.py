@@ -79,7 +79,7 @@ class World:
     # the following methods concern objects absolutely needed for world to perform a calculus
     def set_directory(self, path):  # definition of a case directory and creation of the directory
         instant_date = datetime.now()  # get the current time
-        instant_date = instant_date.strftime("%d_%m_%Y-%H_%M_%S")  # the directory is named after the date
+        instant_date = instant_date.strftime("%Y_%m_%d-%H_%M_%S")  # the directory is named after the date
 
         path = adapt_path([path, f"Case_{instant_date}"])  # path is the root for all files relative to the case
 
@@ -877,7 +877,6 @@ class Device:
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
             price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
-            # self._natures[nature][1]._billing(energy_amount, self._agent.name)  # call the method billing from the contract
 
             if energy_amount < 0:  # if the device consumes energy
                 energy_sold[nature.name] = energy_amount

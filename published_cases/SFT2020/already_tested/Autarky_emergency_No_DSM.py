@@ -182,19 +182,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(1000, "usr/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(500, "usr/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "usr/AgentTemplates/SFT2020/AgentSFT_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(1000, "usr/AgentTemplates/SFT2020/AgentSFT_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "usr/AgentTemplates/SFT2020/AgentSFT_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(0, "usr/AgentTemplates/SFT2020/AgentSFT_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
