@@ -165,7 +165,7 @@ class Supervisor:
     def _exchanges_balance(self, cluster, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside):
         for couple in self._catalog.get(f"{cluster.name}.quantities_given"):
             if couple[0] > 0:  # energy bought by the aggregator
-
+                # print(couple[1])
                 # making balances
                 # energy bought
                 money_spent_outside += couple[0] * couple[1]  # the absolute value of money spent outside
@@ -267,10 +267,11 @@ class Supervisor:
             quantity_remaining_offer = maximum_energy_produced - quantities_exchanged - 0*max(minimum_energy_consumed, minimum_energy_produced)  # the remaining quantity of energy
 
         # setting the call for above supervisor
+
+        # demand
         # todo: virer rustine
         if sorted_demands[-1][3] == '':
             sorted_demands.pop()
-        # demand
         price_remaining_demand = (final_price + sorted_demands[-1][2]) / 2  # the price used is the mean between the intern price and the lowest price
         quantities_and_prices.append([quantity_remaining_demand, price_remaining_demand])  # the quantity the cluster wants to buy cheaply
 
@@ -278,7 +279,10 @@ class Supervisor:
         # todo: virer rustine
         if sorted_offers[-1][3] == '':
             sorted_offers.pop()
-        price_remaining_offer = (final_price + sorted_offers[-1][2]) / 2  # the price used is the mean between the intern price and the highest price
+        try:
+            price_remaining_offer = (final_price + sorted_offers[-1][2]) / 2  # the price used is the mean between the intern price and the highest price
+        except:
+            price_remaining_offer = 0
         quantities_and_prices.append([-quantity_remaining_offer, price_remaining_offer])  # the quantity the cluster wants to sell expensively
 
         return [quantities_exchanged, quantities_and_prices]

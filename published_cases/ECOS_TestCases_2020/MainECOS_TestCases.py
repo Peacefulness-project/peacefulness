@@ -1,9 +1,9 @@
 # execute all files in the sub-directory "SFT2020"
 from os import listdir, chdir
-from tools.GraphAndTex import graph_SFT
+# from tools.GraphAndTex import graph_SFT
 
 
-chdir("../../")
+# chdir("../../")
 
 # set the relative path to the project root
 root_path = "published_cases/ECOS_TestCases_2020/cases/"

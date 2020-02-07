@@ -48,7 +48,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "published_cases/ECOS_collab_2020/Results/ControlSimulationMean"
+pathExport = "published_cases/ECOS_collab_2020/Results/Autarky_low_DSM_mean"
 world.set_directory(pathExport)  # registration
 
 
@@ -77,10 +77,10 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Supervisor
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
-# the BAU supervisor
-description = "Always serves everybody, whatever it can cost to him."
-name_supervisor = "elec_supervisor"
-supervisor_elec = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
+# elec supervisor
+description = "Refuses to exchange with outside."
+name_supervisor = "NoExchange"
+supervisor_elec = User.Supervisors.AutarkyEmergency.AutarkyEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
@@ -136,16 +136,17 @@ world.register_cluster(cluster_heat)  # registration
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 
 # producers
-BAU_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("BAU_elec", elec, {"selling_price": 0.1, "buying_price": 0.11})
+# as we consider that they are the same as the supervisor, we chose to put all their prices to 0
+BAU_elec = User.Contracts.TOUEgoistContract.TOUEgoistContract("BAU_elec", elec, {"selling_price": 0, "buying_price": 0})
 world.register_contract(BAU_elec)
 
-BAU_heat = User.Contracts.FlatEgoistContract.FlatEgoistContract("BAU_heat", heat, {"selling_price": 0.1, "buying_price": 0.11})
+BAU_heat = User.Contracts.FlatEgoistContract.FlatEgoistContract("BAU_heat", heat, {"selling_price": 0, "buying_price": 0})
 world.register_contract(BAU_heat)
 
-cooperative_contract_elec = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.12})
-world.register_contract(cooperative_contract_elec)
+# cooperative_contract_elec = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.12})
+# world.register_contract(cooperative_contract_elec)
 
-cooperative_contract_heat = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_heat", heat, {"selling_price": 0.08, "buying_price": 0.1})
+cooperative_contract_heat = User.Contracts.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_heat", heat, {"selling_price": 0, "buying_price": 0})
 world.register_contract(cooperative_contract_heat)
 
 # ##############################################################################################
@@ -179,19 +180,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(500, "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(1000, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(500, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(335, "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(670, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(335, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(65, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(130, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(65, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -212,9 +213,9 @@ file.close()
 
 # Price Managers
 # this daemons fix a price for a given nature of energy
-price_manager_elec = User.Daemons.PriceManagerDaemonTOU.PriceManagerDaemonTOU("Picsou", 1, {"nature": elec.name, "buying_prices": [0.12, 0.17], "selling_prices": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for flat rate
-price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Heat_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
+price_manager_elec = User.Daemons.PriceManagerDaemonTOU.PriceManagerDaemonTOU("Picsou", 1, {"nature": elec.name, "buying_prices": [0.2125, 0.15], "selling_prices": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
+price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Heat_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.30, "grid_selling_price": 0.00})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_elec_grid)  # registration
 world.register_daemon(price_heat_grid)  # registration

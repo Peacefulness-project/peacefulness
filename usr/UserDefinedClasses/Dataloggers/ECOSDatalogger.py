@@ -37,6 +37,8 @@ class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed 
             energy_sold = self._catalog.get(f"{cluster_name}.energy_sold")
             energy_bought = self._catalog.get(f"{cluster_name}.energy_bought")
             benefit = sum(self._catalog.get(f"{cluster_name}.money_earned").values()) - sum(self._catalog.get(f"{cluster_name}.money_spent").values())
+            # print(cluster_name)
+            # print(self._catalog.get(f"{cluster_name}.money_earned").values(), self._catalog.get(f"{cluster_name}.money_spent").values())
 
             try:
                 self_consumption = energy_bought["inside"] / energy_sold["inside"]  # the ratio between the energy sold inside and the energy bought inside
@@ -167,7 +169,7 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
         self._last_turn = self._catalog.get("time_limit") - 1  # the number of the last iteration
 
     def _save(self):
-        # at every turn, the peak are reactualized
+        # at every turn, the peaks are reactualized
         for nature_name in self._peak:
             if self._peak[nature_name]["peak_consumption"] < self._catalog.get(f"{nature_name}.energy_consumed"):
                 self._peak[nature_name]["peak_consumption"] = self._catalog.get(f"{nature_name}.energy_consumed")

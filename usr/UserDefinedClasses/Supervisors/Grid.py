@@ -31,9 +31,13 @@ class Grid(Supervisor):
                 if couple[0] > 0:
                     if couple[1] < self._catalog.get(f"{cluster.nature.name}.grid_buying_price"):
                         couple = [0, 0]
+                    else:
+                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")
                 elif couple[0] < 0:
                     if couple[1] > self._catalog.get(f"{cluster.nature.name}.grid_selling_price"):
                         couple = [0, 0]
+                    else:
+                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")
 
                 self._catalog.set(f"{managed_cluster.name}.quantities_given", quantities)
 

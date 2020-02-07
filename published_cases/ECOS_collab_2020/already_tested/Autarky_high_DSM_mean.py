@@ -1,20 +1,8 @@
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-#
-#                                               PEACEFULNESS
-#
-#           Platform for transverse evaluation of control strategies for multi-energy smart grids
-#
-#
-#
-# Coordinators: Dr E. Franquet, Dr S. Gibout (erwin.franquet@univ-pau.fr, stephane.gibout@univ-pau.fr)
-# Contributors (alphabetical order): Dr E. Franquet, Dr S. Gibout, T. Gronier
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
+# first run for SFT 2020
+# Control simulation: everything goes as actually in France. This run will give us a reference to measure the efficiency of our method.
+# Exchange strategy: BAU
+# Distribution strategy: N.A
+# Contracts: 100 Normal, 0 DLC, 0 Curtailment
 
 
 # ##############################################################################################
@@ -39,6 +27,7 @@ from common.Datalogger import Datalogger
 
 import usr.UserDefinedClasses as User
 
+
 # ##############################################################################################
 # Performance measurement
 CPU_time = process_time()
@@ -53,13 +42,13 @@ CPU_time = process_time()
 # Creation of the world
 # a world <=> a case, it contains all the model
 # a world needs just a name
-name_world = "Disc World"
+name_world = "ECOS_collab_2020"
 world = World(name_world)  # creation
 
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "./Results"  #
+pathExport = "published_cases/ECOS_collab_2020/Results/Autarky_high_DSM_mean"
 world.set_directory(pathExport)  # registration
 
 
@@ -88,10 +77,10 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Supervisor
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
-# the BAU supervisor
-description = "Always serves everybody, whatever it can cost to him."
-name_supervisor = "elec_supervisor"
-supervisor_elec = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
+# elec supervisor
+description = "Refuses to exchange with outside."
+name_supervisor = "NoExchange"
+supervisor_elec = User.Supervisors.AutarkyEmergency.AutarkyEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
@@ -190,21 +179,20 @@ CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 
 
-# # BAU contracts
-world.agent_generation(1
-                       , "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-# world.agent_generation(1000, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-# world.agent_generation(500, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
-#
-# # DLC contracts
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
-#
-# # Curtailment contracts
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+# BAU contracts
+world.agent_generation(165, "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(330, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(165, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+
+# DLC contracts
+world.agent_generation(200, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(400, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+
+# Curtailment contracts
+world.agent_generation(135, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(270, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(135, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -255,35 +243,34 @@ world.register_daemon(irradiation_daemon)  # registration
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  cluster
-# contract_balances = User.Dataloggers.Balances.ContractBalanceDatalogger()
-# cluster_balances = User.Dataloggers.Balances.ClusterBalanceDatalogger()
-# nature_balances = User.Dataloggers.Balances.NatureBalanceDatalogger()
-# world.register_datalogger(contract_balances)  # registration
-# world.register_datalogger(cluster_balances)  # registration
-# world.register_datalogger(nature_balances)  # registration
-#
-# ECOS_agent_datalogger = User.Dataloggers.ECOSDatalogger.ECOSAgentDatalogger("month")
-# ECOS_cluster_datalogger = User.Dataloggers.ECOSDatalogger.ECOSClusterDatalogger()
-# global_values_datalogger = User.Dataloggers.ECOSDatalogger.GlobalValuesDatalogger()
-# world.register_datalogger(ECOS_agent_datalogger)  # registration
-# world.register_datalogger(ECOS_cluster_datalogger)  # registration
-# world.register_datalogger(global_values_datalogger)  # registration
+contract_balances = User.Dataloggers.Balances.ContractBalanceDatalogger()
+cluster_balances = User.Dataloggers.Balances.ClusterBalanceDatalogger()
+nature_balances = User.Dataloggers.Balances.NatureBalanceDatalogger()
+world.register_datalogger(contract_balances)  # registration
+world.register_datalogger(cluster_balances)  # registration
+world.register_datalogger(nature_balances)  # registration
+
+ECOS_agent_datalogger = User.Dataloggers.ECOSDatalogger.ECOSAgentDatalogger("month")
+ECOS_cluster_datalogger = User.Dataloggers.ECOSDatalogger.ECOSClusterDatalogger()
+global_values_datalogger = User.Dataloggers.ECOSDatalogger.GlobalValuesDatalogger()
+world.register_datalogger(ECOS_agent_datalogger)  # registration
+world.register_datalogger(ECOS_cluster_datalogger)  # registration
+world.register_datalogger(global_values_datalogger)  # registration
 
 # datalogger used to get back producer outputs
 producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
 world.register_datalogger(producer_datalogger)  # registration
 
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_erased")
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_sold")
-#
-# producer_datalogger.add(f"{PV_field.name}_exergy_in")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
-# producer_datalogger.add(f"{PV_field.name}_exergy_out")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
-producer_datalogger.add("reference_temperature")
-producer_datalogger.add("Pau_irradiation_value")
+producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
+producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_erased")
+producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
+producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_sold")
+
+producer_datalogger.add(f"{PV_field.name}_exergy_in")
+producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
+producer_datalogger.add(f"{PV_field.name}_exergy_out")
+producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
+
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
@@ -321,6 +308,12 @@ filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  
 file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the calculation phase: {CPU_time}\n")
 file.close()
+
+
+
+
+
+
 
 
 

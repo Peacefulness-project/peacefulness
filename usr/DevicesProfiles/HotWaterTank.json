@@ -32,6 +32,30 @@
       "max_power": {"Heat": 42}
     },
 
+    "5_people_elec": {
+      "usage_profile": {"LVE": 220},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 42}
+    },
+
+    "2_people_elec": {
+      "usage_profile": {"LVE": 110},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 42}
+    },
+
+    "1_people_elec": {
+      "usage_profile": {"LVE": 65},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 42}
+    },
+
     "single": {
       "usage_profile": {"LVE": 1.75},
       "consumption_variation": 0.1,
