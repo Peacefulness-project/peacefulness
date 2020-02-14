@@ -223,9 +223,14 @@ world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_elec_grid)  # registration
 world.register_daemon(price_heat_grid)  # registration
 
+# Indoor temperature
+# this daemon is responsible for the value of indoor temperatures in the catalog
+indoor_temperature_daemon = User.Daemons.IndoorTemperatureDaemon.IndoorTemperatureDaemon("Asie", 1)
+world.register_daemon(indoor_temperature_daemon)  # registration
+
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.PauTemperatureDaemon.PauTemperatureDaemon("Azzie", 1)
+temperature_daemon = User.Daemons.OutdoorTemperatureDaemon.OutdoorTemperatureDaemon("Azzie", 1, {"file": "usr/MeteorologicalData/TemperaturesProfiles/PauTemperatures.json"})
 world.register_daemon(temperature_daemon)  # registration
 
 # Water temperature

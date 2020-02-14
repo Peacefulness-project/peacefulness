@@ -125,13 +125,6 @@ class AlwaysSatisfied(Supervisor):
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
             raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
 
-        # print(f"from outside  money earned:{money_earned_outside}/spent:{money_spent_outside}, energy bought:{energy_bought_outside}/sold:{energy_sold_outside}")
-        # print(f"from inside  money earned:{money_earned_inside}/spent:{money_spent_inside},  energy bought:{energy_bought_inside}/sold:{energy_sold_inside}")
-        # print(f"sum          money:{money_earned_outside - money_spent_outside + money_earned_inside - money_spent_inside},"
-        #       f" energy:{energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside}")
-        print(energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside)
-        # print()
-
         # updates the balances
         self._catalog.set(f"{cluster.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
         self._catalog.set(f"{cluster.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})

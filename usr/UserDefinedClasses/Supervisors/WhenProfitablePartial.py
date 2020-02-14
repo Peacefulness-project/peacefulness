@@ -117,9 +117,6 @@ class WhenProfitablePartial(Supervisor):
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(cluster, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
-        # print(f"bought outside {energy_bought_outside}; sold outside {energy_sold_outside}; bought inside {energy_bought_inside}; sold inside {energy_sold_inside}")
-        print(energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside)  # must be null
-
         # ##########################################################################################
         # updates the balances
         self._update_balances(cluster, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside)

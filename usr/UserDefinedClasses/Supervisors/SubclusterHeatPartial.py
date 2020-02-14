@@ -26,8 +26,6 @@ class SubclusterHeatPartial(Supervisor):
 
         [min_price, max_price] = self._limit_prices(cluster)  # min and max prices allowed
 
-        # print(f"asked {self._catalog.get(f'{cluster.name}.quantities_asked')}; given {self._catalog.get(f'{cluster.name}.quantities_given')}")
-
         # once the cluster has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
@@ -37,8 +35,6 @@ class SubclusterHeatPartial(Supervisor):
         # calculus of the minimum and maximum quantities of energy involved in the cluster
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(cluster, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
-
-        # print(f"min prod {minimum_energy_produced}; max prod {maximum_energy_produced}; min cons {minimum_energy_consumed}; max cons {maximum_energy_consumed}")
 
         # ##########################################################################################
         # management of grid call
@@ -120,9 +116,6 @@ class SubclusterHeatPartial(Supervisor):
 
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(cluster, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
-
-        # print(f"bought outside {energy_bought_outside}; sold outside {energy_sold_outside}; bought inside {energy_bought_inside}; sold inside {energy_sold_inside}")
-        print(energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside)
 
         # ##########################################################################################
         # updates the balances

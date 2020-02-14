@@ -41,7 +41,6 @@ class SubclusterHeatRevenues(Supervisor):
         # calculus of the minimum and maximum quantities of energy involved in the cluster
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(cluster, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
-        # print(f"min prod {minimum_energy_produced}; max prod {maximum_energy_produced}; min cons {minimum_energy_consumed}; max cons {maximum_energy_consumed}")
 
         # initialization of prices:
         buying_price = min(sorted_demands[0][2], max_price)  # maximum price given by consumers
@@ -53,7 +52,6 @@ class SubclusterHeatRevenues(Supervisor):
         self._quantities_exchanged_internally[cluster.name] = [quantities_exchanged, final_price]  # we store this value for the descendant phase
 
         self._publish_needs(cluster, quantities_and_prices)  # this function manages the appeals to the superior cluster regarding capacity and efficiency
-        # print(quantities_and_prices, "\n", quantities_exchanged)
 
     def distribute_remote_energy(self, cluster):  # after having exchanged with the exterior, the cluster
         energy_bought_outside = 0  # the absolute value of energy bought outside
@@ -109,8 +107,6 @@ class SubclusterHeatRevenues(Supervisor):
 
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(cluster, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
-
-        print(energy_bought_outside - energy_sold_outside + energy_bought_inside - energy_sold_inside)  # must be null
 
         # updates the balances
         self._update_balances(cluster, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside)

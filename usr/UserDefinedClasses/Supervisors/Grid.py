@@ -23,21 +23,22 @@ class Grid(Supervisor):
         self._catalog.set(f"{cluster.name}.{cluster.nature.name}.energy_needs", grid_offer)
 
     def distribute_remote_energy(self, cluster):  # the grid, as it has no devices, has no distribution to make
-        # en attendant qu'on se mette d'accord sur le systeme a mettre en place pour les echanges
-        # on donne tout à tout le monde au prix du grid, c'est la fete
-        for managed_cluster in cluster.subclusters:
+        # meanwhile, it always serve all the quantities asked by its subcluster as long as the price announced fit its prices
+        for managed_cluster in cluster.subclusters:  # for each subcluster
             quantities = self._catalog.get(f"{managed_cluster.name}.quantities_asked")
+
             for couple in quantities:  # attribution of the correct price
-                if couple[0] > 0:
-                    if couple[1] < self._catalog.get(f"{cluster.nature.name}.grid_buying_price"):
-                        couple = [0, 0]
-                    else:
-                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")
-                elif couple[0] < 0:
-                    if couple[1] > self._catalog.get(f"{cluster.nature.name}.grid_selling_price"):
-                        couple = [0, 0]
-                    else:
-                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")
+                if couple[0] > 0:  # if the subcluster wants to buy energy
+                    if couple[1] < self._catalog.get(f"{cluster.nature.name}.grid_buying_price"):  # if the price is below the grid tariff
+                        couple = [0, 0]  # it is not served
+                    else:  # if price proposed is above or equal to the price set for the grid
+                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_buying_price")  # it is served and the price is adjusted
+
+                elif couple[0] < 0:  # if the subcluster wants to sell energy
+                    if couple[1] > self._catalog.get(f"{cluster.nature.name}.grid_selling_price"):  # if the price is above the grid tariff
+                        couple = [0, 0]  # it is not served
+                    else:  # if price proposed is below or equal to the price set for the grid
+                        couple[1] = self._catalog.get(f"{cluster.nature.name}.grid_selling_price")  # it is served and the price is adjusted
 
                 self._catalog.set(f"{managed_cluster.name}.quantities_given", quantities)
 

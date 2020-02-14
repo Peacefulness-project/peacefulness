@@ -153,7 +153,7 @@ WT_producer.set_contract(elec, cooperative_contract_elec)
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
-PV_field = User.Devices.NonControllableDevice.PV.PV("PV_field", BAU_elec, PV_producer, cluster_elec, "ECOS", "ECOS_field", {"surface": 10100})  # creation of a photovoltaic panel field
+PV_field = User.Devices.NonControllableDevice.PV.PV("PV_field", BAU_elec, PV_producer, cluster_elec, "ECOS", "ECOS_field", {"surface": 20100})  # creation of a photovoltaic panel field
 world.register_device(PV_field)  # registration of a production device
 
 wind_turbine = User.Devices.NonControllableDevice.WindTurbine.WindTurbine("wind_turbine", cooperative_contract_elec, WT_producer, cluster_elec, "ECOS", "ECOS_high")  # creation of a wind turbine
@@ -197,9 +197,14 @@ price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("LVE_tariffs", 
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_elec_grid)  # registration
 
+# Indoor temperature
+# this daemon is responsible for the value of indoor temperatures in the catalog
+indoor_temperature_daemon = User.Daemons.IndoorTemperatureDaemon.IndoorTemperatureDaemon("Asie", 1)
+world.register_daemon(indoor_temperature_daemon)  # registration
+
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = User.Daemons.PauTemperatureDaemon.PauTemperatureDaemon("Azzie", 1)
+temperature_daemon = User.Daemons.OutdoorTemperatureDaemon.OutdoorTemperatureDaemon("Azzie", 1, {"file": "usr/MeteorologicalData/TemperaturesProfiles/PauTemperatures.json"})
 world.register_daemon(temperature_daemon)  # registration
 
 # Water temperature

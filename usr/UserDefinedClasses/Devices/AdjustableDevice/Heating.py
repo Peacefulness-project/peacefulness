@@ -174,7 +174,7 @@ class Heating(AdjustableDevice):
 
                 time_step = self._catalog.get("time_step") * 3600
 
-                deltaT0 = previous_indoor_temperature - previous_outdoor_temperature
+                deltaT0 = current_indoor_temperature - current_outdoor_temperature
                 self._temperature_range = line[2]
                 deltaTmin = line[2][0] - current_outdoor_temperature
                 deltaTnom = line[2][1] - current_outdoor_temperature
@@ -202,11 +202,12 @@ class Heating(AdjustableDevice):
             energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
             energy_wanted_max = self.get_energy_wanted_max(nature)  # maximum quantity of energy
             energy_accorded = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
+
             if energy_wanted_min:  # if the device is active
                 if self._remaining_time:  # decrementing the remaining time of use
                     self._remaining_time -= 1
 
-                if not (energy_wanted_min < energy_accorded < energy_wanted_max):  # if the energy given is not in the borders defined by the user
+                if not (energy_wanted_min <= energy_accorded <= energy_wanted_max):  # if the energy given is not in the borders defined by the user
                     # be careful when the adjustable device is a producer, as the notion of maximum and minimum can create confusion (negative values)
 
                     Tnom = self._temperature_range[1]  # ideal temperature
@@ -227,22 +228,15 @@ class Heating(AdjustableDevice):
 
         # recalculating the temperature
         current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
-        previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
-        self._catalog.set(f"{self.agent.name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous indoor temperature
-
-        current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
-        previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
 
         time_step = self._catalog.get("time_step") * 3600
-
-        deltaT0 = current_indoor_temperature - current_outdoor_temperature
 
         power = 0
         for nature in self._natures:
             power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] / time_step
 
-        current_indoor_temperature = power / self._G * self._thermal_inertia\
-                                     + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
+        current_indoor_temperature += power / self._G * self._thermal_inertia
+                                     # + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period

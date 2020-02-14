@@ -1,0 +1,16 @@
+{
+  "template name": "1_people_DLC",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_DLC"]],
+    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_DLC"]],
+
+    "Heating": [["Heating", "residential", "apartment_elec", [1,1], "LVE_DLC"]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_elec", [1,1], "LVE_DLC"]]
+  },
+
+  "contracts": {
+    "LVE_DLC":  ["LVE", "TOUCooperativeContract", {"selling_price": 0.12, "buying_price": 0.11}]
+  }
+
+}

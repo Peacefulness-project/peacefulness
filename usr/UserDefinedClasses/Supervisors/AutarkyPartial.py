@@ -66,9 +66,6 @@ class AutarkyPartial(Supervisor):
             # distribution among productions
             [maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(cluster, min_price, sorted_offers, maximum_energy_consumed, money_spent_inside, energy_bought_inside)
 
-        # print(f"bought outside {0}; sold outside {0}; bought inside {energy_bought_inside}; sold inside {energy_sold_inside}")
-        print(energy_bought_inside - energy_sold_inside)
-
         # ##########################################################################################
         # updates the balances
         self._update_balances(cluster, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0)

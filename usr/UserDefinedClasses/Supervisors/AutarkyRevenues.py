@@ -38,7 +38,6 @@ class AutarkyRevenues(Supervisor):
 
         # ##########################################################################################
         # distribution of energy
-        # print(f"max conso {maximum_energy_consumed}; min conso {minimum_energy_consumed}; max prod {maximum_energy_produced}; min prod {minimum_energy_produced}")
 
         if maximum_energy_produced <= minimum_energy_consumed or maximum_energy_consumed <= minimum_energy_produced:  # if there is no possibility to balance the grid
             # we consider that the gird falls
@@ -66,9 +65,6 @@ class AutarkyRevenues(Supervisor):
 
             # distribution among productions
             [maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(cluster, min_price, sorted_offers, maximum_energy_consumed, money_spent_inside, energy_bought_inside)
-
-        # print(f"bought outside {0}; sold outside {0}; bought inside {energy_bought_inside}; sold inside {energy_sold_inside}")
-        print(energy_bought_inside - energy_sold_inside)
 
         # ##########################################################################################
         # updates the balances

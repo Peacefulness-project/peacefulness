@@ -157,6 +157,16 @@ class HotWaterTank(ChargerDevice):
         # effort management
         energy_wanted = dict()
         energy_accorded = dict()
+
+        # physical data
+        Cp = 4.18 * 10 ** 3  # thermal capacity of water in J.kg-1.K-1
+        rho = 1  # density of water in kg.L-1
+        hot_water_temperature = 60  # the temperature of the DHW in °C
+        wanted_water_temperature = 40  # the final temperature of water in °C
+        cold_water_temperature = self._catalog.get("cold_water_temperature")  # the temperature of cold water in °C
+        # we suppose this temperature will not change until the fulfillment of the need
+        month = self._catalog.get("physical_time").month - 1  # as months go from 1 to 12 but the list goes from 0 to 11
+
         for nature in self._natures:
             energy_wanted[nature] = self.get_energy_wanted_nom(nature)
             energy_accorded[nature] = self.get_energy_accorded_quantity(nature)
@@ -169,7 +179,13 @@ class HotWaterTank(ChargerDevice):
                 effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                 self.agent.add_effort(effort, nature)  # effort increments
 
-                self._demand[nature.name] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
+            volume_heated = energy_accorded[nature] / (rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6))
+
+            remaining_demand = volume_heated / ( self._month_dependency[month] *
+                           (wanted_water_temperature - cold_water_temperature) /
+                           (   hot_water_temperature - cold_water_temperature)  )
+
+            self._demand[nature.name] += - volume_heated   # the energy in excess or in default
 
         # activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean
         # if activity:  # if the device is active

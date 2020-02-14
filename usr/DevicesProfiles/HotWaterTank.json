@@ -91,16 +91,6 @@
       "offset": 0,
 
       "start_time_variation": 2.5
-    },
-
-    "evening": {
-      "profile": [[9, 19]],
-
-      "period": 24,
-      "offset": 0,
-
-      "start_time_variation": 1
     }
   }
-
 }

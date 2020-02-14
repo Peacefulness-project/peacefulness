@@ -1,0 +1,18 @@
+{
+  "template name": "2_people_curtailment",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_2", [1,1], "LVE_curtailment"]],
+    "Dishwasher": [["Dishwasher", "ECOS_2", "ECOS", [1,1], "LVE_curtailment"]],
+    "WashingMachine": [["WashingMachine", "ECOS_2", "ECOS", [1,1], "LVE_curtailment"]],
+    "Dryer": [["Dryer", "ECOS_2", "ECOS", [1,1], "LVE_curtailment"]],
+
+    "Heating": [["Heating", "residential", "apartment_elec", [1,1], "LVE_curtailment"]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "2_people_elec", [1,1], "LVE_curtailment"]]
+  },
+
+  "contracts": {
+    "LVE_curtailment":  ["LVE", "TOUCurtailmentContract", {"selling_price": 0.12, "buying_price": 0.11}]
+  }
+
+}

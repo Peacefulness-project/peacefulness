@@ -3,7 +3,7 @@
     "house_elec": {
       "usage_profile": [{"LVE": 1}, 1.5, 7200],
       "consumption_variation": 0.1,
-      "max_power": {"LVE": 2}
+      "max_power": {"LVE": 5}
     },
 
     "house_heat": {
@@ -15,13 +15,31 @@
     "apartment_elec": {
       "usage_profile": [{"LVE": 1}, 0.7, 7200],
       "consumption_variation": 0.1,
-      "max_power": {"LVE": 2}
+      "max_power": {"LVE": 3}
     },
 
     "apartment_heat": {
-      "usage_profile": [{"Heat": 1}, 0.7, 18000],
+      "usage_profile": [{"Heat": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
       "max_power": {"Heat": 2}
+    },
+
+    "grand_apartment_heat": {
+      "usage_profile": [{"Heat": 1}, 1, 10800],
+      "consumption_variation": 0.25,
+      "max_power": {"Heat": 3}
+    },
+
+    "apartment_heat_instant_consumption": {
+      "usage_profile": [{"Heat": 1}, 0.7, 7200],
+      "consumption_variation": 0.25,
+      "max_power": {"Heat": 100}
+    },
+
+    "grand_apartment_heat_instant_consumption": {
+      "usage_profile": [{"Heat": 1}, 1, 10800],
+      "consumption_variation": 0.25,
+      "max_power": {"Heat": 100}
     }
   },
 
@@ -33,7 +51,29 @@
       "offset": 12,
 
       "start_time_variation": 1.5,
-      "temperature_variation": 0,
+      "temperature_variation": 1,
+      "duration_variation": 0
+    },
+
+    "base_profile_France": {
+      "profile": [[[5, 5], [19.9, 20, 20.1]], [[18.5, 1.5], [19.9, 20, 20.1]]],
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 1.5,
+      "temperature_variation": 1,
+      "duration_variation": 0
+    },
+
+    "base_profile_Spain": {
+      "profile": [[[1, 2], [20.9, 21, 21.1]], [[6.5, 5], [20.9, 21, 21.1]], [[18.5, 1.5], [20.9, 21, 21.1]]],
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 1.5,
+      "temperature_variation": 1,
       "duration_variation": 0
     }
   }

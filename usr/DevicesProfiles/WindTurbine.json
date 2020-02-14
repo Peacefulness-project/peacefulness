@@ -9,7 +9,7 @@
       "efficiency_variation": 0
     },
         "ECOS_high": {
-      "usage_profile": {"nature": "LVE", "efficiency": 0.3, "max_power": 6000, "surface": 27000},
+      "usage_profile": {"nature": "LVE", "efficiency": 0.3, "max_power": 6000, "surface": 54000},
       "efficiency_variation": 0
     }
   },
