@@ -61,6 +61,8 @@ class Cooling(AdjustableDevice):
         repartition = dict()
 
         for line in data_user["profile"]:
+            temperature_range = [0, 0, 0]  # temperature contains the min temperature, the nominal temperature and the max temperature
+            repartition = dict()  # the repartition between the different energies
             current_moment = int(line[0][0] // time_step)  # the moment when the device will be turned on
 
             # creation of the user profile, where there are hours associated with the use of the device
@@ -73,32 +75,37 @@ class Cooling(AdjustableDevice):
             ratio = (beginning % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             if ratio <= 0:  # in case beginning - start is negative
                 ratio += 1
-            for nature in self.natures:  # affecting a coefficient of energy to each nature used inb the process
-                try:
-                    repartition[nature.name] = ratio * self._repartition[nature.name]
-                except:
-                    pass
+            for nature_name in self._repartition:  # affecting a coefficient of energy to each nature used inb the process
+                    repartition[nature_name] = ratio * self._repartition[nature_name]
 
-            self._user_profile.append([current_moment, repartition, temperature_range])  # adding the first time step when it will be turned on
+            self._user_profile.append([current_moment, {nature: repartition[nature] for nature in repartition}, temperature_range])  # adding the first time step when it will be turned on
+
+            if len(self._user_profile) >= 2:  # if there is an usage before this one
+                if current_moment == self._user_profile[-2][0]:  # if the beginning of the new usage takes place at the same time as the end of the latter
+                    old_repartition = self._user_profile[-2][1]
+                    new_repartition = {nature_name: old_repartition[nature_name] + repartition[nature_name] for nature_name in repartition}  # the ratio of utilisation is the sum of the two former ratios
+                    # the sum still cannot go above 1
+                    old_temperature_range = self._user_profile[-2][2]
+                    new_temperature = [0, 0, 0]
+
+                    for i in range(len(temperature_range)):  # for each temperature we keep the worst case, i.e the lower
+                        new_temperature[i] = min(temperature_range[i], old_temperature_range[i])
+                        self._user_profile[-1] = [current_moment, {nature: new_repartition[nature] for nature in new_repartition}, new_temperature]  # adding the first time step when it will be turned on
 
             # intermediate time steps
             duration_residue = line[0][1] - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
             while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
-                self._user_profile.append([])
                 current_moment += 1
                 duration_residue -= 1
-                self._user_profile[-1] = [current_moment, 1, temperature_range]  # ...a new entry is created with a ratio of 1 (full use)
+                self._user_profile.append([current_moment, self._repartition, temperature_range])  # ...a new entry is created with a ratio of 1 (full use)
 
             # final time step
             current_moment += 1
             ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
-            for nature in self.natures:  # affecting a coefficient of energy to each nature used in the process
-                try:
-                    repartition[nature.name] = ratio * self._repartition[nature.name]
-                except:
-                    pass
+            for nature_name in self._repartition:  # affecting a coefficient of energy to each nature used in the process
+                    repartition[nature_name] = ratio * self._repartition[nature_name]
 
-            self._user_profile.append([current_moment, repartition, temperature_range])  # adding the final time step before it will be turned off
+            self._user_profile.append([current_moment, {nature: repartition[nature] for nature in repartition}, temperature_range])  # adding the final time step before it will be turned off
 
         # removal of unused natures in the self._natures
         nature_to_remove = []
@@ -152,7 +159,7 @@ class Cooling(AdjustableDevice):
         data["usage_profile"][1] *= consumption_variation
 
     # ##########################################################################################
-    # Dynamic behavior
+    # Dynamic behaviour
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
@@ -216,7 +223,7 @@ class Cooling(AdjustableDevice):
                     for nature in self.natures:
                         # effort generated by a too cold temperature
                         effort = min(1, (TminDis - Tint)/(Tmin - TminDis))*(Tint < Tmin) \
-                                         + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # effort generated by a too hot temperature
+                               + min(1, (TmaxDis - Tint)/(TmaxDis - Tmax))*(Tint > Tmax)  # effort generated by a too hot temperature
 
                         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                         self.agent.add_effort(effort, nature)  # effort increments
@@ -231,7 +238,6 @@ class Cooling(AdjustableDevice):
             power += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] / time_step
 
         current_indoor_temperature += - power / self._G * self._thermal_inertia
-                                     # + deltaT0 * exp(-time_step/self._thermal_inertia) + current_outdoor_temperature
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 

@@ -17,8 +17,6 @@ class IndoorTemperatureDaemon(Daemon):
         self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
         self._catalog.remove("agents_with_temperature_devices")  # the entry is not useful anymore in the catalog, so it is deleted
 
-        # todo: rajouter erreur
-
         # set initial indoor temperatures to the outdoor initial temperature
         for agent_name in self._agent_list:
             self._catalog.set(f"{agent_name}.previous_indoor_temperature", 17)

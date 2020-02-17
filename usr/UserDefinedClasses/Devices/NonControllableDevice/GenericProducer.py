@@ -31,8 +31,7 @@ class GenericProducer(NonControllableDevice):
 
         self._max_power = data_device["usage_profile"]["max_power"]  # max power
 
-        # todo: trouver problème
-        # self._unused_nature_removal()
+        self._unused_nature_removal()
 
     # ##########################################################################################
     # Dynamic behavior

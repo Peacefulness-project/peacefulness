@@ -283,8 +283,11 @@ class World:
                             if profile[4] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
-                        # TODO: gérer paramètres
-                        device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2])  # creation of the device
+                        if len(profile) == 5:  # if there are no paramters
+                            device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2])  # creation of the device
+                        else:  #if there are paramters
+                            device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2], profile[5])  # creation of the device
+
                         self.register_device(device)
 
     # ##########################################################################################

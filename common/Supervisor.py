@@ -128,11 +128,9 @@ class Supervisor:
                 lines_to_remove.append(i)
 
             else:  # if it is a device, it may asks for a min of energy too
-                try:
+                if device_name in cluster.devices:  # if it is a device
                     energy_minimum = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
                     sorted_demands[i][1] -= energy_minimum
-                except:
-                    pass
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
 
@@ -149,11 +147,9 @@ class Supervisor:
                 lines_to_remove.append(i)
 
             else:  # if it is a device, it may asks for a min of energy too
-                try:
+                if device_name in cluster.devices:  # if it is a device
                     energy_minimum = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
                     sorted_offers[i][1] -= energy_minimum
-                except:
-                    pass
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
 
@@ -165,14 +161,12 @@ class Supervisor:
     def _exchanges_balance(self, cluster, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside):
         for couple in self._catalog.get(f"{cluster.name}.quantities_given"):
             if couple[0] > 0:  # energy bought by the aggregator
-                # print(couple[1])
                 # making balances
                 # energy bought
                 money_spent_outside += couple[0] * couple[1]  # the absolute value of money spent outside
                 energy_bought_outside += couple[0] * cluster.efficiency  # the absolute value of energy bought outside
 
             elif couple[0] < 0:  # energy sold by the aggregator
-
                 # making balances
                 # energy sold
                 money_earned_outside -= couple[0] * couple[1]  # the absolute value of money earned outside
@@ -190,12 +184,12 @@ class Supervisor:
                 quantities_and_prices = [[-(minimum_energy_produced - maximum_energy_consumed), -inf]]  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
                 energy_difference = - (maximum_energy_produced - minimum_energy_consumed)
 
-        else:  # for the quantity which is not urgent
+        else:  # for the quantities which are not urgent
             if maximum_energy_produced < maximum_energy_consumed:  # if there is a lack of production
-                energy_difference = maximum_energy_consumed - maximum_energy_produced  # this energy represent  the unavialbale part of non-urgent quantities of energy
+                energy_difference = maximum_energy_consumed - maximum_energy_produced  # this energy represents the unavailable part of non-urgent quantities of energy
 
             else:  # if there is a lack of consumption
-                energy_difference = - (maximum_energy_consumed - maximum_energy_produced)
+                energy_difference = - (maximum_energy_consumed - maximum_energy_produced)  # this energy represents the unavailable part of non-urgent quantities of energy
 
         # publication of the non-urgent quantities
         quantities_and_prices.append([energy_difference, price])
@@ -227,7 +221,6 @@ class Supervisor:
 
             quantities_exchanged = max(minimum_energy_produced, minimum_energy_consumed)  # the urgent quantities have obligatory been satisfied
             available_energy = min(maximum_energy_produced, maximum_energy_consumed) - quantities_exchanged  # the remaining quantity available for exchanges once urgent needs have been satisfied
-            # print(available_energy)
 
             demand = 0  # quantities wanted for consumption
             offer = 0  # quantities wanted for production
@@ -244,7 +237,7 @@ class Supervisor:
 
                     j += 1
 
-                if offer > available_energy:  # if the offers exceeds the available energy
+                if offer > available_energy:  # if the offer exceeds the available energy
                     offer = available_energy  # it is reduced to this value
                     break  # and the loop ends
 
@@ -255,47 +248,41 @@ class Supervisor:
                 i += 1
 
             quantities_exchanged += min(offer, demand)  # the quantity exchanged internally is the minimum of the current offer and demand
-            # print(quantities_exchanged)
 
             # the remaining quantities of energy are reported outside
-            # demand
             # calculus of the remaining quantity of energy for consumption
             quantity_remaining_demand = maximum_energy_consumed - quantities_exchanged - 0*max(minimum_energy_produced, minimum_energy_consumed)  # the remaining quantity of energy
 
-            # offer
             # calculus of the remaining quantity of energy for production
             quantity_remaining_offer = maximum_energy_produced - quantities_exchanged - 0*max(minimum_energy_consumed, minimum_energy_produced)  # the remaining quantity of energy
 
         # setting the call for above supervisor
-
         # demand
-        # todo: virer rustine
-        if sorted_demands[-1][3] == '':
-            sorted_demands.pop()
-        price_remaining_demand = (final_price + sorted_demands[-1][2]) / 2  # the price used is the mean between the intern price and the lowest price
+        if sorted_demands:  # if there is a demand
+            price_remaining_demand = (final_price + sorted_demands[-1][2]) / 2  # the price used is the mean between the intern price and the lowest price
+        else:
+            price_remaining_demand = 0
+
         quantities_and_prices.append([quantity_remaining_demand, price_remaining_demand])  # the quantity the cluster wants to buy cheaply
 
         # offer
-        # todo: virer rustine
-        if sorted_offers[-1][3] == '':
-            sorted_offers.pop()
-        try:
+        if sorted_offers:  # if there is an offer
             price_remaining_offer = (final_price + sorted_offers[-1][2]) / 2  # the price used is the mean between the intern price and the highest price
-        except:
+        else:
             price_remaining_offer = 0
         quantities_and_prices.append([-quantity_remaining_offer, price_remaining_offer])  # the quantity the cluster wants to sell expensively
 
         return [quantities_exchanged, quantities_and_prices]
 
     def _publish_needs(self, cluster, quantities_and_prices):  # this function manages the appeals to the superior cluster regarding capacity and efficiency
-        # todo: passer capacity en dictionnaire pour le sens
+        # todo: passer capacity en dictionnaire pour le sens mais après discussion sterwin sur échanges
         energy_pullable = cluster.capacity  # total energy obtainable from the superior through the connection
         energy_pushable = cluster.capacity  # total energy givable from the superior through the connection
 
         def get_price(line):
             return line[1]
 
-        quantities_and_prices = sorted(quantities_and_prices, key=get_price, reverse=True)  # sort the quantities and price by decreasing importance according to the sort_function
+        quantities_and_prices = sorted(quantities_and_prices, key=get_price, reverse=True)  # sort the quantities and price by decreasing price
 
         # capacity and efficiency management
         # at this point, couples are formulated from this cluster point of view (without the effect of capacity and of efficiency)
@@ -307,8 +294,7 @@ class Supervisor:
 
                 energy_pullable -= couple[0] * cluster.efficiency
 
-            # the mirror
-            else:
+            else:  # if it is an offer of energy
                 couple[0] = max(couple[0], - energy_pushable) / cluster.efficiency  # the minimum between the need and the remaining quantity, but values are negative
                 couple[1] = couple[1] * cluster.efficiency
 
@@ -371,9 +357,6 @@ class Supervisor:
         sorted_demands = sorted(sorted_demands, key=sort_function, reverse=True)
         sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)
 
-        sorted_demands.append([0, 0, 0, ""])
-        sorted_offers.append([0, 0, 0, ""])
-
         return [sorted_demands, sorted_offers]
 
     # ##########################################################################################
@@ -384,8 +367,8 @@ class Supervisor:
         for i in range(len(sorted_demands)):  # demands
             energy = sorted_demands[i][1]
 
-            if energy > energy_available_consumption:
-                energy = energy_available_consumption
+            if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                energy = energy_available_consumption  # it is served partially, even if it is urgent
 
             device_name = sorted_demands[i][3]
             price = sorted_demands[i][2]
@@ -431,8 +414,8 @@ class Supervisor:
         for i in range(len(sorted_offers)):  # offers
             energy = sorted_offers[i][1]
 
-            if energy < - energy_available_production:
-                energy = - energy_available_production
+            if energy < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
+                energy = - energy_available_production  # it is served partially, even if it is urgent
 
             price = sorted_offers[i][2]
             price = max(price, min_price)
@@ -478,92 +461,96 @@ class Supervisor:
 
     def _distribute_consumption_full_service(self, cluster, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside):
         i = 0
-        while energy_available_consumption > sorted_demands[i][1] and i < len(sorted_demands) - 1:  # as long as there is energy available
-            device_name = sorted_demands[i][3]
-            energy = sorted_demands[i][1]  # the quantity of energy needed
-            price = sorted_demands[i][2]  # the price of energy
-            price = min(price, max_price)
 
-            try:  # if it is a subcluster
-                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+        if len(sorted_demands) >= 1:  # if there are offers
+            while energy_available_consumption > sorted_demands[i][1] and i < len(sorted_demands) - 1:  # as long as there is energy available
+                device_name = sorted_demands[i][3]
+                energy = sorted_demands[i][1]  # the quantity of energy needed
+                price = sorted_demands[i][2]  # the price of energy
+                price = min(price, max_price)
 
-                quantities_given.append([energy, price])
-                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
-            except:  # if it is a device
-                Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                try:  # if it is a subcluster
+                    quantities_given = self._catalog.get(f"{device_name}.quantities_given")
 
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+                    quantities_given.append([energy, price])
+                    self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
+                except:  # if it is a device
+                    Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
 
-            money_earned_inside += energy * price  # money earned by selling energy to the subcluster
-            energy_sold_inside += energy  # the absolute value of energy sold inside
-            energy_available_consumption -= energy
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
 
-            i += 1
+                money_earned_inside += energy * price  # money earned by selling energy to the subcluster
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+                energy_available_consumption -= energy
 
-        # this block gives the remaining energy to the last unserved device
-        if sorted_demands[i][1]:  # if the demand really exists
-            device_name = sorted_demands[i][3]
-            energy = min(sorted_demands[i][1], energy_available_consumption)  # the quantity of energy needed
-            price = sorted_demands[i][2]  # the price of energy
-            price = min(price, max_price)
+                i += 1
 
-            try:  # if it is a subcluster
-                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
-                quantities_given.append([energy, price])
-                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
-            except:  # if it is a device
-                Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+            # this block gives the remaining energy to the last unserved device
+            if sorted_demands[i][1]:  # if the demand really exists
+                device_name = sorted_demands[i][3]
+                energy = min(sorted_demands[i][1], energy_available_consumption)  # the quantity of energy needed
+                price = sorted_demands[i][2]  # the price of energy
+                price = min(price, max_price)
 
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+                try:  # if it is a subcluster
+                    quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                    quantities_given.append([energy, price])
+                    self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
+                except:  # if it is a device
+                    Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
 
-            money_earned_inside += energy * price  # money earned by selling energy to the device
-            energy_sold_inside += energy  # the absolute value of energy sold inside
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
 
         return [energy_available_consumption, money_earned_inside, energy_sold_inside]
 
     def _distribute_production_full_service(self, cluster, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside):
         i = 0
-        while energy_available_production > - sorted_offers[i][1] and i < len(sorted_offers) - 1:  # as long as there is energy available
-            device_name = sorted_offers[i][3]
-            energy = sorted_offers[i][1]  # the quantity of energy needed
-            price = sorted_offers[i][2]  # the price of energy
-            price = max(price, min_price)
 
-            try:  # if it is a subcluster
-                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+        if len(sorted_offers) >= 1:  # if there are offers
+            while energy_available_production > - sorted_offers[i][1] and i < len(sorted_offers) - 1:  # as long as there is energy available
+                device_name = sorted_offers[i][3]
+                energy = sorted_offers[i][1]  # the quantity of energy needed
+                price = sorted_offers[i][2]  # the price of energy
+                price = max(price, min_price)
 
-                quantities_given.append([energy, price])
-                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
+                try:  # if it is a subcluster
+                    quantities_given = self._catalog.get(f"{device_name}.quantities_given")
 
-            except:  # if it is a device
-                Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                    quantities_given.append([energy, price])
+                    self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
 
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+                except:  # if it is a device
+                    Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
 
-            money_spent_inside -= energy * price  # money earned by selling energy to the subcluster
-            energy_bought_inside -= energy  # the absolute value of energy sold inside
-            energy_available_production += energy
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
 
-            i += 1
+                money_spent_inside -= energy * price  # money earned by selling energy to the subcluster
+                energy_bought_inside -= energy  # the absolute value of energy sold inside
+                energy_available_production += energy
 
-        # this line gives the remnant of energy to the last unserved device
-        if sorted_offers[i][1]:  # if the demand really exists
-            device_name = sorted_offers[i][3]
-            energy = max(sorted_offers[i][1], - energy_available_production)  # the quantity of energy needed
-            price = sorted_offers[i][2]  # the price of energy
-            price = max(price, min_price)
+                i += 1
 
-            try:  # if it is a subcluster
-                quantities_given = self._catalog.get(f"{device_name}.quantities_given")
-                quantities_given.append([energy, price])
-                self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
-            except:  # if it is a device
-                Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+            # this line gives the remnant of energy to the last unserved device
+            if sorted_offers[i][1]:  # if the demand really exists
+                device_name = sorted_offers[i][3]
+                energy = max(sorted_offers[i][1], - energy_available_production)  # the quantity of energy needed
+                price = sorted_offers[i][2]  # the price of energy
+                price = max(price, min_price)
 
-                self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+                try:  # if it is a subcluster
+                    quantities_given = self._catalog.get(f"{device_name}.quantities_given")
+                    quantities_given.append([energy, price])
+                    self._catalog.set(f"{device_name}.quantities_given", quantities_given)  # then it is served
+                except:  # if it is a device
+                    Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
 
-            money_spent_inside -= energy * price  # money spent by buying energy from the device
-            energy_bought_inside -= energy  # the absolute value of energy bought inside
+                    self._catalog.set(f"{device_name}.{cluster.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+
+                money_spent_inside -= energy * price  # money spent by buying energy from the device
+                energy_bought_inside -= energy  # the absolute value of energy bought inside
 
         return [energy_available_production, money_spent_inside, energy_bought_inside]
 
@@ -583,10 +570,6 @@ class Supervisor:
                 price = demand[2]  # the price of energy
                 price = min(price, max_price)
                 energy *= energy_ratio
-
-                # todo: virer cette rustine
-                if device_name == '':
-                    break
 
                 try:  # if it is a subcluster
                     Emin = self._catalog.get(f"{device_name}.{cluster.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
@@ -621,10 +604,6 @@ class Supervisor:
                 price = offer[2]  # the price of energy
                 price = max(price, min_price)
                 energy *= energy_ratio
-
-                # todo: virer cette rustine
-                if device_name == '':
-                    break
 
                 try:  # if it is a subcluster
                     quantities_given = self._catalog.get(f"{device_name}.quantities_given")

@@ -9,8 +9,7 @@ class InstantHotWaterTank(ChargerDevice):
     def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
         super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
-        # todo: passer ça en paramètres
-        self._month_dependency = [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
+        self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
 
     # ##########################################################################################
     # Initialization
@@ -38,6 +37,9 @@ class InstantHotWaterTank(ChargerDevice):
         # user_profile
         self._user_profile = [[i * time_step, 0] for i in range(self._period)]  # creation of an empty user_profile with all cases ready
 
+        # month dependency
+        self._month_dependency = data_user["month_dependency"]
+
         # adding a null priority at the beginning and the end of the period
         # the beginning and the end are chosen outside of the period in order to avoid possible confusions
         data_user["profile"].reverse()
@@ -61,11 +63,6 @@ class InstantHotWaterTank(ChargerDevice):
 
                 if next_point[0] > line[0] + time_step or not next_point_reached:
                     break
-
-        # for i in range(len(data_user["profile"])):
-        #     self._user_profile.append([])
-        #     for proportion in data_user["profile"][i]:
-        #         self._user_profile[-1].append(proportion)  # adding the proportion of energy needed for this usage comprared tot the total value consumed during the period
 
         # cleaning of the useless entries in the user_profile
         elements_to_keep = []

@@ -76,7 +76,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24*365+1)  # number of time steps simulated
+               24*365)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -88,10 +88,13 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Supervisor
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
+
+# AutarkyEmergency AlwaysSatisfied WhenProfitable
+
 # the BAU supervisor
 description = "Always serves everybody, whatever it can cost to him."
 name_supervisor = "elec_supervisor"
-supervisor_elec = User.Supervisors.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
+supervisor_elec = User.Supervisors.WhenProfitablePartial.WhenProfitablePartial(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
@@ -164,13 +167,10 @@ world.register_contract(cooperative_contract_heat)
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
-PV_producer = Agent("PV_producer")  # creation of an agent
-world.register_agent(PV_producer)  # registration
-PV_producer.set_contract(elec, BAU_elec)
 
-solar_thermal_collector_producer = Agent("solar_thermal_producer")  # creation of an agent
-world.register_agent(solar_thermal_collector_producer)  # registration
-solar_thermal_collector_producer.set_contract(heat, BAU_heat)
+DHN_producer = Agent("DHN_producer")  # creation of an agent
+world.register_agent(DHN_producer)  # registration
+DHN_producer.set_contract(heat, cooperative_contract_heat)
 
 
 # ##############################################################################################
@@ -178,12 +178,8 @@ solar_thermal_collector_producer.set_contract(heat, BAU_heat)
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
-PV_field = User.Devices.NonControllableDevice.PV.PV("PV_field", BAU_elec, PV_producer, cluster_elec, "ECOS", "ECOS_field", {"surface": 18000})  # creation of a photovoltaic panel field
-world.register_device(PV_field)  # registration of a production device
-
-solar_thermal_collector_field = User.Devices.NonControllableDevice.SolarThermalCollector.SolarThermalCollector("solar_thermal_collector_field", BAU_heat, solar_thermal_collector_producer, cluster_heat, "ECOS", "ECOS_field", {"surface": 9350})  # creation of a solar thermal collector
-world.register_device(solar_thermal_collector_field)  # registration of a production device
-
+heat_production = User.Devices.NonControllableDevice.GenericProducer.GenericProducer("heat_production", cooperative_contract_heat, DHN_producer, cluster_heat, "ECOS", "ECOS")  # creation of a heat production unit
+world.register_device(heat_production)  # registration of a production device
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
@@ -191,19 +187,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # # BAU contracts
-world.agent_generation(1, "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
-# world.agent_generation(1000, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
-# world.agent_generation(500, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
-#
-# # DLC contracts
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
-#
-# # Curtailment contracts
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
-# world.agent_generation(0, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(5, "usr/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [cluster_elec, cluster_heat])
+
+# DLC contracts
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [cluster_elec, cluster_heat])
+
+# Curtailment contracts
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(10, "usr/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

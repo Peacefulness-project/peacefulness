@@ -72,7 +72,8 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 1
+      "start_time_variation": 1,
+      "month_dependency": [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
     },
 
     "ECOS_1": {
@@ -81,7 +82,8 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 2
+      "start_time_variation": 2,
+      "month_dependency": [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
     },
 
     "ECOS_5": {
@@ -90,7 +92,8 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 2.5
+      "start_time_variation": 2.5,
+      "month_dependency": [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
     }
   }
 }

@@ -26,8 +26,8 @@ class PriceManagerDaemonTOU(Daemon):
         self._catalog.add(f"{self._nature}.buying_price_TOU", self._buying_prices[self._moment])
         self._catalog.add(f"{self._nature}.selling_price_TOU", self._selling_prices[self._moment])
 
-    def _process(self):  # make shifts between HP/HC todo: traduire
-        self._moment = (self._catalog.get("physical_time").hour in self._hours) * 1  # 1 = HP, 0 = HC
+    def _process(self):  # make shifts between on-peak and off-peaks tariffs
+        self._moment = (self._catalog.get("physical_time").hour in self._hours) * 1  # 1 = on-peak, 0 = off-peak
 
         self._catalog.set(f"{self._nature}.buying_price_TOU", self._buying_prices[self._moment])
         self._catalog.set(f"{self._nature}.selling_price_TOU", self._selling_prices[self._moment])

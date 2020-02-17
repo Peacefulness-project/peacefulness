@@ -336,13 +336,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
                 energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
 
-                # todo: gérer interruption pour cause de blackout
-                # if self._interruption_data[0]:  # if the device has been interrupted
-                #     emergency = (energy_wanted[nature]["energy_nominal"] - energy_wanted[nature]["energy_minimum"]) / (energy_wanted[nature]["energy_maximum"] - energy_wanted[nature]["energy_minimum"])
-                #     ratio = (1 - emergency) / (self._interruption_data[1] + self._interruption_data[2] - (self._moment - 1)) + emergency  # calculation of priority in case of interruption
-                #
-                #     energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
-
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):

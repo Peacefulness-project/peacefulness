@@ -18,7 +18,7 @@
 
     "Background": [["Background", "single", "single", [1,1], "LVE_BAU"]],
 
-    "PV": [["PV", "ECOS", "ECOS", [0,0], "LVE_BAU"]]
+    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 1}]]
   },
 
   "contracts": {
