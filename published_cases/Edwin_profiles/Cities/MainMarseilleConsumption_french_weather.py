@@ -208,7 +208,7 @@ CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 
 
-# # BAU contracts
+# BAU contracts
 world.agent_generation(15, "usr/AgentTemplates/CollabEdwin/Apartment_1_France.json", [cluster_elec, cluster_heat, cluster_cold])
 world.agent_generation(20, "usr/AgentTemplates/CollabEdwin/Apartment_2_France.json", [cluster_elec, cluster_heat, cluster_cold])
 world.agent_generation(15, "usr/AgentTemplates/CollabEdwin/Apartment_5_France.json", [cluster_elec, cluster_heat, cluster_cold])

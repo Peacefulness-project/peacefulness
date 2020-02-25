@@ -274,6 +274,16 @@ class Supervisor:
 
         return [quantities_exchanged, quantities_and_prices]
 
+    def _prepare_quantities_emergency_only(self, cluster, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):
+        if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
+            if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
+                quantities_and_prices = [[minimum_energy_consumed - maximum_energy_produced, inf]]  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
+
+            else:  # if there is a lack of consumption
+                quantities_and_prices = [[-(minimum_energy_produced - maximum_energy_consumed), -inf]]  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
+
+        return quantities_and_prices
+
     def _publish_needs(self, cluster, quantities_and_prices):  # this function manages the appeals to the superior cluster regarding capacity and efficiency
         # todo: passer capacity en dictionnaire pour le sens mais après discussion sterwin sur échanges
         energy_pullable = cluster.capacity  # total energy obtainable from the superior through the connection

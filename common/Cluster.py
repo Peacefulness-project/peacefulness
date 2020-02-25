@@ -9,23 +9,23 @@ from math import inf
 
 class Cluster:
 
-    def __init__(self, name, nature, supervisor, superior="exchange", efficiency=1, capacity=inf):
+    def __init__(self, name, nature, supervisor, superior=None, efficiency=1, capacity=inf):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the cluster
 
         self._catalog = None  # the catalog in which some data are stored
 
-        self._supervisor = supervisor
+        self._supervisor = supervisor  # the supervisor, i.e the strategy applied by this cluster
 
-        self.superior = superior  # the object the cluster is obeying
-        # it can be either another cluster either a exchanger
+        self.superior = superior  # the other cluster this one is obeying to
+        # It can be None
 
         self._devices = list()  # a list of all the devices managed by the cluster
         self._subclusters = list()  # a list of all the clusters managed by the cluster
 
         self.quantities = dict()  # a dictionary containing, for each device and each subcluster, the quantity asked, the price billed, the quantity delivered and the price it cost it
 
-        # todo: me virer ce merdier et le faire proprement
+        # todo: me virer ce merdier et le faire proprement (mais après discussion avec Sterwin)
         # hors de question que ce soit fige a la declaration comme ça
         # a stocker dans un dico au niveau de world plutot
         self.efficiency = efficiency
