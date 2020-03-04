@@ -15,13 +15,13 @@ from tools.Utilities import adapt_path
 
 from common.Core import World
 
-from common.Supervisor import Supervisor
+from common.Supervisor import Strategy
 
 from common.Nature import Nature
 
 from common.Agent import Agent
 
-from common.Cluster import Cluster
+from common.Cluster import Aggregator
 
 from common.Datalogger import Datalogger
 
@@ -75,24 +75,24 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Supervisor
+# Strategy
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 # elec supervisor
 description = "Refuses to exchange with outside."
 name_supervisor = "NoExchange"
-supervisor_elec = User.Supervisors.WhenProfitableEmergency.WhenProfitableEmergency(name_supervisor, description)
+supervisor_elec = User.Strategies.WhenProfitableEmergency.WhenProfitableEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
 description = "Always serves everybody, whatever it can cost to him."
 name_supervisor = "heat_supervisor"
-supervisor_heat = User.Supervisors.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
+supervisor_heat = User.Strategies.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_heat)
 
 # the supervisor grid, which always proposes an infinite quantity to sell and to buy
 description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
 name_supervisor = "benevolent_operator"
-grid_supervisor = User.Supervisors.Grid.Grid(name_supervisor, description)
+grid_supervisor = User.Strategies.Grid.Grid(name_supervisor, description)
 world.register_supervisor(grid_supervisor)
 
 # ##############################################################################################
@@ -109,24 +109,24 @@ heat = Nature(nature_name, nature_description)  # creation of a nature
 world.register_nature(heat)  # registration
 
 # ##############################################################################################
-# Cluster
+# Aggregator
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # clusters need 2 arguments: a name and a nature of energy
 # there is also a third argument to precise if the cluster is considered as an infinite grid
 
 # and then we create a third who represents the grid
 cluster_name = "Enedis"
-cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+cluster_grid = Aggregator(cluster_name, elec, grid_supervisor)
 world.register_cluster(cluster_grid)  # registration
 
 # here we create a second one put under the orders of the first
 cluster_name = "general_cluster"
-cluster_elec = Cluster(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
+cluster_elec = Aggregator(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
 # here we create another cluster dedicated to heat
 cluster_name = "Local_DHN"
-cluster_heat = Cluster(cluster_name, heat, supervisor_heat, cluster_elec, 3.6, 3000)  # creation of a cluster
+cluster_heat = Aggregator(cluster_name, heat, supervisor_heat, cluster_elec, 3.6, 3000)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
 
 

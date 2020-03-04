@@ -56,13 +56,9 @@ class OutdoorTemperatureDaemon(Daemon):
     # Utilities
     # ##########################################################################################
 
-    def _get_outdoor_temperature(self):  # this methods gets the current value of temperature accordingly to the specified format
-        pass
-
     def _get_temperature_1_day_month(self):  # this methods is here to get the temperature when the format is 1 day/month
         current_hour = self._catalog.get("physical_time").hour  # the current hour of the day
         current_month = str(self._catalog.get("physical_time").month)  # the current month in the year
-
         return self._temperatures[current_month][current_hour]  # return the appropriate outdoor temperature for the current moment
 
     def _get_temperature_365_days(self):

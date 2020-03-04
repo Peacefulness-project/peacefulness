@@ -4,12 +4,14 @@
 
 class Contract:
 
-    def __init__(self, name, nature, parameters=None):
+    def __init__(self, name, nature, identifier, parameters=None):
         self._name = name
         self._catalog = None
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
+
+        self._identifier = identifier
 
         # parameters is an optional dictionary which stores additional information needed by user-defined classes
         # putting these information there allow them to be saved/loaded via world method
@@ -25,10 +27,13 @@ class Contract:
     def _register(self, catalog):  # add a catalog and create relevant entries
         self._catalog = catalog
 
-        self._catalog.add(f"{self.name}.{self.nature.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
-        self._catalog.add(f"{self.name}.{self.nature.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
+        self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
+        self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
 
         self._user_register()
+
+        self._define_prices()  # add this contract to a list of contracts of the same identifier
+        # it means that prices are set by the same daemon
 
         # Creation of specific entries
         self._catalog.add(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
@@ -36,6 +41,17 @@ class Contract:
 
         self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
         self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
+
+    def _define_prices(self):
+        try:  # if it is the first contract of its class and nature, it creates an entry repertoring all contracts of its class and nature in the catalog
+            # later, a daemon in charge of setting prices saves the list and removes this entry
+            self._catalog.add(f"contracts_{self._identifier}", [])
+        except:
+            pass
+
+        contract_list = self._catalog.get(f"contracts_{self._identifier}")
+        contract_list.append(self.name)
+        self._catalog.set(f"contracts_{self._identifier}", contract_list)
 
     def _user_register(self):
         pass
@@ -57,12 +73,11 @@ class Contract:
             price = self._billing_buying(quantity["energy_maximum"])
         elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
             price = self._billing_selling(quantity["energy_maximum"])
+        else:  #if there is no need
+            price = None  # no price is attributed
         self._user_billing(agent_name)
 
-        try:
-            return price
-        except:
-            pass
+        return price
 
     def _billing_buying(self, quantity):  # the way of billing an agent buying energy. It is user-defined
         return None
@@ -75,7 +90,7 @@ class Contract:
 
     # effort management
     def effort_modification(self, effort, agent_name):  # this function modifies effort according to the contract
-        return effort  # of the function is not modified, it does not change the initial value
+        return effort  # if the function is not modified, it does not change the initial value
 
     # quantities management
     def quantity_modification(self, quantity, agent_name):  # this function modifies the priority according to the contract

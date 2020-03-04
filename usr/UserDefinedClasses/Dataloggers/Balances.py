@@ -23,10 +23,10 @@ class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed
             self.add(f"{agent_name}.money_earned")
 
 
-class ClusterBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
+class AggregatorBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
     def __init__(self):
-        super().__init__("cluster_balances", "ClustersBalances.txt")
+        super().__init__("aggregator_balances", "AggregatorsBalances.txt")
 
     def _register(self, catalog):
         self._catalog = catalog
@@ -34,13 +34,13 @@ class ClusterBalanceDatalogger(Datalogger):  # a sub-class of dataloggers design
         self.add("simulation_time")
         self.add("physical_time")
 
-        self._clusters_list = self._catalog.get("dictionaries")['clusters'].keys()  # get all the names
+        self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
 
-        for cluster_name in self._clusters_list:  # for each cluster registered into world, all the relevant keys are added
-            self.add(f"{cluster_name}.energy_sold")
-            self.add(f"{cluster_name}.energy_bought")
-            self.add(f"{cluster_name}.money_spent")
-            self.add(f"{cluster_name}.money_earned")
+        for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
+            self.add(f"{aggregator_name}.energy_sold")
+            self.add(f"{aggregator_name}.energy_bought")
+            self.add(f"{aggregator_name}.money_spent")
+            self.add(f"{aggregator_name}.money_earned")
 
 
 class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
@@ -84,7 +84,7 @@ class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designe
 
 
 user_classes_dictionary[f"{AgentBalanceDatalogger.__name__}"] = AgentBalanceDatalogger
-user_classes_dictionary[f"{ClusterBalanceDatalogger.__name__}"] = ClusterBalanceDatalogger
+user_classes_dictionary[f"{AggregatorBalanceDatalogger.__name__}"] = AggregatorBalanceDatalogger
 user_classes_dictionary[f"{ContractBalanceDatalogger.__name__}"] = ContractBalanceDatalogger
 user_classes_dictionary[f"{NatureBalanceDatalogger.__name__}"] = NatureBalanceDatalogger
 

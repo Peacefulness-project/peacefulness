@@ -9,7 +9,7 @@ from datetime import datetime
 
 import usr.UserDefinedClasses as User
 from common.Agent import Agent
-from common.Cluster import Cluster
+from common.Aggregator import Aggregator
 from common.Core import World
 from common.Datalogger import Datalogger
 from common.Nature import Nature
@@ -38,7 +38,7 @@ world = World(name_world)  # creation
 # ##############################################################################################
 # Results directory
 
-pathExport = "published_cases/Results/disc_world"
+pathExport = "published_cases/GithubExample/Results/disc_world"
 world.set_directory(pathExport)  # registration
 
 
@@ -69,20 +69,20 @@ world.set_time(start_date,  # time management: start date
 # the BAU supervisor
 description = "Calls the grid only if can't balance the grid alone"
 name_supervisor = "elec_supervisor"
-supervisor_elec = User.Supervisors.LightAutarkyEmergency.LightAutarkyEmergency(name_supervisor, description)
+supervisor_elec = User.Strategies.LightAutarkyEmergency.LightAutarkyEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_elec)
 
 # the heat supervisor
 description = "Always ask to buy energy when it needs something but can't sell."
 name_supervisor = "heat_supervisor"
-supervisor_heat = User.Supervisors.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
+supervisor_heat = User.Strategies.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
 world.register_supervisor(supervisor_heat)
 
 # the supervisor grid, which always proposes an infinite quantity to sell and to buy
 description = "this supervisor represents the national electrical grid behavior. Here, we consider that it has an infinite capacity to give or to accept energy"
 name_supervisor = "benevolent_operator"
-grid_supervisor = User.Supervisors.Grid.Grid(name_supervisor, description)
-world.register_supervisor(grid_supervisor)
+national_grid_supervisor = User.Strategies.Grid.Grid(name_supervisor, description)
+world.register_supervisor(national_grid_supervisor)
 
 
 # ##############################################################################################
@@ -104,17 +104,17 @@ world.register_nature(heat)  # registration
 
 # we create a first cluster who represents the national electrical grid
 cluster_name = "Enedis"
-cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+cluster_grid = Aggregator(cluster_name, elec, national_grid_supervisor)
 world.register_cluster(cluster_grid)  # registration
 
 # here we create a second one put under the orders of the first
 cluster_name = "general_cluster"
-cluster_elec = Cluster(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
+cluster_elec = Aggregator(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
 world.register_cluster(cluster_elec)  # registration
 
 # here we create another cluster dedicated to heat, under the order of the local electrical grid
 cluster_name = "Local_DHN"
-cluster_heat = Cluster(cluster_name, heat, supervisor_heat, cluster_elec, 3.6, 2000)  # creation of a cluster
+cluster_heat = Aggregator(cluster_name, heat, supervisor_heat, cluster_elec, 3.6, 2000)  # creation of a cluster
 world.register_cluster(cluster_heat)  # registration
 
 

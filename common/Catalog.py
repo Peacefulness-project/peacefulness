@@ -59,16 +59,16 @@ class Catalog:
         return self._data["dictionaries"]["forecasters"]
 
     @property
-    def supervisors(self):  # for read only
-        return self._data["dictionaries"]["supervisors"]
+    def strategies(self):  # for read only
+        return self._data["dictionaries"]["strategys"]
 
     @property
     def natures(self):  # for read only
         return self._data["dictionaries"]["natures"]
 
     @property
-    def clusters(self):  # for read only
-        return self._data["dictionaries"]["clusters"]
+    def aggregators(self):  # for read only
+        return self._data["dictionaries"]["aggregators"]
 
     @property
     def exchange_nodes(self):  # for read only

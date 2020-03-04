@@ -10,14 +10,13 @@ from math import ceil
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 from common.Catalog import Catalog
-from common.ExchangeNode import ExchangeNode
 from common.Nature import Nature
 from common.Contract import Contract
 from common.Agent import Agent
-from common.Cluster import Cluster
+from common.Aggregator import Aggregator
 from common.Datalogger import Datalogger
 from common.Daemon import Daemon
-from common.Supervisor import Supervisor
+from common.Strategy import Strategy
 from tools.Utilities import middle_separation, big_separation, adapt_path, into_list
 from tools.UserClassesDictionary import user_classes_dictionary
 
@@ -26,7 +25,7 @@ from tools.UserClassesDictionary import user_classes_dictionary
 # ##############################################################################################
 # The world is the background of a case: it contains and organizes all elements of the code,
 # from devices to Supervisors.
-# First, it contains the catalog the time manager, the case directory and the supervisor, which are all necessary
+# First, it contains the catalog the time manager, the case directory and the strategy, which are all necessary
 # Then, it contains dictionaries of elements that describe the studied case, such as devices or agents
 # Lastly, it contains a dictionary, of so-called data-loggers, who are in charge of exporting the data into files
 class World:
@@ -52,12 +51,12 @@ class World:
         dictionaries = dict()
 
         dictionaries["forecasters"] = dict()  # objects which are responsible for predicting both quantities produced and consumed
-        dictionaries["supervisors"] = dict()  # objects which perform the calculus
+        dictionaries["strategys"] = dict()  # objects which perform the calculus
 
         dictionaries["natures"] = dict()  # types of energy presents in world
 
-        dictionaries["clusters"] = dict()  # a mono-energy sub-environment which favours self-consumption
-        dictionaries["exchange_nodes"] = dict()  # objects organizing exchanges between clusters
+        dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
+        dictionaries["exchange_nodes"] = dict()  # objects organizing exchanges between aggregators
         
         dictionaries["contracts"] = dict()  # dict containing the different contracts
         dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
@@ -116,16 +115,16 @@ class World:
         self._catalog.add("time_limit", time_limit)
 
     # the following methods concern objects modeling a case
-    def register_supervisor(self, supervisor):  # definition of the supervisor
-        if supervisor.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{supervisor.name} already in use")
+    def register_strategy(self, strategy):  # definition of the strategy
+        if strategy.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{strategy.name} already in use")
 
-        if isinstance(supervisor, Supervisor) is False:  # checking if the object has the expected type
+        if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        supervisor._register(self._catalog)   # linking the supervisor with the catalog of world
-        self._catalog.supervisors[supervisor.name] = supervisor  # registering the cluster in the dedicated dictionary
-        self._used_names.append(supervisor.name)  # adding the name to the list of used names
+        strategy._register(self._catalog)   # linking the strategy with the catalog of world
+        self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
+        self._used_names.append(strategy.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_nature(self, nature):  # definition of natures dictionary
@@ -140,34 +139,34 @@ class World:
         self._used_names.append(nature.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def register_cluster(self, cluster):  # method connecting one cluster to the world
-        if cluster.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{cluster.name} already in use")
+    def register_aggregator(self, aggregator):  # method connecting one aggregator to the world
+        if aggregator.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{aggregator.name} already in use")
 
-        if isinstance(cluster, Cluster) is False:  # checking if the object has the expected type
+        if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        if isinstance(cluster.superior, Cluster):  # if the superior of the cluster is another cluster
-            cluster.superior._subclusters.append(cluster)
-        elif cluster.superior == "exchange":  # if the superior of the cluster is the exchange node
-            self._catalog.exchange_nodes[cluster] = []
+        if isinstance(aggregator.superior, Aggregator):  # if the superior of the aggregator is another aggregator
+            aggregator.superior._subaggregators.append(aggregator)
+        elif aggregator.superior == "exchange":  # if the superior of the aggregator is the exchange node
+            self._catalog.exchange_nodes[aggregator] = []
 
-        cluster._register(self._catalog)  # linking the cluster with the catalog of world
-        self._catalog.clusters[cluster.name] = cluster  # registering the cluster in the dedicated dictionary
-        self._used_names.append(cluster.name)  # adding the name to the list of used names
+        aggregator._register(self._catalog)  # linking the aggregator with the catalog of world
+        self._catalog.aggregators[aggregator.name] = aggregator  # registering the aggregator in the dedicated dictionary
+        self._used_names.append(aggregator.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def create_link_between_clusters(self, cluster_source, cluster_destination, efficiency, capacity):  # enables the possbility for cluster source to sell energy to cluster destination
-        if isinstance(cluster_destination, Cluster) is False:
-            raise WorldException(f"{cluster_destination} is not a cluster")
+    def create_link_between_aggregators(self, aggregator_source, aggregator_destination, efficiency, capacity):  # enables the possbility for aggregator source to sell energy to aggregator destination
+        if isinstance(aggregator_destination, Aggregator) is False:
+            raise WorldException(f"{aggregator_destination} is not a aggregator")
 
-        try:  # check if the cluster destination is registered in the exchange leader
-            self._catalog.exchange_nodes[cluster_source] = [cluster_destination, efficiency, capacity]
+        try:  # check if the aggregator destination is registered in the exchange leader
+            self._catalog.exchange_nodes[aggregator_source] = [aggregator_destination, efficiency, capacity]
         except:
-            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
+            raise WorldException(f"{aggregator_source} is not registered as eligible to exchanges")
 
-        if cluster_destination not in self._catalog.exchange_nodes:  # check if the cluster destination is registered in the exchange leader
-            raise WorldException(f"{cluster_source} is not registered as eligible to exchanges")
+        if aggregator_destination not in self._catalog.exchange_nodes:  # check if the aggregator destination is registered in the exchange leader
+            raise WorldException(f"{aggregator_source} is not registered as eligible to exchanges")
 
     def register_contract(self, contract):
         if contract.name in self._used_names:  # checking if the name is already used
@@ -204,8 +203,8 @@ class World:
         if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        for nature in device.natures:  # adding the device name to its cluster list of device
-            device._natures[nature]["cluster"]._devices.append(device.name)
+        for nature in device.natures:  # adding the device name to its aggregator list of device
+            device._natures[nature]["aggregator"]._devices.append(device.name)
 
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         device._register(self._catalog)  # registering of the device in the catalog
@@ -239,8 +238,7 @@ class World:
     # Automated generation of agents
     # ##########################################################################################
 
-    def agent_generation(self, quantity, filename, clusters):  # this method creates several agents, each with a predefinite set of devices
-
+    def agent_generation(self, quantity, filename, aggregators, contract_identifier):  # this method creates several agents, each with a predefinite set of devices
         # loading the data in the file
         file = open(filename, "r")
         data = load(file)
@@ -249,12 +247,16 @@ class World:
         # creation of contracts
         contract_dict = {}
         for contract_type in data["contracts"]:  # for each contract
-            nature_name = data["contracts"][contract_type][0]
-            contract_name = f"{data['template name']}_{nature_name}_{contract_type}"
+            contract_name = f"{data['template name']}_{contract_type}"
+            nature = self._catalog.natures[data["contracts"][contract_type][0]]
+            identifier = contract_identifier[nature.name]
             contract_class = self._user_classes[data["contracts"][contract_type][1]]
-            parameters = data["contracts"][contract_type][2]
-            nature = self._catalog.natures[nature_name]
-            contract = contract_class(contract_name, nature, parameters)
+            if len(data["contracts"][contract_type]) == 2:  # if there are no parameters
+                contract = contract_class(contract_name, nature, identifier)
+            else:  # if there are parameters
+                parameters = data["contracts"][contract_type][1]
+                contract = contract_class(contract_name, nature, identifier, parameters)
+
             self.register_contract(contract)
             contract_dict[contract_type] = contract
 
@@ -264,9 +266,6 @@ class World:
             agent_name = f"{data['template name']}_{str(i)}"
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
             self.register_agent(agent)
-            for contract in contract_dict.values():
-                nature = self._catalog.natures[contract.nature.name]
-                agent.set_contract(nature, contract)
 
             # creation of devices
             for device_data in data["composition"]:
@@ -283,10 +282,10 @@ class World:
                             if profile[4] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
-                        if len(profile) == 5:  # if there are no paramters
-                            device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2])  # creation of the device
-                        else:  #if there are paramters
-                            device = device_class(device_name, contracts, agent, clusters, profile[1], profile[2], profile[5])  # creation of the device
+                        if len(profile) == 5:  # if there are no parameters
+                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2])  # creation of the device
+                        else:  #if there are parameters
+                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2], profile[5])  # creation of the device
 
                         self.register_device(device)
 
@@ -327,8 +326,8 @@ class World:
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
-            for supervisor in self._catalog.supervisors.values():
-                supervisor.reinitialize()
+            for strategy in self._catalog.strategies.values():
+                strategy.reinitialize()
 
             for nature in self._catalog.natures.values():
                 nature.reinitialize()
@@ -339,8 +338,8 @@ class World:
             for agent in self._catalog.agents.values():
                 agent.reinitialize()
 
-            for cluster in self._catalog.clusters.values():
-                cluster.reinitialize()
+            for aggregator in self._catalog.aggregators.values():
+                aggregator.reinitialize()
 
             for device in self._catalog.devices.values():
                 device.reinitialize()
@@ -358,15 +357,14 @@ class World:
                 forecaster.fait_quelque_chose()
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for cluster in self._catalog.exchange_nodes:  # clusters make local balances and then publish their needs (both in demand and in offer)
-                cluster.ask()  # recursive function to make sure all clusters are reached
+            for aggregator in self._catalog.aggregators.values():  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                aggregator.ask()  # recursive function to make sure all aggregators are reached
 
-            # high-level exchange phase
-            # self._catalog.exchange_nodes.organise_exchanges()  # decides of who exchanges what with who
+            # thing with converters
 
             # descendant phase: balances with remote energy
-            for cluster in self._catalog.exchange_nodes:  # clusters distribute the energy they exchanged with outside
-                cluster.distribute()  # recursive function to make sure all clusters are reached
+            for aggregator in self._catalog.aggregators.values():  # aggregators distribute the energy they exchanged with outside
+                aggregator.distribute()  # recursive function to make sure all aggregators are reached
 
             # ###########################
             # End of the turn
@@ -449,14 +447,14 @@ class World:
         file.write(dumps(natures_list, indent=2))
         file.close()
 
-        # clusters file
-        clusters_list = {cluster.name: [cluster.nature.name,
-                                        cluster.devices
-                                        ]for cluster in self._clusters.values()}
+        # aggregators file
+        aggregators_list = {aggregator.name: [aggregator.nature.name,
+                                        aggregator.devices
+                                        ]for aggregator in self._aggregators.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")
-        file.write(dumps(clusters_list, indent=2))
+        file.write(dumps(aggregators_list, indent=2))
         file.close()
 
         # contracts file
@@ -480,7 +478,7 @@ class World:
 
         # devices file
         devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
-                                      [cluster[0].name for cluster in device._natures.values()],  # clusters
+                                      [aggregator[0].name for aggregator in device._natures.values()],  # aggregators
                                       [contract[1].name for contract in device._natures.values()],  # contracts
                                       device._period,  # the period of the device
                                       device._user_profile, device._usage_profile,  # the data of the profiles
@@ -557,10 +555,10 @@ class World:
         file = open("Clusters.json", "r")
         data = load(file)
 
-        for cluster_name in data:
-            cluster_nature = self._natures[data[cluster_name]]
-            cluster = Cluster(cluster_name, cluster_nature)  # creation of a cluster
-            self.register_cluster(cluster)  # registration
+        for aggregator_name in data:
+            aggregator_nature = self._natures[data[aggregator_name]]
+            aggregator = Aggregator(aggregator_name, aggregator_nature)  # creation of a aggregator
+            self.register_aggregator(aggregator)  # registration
 
         file.close()
         remove("Clusters.json")  # deleting the useless file
@@ -597,7 +595,7 @@ class World:
 
         for device_name in data:
             agent = self._agents[data[device_name][1]]
-            clusters = [self._clusters[cluster_name] for cluster_name in data[device_name][2]]
+            aggregators = [self._aggregators[aggregator_name] for aggregator_name in data[device_name][2]]
             contracts = [self._contracts[contract_name] for contract_name in data[device_name][3]]
             device_class = self._user_classes[data[device_name][0]]
             user_profile_name = data[device_name][7]  # loading the user profile name
@@ -607,7 +605,7 @@ class World:
             device_parameters = data[device_name][10]
 
             # creation of the device
-            device = device_class(device_name, contracts, agent, clusters, user_profile_name, usage_profile_name, device_parameters, "loaded device")
+            device = device_class(device_name, contracts, agent, aggregators, user_profile_name, usage_profile_name, device_parameters, "loaded device")
 
             # loading the real hour
             device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
@@ -682,7 +680,7 @@ class World:
 # Root class for all devices constituting a case
 class Device:
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters=None):
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -701,27 +699,27 @@ class Device:
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
-        self._natures = dict()  # contains, for each energy nature used by the device, the cluster and the nature associated
+        self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
         self._inputs = dict()
         self._outputs = dict()
 
-        clusters = into_list(clusters)  # make it iterable
-        for cluster in clusters:
-            if cluster.nature in self.natures:
-                raise DeviceException(f"a cluster has already been defined for nature {cluster.nature}")
+        aggregators = into_list(aggregators)  # make it iterable
+        for aggregator in aggregators:
+            if aggregator.nature in self.natures:
+                raise DeviceException(f"a aggregator has already been defined for nature {aggregator.nature}")
             else:
-                self._natures[cluster.nature] = {"cluster": None, "contract": None}
-                self._natures[cluster.nature]["cluster"] = cluster
+                self._natures[aggregator.nature] = {"aggregator": None, "contract": None}
+                self._natures[aggregator.nature]["aggregator"] = aggregator
 
         contracts = into_list(contracts)  # make it iterable
         for contract in contracts:
             if self.natures[contract.nature]["contract"]:
                 raise DeviceException(f"a contract has already been defined for nature {contract.nature}")
             else:
-                try:  # "try" allows to test if self._natures[nature of the contract] was created in the cluster definition step
+                try:  # "try" allows to test if self._natures[nature of the contract] was created in the aggregator definition step
                     self._natures[contract.nature]["contract"] = contract  # add the contract
                 except:
-                    raise DeviceException(f"a cluster is missing for nature {contract.nature}")
+                    raise DeviceException(f"a aggregator is missing for nature {contract.nature}")
 
         self._agent = agent  # the agent represents the owner of the device
 
@@ -743,15 +741,15 @@ class Device:
 
         for nature in self.natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the strategy
 
             try:  # creates an entry for effort in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressend by the agent
             except:
                 pass
 
-            if nature not in self.agent.natures:  # complete the list of natures of the agent
-                self.agent._contracts[nature] = None
+            # if nature not in self.agent.natures:  # complete the list of natures of the agent
+            #     self.agent._contracts[nature] = None
 
             try:  # creates an entry for energy erased in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_erased", 0)
@@ -842,7 +840,7 @@ class Device:
                 nature_to_remove.append(nature)
 
         for nature in nature_to_remove:
-            self._natures[nature]["cluster"].devices.remove(self.name)
+            self._natures[nature]["aggregator"].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
@@ -863,11 +861,12 @@ class Device:
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
+            self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", 0)
 
     def update(self):  # method updating needs of the devices before the supervision
         pass
 
-    def react(self):  # method updating the device according to the decisions taken by the supervisor
+    def react(self):  # method updating the device according to the decisions taken by the strategy
         self._user_react()
 
         energy_sold = dict()
@@ -893,7 +892,7 @@ class Device:
                 money_earned[nature.name] = 0
                 money_spent[nature.name] = price * energy_amount
 
-            energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the supervisor
+            energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the strategy
 
             # balance for different natures
             energy_sold_nature = - self._catalog.get(f"{nature.name}.energy_produced")
@@ -903,8 +902,8 @@ class Device:
 
             self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the cluster to buy energy during the round
-            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the cluster by selling energy during the round
+            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the aggregator to buy energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
 
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
@@ -930,8 +929,8 @@ class Device:
         money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
         money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
 
-        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the cluster by selling energy during the round
+        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
         pass

@@ -4,8 +4,8 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class HotWaterTank(ChargerDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, "usr/DevicesProfiles/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
         self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
 

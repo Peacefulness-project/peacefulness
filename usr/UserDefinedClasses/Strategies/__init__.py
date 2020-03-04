@@ -4,4 +4,4 @@ from pkgutil import iter_modules
 
 __all__ = list(module for _, module, _ in iter_modules([path.dirname(__file__)]))
 
-from usr.UserDefinedClasses.Supervisors import *
+from usr.UserDefinedClasses.Strategies import *

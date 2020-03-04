@@ -10,8 +10,8 @@ from common.Contract import Contract
 # ##############################################################################################
 class NonControllableDevice(Device):
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
     # ##########################################################################################
     # Initialization
@@ -104,7 +104,7 @@ class NonControllableDevice(Device):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
         # effort management
@@ -130,8 +130,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name,
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name,
                          parameters)
 
         self._use_ID = None  # this ID references the ongoing use
@@ -274,7 +274,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             if nature.name not in self._usage_profile[0][0]:
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
-            self._natures[nature]["cluster"].devices.remove(self.name)
+            self._natures[nature]["aggregator"].devices.remove(self.name)
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
@@ -378,8 +378,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
@@ -497,7 +497,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
             self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
         # effort management
@@ -534,8 +534,8 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, clusters, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
@@ -621,7 +621,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
 
         self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 

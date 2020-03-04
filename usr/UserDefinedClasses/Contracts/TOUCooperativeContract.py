@@ -5,14 +5,12 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class TOUCooperativeContract(Contract):
 
-    def __init__(self, name, nature, parameters=None):
-        super().__init__(name, nature)
+    def __init__(self, name, nature, identifier):
+        super().__init__(name, nature, identifier)
 
         self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
                            "Meanwhile, the customer accepts shiftable devices to be shifted " \
                            "and to define a range of energy instead of a nominal energy for adjustable devices."
-
-        self._parameters = [parameters["selling_price"], parameters["buying_price"]]
 
     # ##########################################################################################
     # Initialization
@@ -27,13 +25,11 @@ class TOUCooperativeContract(Contract):
 
     # billing
     def _billing_buying(self, quantity):
-        price = self._catalog.get(f"{self.nature.name}.buying_price_TOU") * 0.9  # getting the price per kW.h
-
+        price = self._catalog.get(f"{self.name}.buying_price") * 0.9  # getting the price per kW.h
         return price
 
     def _billing_selling(self, quantity):
-        price = self._catalog.get(f"{self.nature.name}.selling_price_TOU") * 0.9  # getting the price per kW.h
-
+        price = self._catalog.get(f"{self.name}.selling_price") * 0.9  # getting the price per kW.h
         return price
 
 

@@ -10,8 +10,8 @@ from tools.UserClassesDictionary import user_classes_dictionary
 
 class Background(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, clusters, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, clusters, "usr/DevicesProfiles/Background.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, "usr/DevicesProfiles/Background.json", user_profile_name, usage_profile_name, parameters)
 
     # ##########################################################################################
     # Initialization

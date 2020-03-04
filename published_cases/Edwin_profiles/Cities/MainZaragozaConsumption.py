@@ -29,13 +29,13 @@
 #
 # from common.Core import World
 #
-# from common.Supervisor import Supervisor
+# from common.Strategy import Strategy
 #
 # from common.Nature import Nature
 #
 # from common.Agent import Agent
 #
-# from common.Cluster import Cluster
+# from common.Aggregator import Aggregator
 #
 # from common.Datalogger import Datalogger
 #
@@ -91,7 +91,7 @@
 # # ##############################################################################################
 #
 # # ##############################################################################################
-# # Supervisor
+# # Strategy
 # # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 # # the BAU supervisor
 # description = "Always serves everybody, whatever it can cost to him."
@@ -136,29 +136,29 @@
 # world.register_nature(cold)  # registration
 #
 # # ##############################################################################################
-# # Cluster
+# # Aggregator
 # # this object is a collection of devices wanting to isolate themselves as much as they can
 # # clusters need 2 arguments: a name and a nature of energy
 # # there is also a third argument to precise if the cluster is considered as an infinite grid
 #
 # # and then we create a third who represents the grid
 # cluster_name = "Enedis"
-# cluster_grid = Cluster(cluster_name, elec, grid_supervisor)
+# cluster_grid = Aggregator(cluster_name, elec, grid_supervisor)
 # world.register_cluster(cluster_grid)  # registration
 #
 # # here we create a second one put under the orders of the first
 # cluster_name = "general_cluster"
-# cluster_elec = Cluster(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
+# cluster_elec = Aggregator(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
 # world.register_cluster(cluster_elec)  # registration
 #
 # # here we create another cluster dedicated to heat
 # cluster_name = "Local_DHN"
-# cluster_heat = Cluster(cluster_name, heat, supervisor_heat, cluster_elec, 1, 100000)  # creation of a cluster
+# cluster_heat = Aggregator(cluster_name, heat, supervisor_heat, cluster_elec, 1, 100000)  # creation of a cluster
 # world.register_cluster(cluster_heat)  # registration
 #
 # # here we create another cluster dedicated to cold
 # cluster_name = "Local_DCN"
-# cluster_cold = Cluster(cluster_name, cold, supervisor_cold, cluster_elec, 1, 100000)  # creation of a cluster
+# cluster_cold = Aggregator(cluster_name, cold, supervisor_cold, cluster_elec, 1, 100000)  # creation of a cluster
 # world.register_cluster(cluster_cold)  # registration
 #
 #
@@ -232,7 +232,7 @@
 #
 # # Price Managers
 # # this daemons fix a price for a given nature of energy
-# price_manager_elec = User.Daemons.PriceManagerDaemonTOU.PriceManagerDaemonTOU("Picsou", 1, {"nature": elec.name, "buying_prices": [0.0, 0.0], "selling_prices": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+# price_manager_elec = User.Daemons.PriceManagerTOUDaemon.PriceManagerTOUDaemon("Picsou", 1, {"nature": elec.name, "buying_prices": [0.0, 0.0], "selling_prices": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 # price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0., "grid_selling_price": 0.})  # sets prices for the system operator
 # price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Heat_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.0, "grid_selling_price": 0.00})  # sets prices for the system operator
 # price_cool_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Cool_tariffs", 1, {"nature": cold.name, "grid_buying_price": 0.0, "grid_selling_price": 0.00})  # sets prices for the system operator

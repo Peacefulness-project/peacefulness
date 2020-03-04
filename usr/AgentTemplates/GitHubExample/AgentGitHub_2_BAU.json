@@ -1,0 +1,20 @@
+{
+  "template name": "2_people_BAU",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_2", [1,1], "LVE_BAU"]],
+
+    "Dishwasher": [["Dishwasher", "ECOS_2", "ECOS", [1,1], "LVE_BAU"]],
+    "WashingMachine": [["WashingMachine", "ECOS_2", "ECOS", [1,1], "LVE_BAU"]],
+    "Dryer": [["Dryer", "ECOS_2", "ECOS", [1,1], "LVE_BAU"]],
+
+    "Heating": [["Heating", "residential", "apartment_heat", [1,1], "heat_BAU"]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "2_people_heat", [1,1], "heat_BAU"]]
+  },
+
+  "contracts": {
+    "LVE_BAU":  ["LVE", "TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.11}],
+    "heat_BAU":  ["Heat", "FlatEgoistContract", {"selling_price": 0.1, "buying_price": 0.08}]
+  }
+
+}
