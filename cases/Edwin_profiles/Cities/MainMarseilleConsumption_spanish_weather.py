@@ -29,18 +29,16 @@ from src.common.Core import World
 
 from src.common.Nature import Nature
 
-from src.common.Agent import Agent
+from common.Cluster import Aggregator
 
-from src.common.Aggregator import Aggregator
-
-from src.common.Datalogger import Datalogger
-
-from src.tools.SubclassesDictionary import get_subclasses
+import lib.Subclasses as User
 
 
 # ##############################################################################################
 # Performance measurement
 CPU_time = process_time()
+
+# chdir("./../../../")
 
 # ##############################################################################################
 # Minimum
@@ -52,13 +50,13 @@ CPU_time = process_time()
 # Creation of the world
 # a world <=> a case, it contains all the model
 # a world needs just a name
-name_world = "Disc World"
+name_world = "Marseille_city"
 world = World(name_world)  # creation
-subclasses_dictionary = get_subclasses()
+
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "./Results"  #
+pathExport = "cases/Edwin_profiles/Results/Marseille"  # directory where results are written
 world.set_directory(pathExport)  # registration
 
 
@@ -75,7 +73,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24)  # number of time steps simulated
+               24*365)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -87,26 +85,29 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Strategy
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
-
-# AutarkyEmergency AlwaysSatisfied WhenProfitable
-
-# the BAU strategy
+# the BAU supervisor
 description = "Always serves everybody, whatever it can cost to him."
-name_strategy = "elec_strategy"
-strategy_elec = subclasses_dictionary["AlwaysSatisfied"](name_strategy, description)
-world.register_strategy(strategy_elec)
+name_supervisor = "elec_supervisor"
+supervisor_elec = User.Strategies.AlwaysSatisfied.AlwaysSatisfied(name_supervisor, description)
+world.register_supervisor(supervisor_elec)
 
-# the heat strategy
+# the heat supervisor
 description = "Always serves everybody, whatever it can cost to him."
-name_strategy = "heat_strategy"
-strategy_heat = subclasses_dictionary["SubaggregatorHeatEmergency"](name_strategy, description)
-world.register_strategy(strategy_heat)
+name_supervisor = "heat_supervisor"
+supervisor_heat = User.Strategies.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
+world.register_supervisor(supervisor_heat)
 
-# the strategy grid, which always proposes an infinite quantity to sell and to buy
-description = "this strategy represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
-name_strategy = "benevolent_operator"
-grid_strategy = subclasses_dictionary["Grid"](name_strategy, description)
-world.register_strategy(grid_strategy)
+# the heat supervisor
+description = "Always serves everybody, whatever it can cost to him."
+name_supervisor = "cold_supervisor"
+supervisor_cold = User.Strategies.SubclusterHeatEmergency.SubclusterHeatEmergency(name_supervisor, description)
+world.register_supervisor(supervisor_cold)
+
+# the supervisor grid, which always proposes an infinite quantity to sell and to buy
+description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
+name_supervisor = "benevolent_operator"
+grid_supervisor = User.Strategies.Grid.Grid(name_supervisor, description)
+world.register_supervisor(grid_supervisor)
 
 # ##############################################################################################
 # Nature list
@@ -121,59 +122,70 @@ nature_description = "Energy transported by a district heating network"
 heat = Nature(nature_name, nature_description)  # creation of a nature
 world.register_nature(heat)  # registration
 
+nature_name = "Cold"
+nature_description = "Energy transported by a district cooling network"
+cold = Nature(nature_name, nature_description)  # creation of a nature
+world.register_nature(cold)  # registration
+
 # ##############################################################################################
 # Aggregator
 # this object is a collection of devices wanting to isolate themselves as much as they can
-# aggregators need 2 arguments: a name and a nature of energy
-# there is also a third argument to precise if the aggregator is considered as an infinite grid
+# clusters need 2 arguments: a name and a nature of energy
+# there is also a third argument to precise if the cluster is considered as an infinite grid
 
 # and then we create a third who represents the grid
-aggregator_name = "Enedis"
-aggregator_grid = Aggregator(aggregator_name, elec, grid_strategy)
-world.register_aggregator(aggregator_grid)  # registration
+cluster_name = "Enedis"
+cluster_grid = Aggregator(cluster_name, elec, grid_supervisor)
+world.register_cluster(cluster_grid)  # registration
 
 # here we create a second one put under the orders of the first
-aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, elec, strategy_elec, aggregator_grid)  # creation of a aggregator
-world.register_aggregator(aggregator_elec)  # registration
+cluster_name = "general_cluster"
+cluster_elec = Aggregator(cluster_name, elec, supervisor_elec, cluster_grid, 1, 100000)  # creation of a cluster
+world.register_cluster(cluster_elec)  # registration
 
-# here we create another aggregator dedicated to heat
-aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, heat, strategy_heat, aggregator_elec, 3.6, 3000)  # creation of a aggregator
-world.register_aggregator(aggregator_heat)  # registration
+# here we create another cluster dedicated to heat
+cluster_name = "Local_DHN"
+cluster_heat = Aggregator(cluster_name, heat, supervisor_heat, cluster_elec, 1, 100000)  # creation of a cluster
+world.register_cluster(cluster_heat)  # registration
+
+# here we create another cluster dedicated to cold
+cluster_name = "Local_DCN"
+cluster_cold = Aggregator(cluster_name, cold, supervisor_cold, cluster_elec, 1, 100000)  # creation of a cluster
+world.register_cluster(cluster_cold)  # registration
+
 
 
 # ##############################################################################################
 # Contract
-# this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the strategy
+# this object has 3 roles: managing the dissatisfaction, managing the billing and defining the operations allowed to the supervisor
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 
 # producers
-TOU_prices = "TOU_prices"
-BAU_elec = subclasses_dictionary["TOUEgoistContract"]("BAU_elec", elec, TOU_prices)
-world.register_contract(BAU_elec)
-
-flat_prices_heat = "flat_prices_heat"
-BAU_heat = subclasses_dictionary["FlatEgoistContract"]("BAU_heat", heat, flat_prices_heat)
-world.register_contract(BAU_heat)
-
-cooperative_contract_heat = subclasses_dictionary["FlatCooperativeContract"]("cooperative_contract_heat", heat, flat_prices_heat)
-world.register_contract(cooperative_contract_heat)
-
-owned_by_aggregator = "owned_by_aggregator"
-cooperative_contract_elec = subclasses_dictionary["FlatCooperativeContract"]("cooperative_contract_elec", elec, owned_by_aggregator)
-world.register_contract(cooperative_contract_elec)
-
+# as we consider that they are the same as the supervisor, we chose to put all their prices to 0
+# BAU_elec = User.Contract.TOUEgoistContract.TOUEgoistContract("BAU_elec", elec, {"selling_price": 0, "buying_price": 0})
+# world.register_contract(BAU_elec)
+#
+# BAU_heat = User.Contract.FlatEgoistContract.FlatEgoistContract("BAU_heat", heat, {"selling_price": 0, "buying_price": 0})
+# world.register_contract(BAU_heat)
+#
+# # cooperative_contract_elec = User.Contract.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_elec", elec, {"selling_price": 0.1, "buying_price": 0.12})
+# # world.register_contract(cooperative_contract_elec)
+#
+# cooperative_contract_heat = User.Contract.FlatCooperativeContract.FlatCooperativeContract("cooperative_contract_heat", heat, {"selling_price": 0, "buying_price": 0})
+# world.register_contract(cooperative_contract_heat)
 
 # ##############################################################################################
 # Agent
 # this object represents the owner of devices
 # all devices need an agent
-WT_producer = Agent("WT_producer")  # creation of an agent
-world.register_agent(WT_producer)  # registration
 
-DHN_producer = Agent("DHN_producer")  # creation of an agent
-world.register_agent(DHN_producer)  # registration
+# PV_producer = Agent("PV_producer")  # creation of an agent
+# world.register_agent(PV_producer)  # registration
+# PV_producer.set_contract(elec, BAU_elec)
+#
+# solar_thermal_collector_producer = Agent("solar_thermal_producer")  # creation of an agent
+# world.register_agent(solar_thermal_collector_producer)  # registration
+# solar_thermal_collector_producer.set_contract(heat, BAU_heat)
 
 
 # ##############################################################################################
@@ -181,33 +193,17 @@ world.register_agent(DHN_producer)  # registration
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
-wind_turbine = subclasses_dictionary["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
-# world.register_device(wind_turbine)  # registration of a production device
 
-wind_turbine = subclasses_dictionary["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
-world.register_device(wind_turbine)  # registration of a production device
-heat_production = subclasses_dictionary["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
-world.register_device(heat_production)  # registration of a production device
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 
 
-# # # BAU contracts
-world.agent_generation(10, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "Heat": flat_prices_heat})
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(5, "lib/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [aggregator_elec, aggregator_heat])
-#
-# # DLC contracts
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [aggregator_elec, aggregator_heat])
-#
-# # Curtailment contracts
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [aggregator_elec, aggregator_heat])
+# BAU contracts
+world.agent_generation(15, "lib/AgentTemplates/agent_templates/Apartment_1_France.json", [cluster_elec, cluster_heat, cluster_cold])
+world.agent_generation(20, "lib/AgentTemplates/agent_templates/Apartment_2_France.json", [cluster_elec, cluster_heat, cluster_cold])
+world.agent_generation(15, "lib/AgentTemplates/agent_templates/Apartment_5_France.json", [cluster_elec, cluster_heat, cluster_cold])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -228,41 +224,34 @@ file.close()
 
 # Price Managers
 # this daemons fix a price for a given nature of energy
-price_manager_owned_by_the_aggregator = subclasses_dictionary["PriceManagerDaemon"]("toto", 1, {"nature": elec.name, "buying_price": 0, "selling_price": 0, "identifier": owned_by_aggregator})  # as these devices are owned by the aggregator, energy is free
-price_manager_heat = subclasses_dictionary["PriceManagerDaemon"]("Picsou", 1, {"nature": heat.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_heat})  # sets prices for flat rate
-price_manager_elec = subclasses_dictionary["PriceManagerTOUDaemon"]("Flairsou", 1, {"nature": elec.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
-price_elec_grid = subclasses_dictionary["GridPricesDaemon"]("LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
-price_heat_grid = subclasses_dictionary["GridPricesDaemon"]("Heat_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.30, "grid_selling_price": 0.00})  # sets prices for the system operator
-world.register_daemon(price_manager_owned_by_the_aggregator)  # registration
-world.register_daemon(price_manager_heat)  # registration
+price_manager_elec = User.Daemons.PriceManagerDaemonTOU.PriceManagerDaemonTOU("Picsou", 1, {"nature": elec.name, "buying_prices": [0.0, 0.0], "selling_prices": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+price_elec_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0., "grid_selling_price": 0.})  # sets prices for the system operator
+price_heat_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Heat_tariffs", 1, {"nature": heat.name, "grid_buying_price": 0.0, "grid_selling_price": 0.00})  # sets prices for the system operator
+price_cool_grid = User.Daemons.GridPricesDaemon.GridPricesDaemon("Cool_tariffs", 1, {"nature": cold.name, "grid_buying_price": 0.0, "grid_selling_price": 0.00})  # sets prices for the system operator
 world.register_daemon(price_manager_elec)  # registration
 world.register_daemon(price_elec_grid)  # registration
 world.register_daemon(price_heat_grid)  # registration
+world.register_daemon(price_cool_grid)  # registration
+
+# Outdoor temperature
+# this daemon is responsible for the value of outdoor temperature in the catalog
+outdoor_temperature_daemon = User.Daemons.OutdoorTemperatureDaemon.OutdoorTemperatureDaemon("Azzie", 1, {"file": "lib/MeteorologicalData/TemperaturesProfiles/ZaragozaTemperatures.json"})
+world.register_daemon(outdoor_temperature_daemon)  # registration
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
-indoor_temperature_daemon = subclasses_dictionary["IndoorTemperatureDaemon"]("Asie", 1)
+indoor_temperature_daemon = User.Daemons.IndoorTemperatureDaemon.IndoorTemperatureDaemon("Asie", 1)
 world.register_daemon(indoor_temperature_daemon)  # registration
-
-# Outdoor temperature
-# this daemon is responsible for the value of outside temperature in the catalog
-temperature_daemon = subclasses_dictionary["OutdoorTemperatureDaemon"]("Azzie", 1, {"location": "Pau"})
-world.register_daemon(temperature_daemon)  # registration
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["ColdWaterDaemon"]("Mephisto", 1)
+water_temperature_daemon = User.Daemons.ColdWaterDaemon.ColdWaterDaemon("Mephisto", 1)
 world.register_daemon(water_temperature_daemon)  # registration
 
-# Irradiation
-# this daemon is responsible for updating the value of raw solar irradiation
-irradiation_daemon = subclasses_dictionary["IrradiationDaemon"]("Pau")
-world.register_daemon(irradiation_daemon)  # registration
-
-# Wind
-# this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["WindDaemon"]("Pau")
-world.register_daemon(wind_daemon)  # registration
+# # Irradiation
+# # this daemon is responsible for updating the value of raw solar irradiation
+# irradiation_daemon = User.Daemon.IrradiationDaemon.IrradiationDaemon("Pau")
+# world.register_daemon(irradiation_daemon)  # registration
 
 
 # ##############################################################################################
@@ -271,41 +260,25 @@ world.register_daemon(wind_daemon)  # registration
 # world.catalog.print_debug()  # displays the content of the catalog
 
 # datalogger for balances
-# these dataloggers record the balances for each agent, contract, nature and  aggregator
-# contract_balances = subclasses_dictionary["ContractBalanceDatalogger"]()
-aggregator_balances = subclasses_dictionary["AggregatorBalanceDatalogger"]()
-nature_balances = subclasses_dictionary["NatureBalanceDatalogger"]()
+# these dataloggers record the balances for each agent, contract, nature and  cluster
+# contract_balances = User.Datalogger.Balances.ContractBalanceDatalogger()
+# cluster_balances = User.Datalogger.Balances.ClusterBalanceDatalogger()
+nature_balances = User.Dataloggers.Balances.NatureBalanceDatalogger()
 # world.register_datalogger(contract_balances)  # registration
-world.register_datalogger(aggregator_balances)  # registration
+# world.register_datalogger(cluster_balances)  # registration
 world.register_datalogger(nature_balances)  # registration
-#
-# ECOS_agent_datalogger = subclasses_dictionary["ECOSDatalogger"].ECOSAgentDatalogger("month")
-# ECOS_aggregator_datalogger = subclasses_dictionary["ECOSDatalogger"].ECOSDatalogger()
-# global_values_datalogger = subclasses_dictionary["ECOSDatalogger"].GlobalValuesDatalogger()
+
+# ECOS_agent_datalogger = User.Datalogger.ECOSDatalogger.ECOSAgentDatalogger("month")
+# ECOS_cluster_datalogger = User.Datalogger.ECOSDatalogger.ECOSDatalogger()
+# global_values_datalogger = User.Datalogger.ECOSDatalogger.GlobalValuesDatalogger()
 # world.register_datalogger(ECOS_agent_datalogger)  # registration
-# world.register_datalogger(ECOS_aggregator_datalogger)  # registration
+# world.register_datalogger(ECOS_cluster_datalogger)  # registration
 # world.register_datalogger(global_values_datalogger)  # registration
 
 # datalogger used to get back producer outputs
-producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
-world.register_datalogger(producer_datalogger)  # registration
+# consumption_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+# world.register_datalogger(consumption_datalogger)  # registration
 
-producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
-producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
-producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_erased")
-producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_sold")
-
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_erased")
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_sold")
-#
-# producer_datalogger.add(f"{PV_field.name}_exergy_in")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
-# producer_datalogger.add(f"{PV_field.name}_exergy_out")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
-producer_datalogger.add("reference_temperature")
-producer_datalogger.add("Pau_irradiation_value")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
