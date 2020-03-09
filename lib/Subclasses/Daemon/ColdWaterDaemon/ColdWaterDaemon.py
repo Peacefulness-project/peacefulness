@@ -7,10 +7,8 @@ from src.common.Daemon import Daemon
 
 class ColdWaterDaemon(Daemon):
 
-    def __init__(self, name, period):
-        super().__init__(name, period)
-
-    def _user_register(self):
+    def __init__(self, world, name, period=0):
+        super().__init__(world, name, period)
 
         # calculate the initial temperature
         month = (self._catalog.get("physical_time").month - 2) % 12  # the number of the month, delayed to be centered on August, the warmest month
@@ -19,6 +17,10 @@ class ColdWaterDaemon(Daemon):
         water_temperature = 21 - 2 * abs(6 - month)  # the value, in °C, of the cold water in housings
 
         self._catalog.add("cold_water_temperature", water_temperature)
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
 
     def _process(self):
         # calculate the ongoing temperature

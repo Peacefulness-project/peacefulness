@@ -4,12 +4,8 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class WindTurbine(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/WindTurbine/WindTurbine.json", user_profile_name, usage_profile_name, None)
-
-        self._usage_profile = dict()
-
-        self._efficiency = None
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/WindTurbine/WindTurbine.json", user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization
@@ -19,6 +15,9 @@ class WindTurbine(NonControllableDevice):
         pass
 
     def _get_consumption(self):
+        self._usage_profile = dict()
+        self._efficiency = None
+
         [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
 
         self._data_user_creation(data_user)  # creation of an empty user profile

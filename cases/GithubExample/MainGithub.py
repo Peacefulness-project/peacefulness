@@ -10,7 +10,7 @@ from datetime import datetime
 import lib.Subclasses as User
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Core import World
+from src.common.World import World
 from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 
@@ -222,7 +222,7 @@ world.register_daemon(wind_daemon)  # registration
 # Creation of dataloggers
 
 # datalogger used to get back producer outputs
-producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt", 1)
+producer_datalogger = Datalogger(world, "producer_datalogger", "ProducerBalances.txt", 1)
 world.register_datalogger(producer_datalogger)  # registration
 
 producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")

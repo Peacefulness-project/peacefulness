@@ -6,18 +6,13 @@ from src.common.Daemon import Daemon
 
 class PriceManagerDaemon(Daemon):
 
-    def __init__(self, name, period, parameters):
-        super().__init__(name, period, parameters)
+    def __init__(self, world, name, period=0, parameters=None):
+        super().__init__(world, name, period, parameters)
         self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent
         self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent
         self._contract_list = None  # the list of contracts taken in charge by this daemon, added later
         self._identifier = parameters["identifier"]  # the identifier used for the contracts managed by this
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):
         self._contract_list = self._catalog.get(f"contracts_{self._identifier}")  # the list of contract this daemon has to take in charge
         self._catalog.remove(f"contracts_{self._identifier}")  # as this key is not used anymore, it is deleted
 

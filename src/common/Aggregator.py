@@ -7,35 +7,28 @@ from math import inf
 
 class Aggregator:
 
-    def __init__(self, name, nature, strategy, superior=None, efficiency=1, capacity=inf):
+    def __init__(self, world, name, nature, strategy, superior=None, efficiency=1, capacity=inf):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
 
-        self._catalog = None  # the catalog in which some data are stored
+        self._catalog = world.catalog  # the catalog in which some data are stored
 
         self._strategy = strategy  # the strategy, i.e the strategy applied by this aggregator
 
         self.superior = superior  # the other aggregator this one is obeying to
         # It can be None
 
-        self._devices = list()  # a list of all the devices managed by the aggregator
-        self._subaggregators = list()  # a list of all the aggregators managed by the aggregator
+        self._devices = list()  # a list of the devices managed by the aggregator
+        self._subaggregators = list()  # a list of the aggregators managed by the aggregator
+        self._converters = list()  # a list of the converters available for the aggregator
 
         self.quantities = dict()  # a dictionary containing, for each device and each subaggregator, the quantity asked, the price billed, the quantity delivered and the price it cost it
 
-        # todo: me virer ce merdier et le faire proprement (mais après discussion avec Sterwin)
-        # hors de question que ce soit fige a la declaration comme ça
-        # a stocker dans un dico au niveau de world plutot
+        # characteristics of the exchange potential between this aggregator and its superior
         self.efficiency = efficiency
         self.capacity = capacity
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog  # linking the local grid with the catalog of world
-
+        # Creation of specific entries in the catalog
         self._catalog.add(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the aggregator to its superior
         self._catalog.add(f"{self.name}.quantities_given", [])  # couple price/quantities accorded by the aggregator superior
 
@@ -44,6 +37,8 @@ class Aggregator:
 
         self._catalog.add(f"{self.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the aggregator to buy energy during the round
         self._catalog.add(f"{self.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the aggregator by selling energy during the round
+
+        world.register_aggregator(self)  # register the aggregator into world dedicated dictionary
 
     # ##########################################################################################
     # Dynamic behavior
@@ -75,6 +70,15 @@ class Aggregator:
     # Utility
     # ##########################################################################################
 
+    def add_device(self, device_name):  # add the given device_name to the list of devices managed by the aggregator
+        self._devices.append(device_name)
+
+    def add_subaggregator(self, subaggregator_name):  # add the given subaggregator_name to the list of subaggregators managed by the aggregator
+        self._subaggregators.append(subaggregator_name)
+
+    def add_converter(self, converter_name):  # add the given converter_name to the list of converters managed by the aggregator
+        self._converters.append(converter_name)
+
     @property
     def nature(self):  # shortcut for read-only
         return self._nature
@@ -90,4 +94,5 @@ class Aggregator:
     @property
     def subaggregators(self):  # shortcut for read-only
         return self._subaggregators
+
 

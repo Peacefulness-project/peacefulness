@@ -4,13 +4,11 @@ from src.common.Daemon import Daemon
 
 class WindDaemon(Daemon):
 
-    def __init__(self, location, period=0):
+    def __init__(self, world, location, period=0):
         name = location + "_wind_manager"
-        super().__init__(name, period, {"location": location})
+        super().__init__(world, name, period, {"location": location})
 
         self._location = location
-
-    def _user_register(self):
 
         self._wind_values = {1: [7.6384, 7.8848, 8.008, 8.1928, 8.1928, 8.2544, 8.316, 8.2544, 8.316, 8.1312, 7.8232, 7.392, 7.2688, 7.1456, 7.084, 7.1456, 7.392, 7.6384, 7.7616, 7.8232, 7.7, 7.5152, 7.7, 7.8232],
                              2: [7.2688, 7.5152, 7.5768, 7.392, 7.2688, 7.2072, 6.9608, 6.8992, 6.8992, 6.6528, 6.3448, 6.4064, 6.4064, 6.5912, 6.8376, 6.9608, 6.9608, 7.2072, 7.2688, 7.2688, 7.2688, 7.2688, 7.392, 7.392],
@@ -32,6 +30,10 @@ class WindDaemon(Daemon):
         wind = self._wind_values[month][hour]  # the value of wind at the current hour for the current day for the current month
 
         self._catalog.add(f"{self._location}_wind_value", wind)
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
 
     def _process(self):
 

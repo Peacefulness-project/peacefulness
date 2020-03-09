@@ -9,8 +9,8 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class Background(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Background/Background.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/Background/Background.json", user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization
@@ -62,6 +62,5 @@ class Background(NonControllableDevice):
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
 
-# subclasses_dictionary[f"{Background.__name__}"] = Background
 
 

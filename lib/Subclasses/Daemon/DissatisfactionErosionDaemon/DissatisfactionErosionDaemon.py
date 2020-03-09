@@ -6,9 +6,13 @@ from src.common.Daemon import Daemon
 
 class DissatisfactionErosionDaemon(Daemon):
 
-    def __init__(self, name, period,  parameters):
-        super().__init__(name, period, parameters)
+    def __init__(self, world, name, period=0, parameters=None):
+        super().__init__(world, name, period, parameters)
         self._coefficient = parameters["coef_1"] ** (1 / parameters["coef_2"])
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
 
     def _process(self):
         for key in self.catalog.keys:

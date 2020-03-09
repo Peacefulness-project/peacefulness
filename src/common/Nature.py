@@ -6,7 +6,7 @@
 class Nature:  # this class contains the different natures
     _list = list()  # a list indexing all types of nature
 
-    def __init__(self, name, description):
+    def __init__(self, world, name, description):
         Nature._list = list()  # a list indexing all types of nature
 
         if name in Nature._list:  # to avoid double definitions
@@ -15,23 +15,19 @@ class Nature:  # this class contains the different natures
             Nature._list.append(name)
             self._name = name  # the name of the nature, which is used as a keyword
 
-        self._catalog = None  # the catalog in which some data are stored
+        self._catalog = world.catalog  # the catalog in which some data are stored
 
         self.description = description  # a description of the nature
         self._grid = False  # a flag indicating if this nature is linked to a major grid
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog
-
+        # Creation of specific entries in the catalog
         self._catalog.add(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
         self._catalog.add(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
 
         self._catalog.add(f"{self.name}.money_spent", 0)  # energy received by the nature during the current round
         self._catalog.add(f"{self.name}.money_earned", 0)  # energy delivered by the nature during the current round
+
+        world.register_nature(self)  # register this nature into world dedicated dictionary
 
     # ##########################################################################################
     # Dynamic behavior

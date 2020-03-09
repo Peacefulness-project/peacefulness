@@ -9,7 +9,7 @@ from src.tools.Utilities import adapt_path
 
 class Datalogger:
 
-    def __init__(self, name, filename, period=0, sum_over_time=False):
+    def __init__(self, world, name, filename, period=0, sum_over_time=False):
         self._name = name
 
         self._filename = filename  # the name of the file where the data will be written
@@ -23,14 +23,13 @@ class Datalogger:
 
         self._next_time = 0  # next time step for which data will be written
 
-        self._catalog = None  # catalog from which data is extracted
+        self._catalog = world.catalog  # catalog from which data is extracted
+
+        world.register_datalogger(self)  # register this datalogger into world dedicated dictionary
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog
 
     def add(self, name):  # add 1 key of the catalog to the datalogger
         self._list.append(name)  # creates an entry in the buffer if needed

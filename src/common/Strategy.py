@@ -5,11 +5,13 @@ from math import inf
 
 class Strategy:
 
-    def __init__(self, name, description):
+    def __init__(self, world, name, description):
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
-        self._catalog = None  # the catalog in which some data are stored
+        self._catalog = world.catalog  # the catalog in which some data are stored
+
+        world.register_strategy(self)  # register the strategy into world dedicated dictionary
 
     # ##########################################################################################
     # Initialization

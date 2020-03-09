@@ -5,11 +5,6 @@ from src.common.Strategy import Strategy
 
 class SubaggregatorHeatEmergency(Strategy):
 
-    def __init__(self, name, description):
-        super().__init__(name, description)
-
-        self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

@@ -5,8 +5,8 @@ from src.tools.Utilities import adapt_path
 
 class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self):
-        super().__init__("ECOS_clusters_results", "ECOS_clusters_results")
+    def __init__(self, world, period=0):
+        super().__init__(world, "ECOS_clusters_results", "ECOS_clusters_results", period)
 
     def _register(self, catalog):
         self._catalog = catalog
@@ -76,8 +76,8 @@ class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed 
 
 class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export values concerning the whole run
 
-    def __init__(self):
-        super().__init__("global_values", "global_values")
+    def __init__(self, world, period=0):
+        super().__init__(world, "global_values", "global_values", period)
 
         self._last_turn = None
 

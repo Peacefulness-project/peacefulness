@@ -5,8 +5,8 @@ from math import sin, pi
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/PV/PV.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/PV/PV.json", user_profile_name, usage_profile_name, parameters)
 
         self._surface = parameters["surface"]
 

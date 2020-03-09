@@ -4,7 +4,7 @@
 
 class Daemon:
 
-    def __init__(self, name, period=0, parameters=None):
+    def __init__(self, world, name, period=0, parameters=None):
         if name is None:
             raise DaemonException("Daemon needs a name")
 
@@ -14,7 +14,9 @@ class Daemon:
 
         self._next_time = 0  # next iteration at which the daemon will be activated
 
-        self._catalog = None  # catalog from which data is extracted
+        self._catalog = world.catalog  # catalog from which data is extracted
+
+        world.register_daemon(self)  # register this daemon into world dedicated dictionary
 
         # parameters is the list of different parameters necessary for user-defined daemons subclasses
         # putting them into a list is necessary for the save/load system
@@ -22,17 +24,6 @@ class Daemon:
             self._parameters = parameters
         else:
             self._parameters = {}
-
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog
-        self._user_register()  # create relevant entries in the catalog
-
-    def _user_register(self):  # where are defined user-specific entries in the catalog
-        pass
 
     # ##########################################################################################
     # Dynamic behavior

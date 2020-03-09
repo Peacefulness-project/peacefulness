@@ -32,3 +32,8 @@ class Forecaster:
         return self._name
 
 
+# Exception
+class ForecasterException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+

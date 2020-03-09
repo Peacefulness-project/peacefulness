@@ -4,8 +4,8 @@ from src.common.Contract import Contract
 
 class FlatCooperativeContract(Contract):
 
-    def __init__(self, name, nature, identifier):
-        super().__init__(name, nature, identifier)
+    def __init__(self, world, name, nature, identifier=None):
+        super().__init__(world, name, nature, identifier)
 
         self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
 

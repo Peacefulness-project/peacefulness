@@ -4,26 +4,26 @@
 from math import exp
 # Current packages
 from src.common.DeviceMainClasses import AdjustableDevice
-from src.common.Core import DeviceException
+from src.common.Device import DeviceException
 
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Heating/Heating.json", user_profile_name, usage_profile_name, parameters)
-
-        self._G = None  # this value represents the quantity of energy to necessary to heat
-        self._thermal_inertia = None  # this value represents the velocity with which the house
-        self._temperature_range = None
-        self._repartition = None  # this dictionary contains the repartition of energy between the different energies used by the device
-        # normally, the sum of these coefficients must be 1
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/Heating/Heating.json", user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-        pass
+        super()._user_register()  # perform the actions specific to adjustable devices
+
+        self._G = None  # this value represents the quantity of energy to necessary to heat
+        self._thermal_inertia = None  # this value represents the velocity with which the house
+        self._temperature_range = None
+        self._repartition = None  # this dictionary contains the repartition of energy between the different energies used by the device
+        # normally, the sum of these coefficients must be 1
 
     def _get_consumption(self):
 

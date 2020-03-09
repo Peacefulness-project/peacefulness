@@ -5,11 +5,6 @@ from src.common.Strategy import Strategy
 
 class SubaggregatorHeatRevenues(Strategy):
 
-    def __init__(self, name, description):
-        super().__init__(name, description)
-
-        self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -20,32 +15,28 @@ class SubaggregatorHeatRevenues(Strategy):
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
 
-        self._quantities_exchanged_internally[aggregator.name] = [0, 0]  # reinitialization of the quantities exchanged internally
-
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
-        quantities_exchanged = 0  # the quantity of energy exchanged internally allowed by the strategy
-        quantities_and_prices = []  # a list containing couples energy/prices
-
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price  # we choose a sort criteria
+        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        quantities_and_prices = []  # a list containing couples energy/prices
 
-        # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        self._get_quantities(aggregator)  # updates the quantities the aggregator has to manage
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
-        # initialization of prices:
-        buying_price = min(sorted_demands[0][2], max_price)  # maximum price given by consumers
-        selling_price = max(sorted_offers[0][2], min_price)  # minimum price given by producers
-        final_price = (buying_price + selling_price) / 2  # initialization of the final price
+        # ##########################################################################################
+        # management of grid call
+        # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price
+        # and another one, associated to non-urgent needs
 
-        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
+        price = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # as the aggregator can't sell energy
 
-        self._quantities_exchanged_internally[aggregator.name] = [quantities_exchanged, final_price]  # we store this value for the descendant phase
+        # calculate the quantities needed to fulfill its needs
+        # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
+        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, price, quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
@@ -57,6 +48,9 @@ class SubaggregatorHeatRevenues(Strategy):
 
         for line_index in lines_to_remove:  # removing the already served elements
             quantities_and_prices.pop(line_index)
+
+        # ##########################################################################################
+        # publication of the needs
 
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 

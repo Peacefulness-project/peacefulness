@@ -87,6 +87,10 @@ class Catalog:
         return self._data["dictionaries"]["devices"]
 
     @property
+    def converters(self):  # for read only
+        return self._data["dictionaries"]["converters"]
+
+    @property
     def dataloggers(self):  # for read only
         return self._data["dictionaries"]["dataloggers"]
 

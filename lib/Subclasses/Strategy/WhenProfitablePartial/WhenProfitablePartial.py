@@ -5,8 +5,8 @@ from src.common.Strategy import Strategy
 
 class WhenProfitablePartial(Strategy):
 
-    def __init__(self, name, description):
-        super().__init__(name, description)
+    def __init__(self, world, name, description):
+        super().__init__(world, name, description)
 
         self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
 

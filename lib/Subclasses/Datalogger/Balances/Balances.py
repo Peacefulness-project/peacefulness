@@ -4,8 +4,8 @@ from src.common.Datalogger import Datalogger
 
 class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self):
-        super().__init__("agent_balances", "AgentsBalances.txt")
+    def __init__(self, world, period=0):
+        super().__init__(world, "agent_balances", "AgentsBalances.txt", period)
 
     def _register(self, catalog):
         self._catalog = catalog
@@ -24,8 +24,8 @@ class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed
 
 class AggregatorBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self):
-        super().__init__("aggregator_balances", "AggregatorsBalances.txt")
+    def __init__(self, world, period=0):
+        super().__init__(world, "aggregator_balances", "AggregatorsBalances.txt", period)
 
     def _register(self, catalog):
         self._catalog = catalog
@@ -44,8 +44,8 @@ class AggregatorBalanceDatalogger(Datalogger):  # a sub-class of dataloggers des
 
 class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self):
-        super().__init__("contract_balances", "ContractsBalances.txt")
+    def __init__(self, world, period=0):
+        super().__init__(world, "contract_balances", "ContractsBalances.txt", period)
 
     def _register(self, catalog):
         self._catalog = catalog
@@ -64,8 +64,8 @@ class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers desig
 
 class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self):
-        super().__init__("nature_balances", "NaturesBalances.txt")
+    def __init__(self, world, period=0):
+        super().__init__(world, "nature_balances", "NaturesBalances.txt", period)
 
     def _register(self, catalog):
         self._catalog = catalog

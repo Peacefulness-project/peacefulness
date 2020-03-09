@@ -2,13 +2,13 @@
 from math import exp
 # Current packages
 from src.common.DeviceMainClasses import AdjustableDevice
-from src.common.Core import DeviceException
+from src.common.Device import DeviceException
 
 
 class Refrigerator(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Refrigerator/Refrigerator.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name=None):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/Refrigerator/Refrigerator.json", user_profile_name, usage_profile_name)
 
         self._G = None  # this value represents the quantity of energy to necessary to heat
         self._thermal_inertia = None  # this value represents the velocity with which the house

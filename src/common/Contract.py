@@ -4,9 +4,9 @@
 
 class Contract:
 
-    def __init__(self, name, nature, identifier, parameters=None):
+    def __init__(self, world, name, nature, identifier, parameters=None):
         self._name = name
-        self._catalog = None
+        self._catalog = world.catalog
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
@@ -19,13 +19,6 @@ class Contract:
             self._parameters = parameters
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
-
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog
 
         self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
         self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
@@ -41,6 +34,12 @@ class Contract:
 
         self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
         self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
+
+        world.register_contract(self)  # register this contract into world dedicated dictionary
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
 
     def _define_prices(self):
         try:  # if it is the first contract of its class and nature, it creates an entry repertoring all contracts of its class and nature in the catalog
@@ -73,7 +72,7 @@ class Contract:
             price = self._billing_buying(quantity["energy_maximum"])
         elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
             price = self._billing_selling(quantity["energy_maximum"])
-        else:  #if there is no need
+        else:  # if there is no need
             price = None  # no price is attributed
         self._user_billing(agent_name)
 

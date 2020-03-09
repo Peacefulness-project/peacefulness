@@ -3,17 +3,17 @@ from src.common.DeviceMainClasses import ChargerDevice
 
 class HotWaterTank(ChargerDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
-
-        self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json", user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-        pass
+        super()._user_register()  # perform the actions specific to charger devices
+
+        self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
 
     def _get_consumption(self):
 

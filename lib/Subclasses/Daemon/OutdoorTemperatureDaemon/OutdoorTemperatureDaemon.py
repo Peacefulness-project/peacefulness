@@ -7,8 +7,8 @@ from src.common.Daemon import Daemon
 
 class OutdoorTemperatureDaemon(Daemon):
 
-    def __init__(self, name, period, parameters):
-        super().__init__(name, period, parameters)
+    def __init__(self, world, name, period=0, parameters=None):
+        super().__init__(world, name, period, parameters)
 
         self._agent_list = None
 
@@ -25,11 +25,6 @@ class OutdoorTemperatureDaemon(Daemon):
 
         self._format = data["format"]
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):
         # getting back the appropriate way of reading the data
         self._files_formats = {"day/month": self._get_temperature_1_day_month,  # 1 representative day, hour by hour, for each month
                                "365days": self._get_temperature_365_days}  # every days in a year, hour by hour

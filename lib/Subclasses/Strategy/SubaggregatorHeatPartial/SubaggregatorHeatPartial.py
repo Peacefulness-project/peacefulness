@@ -5,11 +5,6 @@ from src.common.Strategy import Strategy
 
 class SubaggregatorHeatPartial(Strategy):
 
-    def __init__(self, name, description):
-        super().__init__(name, description)
-
-        self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -43,7 +38,7 @@ class SubaggregatorHeatPartial(Strategy):
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
         quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, price, quantities_and_prices)
 
-        # as the aggregator cannot sell enrgy, we remove the negative quantities
+        # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
         for i in range(len(quantities_and_prices)):
             if quantities_and_prices[i][0] < 0:  # if the aggregator wants to sell energy

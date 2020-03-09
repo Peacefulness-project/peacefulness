@@ -25,7 +25,7 @@ from time import process_time
 
 from src.tools.Utilities import adapt_path
 
-from src.common.Core import World
+from src.common.World import World
 
 from src.common.Nature import Nature
 

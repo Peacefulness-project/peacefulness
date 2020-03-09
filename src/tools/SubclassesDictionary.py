@@ -9,7 +9,7 @@ import inspect
 def get_subclasses():  # this function returns all subclasses
     subclasses_dictionary = {}
 
-    classes_concerned = ["Contract", "Daemon", "Datalogger", "Device", "Strategy"]  # a list of all classes using subclasses
+    classes_concerned = ["Contract", "Daemon", "Datalogger", "Device", "Forecaster", "Strategy"]  # a list of all classes using subclasses
 
     for class_name in classes_concerned:
         class_directory = "lib/Subclasses/" + class_name  # the directory containing subclasses of one class

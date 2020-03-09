@@ -5,30 +5,25 @@
 
 class Agent:
 
-    def __init__(self, name):
+    def __init__(self, world, name):
         self._name = name  # the name written in the catalog
 
         self._contracts = dict()  # the contract defines the type of strategy relevant
         # for the agent for each nature of energy. A contract is a keyword (for now, at least)
 
-        self._catalog = None  # the catalog in which some data are stored
+        self._catalog = world.catalog  # the catalog in which some data are stored
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog  # linking the agent with the catalog of world
-
-        # Creation of specific entries
+        # Creation of specific entries in the catalog
         self._catalog.add(f"{self.name}.money_spent", 0)  # accounts for the money spent by the agent to buy energy during the round
         self._catalog.add(f"{self.name}.money_earned", 0)  # accounts for the money earned by the agent by selling energy during the round
+
+        world.register_agent(self)  # register this agent into world dedicated dictionary
 
     # ##########################################################################################
     # Dynamic behaviour
     ############################################################################################
 
-    def reinitialize(self):  # reinitialization of the values
+    def reinitialize(self):  # reinitialization of the balances
         self._catalog.set(f"{self.name}.money_spent", 0)  # money spent by the agent to buy energy during the round
         self._catalog.set(f"{self.name}.money_earned", 0)  # money earned by the agent by selling energy during the round
 

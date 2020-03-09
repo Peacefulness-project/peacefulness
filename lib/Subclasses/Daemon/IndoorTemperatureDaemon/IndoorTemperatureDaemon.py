@@ -6,12 +6,11 @@ from math import exp
 
 class IndoorTemperatureDaemon(Daemon):
 
-    def __init__(self, name, period, parameters=None):
-        super().__init__(name, period, parameters)
+    def __init__(self, world, name, period=0, parameters=None):
+        super().__init__(world, name, period, parameters)
 
         self._agent_list = None
 
-    def _user_register(self):
         # get back the list of agents needing temperature calculation
         self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
         self._catalog.remove("agents_with_temperature_devices")  # the entry is not useful anymore in the catalog, so it is deleted
@@ -20,6 +19,10 @@ class IndoorTemperatureDaemon(Daemon):
         for agent_name in self._agent_list:
             self._catalog.set(f"{agent_name}.previous_indoor_temperature", 17)
             self._catalog.set(f"{agent_name}.current_indoor_temperature", 17)
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
 
     def _process(self):
 

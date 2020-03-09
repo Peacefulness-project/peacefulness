@@ -13,7 +13,7 @@ from time import process_time
 
 from src.tools.Utilities import adapt_path
 
-from src.common.Core import World
+from src.common.World import World
 
 from src.common.Nature import Nature
 
@@ -268,7 +268,7 @@ world.register_datalogger(ECOS_cluster_datalogger)  # registration
 world.register_datalogger(global_values_datalogger)  # registration
 
 # datalogger used to get back producer outputs
-producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+producer_datalogger = Datalogger(world, "producer_datalogger", "ProducerBalances.txt")
 world.register_datalogger(producer_datalogger)  # registration
 
 producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")

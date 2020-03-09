@@ -1,12 +1,19 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
+from src.common.Daemon import Daemon
 
-from lib.Subclasses.Daemon.PriceManagerDaemon.PriceManagerDaemon import PriceManagerDaemon
 
+class PriceManagerTOUDaemon(Daemon):
 
-class PriceManagerTOUDaemon(PriceManagerDaemon):
+    def __init__(self, world, name, period=0, parameters=None):
+        super().__init__(world, name, period, parameters)
 
-    def __init__(self, name, period, parameters):
-        super().__init__(name, period, parameters)
+        self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent
+        self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent
+        self._contract_list = None  # the list of contracts taken in charge by this daemon, added later
+        self._identifier = parameters["identifier"]  # the identifier used for the contracts managed by this
+
+        self._contract_list = self._catalog.get(f"contracts_{self._identifier}")  # the list of contract this daemon has to take in charge
+        self._catalog.remove(f"contracts_{self._identifier}")  # as this key is not used anymore, it is deleted
 
         self._hours = []
         hours_range = parameters["hours"]
@@ -16,10 +23,15 @@ class PriceManagerTOUDaemon(PriceManagerDaemon):
 
         self._moment = None  # indicates if the tariff is HP or HC
 
-    def _user_register(self):
         self._moment = (self._catalog.get("physical_time").hour in self._hours) * 1  # 1 = HP, 0 = HC
 
-        super()._user_register()  # apply the operations relative to price manager daemons
+        for contract_name in self._contract_list:  # for all the contracts taken in charge
+            self._catalog.set(f"{contract_name}.buying_price", self._get_buying_price())  # the buying price for energy is set
+            self._catalog.set(f"{contract_name}.selling_price", self._get_selling_price())  # the selling price for energy is set
+
+    # ##########################################################################################
+    # Dynamic behaviour
+    # ##########################################################################################
 
     def _process(self):  # make shifts between on-peak and off-peaks tariffs
         self._moment = (self._catalog.get("physical_time").hour in self._hours) * 1  # 1 = on-peak, 0 = off-peak
