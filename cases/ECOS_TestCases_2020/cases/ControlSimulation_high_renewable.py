@@ -156,19 +156,19 @@ CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 
 # BAU contracts
-world.agent_generation(500, "lib/AgentTemplates/agent_templates/AgentECOS_1_BAU.json", [cluster_elec])
-world.agent_generation(1000, "lib/AgentTemplates/agent_templates/AgentECOS_2_BAU.json", [cluster_elec])
-world.agent_generation(500, "lib/AgentTemplates/agent_templates/AgentECOS_5_BAU.json", [cluster_elec])
+world.agent_generation(500, "lib/AgentTemplates/AgentTemplates/AgentECOS_1_BAU.json", [cluster_elec])
+world.agent_generation(1000, "lib/AgentTemplates/AgentTemplates/AgentECOS_2_BAU.json", [cluster_elec])
+world.agent_generation(500, "lib/AgentTemplates/AgentTemplates/AgentECOS_5_BAU.json", [cluster_elec])
 
 # DLC contracts
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_1_DLC.json", [cluster_elec])
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_2_DLC.json", [cluster_elec])
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_5_DLC.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_1_DLC.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_2_DLC.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_5_DLC.json", [cluster_elec])
 
 # Curtailment contracts
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_1_curtailment.json", [cluster_elec])
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_2_curtailment.json", [cluster_elec])
-world.agent_generation(0, "lib/AgentTemplates/agent_templates/AgentECOS_5_curtailment.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_1_curtailment.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_2_curtailment.json", [cluster_elec])
+world.agent_generation(0, "lib/AgentTemplates/AgentTemplates/AgentECOS_5_curtailment.json", [cluster_elec])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

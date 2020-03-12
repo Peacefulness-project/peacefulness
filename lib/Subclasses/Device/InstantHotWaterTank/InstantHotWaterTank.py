@@ -6,7 +6,7 @@ from math import inf
 
 class InstantHotWaterTank(ChargerDevice):
 
-    def __init__(self, world, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters=None):
         super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
         self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water

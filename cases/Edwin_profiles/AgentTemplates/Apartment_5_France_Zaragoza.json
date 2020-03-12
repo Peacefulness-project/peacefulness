@@ -1,0 +1,23 @@
+{
+  "template name": "France_consumption_5",
+
+  "composition": {
+
+    "Dishwasher": [["Dishwasher", "ECOS_5", "ECOS", [1,1], "LVE_BAU"]],
+    "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1], "LVE_BAU"]],
+    "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1], "LVE_BAU"]],
+
+    "InstantHotWaterTank": [["InstantHotWaterTank", "ECOS_5", "5_people_heat", [1,1], "Heat_BAU"]],
+    "Heating": [["Heating", "base_profile_France_Spanish_weather", "grand_apartment_heat_instant_consumption", [1,1], "Heat_BAU"]],
+    "Cooling": [["Cooling", "base_profile_France_Spanish_weather", "grand_apartment_cold_instant_consumption", [1,1], "Cold_BAU"]],
+
+    "Background": [["Background", "ECOS", "ECOS_5", [1,1], "LVE_BAU"]]
+  },
+
+  "contracts": {
+    "LVE_BAU":  ["LVE", "FlatEgoistContract"],
+    "Heat_BAU":  ["Heat", "FlatEgoistContract"],
+    "Cold_BAU":  ["Cold", "FlatEgoistContract"]
+  }
+
+}

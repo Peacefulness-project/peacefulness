@@ -46,7 +46,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "cases/agent_templates/Results/Autarky_revenues_medium_DSM"
+pathExport = "cases/AgentTemplates/Results/Autarky_revenues_medium_DSM"
 world.set_directory(pathExport)  # registration
 
 
@@ -180,19 +180,19 @@ CPU_time_generation_of_device = process_time()
 
 
 # BAU contracts
-world.agent_generation(250, "lib/AgentTemplates/agent_templates/AgentSFT_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(500, "lib/AgentTemplates/agent_templates/AgentSFT_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(250, "lib/AgentTemplates/agent_templates/AgentSFT_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(250, "lib/AgentTemplates/AgentTemplates/AgentSFT_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(500, "lib/AgentTemplates/AgentTemplates/AgentSFT_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(250, "lib/AgentTemplates/AgentTemplates/AgentSFT_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(150, "lib/AgentTemplates/agent_templates/AgentSFT_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(300, "lib/AgentTemplates/agent_templates/AgentSFT_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(150, "lib/AgentTemplates/agent_templates/AgentSFT_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(150, "lib/AgentTemplates/AgentTemplates/AgentSFT_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(300, "lib/AgentTemplates/AgentTemplates/AgentSFT_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(150, "lib/AgentTemplates/AgentTemplates/AgentSFT_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(100, "lib/AgentTemplates/agent_templates/AgentSFT_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(200, "lib/AgentTemplates/agent_templates/AgentSFT_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(100, "lib/AgentTemplates/agent_templates/AgentSFT_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "lib/AgentTemplates/AgentTemplates/AgentSFT_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "lib/AgentTemplates/AgentTemplates/AgentSFT_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(100, "lib/AgentTemplates/AgentTemplates/AgentSFT_5_curtailment.json", [cluster_elec, cluster_heat])
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

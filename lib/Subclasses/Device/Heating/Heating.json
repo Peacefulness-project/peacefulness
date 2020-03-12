@@ -68,6 +68,18 @@
       "duration_variation": 0
     },
 
+    "base_profile_France_Spanish_weather": {
+      "profile": [[[5, 5], [19.9, 20, 20.1]], [[18.5, 1.5], [19.9, 20, 20.1]]],
+      "location": "Zaragoza",
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 1.5,
+      "temperature_variation": 1,
+      "duration_variation": 0
+    },
+
     "base_profile_Spain": {
       "profile": [[[1, 2], [20.9, 21, 21.1]], [[6.5, 5], [20.9, 21, 21.1]], [[18.5, 1.5], [20.9, 21, 21.1]]],
       "location": "Zaragoza",

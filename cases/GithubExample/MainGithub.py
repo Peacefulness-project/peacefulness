@@ -165,19 +165,19 @@ world.register_device(heat_production)  # registration of a production device
 # Automated generation of complete agents (i.e with devices and contracts)
 
 # BAU contracts
-world.agent_generation(165, "lib/AgentTemplates/agent_templates/AgentGitHub_1_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(330, "lib/AgentTemplates/agent_templates/AgentGitHub_2_BAU.json", [cluster_elec, cluster_heat])
-world.agent_generation(165, "lib/AgentTemplates/agent_templates/AgentGitHub_5_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(165, "lib/AgentTemplates/AgentTemplates/AgentGitHub_1_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(330, "lib/AgentTemplates/AgentTemplates/AgentGitHub_2_BAU.json", [cluster_elec, cluster_heat])
+world.agent_generation(165, "lib/AgentTemplates/AgentTemplates/AgentGitHub_5_BAU.json", [cluster_elec, cluster_heat])
 
 # DLC contracts
-world.agent_generation(200, "lib/AgentTemplates/agent_templates/AgentGitHub_1_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(400, "lib/AgentTemplates/agent_templates/AgentGitHub_2_DLC.json", [cluster_elec, cluster_heat])
-world.agent_generation(200, "lib/AgentTemplates/agent_templates/AgentGitHub_5_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "lib/AgentTemplates/AgentTemplates/AgentGitHub_1_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(400, "lib/AgentTemplates/AgentTemplates/AgentGitHub_2_DLC.json", [cluster_elec, cluster_heat])
+world.agent_generation(200, "lib/AgentTemplates/AgentTemplates/AgentGitHub_5_DLC.json", [cluster_elec, cluster_heat])
 
 # Curtailment contracts
-world.agent_generation(135, "lib/AgentTemplates/agent_templates/AgentGitHub_1_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(270, "lib/AgentTemplates/agent_templates/AgentGitHub_2_curtailment.json", [cluster_elec, cluster_heat])
-world.agent_generation(135, "lib/AgentTemplates/agent_templates/AgentGitHub_5_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(135, "lib/AgentTemplates/AgentTemplates/AgentGitHub_1_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(270, "lib/AgentTemplates/AgentTemplates/AgentGitHub_2_curtailment.json", [cluster_elec, cluster_heat])
+world.agent_generation(135, "lib/AgentTemplates/AgentTemplates/AgentGitHub_5_curtailment.json", [cluster_elec, cluster_heat])
 
 
 # ##############################################################################################
