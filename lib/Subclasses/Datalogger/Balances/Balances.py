@@ -4,11 +4,8 @@ from src.common.Datalogger import Datalogger
 
 class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=0):
+    def __init__(self, world, period=1):
         super().__init__(world, "agent_balances", "AgentsBalances.txt", period)
-
-    def _register(self, catalog):
-        self._catalog = catalog
 
         self.add("simulation_time")
         self.add("physical_time")
@@ -24,11 +21,8 @@ class AgentBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed
 
 class AggregatorBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=0):
+    def __init__(self, world, period=1):
         super().__init__(world, "aggregator_balances", "AggregatorsBalances.txt", period)
-
-    def _register(self, catalog):
-        self._catalog = catalog
 
         self.add("simulation_time")
         self.add("physical_time")
@@ -44,11 +38,8 @@ class AggregatorBalanceDatalogger(Datalogger):  # a sub-class of dataloggers des
 
 class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=0):
+    def __init__(self, world, period=1):
         super().__init__(world, "contract_balances", "ContractsBalances.txt", period)
-
-    def _register(self, catalog):
-        self._catalog = catalog
 
         self.add("simulation_time")
         self.add("physical_time")
@@ -64,11 +55,8 @@ class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers desig
 
 class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=0):
+    def __init__(self, world, period=1):
         super().__init__(world, "nature_balances", "NaturesBalances.txt", period)
-
-    def _register(self, catalog):
-        self._catalog = catalog
 
         self.add("simulation_time")
         self.add("physical_time")
@@ -80,5 +68,4 @@ class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designe
             self.add(f"{nature_name}.energy_produced")
             self.add(f"{nature_name}.money_spent")
             self.add(f"{nature_name}.money_earned")
-
 

@@ -11,13 +11,11 @@ country = "France"
 city_case = "Marseille"
 city_weather = "Marseille"
 
-# chdir("./../../../")
-
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()
 
 # world and parameters
-world = create_world_with_set_parameters(city_case)
+world = create_world_with_set_parameters(city_case, city_weather)
 
 
 # ##############################################################################################
@@ -43,7 +41,6 @@ create_daemons(world, natures, price_IDs, city_weather)
 
 # Dataloggers
 create_dataloggers(world)
-
 
 # ##############################################################################################
 # Simulation

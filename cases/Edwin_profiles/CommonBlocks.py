@@ -8,18 +8,18 @@ from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
-def create_world_with_set_parameters(city):
+def create_world_with_set_parameters(city_case, city_weather):
 
     # ##############################################################################################
     # Creation of the world
     # a world <=> a case, it contains all the model
     # a world needs just a name
-    name_world = city + "_city"
+    name_world = city_case + "_city"
     world = World(name_world)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Edwin_profiles/Results/" + city  # directory where results are written
+    pathExport = "cases/Edwin_profiles/Results/" + city_case + "_weather_" + city_weather  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -47,12 +47,12 @@ def create_strategies(world):
     # the heat supervisor
     description = "Always serves everybody, whatever it can cost to him."
     name_supervisor = "heat_supervisor"
-    supervisor_heat = subclasses_dictionary["SubaggregatorHeatEmergency"](world, name_supervisor, description)
+    supervisor_heat = subclasses_dictionary["AlwaysSatisfied"](world, name_supervisor, description)
 
     # the cold supervisor
     description = "Always serves everybody, whatever it can cost to him."
     name_supervisor = "cold_supervisor"
-    supervisor_cold = subclasses_dictionary["SubaggregatorHeatEmergency"](world, name_supervisor, description)
+    supervisor_cold = subclasses_dictionary["AlwaysSatisfied"](world, name_supervisor, description)
 
     # the supervisor grid, which always proposes an infinite quantity to sell and to buy
     description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
@@ -80,22 +80,22 @@ def create_natures(world):
 
 def create_aggregators(world, natures, strategies):
     # and then we create a third who represents the grid
-    cluster_name = "Enedis"
-    cluster_grid = Aggregator(world, cluster_name, natures["elec"], strategies["grid"])
+    aggregator_name = "Enedis"
+    aggregator_grid = Aggregator(world, aggregator_name, natures["elec"], strategies["grid"])
 
     # here we create a second one put under the orders of the first
-    cluster_name = "general_cluster"
-    cluster_elec = Aggregator(world, cluster_name,  natures["elec"], strategies["elec"], cluster_grid, 1, 100000)  # creation of a cluster
+    aggregator_name = "general_aggregator"
+    aggregator_elec = Aggregator(world, aggregator_name,  natures["elec"], strategies["elec"], aggregator_grid)  # creation of a aggregator
 
-    # here we create another cluster dedicated to heat
-    cluster_name = "Local_DHN"
-    cluster_heat = Aggregator(world, cluster_name,  natures["heat"], strategies["heat"], cluster_elec, 1, 100000)  # creation of a cluster
+    # here we create another aggregator dedicated to heat
+    aggregator_name = "Local_DHN"
+    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_grid)  # creation of a aggregator
 
-    # here we create another cluster dedicated to cold
-    cluster_name = "Local_DCN"
-    cluster_cold = Aggregator(world, cluster_name,  natures["cold"], strategies["cold"], cluster_elec, 1, 100000)  # creation of a cluster
+    # here we create another aggregator dedicated to cold
+    aggregator_name = "Local_DCN"
+    aggregator_cold = Aggregator(world, aggregator_name,  natures["cold"], strategies["cold"], aggregator_grid)  # creation of a aggregator
 
-    return {"grid": cluster_grid, "elec": cluster_elec, "heat": cluster_heat, "cold": cluster_cold}
+    return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat, "cold": aggregator_cold}
 
 
 def create_contracts(world, natures):
