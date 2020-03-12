@@ -1,0 +1,17 @@
+{
+  "device_consumption": {
+    "ECOS": {
+      "usage_profile": {"nature": "Heat", "max_power": 3000},
+      "efficiency_variation": 0
+    }
+  },
+
+  "user_profile": {
+    "ECOS": {
+
+      "offset": 0,
+      "period": 24,
+      "start_time_variation": 0
+    }
+  }
+}

@@ -44,7 +44,7 @@ class WindTurbine(NonControllableDevice):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
-        wind = self._catalog.get(f"{self._location}_wind_value")  # wind speed in m.s-1
+        wind = self._catalog.get(f"{self._location}.wind_value")  # wind speed in m.s-1
         air_density = 1.17  # air density in kg.m-3
 
         energy_received = 1/2 * air_density * self._surface * wind**3 / 1000  # power received in kw

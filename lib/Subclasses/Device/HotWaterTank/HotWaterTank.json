@@ -68,6 +68,7 @@
   "user_profile":{
     "morning": {
       "profile": [[7, 1]],
+      "location": "Pau",
 
       "period": 24,
       "offset": 12,
@@ -78,6 +79,7 @@
 
     "ECOS_1": {
       "profile": [[7.5, 0.67], [19, 0.33]],
+      "location": "Pau",
 
       "period": 24,
       "offset": 0,
@@ -88,6 +90,7 @@
 
     "ECOS_5": {
       "profile": [[7.5, 0.25], [19, 0.25], [20.5, 0.5]],
+      "location": "Pau",
 
       "period": 24,
       "offset": 0,

@@ -155,6 +155,10 @@ flat_prices_heat = "flat_prices_heat"
 BAU_heat = subclasses_dictionary["FlatEgoistContract"](world, "BAU_heat", heat, flat_prices_heat)
 cooperative_contract_heat = subclasses_dictionary["FlatCooperativeContract"](world, "cooperative_contract_heat", heat, flat_prices_heat)
 
+flat_prices_elec = "flat_prices_elec"
+# cooperative_elec = subclasses_dictionary["Flattract"](world, "BAU_elec", elec, flat_prices_elec)
+# cooperative_contract_elec = subclasses_dictionary["FlatCooperativeContract"](world, "cooperative_contract_elec", elec, flat_prices_elec)
+
 owned_by_aggregator = "owned_by_aggregator"
 cooperative_contract_elec = subclasses_dictionary["FlatCooperativeContract"](world, "cooperative_contract_elec", elec, owned_by_aggregator)
 
@@ -184,18 +188,8 @@ CPU_time_generation_of_device = process_time()
 
 # # # BAU contracts
 world.agent_generation(10, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "Heat": flat_prices_heat})
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_BAU.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(5, "lib/AgentTemplates/ECOS2020/AgentECOS_5_BAU.json", [aggregator_elec, aggregator_heat])
-#
-# # DLC contracts
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_1_DLC.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_DLC.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_5_DLC.json", [aggregator_elec, aggregator_heat])
-#
-# # Curtailment contracts
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_1_curtailment.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_2_curtailment.json", [aggregator_elec, aggregator_heat])
-# world.agent_generation(10, "lib/AgentTemplates/ECOS2020/AgentECOS_5_curtailment.json", [aggregator_elec, aggregator_heat])
+world.agent_generation(10, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "Heat": flat_prices_heat})
+world.agent_generation(10, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "Heat": flat_prices_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -210,7 +204,6 @@ file.close()
 # this object proposes to one cluster to transfer energy to or from another cluster
 
 
-
 # ##############################################################################################
 # Daemon
 # this object updates values of the catalog not taken in charge by anyone else
@@ -218,12 +211,12 @@ file.close()
 # dissatisfaction erosion
 # this daemon reduces slowly the dissatisfaction of all agents over the time
 # here it is set like this: 10% of dissatisfaction will remain after one week (168 hours) has passed
-# dissatisfaction_management = User.Daemon.DissatisfactionErosionDaemon.DissatisfactionErosionDaemon("DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
-# world.register_daemon(dissatisfaction_management)  # registration
+# dissatisfaction_management = subclasses_dictionary[DissatisfactionErosionDaemon"](world, "DissatisfactionErosion", 1, {"coef_1": 0.9, "coef_2": 168})  # creation
 
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["PriceManagerDaemon"](world, "toto", 1, {"nature": elec.name, "buying_price": 0, "selling_price": 0, "identifier": owned_by_aggregator})  # as these devices are owned by the aggregator, energy is free
+price_manager_cooperative_elec = subclasses_dictionary["PriceManagerDaemon"](world, "titi", 1, {"nature": elec.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_elec})  # sets prices for flat rate
 price_manager_heat = subclasses_dictionary["PriceManagerDaemon"](world, "Picsou", 1, {"nature": heat.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_heat})  # sets prices for flat rate
 price_manager_elec = subclasses_dictionary["PriceManagerTOUDaemon"](world, "Flairsou", 1, {"nature": elec.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
 price_elec_grid = subclasses_dictionary["GridPricesDaemon"](world, "LVE_tariffs", 1, {"nature": elec.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
@@ -231,23 +224,23 @@ price_heat_grid = subclasses_dictionary["GridPricesDaemon"](world, "Heat_tariffs
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
-indoor_temperature_daemon = subclasses_dictionary["IndoorTemperatureDaemon"](world, "Asie", 1)
+indoor_temperature_daemon = subclasses_dictionary["IndoorTemperatureDaemon"](world, "indoor_temperature", 1)
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-outdoor_temperature_daemon = subclasses_dictionary["OutdoorTemperatureDaemon"](world, "Azzie", 1, {"location": "Pau"})
+outdoor_temperature_daemon = subclasses_dictionary["OutdoorTemperatureDaemon"](world, "outdoor_temperature_daemon", {"location": "Pau"})
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["ColdWaterDaemon"](world, "Mephisto", 1)
+water_temperature_daemon = subclasses_dictionary["ColdWaterDaemon"](world, "water_temperature_daemon", {"location": "Pau"})
 
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation
-irradiation_daemon = subclasses_dictionary["IrradiationDaemon"](world, "Pau")
+irradiation_daemon = subclasses_dictionary["IrradiationDaemon"](world, "irradiation_daemon", {"location": "Pau"})
 
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["WindDaemon"](world, "Pau")
+wind_daemon = subclasses_dictionary["WindDaemon"](world, "wind_speed_daemon", {"location": "Pau"})
 
 
 # ##############################################################################################
@@ -286,8 +279,8 @@ producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_sold")
 # producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
 # producer_datalogger.add(f"{PV_field.name}_exergy_out")
 # producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
-producer_datalogger.add("reference_temperature")
-producer_datalogger.add("Pau_irradiation_value")
+producer_datalogger.add("Pau.reference_temperature")
+producer_datalogger.add("Pau.irradiation_value")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization

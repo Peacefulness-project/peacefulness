@@ -1,7 +1,6 @@
 # This sheet regroups little things used to simplify the rest of the program
-import os
+from os import listdir, name
 import numpy as np
-import random as rnd
 from math import copysign
 
 # normalized separations
@@ -20,7 +19,7 @@ def adapt_path(blocks):  # this function allows to choose / or \ in a path accor
 
     string = ''
 
-    if os.name == 'nt':
+    if name == 'nt':  # the name here is the one of the OS
         for i in range(len(blocks) - 1):
             string += blocks[i] + '\\'
         string += blocks[len(blocks) - 1]
@@ -55,3 +54,12 @@ def into_list(object):  # if the object is not a list, this function will return
 def sign(number):  # returns the sign of a number
     return copysign(1, number)
 
+
+def list_files_and_folders(directory):  # this function lists all files and folders in a directory, __init__.py file and __pycache__ excepted
+    files_and_folders = listdir(directory)  # a list of all subclasses of this class
+    if "__init__.py" in files_and_folders:  # if a __init__.py file is present
+        files_and_folders.remove("__init__.py")  # then it is deleted
+    if "__pycache__" in files_and_folders:  # if a __pycache__ folder is present
+        files_and_folders.remove("__pycache__")  # then it is deleted
+
+    return files_and_folders

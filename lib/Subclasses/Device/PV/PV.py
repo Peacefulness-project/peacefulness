@@ -10,23 +10,25 @@ class PV(NonControllableDevice):
 
         self._surface = parameters["surface"]
 
-        self._usage_profile = dict()
+        # initialization of PV
+        for line in self._user_profile:
+            solar_prod = sin((line[0] - 8.5) * pi / 9) * line[1]
+            line[1] = max(0, solar_prod)
 
-        self._efficiency = None
+        # creation of keys for exergy
+        self._catalog.add(f"{self.name}_exergy_in", 0)
+        self._catalog.add(f"{self.name}_exergy_out", 0)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _user_register(self):
-        for line in self._user_profile:
-            solar_prod = sin((line[0] - 8.5) * pi / 9) * line[1]
-            line[1] = max(0, solar_prod)
-
-        self._catalog.add(f"{self.name}_exergy_in", 0)
-        self._catalog.add(f"{self.name}_exergy_out", 0)
+        pass
 
     def _get_consumption(self):
+        self._usage_profile = dict()
+
         [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -52,7 +54,7 @@ class PV(NonControllableDevice):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}_irradiation_value")
+        irradiation = self._catalog.get(f"{self._location}.irradiation_value")
 
         energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 

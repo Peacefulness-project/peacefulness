@@ -1,30 +1,40 @@
 {
-  "template name": "profil_de_l_eau",
+  "template name": "complete_profile",
 
   "composition": {
-    "Light": [["Light", "residential", "house", [0,0], "LVE_BAU"]],
-
-
-    "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1], "LVE_BAU"]],
-    "WashingMachine": [["WashingMachine", "single", "medium_consumption", [1,1], "LVE_BAU"]],
-    "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
-
-    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "Heat_BAU"]],
-    "Heating": [["Heating", "base_profile", "Edwin_profile", [1,1], "Heat_BAU"]],
-    "Cooling": [["Cooling", "base_profile", "Edwin_profile", [1,1], "Cold_BAU"]],
-
-    "Charger": [["Charger", "default", "laptop_charger", [0,0], "LVE_BAU"]],
-
-
     "Background": [["Background", "single", "single", [1,1], "LVE_BAU"]],
 
-    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 1}]]
+    "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
+    "Cooling": [["Cooling", "residential", "house_elec", [1,1], "LVE_BAU"]],
+
+    "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1], "LVE_BAU"]],
+    "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
+
+    "GenericProducer": [["GenericProducer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
+
+    "Heating": [["Heating", "residential", "house_heat", [1,1], "Heat_BAU"]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "Heat_BAU"]],
+
+    "Light": [["Light", "residential", "house", [1,1], "LVE_BAU"]],
+
+    "Methanizer": [["Methanizer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
+
+    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 1}]],
+
+    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"],
+                     ["Freezer", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"]],
+
+    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [1,1], "Heat_BAU", {"surface": 1}]],
+
+    "WashingMachine": [["WashingMachine", "single", "medium_consumption", [1,1], "LVE_BAU"]],
+    "WaterHeater": [["WaterHeater", "single", "coffee_maker", [1,1], "LVE_BAU"]],
+    "WindTurbine": [["WindTurbine", "ECOS", "ECOS", [1,1], "LVE_BAU"]]
+
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "FlatEgoistContract", {"selling_price": 0.12, "buying_price": 0.11}],
-    "Heat_BAU":  ["Heat", "FlatEgoistContract", {"selling_price": 0.12, "buying_price": 0.11}],
-    "Cold_BAU":  ["Cold", "FlatEgoistContract", {"selling_price": 0.12, "buying_price": 0.11}]
+    "LVE_BAU":  ["LVE", "FlatCooperativeContract"],
+    "Heat_BAU":  ["Heat", "FlatEgoistContract"]
   }
 
 }

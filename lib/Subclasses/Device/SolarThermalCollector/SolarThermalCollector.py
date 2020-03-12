@@ -7,15 +7,6 @@ class SolarThermalCollector(NonControllableDevice):
     def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
         super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/SolarThermalCollector/SolarThermalCollector.json", user_profile_name, usage_profile_name, parameters)
 
-        self._a0 = None
-        self._a1 = None
-        self._a2 = None
-        self._fluid_temperature = None
-
-        self._location = None
-
-        self._usage_profile = dict()
-
         self._surface = parameters["surface"]
 
     # ##########################################################################################
@@ -27,6 +18,8 @@ class SolarThermalCollector(NonControllableDevice):
         self._catalog.add(f"{self.name}_exergy_out", 0)
 
     def _get_consumption(self):
+        self._usage_profile = dict()
+
         [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -53,8 +46,8 @@ class SolarThermalCollector(NonControllableDevice):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}_irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
-        temperature = self._catalog.get("current_outdoor_temperature")
+        irradiation = self._catalog.get(f"{self._location}.irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
+        temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
 
         efficiency = max(self._a0 * irradiation - self._a1 / (self._fluid_temperature - temperature) - self._a2 / (self._fluid_temperature - temperature) ** 2, 0)  # the efficiency cannot be negative
 
@@ -67,7 +60,7 @@ class SolarThermalCollector(NonControllableDevice):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-        reference_temperature = self._catalog.get("reference_temperature")
+        reference_temperature = self._catalog.get(f"{self._location}.reference_temperature")
 
         exergy_in = list()
         for nature in energy_wanted:

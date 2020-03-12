@@ -6,11 +6,8 @@ from math import inf
 
 class InstantHotWaterTank(ChargerDevice):
 
-    def __init__(self, world, name, contracts, agent, aggregators, filename, user_profile_name,
-                 usage_profile_name=None):
-        super().__init__(world, name, contracts, agent, aggregators,
-                         "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json", user_profile_name, usage_profile_name,
-                         parameters)
+    def __init__(self, world, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json", user_profile_name, usage_profile_name, parameters)
 
         self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
 
@@ -42,6 +39,9 @@ class InstantHotWaterTank(ChargerDevice):
 
         # month dependency
         self._month_dependency = data_user["month_dependency"]
+
+        # location
+        self._location = data_user["location"]
 
         # adding a null priority at the beginning and the end of the period
         # the beginning and the end are chosen outside of the period in order to avoid possible confusions
@@ -117,7 +117,7 @@ class InstantHotWaterTank(ChargerDevice):
                     rho = 1  # density of water in kg.L-1
                     hot_water_temperature = 60  # the temperature of the DHW in °C
                     wanted_water_temperature = 40  # the final temperature of water in °C
-                    cold_water_temperature = self._catalog.get("cold_water_temperature")  # the temperature of cold water in °C
+                    cold_water_temperature = self._catalog.get(f"{self._location}.cold_water_temperature")  # the temperature of cold water in °C
                     # we suppose this temperature will not change until the fulfillment of the need
                     month = self._catalog.get("physical_time").month - 1  # as months go from 1 to 12 but the list goes from 0 to 11
 

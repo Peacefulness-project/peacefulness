@@ -26,7 +26,6 @@ class Heating(AdjustableDevice):
         # normally, the sum of these coefficients must be 1
 
     def _get_consumption(self):
-
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -45,6 +44,9 @@ class Heating(AdjustableDevice):
         # parameters
         # max power
         self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
+
+        # location
+        self._location = data_user["location"]
 
         # repartition of consumption between the different natures of energy
         self._repartition = data_device["usage_profile"][0]  # this dictionary contains the repartition of energy between the different energies used by the device
@@ -116,6 +118,15 @@ class Heating(AdjustableDevice):
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
+        # management of the location
+        try:
+            self._catalog.add("locations", [])
+        except:
+            pass
+        location = self._catalog.get("locations")
+        if self._location not in location:  # if the location of the device is not already in the list of locations
+            location.append(self._location)  # add the location of the device to the list of locations
+
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent
             # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
@@ -172,8 +183,8 @@ class Heating(AdjustableDevice):
                 current_indoor_temperature = self._catalog.get(f"{self.agent.name}.current_indoor_temperature")
                 previous_indoor_temperature = self._catalog.get(f"{self.agent.name}.previous_indoor_temperature")
 
-                current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
-                previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
+                current_outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
+                previous_outdoor_temperature = self._catalog.get(f"{self._location}.previous_outdoor_temperature")
 
                 time_step = self._catalog.get("time_step") * 3600
 

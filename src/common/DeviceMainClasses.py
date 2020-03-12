@@ -137,7 +137,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                                    0,  # last time step to launch the device initially
                                    0]  # duration during which the device has functioned
 
-
     def _get_consumption(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
@@ -372,7 +371,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def _user_register(self):  # make the initialization operations specific to the device
-
         self._use_ID = None  # this ID references the ongoing use
         self._is_done = []  # list of usage already done during one period
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
@@ -385,6 +383,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         for nature in self._natures:
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
+            self._latent_demand[nature] = 0
 
     def _get_consumption(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
@@ -497,7 +496,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                 energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
 
-                effort = min(abs(energy_wanted_min - energy_accorded), abs(energy_wanted_max - energy_accorded)) / energy_wanted  # effort increases
+                effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
                 effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                 self.agent.add_effort(effort, nature)  # effort increments
 

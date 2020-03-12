@@ -6,7 +6,6 @@ from os import makedirs, remove
 from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
-from math import ceil
 from pickle import dump as pickle_dump, load as pickle_load
 # Current packages
 from src.common.Catalog import Catalog
@@ -19,7 +18,7 @@ from src.common.Device import Device
 from src.common.Converter import Converter
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
-from src.tools.Utilities import middle_separation, big_separation, adapt_path, into_list
+from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -626,7 +625,7 @@ class World:
             filename = data[datalogger_name][0]
             period = data[datalogger_name][1]
             sum_over_time = data[datalogger_name][2]
-            logger = Datalogger(world, datalogger_name, filename, period, sum_over_time)  # creation
+            logger = Datalogger(self, datalogger_name, filename, period, sum_over_time)  # creation
             self.register_datalogger(logger)  # registration
 
             for entry in data[datalogger_name][3]:

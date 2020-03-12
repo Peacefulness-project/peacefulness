@@ -1,31 +1,25 @@
 {
   "template name": "egoist_family",
 
-  "composition": {
-    "Light": [["Light", "residential", "house", [1,1]]],
-    "Background": [["Background", "family", "family", [1,1]]],
-    "Hob": [["ElectricHob", "family", "medium_consumption", [1,1]]],
-    "Iron": [["Iron", "family", "medium_consumption", [1,1]]],
-    "Oven": [["Oven", "family", "medium_consumption", [1,1]]],
+   "composition": {
+    "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_BAU"]],
 
+    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_BAU"]],
+    "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
 
-    "Dishwasher": [["Dishwasher", "family", "medium_consumption", [1,1]]],
-    "WashingMachine": [["WashingMachine", "family", "medium_consumption", [1,1]]],
-    "Dryer": [["Dryer", "family", "medium_consumption", [1,1]]],
-    "WaterHeater": [["CoffeeMaker", "family", "coffeemaker", [1,1]]],
+    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"],
+                     ["Freezer", "freezer", "medium_consumption", [1,1], "LVE_BAU"]],
+    "Heating": [["Heating", "residential", "apartment_heat", [1,1], "heat_BAU"]],
 
-    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [0,0]],
-                     ["Freezer", "refrigerator", "medium_consumption", [0,0]]],
-    "Heating": [["Heating", "residential", "house_electric", [1,1]]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "heat_BAU"]],
+    "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
 
-    "HotWaterTank": [["HotWaterTank", "morning", "family", [1,1]]],
-    "Charger": [["Charger", "default", "laptop_charger", [0,4]]],
-
-    "PV": [["PV", "default", "residential_PV", [0,0]]]
-  },
+    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 5}]]
+   },
 
   "contracts": {
-    "LVE":  ["TOUEgoistContract", {"selling_price": 0.12, "buying_price": 0.07}]
+    "LVE_BAU":  ["LVE", "TOUEgoistContract"],
+    "heat_BAU":  ["Heat", "FlatEgoistContract"]
   }
 
 }

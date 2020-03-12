@@ -27,22 +27,28 @@ class IndoorTemperatureDaemon(Daemon):
     def _process(self):
 
         # indoor temperature update
-        previous_outdoor_temperature = self._catalog.get("previous_outdoor_temperature")
-        current_outdoor_temperature = self._catalog.get("current_outdoor_temperature")
+        list_of_locations = self._catalog.get("locations")
+        previous_outdoor_temperature = {}
+        current_outdoor_temperature = {}
         time_step = self._catalog.get("time_step") * 3600  # the duration of a time step in seconds
 
-        for agent_name in self._agent_list:
-            thermal_inertia = self._agent_list[agent_name][0]
-            G = self._agent_list[agent_name][1]
+        for location in list_of_locations:
+            previous_outdoor_temperature[location] = self._catalog.get(f"{location}.previous_outdoor_temperature")
+            current_outdoor_temperature[location] = self._catalog.get(f"{location}.current_outdoor_temperature")
 
-            previous_indoor_temperature = self._catalog.get(f"{agent_name}.previous_indoor_temperature")
-            current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")
+            for agent_name in self._agent_list:
+                thermal_inertia = self._agent_list[agent_name][0]
+                G = self._agent_list[agent_name][1]
 
-            self._catalog.set(f"{agent_name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-            deltaT_heating_or_cooling = current_indoor_temperature - previous_indoor_temperature
-            current_indoor_temperature = previous_outdoor_temperature + (previous_indoor_temperature - previous_outdoor_temperature) * exp(-time_step/thermal_inertia) + deltaT_heating_or_cooling
+                previous_indoor_temperature = self._catalog.get(f"{agent_name}.previous_indoor_temperature")
+                current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")
 
-            self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
+                self._catalog.set(f"{agent_name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
+                deltaT_heating_or_cooling = current_indoor_temperature - previous_indoor_temperature
+                current_indoor_temperature = previous_outdoor_temperature[location] + \
+                                            (previous_indoor_temperature - previous_outdoor_temperature[location]) * exp(-time_step/thermal_inertia) + deltaT_heating_or_cooling
+
+                self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
 
 
 
