@@ -100,13 +100,13 @@ def create_aggregators(world, natures, strategies):
 
 def create_contracts(world, natures):
     flat_prices_elec = "flat_prices_elec"
-    BAU_elec = subclasses_dictionary["FlatEgoistContract"](world, "BAU_elec", natures["elec"], flat_prices_elec)
+    subclasses_dictionary["FlatEgoistContract"](world, "BAU_elec", natures["elec"], flat_prices_elec)
 
     flat_prices_heat = "flat_prices_heat"
-    BAU_heat = subclasses_dictionary["FlatEgoistContract"](world, "BAU_heat", natures["heat"], flat_prices_heat)
+    subclasses_dictionary["FlatEgoistContract"](world, "BAU_heat", natures["heat"], flat_prices_heat)
 
     flat_prices_cold = "flat_prices_cold"
-    BAU_cold = subclasses_dictionary["FlatEgoistContract"](world, "BAU_cold", natures["cold"], flat_prices_cold)
+    subclasses_dictionary["FlatEgoistContract"](world, "BAU_cold", natures["cold"], flat_prices_cold)
 
     return {"elec": flat_prices_elec, "heat": flat_prices_heat, "cold": flat_prices_cold}
 
@@ -121,27 +121,27 @@ def create_devices(world, aggregators, price_IDs, country, weather_city):
 def create_daemons(world, natures, price_IDs, weather):
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    price_elec = subclasses_dictionary["PriceManagerDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-    price_heat = subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["heat"]})  # sets prices for the system operator
-    price_cool = subclasses_dictionary["PriceManagerDaemon"](world, "Cold_tariffs", 1, {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["cold"]})  # sets prices for the system operator
+    subclasses_dictionary["PriceManagerDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+    subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+    subclasses_dictionary["PriceManagerDaemon"](world, "Cold_tariffs", 1, {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["cold"]})  # sets prices for the system operator
 
-    price_elec_grid = subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    price_heat_grid = subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    price_cold_grid = subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_cold", 1, {"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_cold", 1, {"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
-    outdoor_temperature_daemon = subclasses_dictionary["OutdoorTemperatureDaemon"](world, "Azzie", {"location": weather})
+    subclasses_dictionary["OutdoorTemperatureDaemon"](world, "Azzie", {"location": weather})
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
-    indoor_temperature_daemon = subclasses_dictionary["IndoorTemperatureDaemon"](world, "Asie")
+    subclasses_dictionary["IndoorTemperatureDaemon"](world, "Asie")
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    water_temperature_daemon = subclasses_dictionary["ColdWaterDaemon"](world, "Mephisto", {"location": "Pau"})
+    subclasses_dictionary["ColdWaterDaemon"](world, "Mephisto", {"location": "Pau"})
 
 
 def create_dataloggers(world):
-    nature_balances = subclasses_dictionary["NatureBalanceDatalogger"](world)
+    subclasses_dictionary["NatureBalanceDatalogger"](world)
 

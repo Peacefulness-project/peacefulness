@@ -3,24 +3,21 @@ from src.common.Datalogger import Datalogger
 from src.tools.Utilities import adapt_path
 
 
-class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
+class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
     def __init__(self, world, period=0):
-        super().__init__(world, "ECOS_clusters_results", "ECOS_clusters_results", period)
+        super().__init__(world, "ECOS_aggregators_results", "ECOS_aggregators_results", period)
 
-    def _register(self, catalog):
-        self._catalog = catalog
-
-        self._clusters_list = self._catalog.get("dictionaries")['clusters'].keys()  # get all the names
+        self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
         self._agents_list = self._catalog.get("dictionaries")['agents'].keys()  # get all the names
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
 
-        for cluster_name in self._clusters_list:  # for each cluster registered into world, all the relevant keys are added
-            file.write(f"{cluster_name}_self_consumption\t")
-            file.write(f"{cluster_name}_grid_call\t")
-            file.write(f"{cluster_name}_benefit\t")
+        for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
+            file.write(f"{aggregator_name}_self_consumption\t")
+            file.write(f"{aggregator_name}_grid_call\t")
+            file.write(f"{aggregator_name}_benefit\t")
 
         for nature_name in self._natures_list:
             file.write(f"ratio_canceled.{nature_name}\t")
@@ -31,11 +28,11 @@ class ECOSClusterDatalogger(Datalogger):  # a sub-class of dataloggers designed 
     def _save(self):
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
 
-        # cluster data
-        for cluster_name in self._clusters_list:
-            energy_sold = self._catalog.get(f"{cluster_name}.energy_sold")
-            energy_bought = self._catalog.get(f"{cluster_name}.energy_bought")
-            benefit = sum(self._catalog.get(f"{cluster_name}.money_earned").values()) - sum(self._catalog.get(f"{cluster_name}.money_spent").values())
+        # aggregator data
+        for aggregator_name in self._aggregators_list:
+            energy_sold = self._catalog.get(f"{aggregator_name}.energy_sold")
+            energy_bought = self._catalog.get(f"{aggregator_name}.energy_bought")
+            benefit = sum(self._catalog.get(f"{aggregator_name}.money_earned").values()) - sum(self._catalog.get(f"{aggregator_name}.money_spent").values())
 
             if energy_sold["inside"] != 0:  # if some energy is sold
                 self_consumption = energy_bought["inside"] / energy_sold["inside"]  # the ratio between the energy sold inside and the energy bought inside
@@ -81,15 +78,12 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
 
         self._last_turn = None
 
-    def _register(self, catalog):
-        self._catalog = catalog
-
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
         self._peak = dict()
         self._overprod = dict()
         self._overconso = dict()
-        for nature_name in self._natures_list:  # for each cluster registered into world, all the relevant keys are added
+        for nature_name in self._natures_list:  # for each aggregator registered into world, all the relevant keys are added
             self._peak[nature_name] = {"peak_consumption": 0, "peak_production": 0, "peak_unbalance": 0}
             self._overprod[nature_name] = 0  # the number of turn where there was too much prod
             self._overconso[nature_name] = 0  # the number of turns where there was too much conso
