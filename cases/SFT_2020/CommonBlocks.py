@@ -10,18 +10,18 @@ from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
-def create_world_with_set_parameters(strategy, DSM_proportion):
+def create_world_with_set_parameters(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # ##############################################################################################
     # Creation of the world
     # a world <=> a case, it contains all the model
     # a world needs just a name
-    name_world = "ECOS_collab_2020"
+    name_world = "SFT_2020"
     world = World(name_world)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/ECOS_collab_2020/Results/" + strategy + "_" + DSM_proportion  # directory where results are written
+    pathExport = "cases/SFT_2020/Results/" + exchange_strategy + "_" + distribution_strategy + "_" + DSM_proportion  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -41,27 +41,27 @@ def create_world_with_set_parameters(strategy, DSM_proportion):
     return world
 
 
-def create_strategies(world, strategy):
-    if strategy == "BAU":
+def create_strategies(world, exchange_strategy, distribution_strategy):
+    if exchange_strategy == "BAU":
         # the local electrical grid strategy
         description = "Depends on the case"
         name_supervisor = "elec_supervisor"
         supervisor_elec = subclasses_dictionary[f"AlwaysSatisfied"](world, name_supervisor, description)
-    elif strategy == "Profitable":
+    elif exchange_strategy == "Profitable":
         # the local electrical grid strategy
         description = "Depends on the case"
         name_supervisor = "elec_supervisor"
-        supervisor_elec = subclasses_dictionary[f"WhenProfitableEmergency"](world, name_supervisor, description)
+        supervisor_elec = subclasses_dictionary[f"WhenProfitable{distribution_strategy}"](world, name_supervisor, description)
     else:
         # the local electrical grid strategy
         description = "Depends on the case"
         name_supervisor = "elec_supervisor"
-        supervisor_elec = subclasses_dictionary[f"{strategy}Emergency"](world, name_supervisor, description)
+        supervisor_elec = subclasses_dictionary[f"Autarky{distribution_strategy}"](world, name_supervisor, description)
 
-    # the DHN strategy
-    description = "Depends on the case"
+    # the DHN strtegy
+    description = "Always serves everybody, whatever it can cost to him."
     name_supervisor = "heat_supervisor"
-    supervisor_heat = subclasses_dictionary[f"SubaggregatorHeatEmergency"](world, name_supervisor, description)
+    supervisor_heat = subclasses_dictionary[f"SubaggregatorHeat{distribution_strategy}"](world, name_supervisor, description)
 
     # the national grid strategy
     description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
@@ -100,40 +100,40 @@ def create_aggregators(world, natures, strategies):
 
 
 def create_contracts(world, natures):
-    flat_prices_elec = "flat_prices_elec"
-    contract_elec = subclasses_dictionary["FlatEgoistContract"](world, "BAU_elec", natures["elec"], flat_prices_elec)
+    flat_prices_elec = "flat_prices_elec"  # identifier for the price of electricity
+    BAU_contract_elec = subclasses_dictionary["FlatEgoistContract"](world, "BAU_elec", natures["elec"], flat_prices_elec)  # contract for the PV field
+    cooperative_contract_elec = subclasses_dictionary["FlatCooperativeContract"](world, "cooperative_contract_elec", natures["elec"], flat_prices_elec)  # contract for the wind turbine
 
-    flat_prices_heat = "flat_prices_heat"
-    contract_heat = subclasses_dictionary["FlatEgoistContract"](world, "BAU_heat", natures["heat"], flat_prices_heat)
+    flat_prices_heat = "flat_prices_heat"  # identifier for the price of heat
+    contract_heat = subclasses_dictionary["FlatCooperativeContract"](world, "BAU_heat", natures["heat"], flat_prices_heat)  # contract for the biomass unit
 
-    return [{"elec": contract_elec, "heat": contract_heat}, {"elec": flat_prices_elec, "heat": flat_prices_heat}]
+    return [{"PV": BAU_contract_elec, "WT": cooperative_contract_elec, "DHN": contract_heat}, {"elec": flat_prices_elec, "heat": flat_prices_heat}]
 
 
 def create_agents(world):
     PV_producer = Agent(world, "PV_producer")  # the owner of the PV panels
 
-    solar_thermal_producer = Agent(world, "solar_thermal_producer")  # the owner of the solar thermal collectors
+    WT_producer = Agent(world, "WT_producer")  # creation of an agent
 
-    return {"elec":PV_producer, "heat":solar_thermal_producer}
+    DHN_producer = Agent(world, "DHN_producer")  # creation of an agent
+
+    return {"PV": PV_producer, "WT": WT_producer, "DHN": DHN_producer}
 
 
-def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing):
-    if sizing == "mean":
-        sizing_coeff_elec = 1
-        sizing_coeff_heat = 1
-    elif sizing == "peak":
-        sizing_coeff_elec = 54000/18000
-        sizing_coeff_heat = 23550/9350
-
-    subclasses_dictionary["PV"](world, "PV_field", contracts['elec'], agents['elec'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 18000 * sizing_coeff_elec})  # creation of a photovoltaic panel field
-
-    subclasses_dictionary["SolarThermalCollector"](world, "solar_thermal_collector_field", contracts['heat'], agents['heat'], aggregators['heat'], "ECOS", "ECOS_field", {"surface": 9350 * sizing_coeff_heat})  # creation of a solar thermal collector
+def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion):
+    subclasses_dictionary["PV"](world, "PV_field", contracts['PV'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 2500})  # creation of a photovoltaic panel field
+    subclasses_dictionary["WindTurbine"](world, "wind_turbine", contracts['WT'], agents['WT'], aggregators['elec'], "ECOS", "ECOS_low")  # creation of a wind turbine
+    subclasses_dictionary["GenericProducer"](world, "heat_production", contracts['DHN'], agents['DHN'], aggregators['heat'], "ECOS", "ECOS")  # creation of a heat production unit
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == "high_DSM":
         BAU = 165
         DLC = 200
         curtailment = 135
+    elif DSM_proportion == "medium_DSM":
+        BAU = 250
+        DLC = 150
+        curtailment = 100
     elif DSM_proportion == "low_DSM":
         BAU = 335
         DLC = 100
@@ -144,29 +144,29 @@ def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proport
         curtailment = 0
 
     # BAU contracts
-    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(BAU * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(BAU, "cases/SFT_2020/AgentTemplates/AgentSFT_1_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(BAU * 2, "cases/SFT_2020/AgentTemplates/AgentSFT_2_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(BAU, "cases/SFT_2020/AgentTemplates/AgentSFT_5_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
 
     # DLC contracts
-    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(DLC * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(DLC, "cases/SFT_2020/AgentTemplates/AgentSFT_1_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(DLC * 2, "cases/SFT_2020/AgentTemplates/AgentSFT_2_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(DLC, "cases/SFT_2020/AgentTemplates/AgentSFT_5_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
 
     # Curtailment contracts
-    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(curtailment * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
-    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(curtailment, "cases/SFT_2020/AgentTemplates/AgentSFT_1_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(curtailment * 2, "cases/SFT_2020/AgentTemplates/AgentSFT_2_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
+    world.agent_generation(curtailment, "cases/SFT_2020/AgentTemplates/AgentSFT_5_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
 
 
 def create_daemons(world, natures, price_IDs):
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.15, 0.2125], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+    subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
     subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0.1, "selling_price": 0.08, "identifier": price_IDs["heat"]})  # sets prices for the system operator
 
-    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.15, "grid_selling_price": 0.1})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.18, "grid_selling_price": 0.05})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
@@ -184,6 +184,9 @@ def create_daemons(world, natures, price_IDs):
     # this daemon is responsible for updating the value of raw solar irradiation
     subclasses_dictionary["IrradiationDaemon"](world, "toto", {"location": "Pau"})
 
+    # Wind
+    subclasses_dictionary["WindDaemon"](world, "Wind_Daemon", {"location": "Pau"})
+
 
 def create_dataloggers(world):
     # datalogger for balances
@@ -200,13 +203,12 @@ def create_dataloggers(world):
     producer_datalogger = Datalogger(world, "producer_datalogger", "ProducerBalances.txt")
 
     producer_datalogger.add(f"PV_producer.LVE.energy_erased")
-    producer_datalogger.add(f"solar_thermal_producer.Heat.energy_erased")
+    producer_datalogger.add(f"WT_producer.LVE.energy_erased")
+    producer_datalogger.add(f"DHN_producer.Heat.energy_erased")
     producer_datalogger.add(f"PV_producer.LVE.energy_sold")
-    producer_datalogger.add(f"solar_thermal_producer.Heat.energy_sold")
+    producer_datalogger.add(f"WT_producer.LVE.energy_sold")
+    producer_datalogger.add(f"DHN_producer.Heat.energy_sold")
 
-    producer_datalogger.add(f"PV_field_exergy_in")
-    producer_datalogger.add(f"solar_thermal_collector_field_exergy_in")
-    producer_datalogger.add(f"PV_field_exergy_out")
-    producer_datalogger.add(f"solar_thermal_collector_field_exergy_out")
+
 
 

@@ -38,10 +38,7 @@ class WhenProfitableRevenues(Strategy):
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
-        # initialization of prices:
-        buying_price = min(sorted_demands[0][2], max_price)  # maximum price given by consumers
-        selling_price = max(sorted_offers[0][2], min_price)  # minimum price given by producers
-        final_price = (buying_price + selling_price) / 2  # initialization of the final price
+        [buying_price, selling_price, final_price] = self._calculate_prices(sorted_demands, sorted_offers, max_price, min_price)  # initialization of prices
 
         [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
 

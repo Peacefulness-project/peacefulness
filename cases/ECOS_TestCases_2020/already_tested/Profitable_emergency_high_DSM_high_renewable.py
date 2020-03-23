@@ -1,6 +1,6 @@
 # first run for SFT 2020
 # Exchange strategy: Profitable
-# Distribution strategy: Partial
+# Distribution strategy: Emergency
 # Contract: 33 Normal, 40 DLC, 27 Curtailment
 # renewable sizing: high
 

@@ -1,7 +1,7 @@
 # first run for SFT 2020
-# Exchange strategy: Profitable
-# Distribution strategy: Partial
-# Contract: 33 Normal, 40 DLC, 27 Curtailment
+# Exchange strategy: BAU
+# Distribution strategy: BAU
+# Contract: 100 Normal, 0 DLC, 0 Curtailment
 # renewable sizing: high
 
 
@@ -12,10 +12,10 @@
 from cases.ECOS_TestCases_2020.CommonBlocks import *
 
 # parameters
-exchange_strategy = "Profitable"
-distribution_strategy = "Emergency"
+exchange_strategy = "BAU"
+distribution_strategy = "BAU"
 renewable_proportion = "high_renewable"
-DSM_proportion = "high_DSM"
+DSM_proportion = "no_DSM"
 
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()

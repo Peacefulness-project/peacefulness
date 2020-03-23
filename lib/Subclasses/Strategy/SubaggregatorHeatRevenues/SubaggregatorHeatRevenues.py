@@ -88,9 +88,8 @@ class SubaggregatorHeatRevenues(Strategy):
         # ##########################################################################################
         # balance of energy available
 
-        # calculating the energy available
-        energy_available_consumption = self._quantities_exchanged_internally[aggregator.name][0] + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = self._quantities_exchanged_internally[aggregator.name][0] + energy_sold_outside  # the total energy available for productions
+        energy_available_consumption = maximum_energy_produced + energy_bought_outside - energy_sold_outside  # the total energy available for consumptions
+        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution
@@ -109,6 +108,7 @@ class SubaggregatorHeatRevenues(Strategy):
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
+        # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside)
 

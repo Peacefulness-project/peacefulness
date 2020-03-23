@@ -1,34 +1,32 @@
 # first run for SFT 2020
-# Exchange strategy: Profitable
-# Distribution strategy: Partial
-# Contract: 33 Normal, 40 DLC, 27 Curtailment
-# renewable sizing: high
+# Exchange strategy: autarky
+# Contract: 100 Normal, 0 DLC, 0 Curtailment
+# renewable sizing: mean
 
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_collab_2020.CommonBlocks import *
 
 # parameters
-exchange_strategy = "Profitable"
-distribution_strategy = "Emergency"
-renewable_proportion = "high_renewable"
-DSM_proportion = "high_DSM"
+chosen_strategy = "Autarky"
+DSM_proportion = "no_DSM"
+sizing = "mean"
 
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()
 
 # world and parameters
-world = create_world_with_set_parameters(exchange_strategy, distribution_strategy, renewable_proportion, DSM_proportion)
+world = create_world_with_set_parameters(chosen_strategy, DSM_proportion)
 
 
 # ##############################################################################################
 # Model creation
 # ##############################################################################################
 # Strategies
-strategies = create_strategies(world, exchange_strategy, distribution_strategy)
+strategies = create_strategies(world, chosen_strategy)
 
 # Natures
 natures = create_natures(world)
@@ -43,18 +41,19 @@ aggregators = create_aggregators(world, natures, strategies)
 agents = create_agents(world)
 
 # Devices
-create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, renewable_proportion)
+create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing)
 
 # Daemons
 create_daemons(world, natures, price_IDs)
 
 # Dataloggers
-create_dataloggers(world, renewable_proportion)
+create_dataloggers(world)
 
 # ##############################################################################################
 # Simulation
 # ##############################################################################################
 world.start()
+
 
 
 

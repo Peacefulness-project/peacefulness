@@ -1,0 +1,17 @@
+{
+  "template name": "1_people_BAU",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_BAU"]],
+    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_BAU"]],
+
+    "Heating": [["Heating", "residential", "apartment_heat", [1,1], "heat_BAU"]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "heat_BAU"]]
+  },
+
+  "contracts": {
+    "LVE_BAU":  ["LVE", "TOUEgoistContract"],
+    "heat_BAU":  ["Heat", "FlatEgoistContract"]
+  }
+
+}

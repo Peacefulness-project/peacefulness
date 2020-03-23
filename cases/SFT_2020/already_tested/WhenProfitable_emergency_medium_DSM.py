@@ -1,27 +1,25 @@
 # first run for SFT 2020
 # Exchange strategy: Profitable
-# Distribution strategy: Partial
-# Contract: 33 Normal, 40 DLC, 27 Curtailment
-# renewable sizing: high
+# Distribution strategy: Emergency
+# Contract: 50 Normal, 30 DLC, 20 Curtailment
 
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.SFT_2020.CommonBlocks import *
 
 # parameters
 exchange_strategy = "Profitable"
 distribution_strategy = "Emergency"
-renewable_proportion = "high_renewable"
-DSM_proportion = "high_DSM"
+DSM_proportion = "medium_DSM"
 
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()
 
 # world and parameters
-world = create_world_with_set_parameters(exchange_strategy, distribution_strategy, renewable_proportion, DSM_proportion)
+world = create_world_with_set_parameters(exchange_strategy, distribution_strategy, DSM_proportion)
 
 
 # ##############################################################################################
@@ -43,13 +41,13 @@ aggregators = create_aggregators(world, natures, strategies)
 agents = create_agents(world)
 
 # Devices
-create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, renewable_proportion)
+create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion)
 
 # Daemons
 create_daemons(world, natures, price_IDs)
 
 # Dataloggers
-create_dataloggers(world, renewable_proportion)
+create_dataloggers(world)
 
 # ##############################################################################################
 # Simulation

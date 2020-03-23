@@ -187,6 +187,26 @@ class Strategy:
 
         return quantities_and_prices
 
+    def _calculate_prices(self, sorted_demands, sorted_offers, max_price, min_price):
+        if sorted_demands:
+            buying_price = min(sorted_demands[0][2], max_price)  # maximum price given by consumers
+            final_price = buying_price
+        else:
+            buying_price = None
+
+        if sorted_offers:
+            selling_price = max(sorted_offers[0][2], min_price)  # minimum price given by producers
+            final_price = selling_price
+        else:
+            selling_price = None
+
+        try:
+            final_price = (buying_price + selling_price) / 2  # initialization of the final price
+        except:
+            pass
+
+        return [buying_price, selling_price, final_price]
+
     def _prepare_quantities_when_profitable(self, aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price):
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
             if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
