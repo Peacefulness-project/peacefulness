@@ -8,7 +8,7 @@
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.SFT_2020.CommonBlocks import *
+from cases.SFT_2020.CaseBuildingBlocks import *
 
 # parameters
 exchange_strategy = "Profitable"

@@ -72,6 +72,8 @@ class World:
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
 
+        self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
+
     # ##########################################################################################
     # Construction
     # methods are arranged in the order they are supposed to be used
@@ -195,6 +197,14 @@ class World:
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         self._used_names.append(device.name)  # adding the name to the list of used names
 
+    def _search_superior_aggregator(self, aggregator):  # this method returns he ultimate chief of the given aggregator
+        if aggregator.superior:
+            chief = self._search_superior_aggregator(aggregator.superior)
+        else:  # it the aggregator of highest rank
+            chief = aggregator
+
+        return chief
+
     def register_converter(self, converter):  # method connecting one device to the world
         if converter.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{converter.name} already in use")
@@ -206,11 +216,25 @@ class World:
         if converter._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{converter._agent.name} does not exist")
 
-        converter.natures["downstream"].add_converter(converter.name)  # adding the device name to the list of converters of its donwstream aggregator
-        converter.natures["upstream"].add_converter(converter.name)  # adding the converter name to the list of devices fo its upstream aggregator
+        converter.aggregators["downstream_aggregator"].add_converter(converter.name)  # adding the device name to the list of converters of its donwstream aggregator
+        converter.aggregators["upstream_aggregator"].add_device(converter.name)  # adding the converter name to the list of devices fo its upstream aggregator
+
+        downstream_aggregator = self._search_superior_aggregator(converter.aggregators["downstream_aggregator"])
+        upstream_aggregator = self._search_superior_aggregator(converter.aggregators["upstream_aggregator"])
+
+        # adding these aggregators to the correct order of passage
+        if [downstream_aggregator, upstream_aggregator] in self._aggregator_order:  # if a bridge has already been created in the same sense between these two aggregators
+            pass  # we do nothing
+        else:  # else we check that they have not been engaged somewhere
+            registered_downstream_aggregators = [couple[0] for couple in self._aggregator_order]
+            registered_upstream_aggregators = [couple[1] for couple in self._aggregator_order]
+
+            if downstream_aggregator not in registered_downstream_aggregators and upstream_aggregator not in registered_upstream_aggregators:
+                self._aggregator_order.append([downstream_aggregator, upstream_aggregator])
+            else:
+                raise WorldException(f"il ne faut pas croiser les effluves, c'est mal")  # virer cette blague eud'brun
 
         self._catalog.converters[converter.name] = converter  # registering the device in the dedicated dictionary
-        converter._register(self._catalog)  # registering of the device in the catalog
         self._used_names.append(converter.name)  # adding the name to the list of used names
 
     def register_datalogger(self, datalogger):  # link a datalogger with a world (and its catalog)
@@ -310,8 +334,63 @@ class World:
         if "path" not in self.catalog.keys:
             raise WorldException(f"A path to the results files is needed")
 
+    def _set_order_of_aggregators(self):
+        # first, we identify all the highest rank aggregators, who are the sole being called directly by world
+        highest_rank_aggregators = []
+        for aggregator in self._catalog.aggregators.values():
+            if not aggregator.superior:
+                highest_rank_aggregators.append(aggregator)
+
+
+
+        organized_aggregators_list = []
+        downstream_aggregator_list = [couple[0] for couple in self._aggregator_order]  # the list of upstream aggregators
+        upstream_aggregator_list = [couple[1] for couple in self._aggregator_order]  # the list of upstream aggregators
+        aggregators_to_tidy = [couple for couple in self._aggregator_order]  # this list contains the aggregators not organized yet
+        # writing directly aggregators_to_tidy = aggregator_order just creates a pointer
+
+        # TODO: trouver un moyen d'ordonner les agrégateurs proprement
+
+        # first try
+        # for couple in self._aggregator_order:
+        #     if couple[0] not in organized_aggregators_list:  # if the couple is not already integrated in the chain
+        #         i = len(organized_aggregators_list) - 1
+        #         organized_aggregators_list.append(couple[0])  # the downstream aggregator is added first (as it orders a quantity of energy to its converters)...
+        #         organized_aggregators_list.append(couple[1])  # ... and the upstream one in second
+        #         aggregators_to_tidy.remove(couple)
+        #
+        #         for couple in aggregators_to_tidy:  # among the not organized yet aggregators...
+        #             toto  # we check if
+
+        # second try
+        # flag = False
+        #
+        # for couple in self._aggregator_order:
+        #     for i in range(len(organized_aggregators_list)):
+        #         if couple[0] == organized_aggregators_list[i]:  # if the downstream aggregator is already present
+        #             organized_aggregators_list.insert(i, couple[1])  # we insert the upstream aggregator just after
+        #             flag = True
+        #         if couple[1] == organized_aggregators_list[i]:  # if the upstream aggregator is already present
+        #             organized_aggregators_list.insert(i-1, couple[0])  # we insert the upstream aggregator just after
+        #             flag = True
+        #
+        #     if flag :
+
+        # béquille
+        for aggregator in highest_rank_aggregators:  # as we have just implemented heatpumps, we only need to treat heat aggregators before
+            if aggregator.nature.name == "Heat":
+                organized_aggregators_list.append(aggregator)
+
+        for aggregator in highest_rank_aggregators:
+            if aggregator not in organized_aggregators_list:
+                organized_aggregators_list.append(aggregator)
+
+        return organized_aggregators_list
+
     def start(self):
         self._check()  # check if everything is fine in world definition
+
+        organized_aggregator_list = self._set_order_of_aggregators()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -355,12 +434,17 @@ class World:
                 forecaster.fait_quelque_chose()
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for aggregator in self._catalog.aggregators.values():  # aggregators make local balances and then publish their needs (both in demand and in offer)
-                aggregator.ask()  # recursive function to make sure all aggregators are reached
+            for aggregator in organized_aggregator_list:  # aggregators are called according to the predefined order
+                aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                # the method is recursive
+            organized_aggregator_list.reverse()  # we have tot reverse the order in the desendant phase, as upstream aggregator have tot ake their decision before downstream ones
 
             # descendant phase: balances with remote energy
-            for aggregator in self._catalog.aggregators.values():  # aggregators distribute the energy they exchanged with outside
-                aggregator.distribute()  # recursive function to make sure all aggregators are reached
+            for aggregator in organized_aggregator_list:  # aggregators are called in reverse according to the predefined order
+                # aggregators distribute the energy they exchanged with outside
+                aggregator.distribute()  # aggregators distribute the energy they exchanged with outside
+                # the method is recursive
+            organized_aggregator_list.reverse()
 
             # ###########################
             # End of the turn

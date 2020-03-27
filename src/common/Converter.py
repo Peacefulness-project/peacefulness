@@ -1,36 +1,32 @@
-# This object represents the conversion points between 2 clusters.
-# For the downstream cluster, it looks like a conversion point, but, for the upstream cluster, it looks like a device
+# A converter transfers energy from one aggregator (upstream) of energy A to another aggregator (downstream) of energy B.
+# For the downstream aggregator, it looks like a conversion point, but, for the upstream aggregator, it looks like a device.
 # The main difference between a conversion point and a device is the following: when the device is a "customer" for the aggregator, it is the aggregator who is the customer of the conversion point.
-from src.tools.Utilities import into_list
+from json import load
 
 
 class Converter:
 
-    def __init__(self, name, contract, agent, filename, upstream_cluster, downstream_cluster, usage_profile_name, parameters=None):
+    def __init__(self, world, name, contract, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
 
-        self._moment = None  # the current moment in the period
-        self._period = None  # the duration of a classic cycle of use for the user of the device
-        self._offset = None  # the delay between the beginning of the period and the beginning of the year
-
-        self._usage_profile_name = usage_profile_name
-        self._usage_profile = []  # energy profile for one usage of the device
-        # the content differs depending on the kind of device
+        self._technical_profile_name = technical_profile_name
+        self._usage_profile = []  # technical characteristics of this converter
 
         self._agent = agent  # the agent represents the owner of the converter
 
-        self._upstream_cluster = upstream_cluster  # the cluster where the energy come from
-        self._downstream_cluster = downstream_cluster  # the cluster where the energy goes to
+        self._aggregators = {"upstream_aggregator": upstream_aggregator, "downstream_aggregator": downstream_aggregator}  # the aggregators the converter is linked to
 
-        self._natures = {"upstream": upstream_cluster.nature,
-                         "downstream": downstream_cluster.nature}
+        self._natures = {"upstream": upstream_aggregator.nature,
+                         "downstream": downstream_aggregator.nature}
 
-        if self.natures[contract.nature] != downstream_cluster.nature:
-            raise ConverterException(f"a contract has already been defined for nature {contract.nature}")
+        if contract.nature != upstream_aggregator.nature:
+            raise ConverterException(f"the contract has to be defined for nature {contract.nature.name}")
 
-        self._catalog = None  # added later
+        self._catalog = world.catalog  # linking the catalog to the device
+
+        world.register_converter(self)
 
         # parameters is an optional dictionary which stores additional information needed by user-defined classes
         # putting these information there allow them to be saved/loaded via world method
@@ -39,13 +35,6 @@ class Converter:
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # make the initialization operations undoable without a catalog
-        self._catalog = catalog  # linking the catalog to the device
-
         # regarding the upstream aggregator
         # it looks like a device
         self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the converter and the price associated
@@ -53,13 +42,18 @@ class Converter:
 
         # regarding the downstream aggregator
         # it looks like a converter
-        self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device ant the price associated
-        self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
+        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device and the price associated
+        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
 
         # regarding the agent
         for nature in self._natures.values():
             if nature not in self.agent.natures:  # complete the list of natures of the agent
                 self.agent._contracts[nature] = None
+
+            try:  # creates an entry for effort in agent if there is not
+                self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressed by the agent
+            except:
+                pass
 
             try:  # creates an entry for energy erased in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_erased", 0)
@@ -76,26 +70,50 @@ class Converter:
             except:
                 pass
 
-        self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
-    def _user_register(self):  # where users put device-specific behaviors
+
+        self._get_technical_data()
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def _get_technical_data(self):
         pass
 
-    def _get_consumption(self):
-        pass
+    def _read_technical_data(self):
+
+        # parsing the data
+        file = open(self._filename, "r")
+        data = load(file)
+
+        # getting the usage profile
+        try:
+            data = data[self._technical_profile_name]
+        except:
+            raise ConverterException(f"{self._technical_profile_name} does not belong to the list of predefined profiles for the class {type(self).__name__}")
+
+        file.close()
+
+        return data
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the balances
+        # for the upstream aggregator, the converter is a normal device
         self._catalog.set(f"{self.name}.{self.natures['upstream'].name}.energy_accorded", {"quantity": 0, "price": 0})
         self._catalog.set(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
 
-    def update(self):  # method updating needs of the devices before the supervision
+        # for the downstream aggregator, the converter is a converter, i.e a potential source of energy
+        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})
+        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
+
+    def update_converter(self):  # this method updates the quantities asked to the upstream aggregator according to the ones asked by the downstream aggregator
         pass
 
-    def toto(self):  # this method updates the quantities asked to the upstream cluster according to the ones asked by the downstream cluster
+    def update(self):  # method updating needs of the devices before the supervision
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor
@@ -107,7 +125,7 @@ class Converter:
         money_spent = dict()
         money_earned = dict()
 
-        for nature in self._natures:
+        for nature in self._natures.values():
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
             price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
@@ -134,8 +152,8 @@ class Converter:
 
             self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
-            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the cluster to buy energy during the round
-            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the cluster by selling energy during the round
+            self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the aggregator to buy energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
 
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
@@ -149,7 +167,7 @@ class Converter:
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract - money_earned[nature.name])  # money earned by the contract by selling energy during the round
 
         # balance at the agent level
-        for nature in self.natures:
+        for nature in self.natures.values():
             energy_erased_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_erased")
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", energy_erased_agent + energy_erased[nature.name])  # report the energy consumed by the device
 
@@ -161,8 +179,8 @@ class Converter:
         money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
         money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
 
-        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the cluster to buy energy during the round
-        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the cluster by selling energy during the round
+        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
             pass
@@ -181,11 +199,15 @@ class Converter:
 
     @property
     def usage_profile(self):  # shortcut for read-only
-        return self._usage_profile_name
+        return self._technical_profile_name
 
     @property
     def agent(self):  # shortcut for read-only
         return self._agent
+
+    @property
+    def aggregators(self):  # shortcut for read-only
+        return self._aggregators
 
 
 # Exception

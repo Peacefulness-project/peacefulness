@@ -64,6 +64,9 @@ class Device:
         world.register_device(self)  # register this device into world dedicated dictionary
 
         for nature in self.natures:
+            if nature not in self.agent.natures:  # complete the list of natures of the agent
+                self.agent._contracts[nature] = None
+
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device and the price associated
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the strategy
 
@@ -217,11 +220,10 @@ class Device:
                 money_earned[nature.name] = 0
                 money_spent[nature.name] = price * energy_amount
 
-            energy_erased[nature.name] = abs(
-                energy_amount - energy_wanted)  # energy refused to the device by the strategy
+            energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the strategy
 
             # balance for different natures
-            energy_sold_nature = - self._catalog.get(f"{nature.name}.energy_produced")
+            energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
             energy_bought_nature = self._catalog.get(f"{nature.name}.energy_consumed")
             money_spent_nature = self._catalog.get(f"{nature.name}.money_spent")
             money_earned_nature = self._catalog.get(f"{nature.name}.money_earned")

@@ -4,7 +4,7 @@
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.Edwin_profiles.CommonBlocks import *
+from cases.Edwin_profiles.CaseBuildingBlocks import *
 
 # parameters
 country = "France"

@@ -139,7 +139,7 @@ aggregator_elec = Aggregator(world, aggregator_name, elec, strategy_elec, aggreg
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(world, aggregator_name, heat, strategy_heat, aggregator_elec, 3.6, 3000)  # creation of a aggregator
+aggregator_heat = Aggregator(world, aggregator_name, heat, strategy_heat)  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -171,6 +171,13 @@ WT_producer = Agent(world, "WT_producer")  # creation of an agent
 
 DHN_producer = Agent(world, "DHN_producer")  # creation of an agent
 
+heat_pump_owner = Agent(world, "heat_pump_owner")
+
+
+# ##############################################################################################
+# Converter
+heatpump = subclasses_dictionary["HeatPump"](world, "heat_pump", BAU_elec, heat_pump_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump")
+
 
 # ##############################################################################################
 # Device
@@ -179,7 +186,7 @@ DHN_producer = Agent(world, "DHN_producer")  # creation of an agent
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
 wind_turbine = subclasses_dictionary["WindTurbine"](world, "wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
-heat_production = subclasses_dictionary["GenericProducer"](world, "heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+# heat_production = subclasses_dictionary["GenericProducer"](world, "heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
@@ -189,7 +196,7 @@ CPU_time_generation_of_device = process_time()
 # # # BAU contracts
 world.agent_generation(10, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "Heat": flat_prices_heat})
 world.agent_generation(10, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "Heat": flat_prices_heat})
-world.agent_generation(10, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "Heat": flat_prices_heat})
+world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "Heat": flat_prices_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -267,8 +274,10 @@ producer_datalogger = Datalogger(world, "producer_datalogger", "ProducerBalances
 
 producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
 producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
-producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_erased")
-producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_sold")
+# producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_erased")
+# producer_datalogger.add(f"{DHN_producer.name}.Heat.energy_sold")
+producer_datalogger.add(f"{heat_pump_owner.name}.LVE.energy_bought")
+producer_datalogger.add(f"{heat_pump_owner.name}.Heat.energy_sold")
 
 # producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
 # producer_datalogger.add(f"{solar_thermal_collector_producer.name}.Heat.energy_erased")

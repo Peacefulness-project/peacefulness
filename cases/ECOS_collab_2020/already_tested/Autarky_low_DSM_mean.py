@@ -8,7 +8,7 @@
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_collab_2020.CommonBlocks import *
+from cases.ECOS_collab_2020.CaseBuildingBlocks import *
 
 # parameters
 chosen_strategy = "Autarky"
