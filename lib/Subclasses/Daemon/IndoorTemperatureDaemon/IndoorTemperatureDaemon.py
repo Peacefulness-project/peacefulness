@@ -26,7 +26,7 @@ class IndoorTemperatureDaemon(Daemon):
 
     def _process(self):
 
-        # indoor temperature update
+        # indoor temperature second_update
         list_of_locations = self._catalog.get("locations")
         previous_outdoor_temperature = {}
         current_outdoor_temperature = {}

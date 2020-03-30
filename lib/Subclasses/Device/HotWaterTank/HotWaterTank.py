@@ -103,7 +103,7 @@ class HotWaterTank(ChargerDevice):
         energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                        for nature in self._usage_profile}  # consumption which will be asked eventually
 
-        # first we update the time remaining until the next need
+        # first we second_update the time remaining until the next need
         if self._remaining_time:  # if we know when will be the next need
             self._remaining_time -= 1
         else:  # if we don't know when it will happen

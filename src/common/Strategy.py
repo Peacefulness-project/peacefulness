@@ -65,7 +65,7 @@ class Strategy:
 
         return [min_price, max_price]
 
-    def _limit_quantities(self, aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced):
+    def _limit_quantities(self, aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters=0):
         # quantities concerning devices
         for device_name in aggregator.devices:
             energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
@@ -88,7 +88,7 @@ class Strategy:
                     minimum_energy_produced -= energy_minimum
                 maximum_energy_produced -= energy_maximum
 
-            # quantities concerning subaggregators
+        # quantities concerning subaggregators
         for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
             quantities_and_prices = self._catalog.get(f"{subaggregator.name}.quantities_asked")
 
@@ -114,7 +114,16 @@ class Strategy:
                     elif couple[0] < 0:  # energy sold
                         maximum_energy_produced -= couple[0]
 
-        return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced]
+        # quantities concerning converters
+        for device_name in aggregator.devices:
+            energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
+            energy_maximum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
+
+            # balances
+            minimum_energy_produced -= energy_minimum
+            energy_available_from_converters -= energy_maximum
+
+        return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters]
 
     # ##########################################################################################
     # ascendant phase functions
@@ -324,6 +333,40 @@ class Strategy:
         self._catalog.set(f"{aggregator.name}.quantities_asked", quantities_and_prices)  # publish its needs
 
     # ##########################################################################################
+    # converters management
+
+    def _call_to_converters(self, aggregator, min_price, sorted_conversion_offers, energy_to_convert):  # method attributing demands to converters according to the quantity of energy to be converted
+        i = 0
+        energy_converted = 0
+
+        if len(sorted_conversion_offers) >= 1:  # if there are offers
+            while energy_to_convert > - sorted_conversion_offers[i][1] and i < len(sorted_conversion_offers) - 1:  # as long as there is energy available
+                converter_name = sorted_conversion_offers[i][3]
+                energy = sorted_conversion_offers[i][1]  # the quantity of energy needed
+                price = sorted_conversion_offers[i][2]  # the price of energy
+                price = max(price, min_price)
+                Emin = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+
+                self._catalog.set(f"{converter_name}.{aggregator.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+                energy_converted += energy
+
+                i += 1
+
+        # this line gives the remnant of energy to the last unserved device
+        if sorted_conversion_offers[i][1]:  # if the demand really exists
+            converter_name = sorted_conversion_offers[i][3]
+            energy = max(sorted_conversion_offers[i][1], - energy_to_convert)  # the quantity of energy needed
+            price = sorted_conversion_offers[i][2]  # the price of energy
+            price = max(price, min_price)
+
+            Emin = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+
+            self._catalog.set(f"{converter_name}.{aggregator.nature.name}.energy_accorded", {"quantity": Emin + energy, "price": price})
+            energy_converted += energy
+
+        return energy_converted
+
+    # ##########################################################################################
     # sort functions
 
     def get_emergency(self, line):
@@ -379,6 +422,22 @@ class Strategy:
         sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)
 
         return [sorted_demands, sorted_offers]
+
+    def _sort_conversion_offers(self, aggregator, sort_function):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
+        sorted_conversion_offers = []  # a list where the offers of energy from converters is sorted according to the chosen function
+
+        for converter_name in aggregator.converters:  # if there is missing energy
+            Emin = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+            Emax = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+            price = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_wanted")["price"]
+
+            self._catalog.set(f"{converter_name}.{aggregator.nature.name}.energy_accorded", {"quantity": Emin, "price": price})
+
+            sorted_conversion_offers.append([0, Emax - Emin, price, converter_name])  # converters always have an emergency of 0, as they are purely facultative
+
+        sorted_conversion_offers = sorted(sorted_conversion_offers, key=sort_function, reverse=True)
+
+        return sorted_conversion_offers
 
     # ##########################################################################################
     # emergency distribution functions

@@ -341,8 +341,6 @@ class World:
             if not aggregator.superior:
                 highest_rank_aggregators.append(aggregator)
 
-
-
         organized_aggregators_list = []
         downstream_aggregator_list = [couple[0] for couple in self._aggregator_order]  # the list of upstream aggregators
         upstream_aggregator_list = [couple[1] for couple in self._aggregator_order]  # the list of upstream aggregators
@@ -421,9 +419,15 @@ class World:
             for device in self._catalog.devices.values():
                 device.reinitialize()
 
-            # devices publish the quantities they are interested in (both in demand and in offer)
+            for converter in self._catalog.converters.values():
+                converter.reinitialize()
+
+            # devices and converters publish the quantities they are interested in (both in demand and in offer)
             for device in self._catalog.devices.values():
                 device.update()
+
+            for converter in self._catalog.converters.values():
+                converter.first_update()
 
             # ###########################
             # Calculus phase
@@ -437,22 +441,29 @@ class World:
             for aggregator in organized_aggregator_list:  # aggregators are called according to the predefined order
                 aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
-            organized_aggregator_list.reverse()  # we have tot reverse the order in the desendant phase, as upstream aggregator have tot ake their decision before downstream ones
+                for converter in self._catalog.converters.values():
+                    converter.second_update()
+            organized_aggregator_list.reverse()  # we have to reverse the order in the desendant phase, as upstream aggregator have tot ake their decision before downstream ones
 
             # descendant phase: balances with remote energy
             for aggregator in organized_aggregator_list:  # aggregators are called in reverse according to the predefined order
                 # aggregators distribute the energy they exchanged with outside
                 aggregator.distribute()  # aggregators distribute the energy they exchanged with outside
                 # the method is recursive
+                for converter in self._catalog.converters.values():
+                    converter.first_react()
             organized_aggregator_list.reverse()
 
             # ###########################
             # End of the turn
             # ###########################
 
-            # devices update their state according to the quantity of energy received/given
+            # devices and converters update their state according to the quantity of energy received/given
             for device in self._catalog.devices.values():
                 device.react()
+
+            for converter in self._catalog.converters.values():
+                converter.second_react()
 
             # data exporting
             for datalogger in self._catalog.dataloggers.values():
@@ -462,7 +473,7 @@ class World:
             for daemon in self._catalog.daemons.values():
                 daemon.launch()
 
-            # time update
+            # time second_update
             self._update_time()
 
             print()
@@ -474,7 +485,7 @@ class World:
     # Dynamic behavior
     ############################################################################################
 
-    def _update_time(self):  # update the time entries in the catalog to the next iteration step
+    def _update_time(self):  # second_update the time entries in the catalog to the next iteration step
         current_time = self._catalog.get("simulation_time")
 
         physical_time = self._catalog.get("physical_time")

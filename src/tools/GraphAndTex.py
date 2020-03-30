@@ -53,7 +53,7 @@ from time import process_time
 #         ]
 #     }
 #
-#     mpl.rcParams.update(pgf_with_latex)
+#     mpl.rcParams.second_update(pgf_with_latex)
 #
 #     # 3/ Plot !
 #     fig = plt.figure()

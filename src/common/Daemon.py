@@ -1,4 +1,4 @@
-# Daemon are objects designed to update entries in the catalog who are not devices
+# Daemon are objects designed to second_update entries in the catalog who are not devices
 # Just like devices, there is a general class Daemon and it is the user who has to define its own daemons
 
 

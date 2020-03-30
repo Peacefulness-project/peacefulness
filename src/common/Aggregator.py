@@ -95,4 +95,6 @@ class Aggregator:
     def subaggregators(self):  # shortcut for read-only
         return self._subaggregators
 
-
+    @property
+    def converters(self):  # shortcut for read-only
+        return self._converters
