@@ -94,8 +94,7 @@ def create_aggregators(world, natures, strategies):
 
     # here we create another aggregator dedicated to heat
     aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_grid)  # creation of a aggregator
-
+    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_grid, 3.6, 3344)  # creation of a aggregator
     return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
 
 
@@ -159,14 +158,21 @@ def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proport
     world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "Heat": price_IDs["heat"]})
 
 
-def create_daemons(world, natures, price_IDs):
+def create_daemons(world, natures, price_IDs, sizing):
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.15, 0.2125], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-    subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0.1, "selling_price": 0.08, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+    if sizing == "peak":
+        subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+        subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0.5125, "selling_price": 0.407, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+
+        subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.407, "grid_selling_price": 0})  # sets prices for the system operator
+    elif sizing == "mean":
+        subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+        subclasses_dictionary["PriceManagerDaemon"](world, "Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0.30, "selling_price": 0.234, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+
+        subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.234, "grid_selling_price": 0})  # sets prices for the system operator
 
     subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.15, "grid_selling_price": 0.1})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
