@@ -41,13 +41,13 @@ class Converter:
         # regarding the upstream aggregator
         # it looks like a device
         self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the converter and the price associated
-        self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the supervisor
+        self._catalog.add(f"{self.name}.{self.natures['upstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered by the upstream aggregator
 
         # regarding the downstream aggregator
         # it looks like a converter
-        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device and the price associated
-        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy wanted by the downstream aggregator
-        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_furnished", {"quantity": 0, "price": 0})  # the quantity of energy really furnished to the downstream aggregator
+        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy proposed by the converter and the price associated
+        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_asked", {"quantity": 0, "price": 0})  # the energy wanted by the downstream aggregator
+        self._catalog.add(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the quantity of energy really furnished to the downstream aggregator
 
         # regarding the agent
         for nature in self._natures.values():
@@ -109,14 +109,14 @@ class Converter:
         self._catalog.set(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
 
         # for the downstream aggregator, the converter is a converter, i.e a potential source of energy
-        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})
-        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
-        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_furnished", {"quantity": 0, "price": 0})
+        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the proposal made to the downstream aggregator
+        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_asked", {"quantity": 0, "price": 0})  # the quantitiy asked by the downstream aggregator
+        self._catalog.set(f"{self.name}.{self.natures['downstream'].name}.energy_accorded", {"quantity": 0, "price": 0})  # the quantity furnished by the converter to the downstream aggregator
 
     def first_update(self):  # this method updates the quantities asked to the upstream aggregator according to the ones asked by the downstream aggregator
         pass
 
-    def second_update(self):  # method updating the converter between the ascendant phase of the downstream aggregator and of theupstream aggregator
+    def second_update(self):  # method updating the converter between the ascendant phase of the downstream aggregator and of the upstream aggregator
         pass
 
     def first_react(self):  # this method adapts the converter to the decision taken by the upstream aggregator
@@ -132,11 +132,9 @@ class Converter:
         money_earned = dict()
 
         for nature in self._natures.values():
-            print(nature.name)
             energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
             energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
             price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
-            print(energy_amount)
 
             if energy_amount < 0:  # if the device consumes energy
                 energy_sold[nature.name] = energy_amount

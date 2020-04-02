@@ -27,17 +27,17 @@ class Grid(Strategy):
             quantities = self._catalog.get(f"{managed_aggregator.name}.quantities_asked")
 
             for couple in quantities:  # attribution of the correct price
-                if couple[0] > 0:  # if the subaggregator wants to buy energy
-                    if couple[1] < self._catalog.get(f"{aggregator.nature.name}.grid_buying_price"):  # if the price is below the grid tariff
+                if couple["quantity"] > 0:  # if the subaggregator wants to buy energy
+                    if couple["price"] < self._catalog.get(f"{aggregator.nature.name}.grid_buying_price"):  # if the price is below the grid tariff
                         couple = [0, 0]  # it is not served
                     else:  # if price proposed is above or equal to the price set for the grid
-                        couple[1] = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # it is served and the price is adjusted
+                        couple["price"] = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # it is served and the price is adjusted
 
-                elif couple[0] < 0:  # if the subaggregator wants to sell energy
-                    if couple[1] > self._catalog.get(f"{aggregator.nature.name}.grid_selling_price"):  # if the price is above the grid tariff
+                elif couple["quantity"] < 0:  # if the subaggregator wants to sell energy
+                    if couple["price"] > self._catalog.get(f"{aggregator.nature.name}.grid_selling_price"):  # if the price is above the grid tariff
                         couple = [0, 0]  # it is not served
                     else:  # if price proposed is below or equal to the price set for the grid
-                        couple[1] = self._catalog.get(f"{aggregator.nature.name}.grid_selling_price")  # it is served and the price is adjusted
+                        couple["price"] = self._catalog.get(f"{aggregator.nature.name}.grid_selling_price")  # it is served and the price is adjusted
 
                 self._catalog.set(f"{managed_aggregator.name}.quantities_given", quantities)
 

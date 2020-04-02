@@ -375,20 +375,23 @@ class World:
         #     if flag :
 
         # béquille
+        unclassed_aggregators = []
         for aggregator in highest_rank_aggregators:  # as we have just implemented heatpumps, we only need to treat heat aggregators before
             if aggregator.nature.name == "Heat":
-                organized_aggregators_list.append(aggregator)
+                organized_aggregators_list.append({"aggregator": aggregator, "converters": aggregator.converters})
+            else:
+                unclassed_aggregators.append(aggregator)
 
-        for aggregator in highest_rank_aggregators:
+        for aggregator in unclassed_aggregators:
             if aggregator not in organized_aggregators_list:
-                organized_aggregators_list.append(aggregator)
+                organized_aggregators_list.append({"aggregator": aggregator, "converters": aggregator.converters})
 
         return organized_aggregators_list
 
     def start(self):
         self._check()  # check if everything is fine in world definition
 
-        organized_aggregator_list = self._set_order_of_aggregators()
+        classed_aggregator_list = self._set_order_of_aggregators()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -438,21 +441,22 @@ class World:
                 forecaster.fait_quelque_chose()
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for aggregator in organized_aggregator_list:  # aggregators are called according to the predefined order
-                aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+            for element in classed_aggregator_list:  # aggregators are called according to the predefined order
+                element["aggregator"].ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
-                for converter in self._catalog.converters.values():
+                for converter_name in element["converters"]:
+                    converter = self._catalog.converters[converter_name]
                     converter.second_update()
-            organized_aggregator_list.reverse()  # we have to reverse the order in the desendant phase, as upstream aggregator have tot ake their decision before downstream ones
+            classed_aggregator_list.reverse()  # we have to reverse the order in the descendant phase, as upstream aggregator have tot ake their decision before downstream ones
 
             # descendant phase: balances with remote energy
-            for aggregator in organized_aggregator_list:  # aggregators are called in reverse according to the predefined order
-                # aggregators distribute the energy they exchanged with outside
-                aggregator.distribute()  # aggregators distribute the energy they exchanged with outside
-                # the method is recursive
-                for converter in self._catalog.converters.values():
+            for element in classed_aggregator_list:  # aggregators are called according to the predefined order
+                for converter_name in element["converters"]:
+                    converter = self._catalog.converters[converter_name]
                     converter.first_react()
-            organized_aggregator_list.reverse()
+                element["aggregator"].distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                # the method is recursive
+            classed_aggregator_list.reverse()
 
             # ###########################
             # End of the turn

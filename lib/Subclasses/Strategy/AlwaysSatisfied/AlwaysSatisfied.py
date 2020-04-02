@@ -27,11 +27,11 @@ class AlwaysSatisfied(Strategy):
             managed_aggregator_quantities = self._catalog.get(f"{subaggregator.name}.quantities_asked")  # couples prices/quantities asked by the managed aggregators
             i = 0  # an arbitrary number given to couples price/quantities
             for element in managed_aggregator_quantities:
-                energy_difference += element[0]
-                aggregator.quantities[f"{subaggregator.name}_lot_{i}"] = [element[0], element[1], 0, 0]
+                energy_difference += element["quantity"]
+                aggregator.quantities[f"{subaggregator.name}_lot_{i}"] = [element["quantity"], element["price"], 0, 0]
                 i += 1
 
-        quantities_and_prices = [[energy_difference, sign(energy_difference)*inf]]  # wants to satisfy everyone, regardless the price (i.e sells even at -inf and buys even at +inf)
+        quantities_and_prices = [{"quantity": energy_difference, "price": sign(energy_difference)*inf}]  # wants to satisfy everyone, regardless the price (i.e sells even at -inf and buys even at +inf)
 
         self._publish_needs(aggregator, quantities_and_prices)
 
@@ -54,30 +54,30 @@ class AlwaysSatisfied(Strategy):
         # counting the offers and the demands at its own level
         # what was asked
         for couple in self._catalog.get(f"{aggregator.name}.quantities_asked"):
-            if couple[0] > 0:  # energy the aggregator wanted to buy
-                quantities_asked["bought"] += couple[0]  # the quantity of energy asked the aggregator wanted to buy
-            elif couple[0] < 0:  # energy the aggregator wanted to sell
-                quantities_asked["sold"] += couple[0]  # the quantity of energy asked the aggregator wanted to sell
+            if couple["quantity"] > 0:  # energy the aggregator wanted to buy
+                quantities_asked["bought"] += couple["quantity"]  # the quantity of energy asked the aggregator wanted to buy
+            elif couple["quantity"] < 0:  # energy the aggregator wanted to sell
+                quantities_asked["sold"] += couple["quantity"]  # the quantity of energy asked the aggregator wanted to sell
 
         # what is given
         for couple in self._catalog.get(f"{aggregator.name}.quantities_given"):
-            if couple[0] > 0:  # energy bought by the aggregator
-                quantities_given["bought"] += couple[0]  # the quantity of energy sold to the aggregator
-                couple[1] = min(couple[1], max_price)  # maximum price is artificially limited
+            if couple["quantity"] > 0:  # energy bought by the aggregator
+                quantities_given["bought"] += couple["quantity"]  # the quantity of energy sold to the aggregator
+                couple["price"] = min(couple["price"], max_price)  # maximum price is artificially limited
 
                 # making balances
                 # energy bought
-                energy_bought_outside += couple[0]  # the absolute value of energy bought outside
-                money_spent_outside += couple[0] * couple[1]  # the absolute value of money spent outside
+                energy_bought_outside += couple["quantity"]  # the absolute value of energy bought outside
+                money_spent_outside += couple["quantity"] * couple["price"]  # the absolute value of money spent outside
 
-            elif couple[0] < 0:  # energy sold by the aggregator
-                quantities_given["sold"] += couple[0]  # the quantity of energy bought by the aggregator
-                couple[1] = max(couple[1], min_price)  # minimum price is artificially limited
+            elif couple["quantity"] < 0:  # energy sold by the aggregator
+                quantities_given["sold"] += couple["quantity"]  # the quantity of energy bought by the aggregator
+                couple["price"] = max(couple["price"], min_price)  # minimum price is artificially limited
 
                 # making balances
                 # energy sold
-                energy_sold_outside -= couple[0]  # the absolute value of energy sold outside
-                money_earned_outside -= couple[0] * couple[1]  # the absolute value of money earned outside
+                energy_sold_outside -= couple["quantity"]  # the absolute value of energy sold outside
+                money_earned_outside -= couple["quantity"] * couple["price"]  # the absolute value of money earned outside
 
         # energy distribution and billing
         if quantities_given == quantities_asked:  # if the aggregator got what it wanted
@@ -110,16 +110,16 @@ class AlwaysSatisfied(Strategy):
 
                 # balances
                 for couple in quantities_and_prices:  # for each couple energy/price
-                    if couple[0] > 0:  # energy bought
-                        couple[1] = min(couple[1], max_price)  # maximum price is artificially limited
+                    if couple["quantity"] > 0:  # energy bought
+                        couple["price"] = min(couple["price"], max_price)  # maximum price is artificially limited
 
-                        money_earned_inside += couple[0] * couple[1]  # money earned by selling energy to the subaggregator
-                        energy_sold_inside += couple[0]  # the absolute value of energy sold inside
-                    elif couple[0] < 0:  # energy sold
-                        couple[1] = max(couple[1], min_price)  # minimum price is artificially limited
+                        money_earned_inside += couple["quantity"] * couple["price"]  # money earned by selling energy to the subaggregator
+                        energy_sold_inside += couple["quantity"]  # the absolute value of energy sold inside
+                    elif couple["quantity"] < 0:  # energy sold
+                        couple["price"] = max(couple["price"], min_price)  # minimum price is artificially limited
 
-                        money_spent_inside -= couple[0] * couple[1]  # money spent by buying energy from the subaggregator
-                        energy_bought_inside -= couple[0]  # the absolute value of energy bought inside
+                        money_spent_inside -= couple["quantity"] * couple["price"]  # money spent by buying energy from the subaggregator
+                        energy_bought_inside -= couple["quantity"]  # the absolute value of energy bought inside
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
             raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")

@@ -18,6 +18,8 @@ class SubaggregatorHeatEmergency(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
+        sort_function = self.get_emergency  # we choose a sort criteria
+
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
@@ -30,12 +32,14 @@ class SubaggregatorHeatEmergency(Strategy):
 
         # ##########################################################################################
         # energy converters management
+        sorted_offers = []  # a list of all the offers of production
+
         if aggregator.converters:  # if there are converters
-            sort_function = self.get_price  # converters offers are classed by decreasing prices
-            sorted_conversion_offers = self._sort_conversion_offers(aggregator, sort_function)
-            energy_to_convert = maximum_energy_consumed - minimum_energy_produced
+            sort_function_converters = self.get_price  # converters offers are classed by decreasing prices
+            [sorted_conversion_offers, sorted_offers] = self._sort_conversion_offers(aggregator, sort_function_converters, sorted_offers, sort_function)
 
             if maximum_energy_consumed > maximum_energy_produced:  # if there is a lack of energy
+                energy_to_convert = maximum_energy_consumed - maximum_energy_produced
                 energy_converted = self._call_to_converters(aggregator, min_price, sorted_conversion_offers, energy_to_convert)  # the amount of energy converted
                 maximum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
                 minimum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
@@ -54,7 +58,7 @@ class SubaggregatorHeatEmergency(Strategy):
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
         for i in range(len(quantities_and_prices)):
-            if quantities_and_prices[i][0] < 0:  # if the aggregator wants to sell energy
+            if quantities_and_prices[i]["quantity"] < 0:  # if the aggregator wants to sell energy
                 lines_to_remove.append(i)  # we remove it form the list
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
@@ -95,6 +99,9 @@ class SubaggregatorHeatEmergency(Strategy):
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+
+        # energy received from converters
+        [money_spent_outside, energy_bought_outside] = self._energy_received_from_converters(aggregator, money_spent_outside, energy_bought_outside)
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices

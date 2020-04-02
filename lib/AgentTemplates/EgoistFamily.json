@@ -1,21 +1,22 @@
 {
   "template name": "egoist_family",
 
-   "composition": {
+  "composition": {
     "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_BAU"]],
 
     "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_BAU"]],
     "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
 
     "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"],
-                     ["Freezer", "freezer", "medium_consumption", [1,1], "LVE_BAU"]],
+      ["Freezer", "freezer", "medium_consumption", [1,1], "LVE_BAU"]],
     "Heating": [["Heating", "residential", "apartment_heat", [1,1], "heat_BAU"]],
 
     "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "heat_BAU"]],
     "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
 
-    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 5}]]
-   },
+    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 5}]],
+    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [1,1], "heat_BAU", {"surface": 1}]]
+  },
 
   "contracts": {
     "LVE_BAU":  ["LVE", "TOUEgoistContract"],
