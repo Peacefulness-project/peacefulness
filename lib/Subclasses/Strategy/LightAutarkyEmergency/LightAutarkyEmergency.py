@@ -14,6 +14,7 @@ class LightAutarkyEmergency(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
@@ -28,7 +29,7 @@ class LightAutarkyEmergency(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         quantities_and_prices = self._prepare_quantities_emergency_only(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
@@ -49,6 +50,7 @@ class LightAutarkyEmergency(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -57,7 +59,7 @@ class LightAutarkyEmergency(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)

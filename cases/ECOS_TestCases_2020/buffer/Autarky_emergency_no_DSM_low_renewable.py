@@ -2,19 +2,19 @@
 # Exchange strategy: Autarky
 # Distribution strategy: Emergency
 # Contract: 100 Normal, 0 DLC, 0 Curtailment
-# renewable sizing: high
+# renewable sizing: low
 
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_TestCases_2020.CaseBuildingBlocks import *
 
 # parameters
 exchange_strategy = "Autarky"
 distribution_strategy = "Emergency"
-renewable_proportion = "high_renewable"
+renewable_proportion = "low_renewable"
 DSM_proportion = "no_DSM"
 
 # Importation of subclasses

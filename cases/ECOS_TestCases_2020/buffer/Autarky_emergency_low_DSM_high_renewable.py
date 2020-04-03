@@ -9,7 +9,7 @@
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_TestCases_2020.CaseBuildingBlocks import *
 
 # parameters
 exchange_strategy = "Autarky"

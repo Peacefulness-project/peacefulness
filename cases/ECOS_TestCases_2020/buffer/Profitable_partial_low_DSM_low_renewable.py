@@ -1,5 +1,5 @@
 # first run for SFT 2020
-# Exchange strategy: Autarky
+# Exchange strategy: Profitable
 # Distribution strategy: Partial
 # Contract: 67 Normal, 20 DLC, 13 Curtailment
 # renewable sizing: low
@@ -9,11 +9,11 @@
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_TestCases_2020.CaseBuildingBlocks import *
 
 # parameters
-exchange_strategy = "Autarky"
-distribution_strategy = "Partial"
+exchange_strategy = "Profitable"
+distribution_strategy = "Emergency"
 renewable_proportion = "low_renewable"
 DSM_proportion = "low_DSM"
 

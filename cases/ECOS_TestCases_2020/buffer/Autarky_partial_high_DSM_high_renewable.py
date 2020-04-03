@@ -1,21 +1,21 @@
 # first run for SFT 2020
 # Exchange strategy: Autarky
-# Distribution strategy: Emergency
-# Contract: 67 Normal, 20 DLC, 13 Curtailment
-# renewable sizing: low
+# Distribution strategy: Partial
+# Contract: 33 Normal, 40 DLC, 27 Curtailment
+# renewable sizing: high
 
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_TestCases_2020.CaseBuildingBlocks import *
 
 # parameters
 exchange_strategy = "Autarky"
-distribution_strategy = "Emergency"
-renewable_proportion = "low_renewable"
-DSM_proportion = "low_DSM"
+distribution_strategy = "Partial"
+renewable_proportion = "high_renewable"
+DSM_proportion = "high_DSM"
 
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()

@@ -284,14 +284,14 @@ class Strategy:
         else:
             price_remaining_demand = 0
 
-        quantities_and_prices.append([quantity_remaining_demand, price_remaining_demand])  # the quantity the aggregator wants to buy cheaply
+        quantities_and_prices.append({"quantity": quantity_remaining_demand, "price": price_remaining_demand})  # the quantity the aggregator wants to buy cheaply
 
         # offer
         if sorted_offers:  # if there is an offer
             price_remaining_offer = (final_price + sorted_offers[-1]["price"]) / 2  # the price used is the mean between the intern price and the highest price
         else:
             price_remaining_offer = 0
-        quantities_and_prices.append([-quantity_remaining_offer, price_remaining_offer])  # the quantity the aggregator wants to sell expensively
+        quantities_and_prices.append({"quantity": -quantity_remaining_offer, "price": price_remaining_offer})  # the quantity the aggregator wants to sell expensively
 
         return [quantities_exchanged, quantities_and_prices]
 
@@ -659,7 +659,7 @@ class Strategy:
 
             for demand in sorted_demands:  # then we distribute a bit of energy to all demands
                 device_name = demand["name"]
-                energy = demand["energy"]  # the quantity of energy needed
+                energy = demand["quantity"]  # the quantity of energy needed
                 price = demand["price"]  # the price of energy
                 price = min(price, max_price)
                 energy *= energy_ratio
@@ -685,7 +685,7 @@ class Strategy:
         energy_total = 0
 
         for element in sorted_offers:  # we sum all the emergency and the energy of offers
-            energy_total -= element["energy"]
+            energy_total -= element["quantity"]
 
         if energy_total != 0:
 
@@ -693,7 +693,7 @@ class Strategy:
 
             for offer in sorted_offers:  # then we distribute a bit of energy to all offers
                 device_name = offer["name"]
-                energy = offer["energy"]  # the quantity of energy needed
+                energy = offer["quantity"]  # the quantity of energy needed
                 price = offer["price"]  # the price of energy
                 price = max(price, min_price)
                 energy *= energy_ratio

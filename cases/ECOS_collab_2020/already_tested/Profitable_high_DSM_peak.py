@@ -19,7 +19,7 @@ sizing = "peak"
 subclasses_dictionary = get_subclasses()
 
 # world and parameters
-world = create_world_with_set_parameters(chosen_strategy, DSM_proportion)
+world = create_world_with_set_parameters(chosen_strategy, DSM_proportion, sizing)
 
 
 # ##############################################################################################
@@ -44,7 +44,7 @@ agents = create_agents(world)
 create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing)
 
 # Daemons
-create_daemons(world, natures, price_IDs)
+create_daemons(world, natures, price_IDs, sizing)
 
 # Dataloggers
 create_dataloggers(world)

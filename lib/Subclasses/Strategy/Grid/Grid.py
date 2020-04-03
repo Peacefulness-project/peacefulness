@@ -29,13 +29,13 @@ class Grid(Strategy):
             for couple in quantities:  # attribution of the correct price
                 if couple["quantity"] > 0:  # if the subaggregator wants to buy energy
                     if couple["price"] < self._catalog.get(f"{aggregator.nature.name}.grid_buying_price"):  # if the price is below the grid tariff
-                        couple = [0, 0]  # it is not served
+                        couple = {"quantity": 0, "price": 0}  # it is not served
                     else:  # if price proposed is above or equal to the price set for the grid
                         couple["price"] = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # it is served and the price is adjusted
 
                 elif couple["quantity"] < 0:  # if the subaggregator wants to sell energy
                     if couple["price"] > self._catalog.get(f"{aggregator.nature.name}.grid_selling_price"):  # if the price is above the grid tariff
-                        couple = [0, 0]  # it is not served
+                        couple = {"quantity": 0, "price": 0} # it is not served
                     else:  # if price proposed is below or equal to the price set for the grid
                         couple["price"] = self._catalog.get(f"{aggregator.nature.name}.grid_selling_price")  # it is served and the price is adjusted
 

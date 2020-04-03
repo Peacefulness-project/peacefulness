@@ -19,12 +19,13 @@ class WhenProfitable(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
-        self._quantities_exchanged_internally[aggregator.name] = [0, 0]  # reinitialization of the quantities exchanged internally
+        self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_exchanged = 0  # the quantity of energy exchanged internally allowed by the strategy
-        quantities_and_prices = []  # a list containing couples energy/prices
+        quantities_and_prices = {}  # a list containing couples energy/prices
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -36,24 +37,22 @@ class WhenProfitable(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # initialization of prices:
         if sorted_demands:  # if there is at least one demand
-            buying_price = min(sorted_demands[0][2], max_price)  # maximum price given by consumers
+            buying_price = min(sorted_demands[0]["price"], max_price)  # maximum price given by consumers
         else:
             buying_price = 0
 
         if sorted_offers:  # if there is at least one offer
-            selling_price = max(sorted_offers[0][2], min_price)  # minimum price given by producers
+            selling_price = max(sorted_offers[0]["price"], min_price)  # minimum price given by producers
         else:
             selling_price = 0
 
         final_price = (buying_price + selling_price) / 2  # initialization of the final price
 
         [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
-
-        print(quantities_and_prices)
 
         self._quantities_exchanged_internally[aggregator.name] = [quantities_exchanged, final_price]  # we store this value for the descendant phase
 
@@ -74,6 +73,7 @@ class WhenProfitable(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -82,7 +82,7 @@ class WhenProfitable(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
@@ -94,8 +94,8 @@ class WhenProfitable(Strategy):
         # balance of energy available
 
         # calculating the energy available
-        energy_available_consumption = self._quantities_exchanged_internally[aggregator.name][0] + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = self._quantities_exchanged_internally[aggregator.name][0] + energy_sold_outside  # the total energy available for productions
+        energy_available_consumption = self._quantities_exchanged_internally[aggregator.name]["quantity"] + energy_bought_outside  # the total energy available for consumptions
+        energy_available_production = self._quantities_exchanged_internally[aggregator.name]["quantity"] + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution

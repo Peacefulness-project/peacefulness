@@ -19,6 +19,7 @@ class WhenProfitablePartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -30,7 +31,7 @@ class WhenProfitablePartial(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # ##########################################################################################
         # management of grid call
@@ -46,7 +47,7 @@ class WhenProfitablePartial(Strategy):
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
         for i in range(len(quantities_and_prices) - 1):
-            if quantities_and_prices[i][0] < 0:  # if the aggregator wants to sell energy
+            if quantities_and_prices[i]["quantity"] < 0:  # if the aggregator wants to sell energy
                 lines_to_remove.append(i)  # we remove it form the list
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
@@ -74,6 +75,7 @@ class WhenProfitablePartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -82,7 +84,7 @@ class WhenProfitablePartial(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
@@ -94,7 +96,7 @@ class WhenProfitablePartial(Strategy):
         # balance of energy available
 
         energy_available_consumption = maximum_energy_produced + energy_bought_outside - energy_sold_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside # the total energy available for productions
+        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution

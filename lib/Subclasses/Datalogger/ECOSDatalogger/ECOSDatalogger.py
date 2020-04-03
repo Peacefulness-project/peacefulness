@@ -15,7 +15,8 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
-            file.write(f"{aggregator_name}_self_consumption\t")
+            file.write(f"{aggregator_name}_self_sufficiency_consumption\t")
+            file.write(f"{aggregator_name}_self_sufficiency_production\t")
             file.write(f"{aggregator_name}_grid_call\t")
             file.write(f"{aggregator_name}_benefit\t")
 
@@ -30,18 +31,29 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
 
         # aggregator data
         for aggregator_name in self._aggregators_list:
+            self_sufficiency = {"consumption": None, "production": None}  # the rate of energy consumed locally/total energy consumed and energy produced locally/ total energy consumed
+
             energy_sold = self._catalog.get(f"{aggregator_name}.energy_sold")
             energy_bought = self._catalog.get(f"{aggregator_name}.energy_bought")
             benefit = sum(self._catalog.get(f"{aggregator_name}.money_earned").values()) - sum(self._catalog.get(f"{aggregator_name}.money_spent").values())
 
-            if energy_sold["inside"] != 0:  # if some energy is sold
-                self_consumption = energy_bought["inside"] / energy_sold["inside"]  # the ratio between the energy sold inside and the energy bought inside
+            # self_sufficiency
+            if energy_sold["inside"] != 0:  # if some energy is consumed locally
+                self_sufficiency["consumption"] = min(energy_bought["inside"] / energy_sold["inside"], 1)  # the ratio of the energy consumed locally being produced locally
             else:
-                self_consumption = None
+                self_sufficiency["consumption"] = None
 
+            if energy_bought["inside"] != 0:  # if some energy is produced locally
+                self_sufficiency["production"] = min(energy_sold["inside"] / energy_bought["inside"], 1)  # the ratio of the energy produced locally being consumed locally
+            else:
+                self_sufficiency["production"] = None
+
+            # grid call
             grid_call = (energy_bought["outside"] - energy_sold["outside"])
 
-            file.write(f"{self_consumption}\t")
+            file.write(f"{self_sufficiency['consumption']}\t")
+            file.write(f"{self_sufficiency['production']}\t")
+
             file.write(f"{grid_call}\t")
             file.write(f"{benefit}\t")
 
@@ -85,8 +97,6 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
         self._overconso = dict()
         for nature_name in self._natures_list:  # for each aggregator registered into world, all the relevant keys are added
             self._peak[nature_name] = {"peak_consumption": 0, "peak_production": 0, "peak_unbalance": 0}
-            self._overprod[nature_name] = 0  # the number of turn where there was too much prod
-            self._overconso[nature_name] = 0  # the number of turns where there was too much conso
 
         self._last_turn = self._catalog.get("time_limit") - 1  # the number of the last iteration
 
@@ -100,11 +110,6 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
             if self._peak[nature_name]["peak_unbalance"] < self._catalog.get(f"{nature_name}.energy_consumed") + self._catalog.get(f"{nature_name}.energy_produced"):
                 self._peak[nature_name]["peak_unbalance"] = self._catalog.get(f"{nature_name}.energy_consumed") + self._catalog.get(f"{nature_name}.energy_produced")
 
-            if self._catalog.get(f"{nature_name}.energy_consumed") - self._catalog.get(f"{nature_name}.energy_produced") > 1e-6:
-                self._overconso[nature_name] += 1
-            elif self._catalog.get(f"{nature_name}.energy_produced") - self._catalog.get(f"{nature_name}.energy_consumed") > 1e-6:
-                self._overprod[nature_name] += 1
-
         # at the last turn, the file is written
         if self._last_turn == self._catalog.get("simulation_time"):
             file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
@@ -113,9 +118,6 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
                 file.write(f" peak_consumption_{nature_name}: {self._peak[nature_name]['peak_consumption']}\n")
                 file.write(f" peak_production_{nature_name}: {self._peak[nature_name]['peak_production']}\n")
                 file.write(f" peak_unbalance_{nature_name}: {self._peak[nature_name]['peak_unbalance']}\n")
-                file.write(f" over_production_{nature_name}: {self._overprod[nature_name]/(self._last_turn+1)}\n")
-                file.write(f" over_consumption_{nature_name}: {self._overconso[nature_name]/(self._last_turn+1)}\n")
-
                 file.write("\n")
 
             file.close()

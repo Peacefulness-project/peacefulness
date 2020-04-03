@@ -2,19 +2,19 @@
 # Exchange strategy: Profitable
 # Distribution strategy: Emergency
 # Contract: 67 Normal, 20 DLC, 13 Curtailment
-# renewable sizing: low
+# renewable sizing: high
 
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_TestCases_2020.CommonBlocks import *
+from cases.ECOS_TestCases_2020.CaseBuildingBlocks import *
 
 # parameters
 exchange_strategy = "Profitable"
 distribution_strategy = "Emergency"
-renewable_proportion = "low_renewable"
+renewable_proportion = "high_renewable"
 DSM_proportion = "low_DSM"
 
 # Importation of subclasses
