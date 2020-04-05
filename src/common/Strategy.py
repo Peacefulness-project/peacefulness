@@ -187,13 +187,27 @@ class Strategy:
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
     def _prepare_quantitites_subaggregator(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, price, quantities_and_prices):  # this function prepare the quantities and prices asked or proposed to the grid
-        if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
-            energy_difference = maximum_energy_consumed - minimum_energy_consumed
-            quantities_and_prices.append({"quantity": energy_difference, "price": inf})  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
+        if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
+            if maximum_energy_produced < minimum_energy_consumed:  # if there is no possibility to balance the grid without help
+                energy_difference = minimum_energy_consumed - maximum_energy_produced
+                quantities_and_prices.append({"quantity": energy_difference, "price": inf})  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
 
-        else:  # for the quantities which are not urgent
-            energy_difference = maximum_energy_consumed - maximum_energy_produced  # this energy represents the unavailable part of non-urgent quantities of energy
-            quantities_and_prices.append({"quantity": energy_difference, "price": price})  # satisfy the need at a more reasonable price
+                energy_difference = maximum_energy_consumed - minimum_energy_consumed  # this energy represents the unavailable part of non-urgent quantities of energy
+                quantities_and_prices.append({"quantity": energy_difference, "price": price})  # satisfy the need at a more reasonable price
+            else:  # if the energy lacking is optional
+                energy_difference = maximum_energy_consumed - maximum_energy_produced  # this energy represents the unavailable part of non-urgent quantities of energy
+                quantities_and_prices.append({"quantity": energy_difference, "price": price})  # satisfy the need at a more reasonable price
+
+        else:  # if there is too much energy
+            if maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
+                energy_difference = maximum_energy_consumed - minimum_energy_produced
+                quantities_and_prices.append({"quantity": energy_difference, "price": inf})  # wants to satisfy the minimum, regardless the price (i.e sells even at -inf and buys even at +inf)
+
+                energy_difference = minimum_energy_produced - maximum_energy_produced  # this energy represents the unavailable part of non-urgent quantities of energy
+                quantities_and_prices.append({"quantity": energy_difference, "price": price})  # satisfy the need at a more reasonable price
+            else:  # if the energy in excess is optional
+                energy_difference = maximum_energy_consumed - maximum_energy_produced  # this energy represents the unavailable part of non-urgent quantities of energy
+                quantities_and_prices.append({"quantity": energy_difference, "price": price})  # satisfy the need at a more reasonable price
 
         return quantities_and_prices
 
@@ -417,16 +431,16 @@ class Strategy:
             quantities = self._catalog.get(f"{subaggregator.name}.quantities_asked")
 
             for couple in quantities:
-                if couple["energy"] > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+                if couple["quantity"] > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
                     price = max(couple["price"], min_price)
                     emergency = min(1, (price - min_price)/(max_price - min_price))
 
-                    sorted_demands.append({"emergency": emergency, "quantity": couple["energy"], "price": couple["price"], "name": subaggregator.name})
-                elif couple["energy"] < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+                    sorted_demands.append({"emergency": emergency, "quantity": couple["quantity"], "price": couple["price"], "name": subaggregator.name})
+                elif couple["quantity"] < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
                     price = min(couple["price"], max_price)
                     emergency = min(1, (max_price - price) / (max_price - min_price))
 
-                    sorted_offers.append({"emergency": emergency, "quantity": couple["energy"], "price": couple["price"], "name": subaggregator.name})
+                    sorted_offers.append({"emergency": emergency, "quantity": couple["quantity"], "price": couple["price"], "name": subaggregator.name})
 
         sorted_demands = sorted(sorted_demands, key=sort_function, reverse=True)
         sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)

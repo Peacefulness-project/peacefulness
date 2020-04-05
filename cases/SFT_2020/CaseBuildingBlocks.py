@@ -94,7 +94,7 @@ def create_aggregators(world, natures, strategies):
 
     # here we create another aggregator dedicated to heat
     aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_grid)  # creation of a aggregator
+    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_elec, 3.6, 2000)  # creation of a aggregator
 
     return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
 

@@ -74,7 +74,7 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
             if (quantity_got + quantity_erased) != 0:
                 canceled_ratio = quantity_erased / (quantity_got + quantity_erased)
             else:
-                canceled_ratio = 0
+                canceled_ratio = None
 
             file.write(f"{canceled_ratio}\t")
             file.write(f"{bill}\t")

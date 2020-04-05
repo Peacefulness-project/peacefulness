@@ -95,7 +95,7 @@ def create_aggregators(world, natures, strategies):
 
     # here we create another aggregator dedicated to heat
     aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_grid, 3.6, 3344)  # creation of a aggregator
+    aggregator_heat = Aggregator(world, aggregator_name,  natures["heat"], strategies["heat"], aggregator_elec, 3.6, 3344)  # creation of a aggregator
     return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
 
 
@@ -114,7 +114,7 @@ def create_agents(world):
 
     solar_thermal_producer = Agent(world, "solar_thermal_producer")  # the owner of the solar thermal collectors
 
-    return {"elec":PV_producer, "heat":solar_thermal_producer}
+    return {"elec": PV_producer, "heat": solar_thermal_producer}
 
 
 def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing):
@@ -173,7 +173,7 @@ def create_daemons(world, natures, price_IDs, sizing):
 
         subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0.234, "grid_selling_price": 0})  # sets prices for the system operator
 
-    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
+    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog

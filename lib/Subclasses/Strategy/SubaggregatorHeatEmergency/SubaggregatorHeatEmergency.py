@@ -58,7 +58,7 @@ class SubaggregatorHeatEmergency(Strategy):
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
         for i in range(len(quantities_and_prices)):
-            if quantities_and_prices[i]["quantity"] < 0:  # if the aggregator wants to sell energy
+            if quantities_and_prices[i]["quantity"] <= 0:  # if the aggregator wants to sell energy
                 lines_to_remove.append(i)  # we remove it form the list
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
