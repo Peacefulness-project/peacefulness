@@ -1,17 +1,15 @@
-# This class represents "energy aggregators", i.e a group of devices which maximises
-# self-consumption (local consumption of local production)
-# As an example, it can represent a house with a solar panel
-
+# This class represents "energy aggregators", i.e a group of devices of the same energy
+# we consider that there is a notion of spatial proximity between devices of the same aggregator
+# As an example, it can represent a house with a solar panel, the electrical grid of a neighbourhood or a district heating network
 from math import inf
+from src.tools.GlobalWorld import get_world
 
 
 class Aggregator:
 
-    def __init__(self, world, name, nature, strategy, superior=None, efficiency=1, capacity=inf):
+    def __init__(self, name, nature, strategy, superior=None, efficiency=1, capacity=inf):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
-
-        self._catalog = world.catalog  # the catalog in which some data are stored
 
         self._strategy = strategy  # the strategy, i.e the strategy applied by this aggregator
 
@@ -27,6 +25,9 @@ class Aggregator:
         # characteristics of the exchange potential between this aggregator and its superior
         self.efficiency = efficiency
         self.capacity = capacity
+
+        world = get_world()  # get automatically the world defined for this case
+        self._catalog = world.catalog  # the catalog in which some data are stored
 
         # Creation of specific entries in the catalog
         self._catalog.add(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the aggregator to its superior

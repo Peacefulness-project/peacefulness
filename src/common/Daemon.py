@@ -1,10 +1,11 @@
 # Daemon are objects designed to second_update entries in the catalog who are not devices
 # Just like devices, there is a general class Daemon and it is the user who has to define its own daemons
+from src.tools.GlobalWorld import get_world
 
 
 class Daemon:
 
-    def __init__(self, world, name, period=0, parameters=None):
+    def __init__(self, name, period=0, parameters=None):
         if name is None:
             raise DaemonException("Daemon needs a name")
 
@@ -14,16 +15,17 @@ class Daemon:
 
         self._next_time = 0  # next iteration at which the daemon will be activated
 
-        self._catalog = world.catalog  # catalog from which data is extracted
-
-        world.register_daemon(self)  # register this daemon into world dedicated dictionary
-
         # parameters is the list of different parameters necessary for user-defined daemons subclasses
         # putting them into a list is necessary for the save/load system
         if parameters:
             self._parameters = parameters
         else:
             self._parameters = {}
+
+        world = get_world()  # get automatically the world defined for this case
+        self._catalog = world.catalog  # catalog from which data is extracted
+
+        world.register_daemon(self)  # register this daemon into world dedicated dictionary
 
     # ##########################################################################################
     # Dynamic behavior

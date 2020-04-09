@@ -5,8 +5,8 @@ from src.common.Strategy import Strategy
 
 class WhenProfitableRevenues(Strategy):
 
-    def __init__(self, world, name, description):
-        super().__init__(world, name, description)
+    def __init__(self):
+        super().__init__("when_profitable_revenues_strategy", "Distributes energy only when the aggregator makes a profit. During distribution, serves by decreasing gains for the aggregator.")
 
         self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
 

@@ -6,8 +6,8 @@ from src.common.Daemon import Daemon
 
 class ColdWaterDaemon(Daemon):
 
-    def __init__(self, world, name, parameters, period=1):
-        super().__init__(world, name, period, parameters)
+    def __init__(self, name, parameters, period=1):
+        super().__init__(name, period, parameters)
 
         self._location = parameters["location"]  # the location corresponding to the data
 

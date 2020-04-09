@@ -5,6 +5,9 @@ from src.common.Strategy import Strategy
 
 class AutarkyPartial(Strategy):
 
+    def __init__(self):
+        super().__init__("autarky_partial_strategy", "Never try to buy/sell energy from/to outside. During distribution, serves the same ratio of energy to everybody.")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

@@ -7,8 +7,8 @@ from src.common.Device import DeviceException
 
 class Cooling(AdjustableDevice):
 
-    def __init__(self, world, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
-        super().__init__(world, name, contracts, agent, aggregators, "lib/Subclasses/Device/Cooling/Cooling.json", user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
+        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Cooling/Cooling.json", user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization

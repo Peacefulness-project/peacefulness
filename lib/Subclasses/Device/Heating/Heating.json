@@ -7,9 +7,9 @@
     },
 
     "house_heat": {
-      "usage_profile": [{"Heat": 1}, 1.5, 18000],
+      "usage_profile": [{"LTH": 1}, 1.5, 18000],
       "consumption_variation": 0.25,
-      "max_power": {"Heat": 5}
+      "max_power": {"LTH": 5}
     },
 
     "apartment_elec": {
@@ -19,27 +19,27 @@
     },
 
     "apartment_heat": {
-      "usage_profile": [{"Heat": 1}, 0.7, 7200],
+      "usage_profile": [{"LTH": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
-      "max_power": {"Heat": 2}
+      "max_power": {"LTH": 2}
     },
 
     "grand_apartment_heat": {
-      "usage_profile": [{"Heat": 1}, 1, 10800],
+      "usage_profile": [{"LTH": 1}, 1, 10800],
       "consumption_variation": 0.25,
-      "max_power": {"Heat": 3}
+      "max_power": {"LTH": 3}
     },
 
     "apartment_heat_instant_consumption": {
-      "usage_profile": [{"Heat": 1}, 0.7, 7200],
+      "usage_profile": [{"LTH": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
-      "max_power": {"Heat": 100}
+      "max_power": {"LTH": 100}
     },
 
     "grand_apartment_heat_instant_consumption": {
-      "usage_profile": [{"Heat": 1}, 1, 10800],
+      "usage_profile": [{"LTH": 1}, 1, 10800],
       "consumption_variation": 0.25,
-      "max_power": {"Heat": 100}
+      "max_power": {"LTH": 100}
     }
   },
 

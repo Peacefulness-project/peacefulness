@@ -9,6 +9,9 @@ from math import inf
 
 class AlwaysSatisfied(Strategy):
 
+    def __init__(self):
+        super().__init__("always_satisfied_strategy", "Always serves everybody, whatever it can cost to him.")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

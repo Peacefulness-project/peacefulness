@@ -1,5 +1,6 @@
 # This class serves to predict quantities both consumed and produced
 # It serves as a mother class for all the uer-defined forecasters
+from src.tools.GlobalWorld import get_world
 
 
 class Forecaster:
@@ -7,7 +8,8 @@ class Forecaster:
     def __init__(self, name):
         self._name = name
 
-        self._catalog = None
+        world = get_world()  # get automatically the world defined for this case
+        self._catalog = world.catalog
 
     # ##########################################################################################
     # Initialization

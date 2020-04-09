@@ -18,8 +18,10 @@ from src.common.Device import Device
 from src.common.Converter import Converter
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
+
 from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
+from src.tools.GlobalWorld import set_world
 
 
 # ##############################################################################################
@@ -73,6 +75,8 @@ class World:
         # It avoids to erase inadvertently pre-defined elements
 
         self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
+
+        set_world(self)  # set world as a global variable ued later to instantiate objects
 
     # ##########################################################################################
     # Construction
@@ -275,10 +279,10 @@ class World:
             contract_name = f"{data['template name']}_{contract_type}"
             nature = self._catalog.natures[data["contracts"][contract_type][0]]
             identifier = contract_identifier[nature.name]
-            contract_class = self._subclasses_dictionary[data["contracts"][contract_type][1]]
+            contract_class = self._subclasses_dictionary["Contract"][data["contracts"][contract_type][1]]
 
             if len(data["contracts"][contract_type]) == 2:  # if there are no parameters
-                contract = contract_class(self, contract_name, nature, identifier)
+                contract = contract_class(contract_name, nature, identifier)
             else:  # if there are parameters
                 parameters = data["contracts"][contract_type][1]
                 contract = contract_class(contract_name, nature, identifier, parameters)
@@ -289,7 +293,7 @@ class World:
 
             # creation of an agent
             agent_name = f"{data['template name']}_{str(i)}"
-            agent = Agent(self, agent_name)  # creation of the agent, which name is "Profile X"_5
+            agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
 
             # creation of devices
             for device_data in data["composition"]:
@@ -299,7 +303,7 @@ class World:
                     number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
                         device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
-                        device_class = self._subclasses_dictionary[device_data]
+                        device_class = self._subclasses_dictionary["Device"][device_data]
 
                         contracts = []
                         for contract_type in contract_dict:
@@ -307,9 +311,9 @@ class World:
                                 contracts.append(contract_dict[contract_type])
 
                         if len(profile) == 5:  # if there are no parameters
-                            device = device_class(self, device_name, contracts, agent, aggregators, profile[1], profile[2])  # creation of the device
+                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2])  # creation of the device
                         else:  # if there are parameters
-                            device = device_class(self, device_name, contracts, agent, aggregators, profile[1], profile[2], profile[5])  # creation of the device
+                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2], profile[5])  # creation of the device
 
     # ##########################################################################################
     # Initialization
@@ -346,33 +350,6 @@ class World:
         upstream_aggregator_list = [couple[1] for couple in self._aggregator_order]  # the list of upstream aggregators
         aggregators_to_tidy = [couple for couple in self._aggregator_order]  # this list contains the aggregators not organized yet
         # writing directly aggregators_to_tidy = aggregator_order just creates a pointer
-
-        # TODO: trouver un moyen d'ordonner les agrégateurs proprement
-
-        # first try
-        # for couple in self._aggregator_order:
-        #     if couple[0] not in organized_aggregators_list:  # if the couple is not already integrated in the chain
-        #         i = len(organized_aggregators_list) - 1
-        #         organized_aggregators_list.append(couple[0])  # the downstream aggregator is added first (as it orders a quantity of energy to its converters)...
-        #         organized_aggregators_list.append(couple[1])  # ... and the upstream one in second
-        #         aggregators_to_tidy.remove(couple)
-        #
-        #         for couple in aggregators_to_tidy:  # among the not organized yet aggregators...
-        #             toto  # we check if
-
-        # second try
-        # flag = False
-        #
-        # for couple in self._aggregator_order:
-        #     for i in range(len(organized_aggregators_list)):
-        #         if couple[0] == organized_aggregators_list[i]:  # if the downstream aggregator is already present
-        #             organized_aggregators_list.insert(i, couple[1])  # we insert the upstream aggregator just after
-        #             flag = True
-        #         if couple[1] == organized_aggregators_list[i]:  # if the upstream aggregator is already present
-        #             organized_aggregators_list.insert(i-1, couple[0])  # we insert the upstream aggregator just after
-        #             flag = True
-        #
-        #     if flag :
 
         # béquille
         unclassed_aggregators = []

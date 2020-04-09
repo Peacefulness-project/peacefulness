@@ -5,8 +5,8 @@ from src.common.Daemon import Daemon
 
 class IrradiationDaemon(Daemon):
 
-    def __init__(self, world, name, parameters, period=0):
-        super().__init__(world, name, period, parameters)
+    def __init__(self, name, parameters, period=0):
+        super().__init__(name, period, parameters)
 
         self._location = parameters["location"]
 

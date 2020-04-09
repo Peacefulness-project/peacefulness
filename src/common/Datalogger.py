@@ -1,15 +1,15 @@
 # Datalogger role is to write desired data in a file at a given frequency
 # from tools.Utilities import list_to_str
 # from tools.DataProcessingFunctions import *
-
 from numpy import mean
 
 from src.tools.Utilities import adapt_path
+from src.tools.GlobalWorld import get_world
 
 
 class Datalogger:
 
-    def __init__(self, world, name, filename, period=0, sum_over_time=False):
+    def __init__(self, name, filename, period=0, sum_over_time=False):
         self._name = name
 
         self._filename = filename  # the name of the file where the data will be written
@@ -23,6 +23,7 @@ class Datalogger:
 
         self._next_time = 0  # next time step for which data will be written
 
+        world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # catalog from which data is extracted
 
         world.register_datalogger(self)  # register this datalogger into world dedicated dictionary

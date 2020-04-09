@@ -4,8 +4,8 @@ from src.common.Contract import Contract
 
 class TOUCooperativeContract(Contract):
 
-    def __init__(self, world, name, nature, identifier=None):
-        super().__init__(world, name, nature, identifier)
+    def __init__(self, name, nature, identifier=None):
+        super().__init__(name, nature, identifier)
 
         self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
                            "Meanwhile, the customer accepts shiftable devices to be shifted " \

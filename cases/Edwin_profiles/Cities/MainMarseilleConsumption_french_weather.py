@@ -22,25 +22,25 @@ world = create_world_with_set_parameters(city_case, city_weather)
 # Model creation
 # ##############################################################################################
 # Strategies
-strategies = create_strategies(world)
+strategies = create_strategies()
 
 # Natures
-natures = create_natures(world)
+natures = create_natures()
 
 # Contracts
-price_IDs = create_contracts(world, natures)
+price_IDs = create_contracts(natures)
 
 # Aggregators
-aggregators = create_aggregators(world, natures, strategies)
+aggregators = create_aggregators(natures, strategies)
 
 # Devices
 create_devices(world, aggregators, price_IDs, country, city_weather)
 
 # Daemons
-create_daemons(world, natures, price_IDs, city_weather)
+create_daemons(natures, price_IDs, city_weather)
 
 # Dataloggers
-create_dataloggers(world)
+create_dataloggers()
 
 # ##############################################################################################
 # Simulation

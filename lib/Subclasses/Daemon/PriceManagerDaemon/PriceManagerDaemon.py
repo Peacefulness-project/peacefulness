@@ -6,8 +6,8 @@ from src.common.Daemon import Daemon
 
 class PriceManagerDaemon(Daemon):
 
-    def __init__(self, world, name, period=0, parameters=None):
-        super().__init__(world, name, period, parameters)
+    def __init__(self, name, period=0, parameters=None):
+        super().__init__(name, period, parameters)
         self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent
         self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent
         self._contract_list = None  # the list of contracts taken in charge by this daemon, added later

@@ -1,7 +1,7 @@
 {
   "device_consumption": {
     "ECOS": {
-      "usage_profile": {"nature": "Heat", "max_power": 3000},
+      "usage_profile": {"nature": "LTH", "max_power": 3000},
       "efficiency_variation": 0
     }
   },

@@ -4,8 +4,8 @@ from src.common.Datalogger import Datalogger
 
 class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=1):
-        super().__init__(world, "nature_balances", "NaturesBalances.txt", period)
+    def __init__(self, period=1):
+        super().__init__("nature_balances", "NaturesBalances.txt", period)
 
         self.add("simulation_time")
         self.add("physical_time")

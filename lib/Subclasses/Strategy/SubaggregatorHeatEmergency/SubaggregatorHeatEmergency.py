@@ -5,6 +5,9 @@ from src.common.Strategy import Strategy
 
 class SubaggregatorHeatEmergency(Strategy):
 
+    def __init__(self):
+        super().__init__("subaggregator_heat_emergency_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves by decreasing emergency.")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

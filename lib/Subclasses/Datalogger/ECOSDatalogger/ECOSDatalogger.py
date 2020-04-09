@@ -5,8 +5,8 @@ from src.tools.Utilities import adapt_path
 
 class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, world, period=0):
-        super().__init__(world, "ECOS_aggregators_results", "ECOS_aggregators_results", period)
+    def __init__(self, period=0):
+        super().__init__("ECOS_aggregators_results", "ECOS_aggregators_results", period)
 
         self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
         self._agents_list = self._catalog.get("dictionaries")['agents'].keys()  # get all the names
@@ -85,8 +85,8 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
 
 class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export values concerning the whole run
 
-    def __init__(self, world, period=0):
-        super().__init__(world, "global_values", "global_values", period)
+    def __init__(self, period=0):
+        super().__init__("global_values", "global_values", period)
 
         self._last_turn = None
 

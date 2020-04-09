@@ -7,9 +7,9 @@
     },
 
     "house_cold": {
-      "usage_profile": [{"Cold": 1}, 1.5, 18000],
+      "usage_profile": [{"HTC": 1}, 1.5, 18000],
       "consumption_variation": 0.25,
-      "max_power": {"Cold": 5}
+      "max_power": {"HTC": 5}
     },
 
     "apartment_elec": {
@@ -19,27 +19,27 @@
     },
 
     "apartment_cold_consumption": {
-      "usage_profile": [{"Cold": 1}, 0.7, 7200],
+      "usage_profile": [{"HTC": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
-      "max_power": {"Cold": 2}
+      "max_power": {"HTC": 2}
     },
 
     "grand_apartment_cold": {
-      "usage_profile": [{"Cold": 1}, 1, 10800],
+      "usage_profile": [{"HTC": 1}, 1, 10800],
       "consumption_variation": 0.25,
-      "max_power": {"Cold": 3}
+      "max_power": {"HTC": 3}
     },
 
     "apartment_cold_instant_consumption": {
-      "usage_profile": [{"Cold": 1}, 0.7, 7200],
+      "usage_profile": [{"HTC": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
-      "max_power": {"Cold": 100}
+      "max_power": {"HTC": 100}
     },
 
     "grand_apartment_cold_instant_consumption": {
-      "usage_profile": [{"Cold": 1}, 1, 10800],
+      "usage_profile": [{"HTC": 1}, 1, 10800],
       "consumption_variation": 0.25,
-      "max_power": {"Cold": 100}
+      "max_power": {"HTC": 100}
     }
   },
 

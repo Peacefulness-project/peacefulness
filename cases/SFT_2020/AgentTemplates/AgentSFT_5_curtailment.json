@@ -16,7 +16,7 @@
   "contracts": {
     "LVE_curtailment":  ["LVE", "TOUCurtailmentContract"],
     "LVE_BAU":  ["LVE", "TOUEgoistContract"],
-    "heat_curtailment":  ["Heat", "FlatCurtailmentContract"]
+    "heat_curtailment":  ["LTH", "FlatCurtailmentContract"]
   }
 
 }

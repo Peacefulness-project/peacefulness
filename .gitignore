@@ -100,12 +100,11 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# results files
+*/Results/
+
 # mypy
 .mypy_cache/
-/Results/
 /Drawings/
 /Tests/
-/cases/SFT2020/Results/
-/cases/ECOS_collab_2020/Results/
-/cases/ECOS_TestCases_2020/Results/
-/cases/Edwin_profiles/Results/
+

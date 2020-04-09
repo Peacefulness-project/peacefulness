@@ -5,6 +5,9 @@ from src.common.Strategy import Strategy
 
 class LightAutarkyEmergency(Strategy):
 
+    def __init__(self):
+        super().__init__("light_autarky_emergency_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

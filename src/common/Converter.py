@@ -2,11 +2,12 @@
 # For the downstream aggregator, it looks like a conversion point, but, for the upstream aggregator, it looks like a device.
 # The main difference between a conversion point and a device is the following: when the device is a "customer" for the aggregator, it is the aggregator who is the customer of the conversion point.
 from json import load
+from src.tools.GlobalWorld import get_world
 
 
 class Converter:
 
-    def __init__(self, world, name, contract, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name, parameters=None):
+    def __init__(self, name, contract, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -27,6 +28,7 @@ class Converter:
             raise ConverterException(f"the contract has to be defined for nature {contract.nature.name}")
         self._contract = contract
 
+        world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # linking the catalog to the device
 
         world.register_converter(self)

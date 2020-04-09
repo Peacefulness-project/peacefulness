@@ -13,6 +13,7 @@ def get_subclasses():  # this function returns all subclasses
     classes_concerned = list_files_and_folders("lib/Subclasses/")  # the list of all classes concerned by subclasses
 
     for class_name in classes_concerned:
+        subclasses_dictionary[class_name] = {}  # a sub-dictionary containing all the subclasses of the concerned class
         class_directory = "lib/Subclasses/" + class_name  # the directory containing subclasses of one class
         subclasses_list = list_files_and_folders(class_directory)  # list of all subclasses for a given class
 
@@ -21,8 +22,7 @@ def get_subclasses():  # this function returns all subclasses
             subclass_module = import_module(subclass_file)  # we import the .py file
             for subclass_name, subclass_class in inspect.getmembers(subclass_module):
                 if inspect.isclass(subclass_class) and subclass_name != class_name:  # get back only the subclasses
-                    subclasses_dictionary[subclass_name] = subclass_class  # the subclass is added to the subclass list
-                # todo: trouver un moyen d'esquiver les exceptions et les classes intermédiaires de devices pour pouvoir lever une erreur
+                    subclasses_dictionary[class_name][subclass_name] = subclass_class  # the subclass is added to the subclass list
 
     return subclasses_dictionary
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from src.common.World import World
-from src.common.Nature import Nature
+from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity
 from src.common.Aggregator import Aggregator
 from src.common.Agent import Agent
 from src.common.Datalogger import Datalogger
@@ -41,76 +41,67 @@ def create_world_with_set_parameters(exchange_strategy, distribution_strategy, r
     return world
 
 
-def create_strategies(world, exchange_strategy, distribution_strategy):
+def create_strategies(exchange_strategy, distribution_strategy):
     if exchange_strategy == "BAU":
         # the local electrical grid strategy
-        description = "Depends on the case"
-        name_supervisor = "elec_supervisor"
-        supervisor_elec = subclasses_dictionary[f"AlwaysSatisfied"](world, name_supervisor, description)
+        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
     elif exchange_strategy == "Profitable":
         # the local electrical grid strategy
-        description = "Depends on the case"
-        name_supervisor = "elec_supervisor"
-        supervisor_elec = subclasses_dictionary[f"WhenProfitable{distribution_strategy}"](world, name_supervisor, description)
+        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitable{distribution_strategy}"]()
     else:
         # the local electrical grid strategy
-        description = "Depends on the case"
-        name_supervisor = "elec_supervisor"
-        supervisor_elec = subclasses_dictionary[f"Autarky{distribution_strategy}"](world, name_supervisor, description)
+        supervisor_elec = subclasses_dictionary["Strategy"][f"Autarky{distribution_strategy}"]()
 
     # the national grid strategy
-    description = "this supervisor represents the ISO. Here, we consider that it has an infinite capacity to give or to accept energy"
-    name_supervisor = "benevolent_operator"
-    grid_supervisor = subclasses_dictionary["Grid"](world, name_supervisor, description)
+    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
 
     return {"elec": supervisor_elec, "grid": grid_supervisor}
 
 
-def create_natures(world):
-    nature_name = "LVE"
-    nature_description = "Low Voltage Electricity"
-    elec = Nature(world, nature_name, nature_description)  # creation of a nature
+def create_natures():
+    # low voltage electricity
+    LVE = load_low_voltage_electricity()
 
-    return {"elec": elec}
+    return {"elec": LVE}
 
 
-def create_aggregators(world, natures, strategies):
+def create_aggregators(natures, strategies):
     # and then we create a third who represents the grid
     aggregator_name = "Enedis"
-    aggregator_grid = Aggregator(world, aggregator_name, natures["elec"], strategies["grid"])
+    aggregator_grid = Aggregator(aggregator_name, natures["elec"], strategies["grid"])
 
     # here we create a second one put under the orders of the first
     aggregator_name = "general_aggregator"
-    aggregator_elec = Aggregator(world, aggregator_name,  natures["elec"], strategies["elec"], aggregator_grid)  # creation of a aggregator
+    aggregator_elec = Aggregator(aggregator_name,  natures["elec"], strategies["elec"], aggregator_grid)  # creation of a aggregator
 
     return {"grid": aggregator_grid, "elec": aggregator_elec}
 
 
-def create_contracts(world, natures):
+def create_contracts(natures):
     flat_prices_elec = "flat_prices_elec"
 
-    BAU_contract_elec = subclasses_dictionary["FlatEgoistContract"](world, "BAU_elec", natures["elec"], flat_prices_elec)  # contract for the PV field
-    cooperative_contract_elec = subclasses_dictionary["FlatCooperativeContract"](world, "cooperative_contract_elec", natures["elec"], flat_prices_elec)  # contract for the wind turbine
+    BAU_contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], flat_prices_elec)  # contract for the PV field
+    cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", natures["elec"], flat_prices_elec)  # contract for the wind turbine
 
     return [{"PV": BAU_contract_elec, "WT": cooperative_contract_elec}, {"elec": flat_prices_elec}]
 
 
-def create_agents(world):
-    PV_producer = Agent(world, "PV_producer")  # the owner of the PV panels
+def create_agents():
+    PV_producer = Agent("PV_producer")  # the owner of the PV panels
 
-    WT_producer = Agent(world, "WT_producer")  # creation of an agent
+    WT_producer = Agent("WT_producer")  # creation of an agent
 
     return {"PV": PV_producer, "WT": WT_producer}
 
 
 def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, renewable_proportion):
     if renewable_proportion == "low_renewable":
-        subclasses_dictionary["PV"](world, "PV_field", contracts['PV'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 6700})  # creation of a photovoltaic panel field
-        subclasses_dictionary["WindTurbine"](world, "wind_turbine", contracts['WT'], agents['WT'], aggregators['elec'], "ECOS", "ECOS_low")  # creation of a wind turbine
+        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['PV'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 6700})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", contracts['WT'], agents['WT'], aggregators['elec'], "ECOS", "ECOS_low")  # creation of a wind turbine
 
     elif renewable_proportion == "high_renewable":
-        subclasses_dictionary["PV"](world, "PV_field", contracts['PV'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 20100})  # creation of a photovoltaic panel field
-        subclasses_dictionary["WindTurbine"](world, "wind_turbine", contracts['WT'], agents['WT'], aggregators['elec'], "ECOS", "ECOS_high")  # creation of a wind turbine
+        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['PV'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 20100})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", contracts['WT'], agents['WT'], aggregators['elec'], "ECOS", "ECOS_high")  # creation of a wind turbine
 
     elif renewable_proportion == "no_renewable":
         pass  # no renewable energy source is created
@@ -145,46 +136,46 @@ def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proport
     world.agent_generation(curtailment, "cases/ECOS_TestCases_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregators["elec"]], {"LVE": price_IDs["elec"]})
 
 
-def create_daemons(world, natures, price_IDs):
+def create_daemons(natures, price_IDs):
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    subclasses_dictionary["PriceManagerTOUDaemon"](world, "LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+    subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
 
-    subclasses_dictionary["GridPricesDaemon"](world, "grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]("grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
-    subclasses_dictionary["OutdoorTemperatureDaemon"](world, "Azzie", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]("Azzie", {"location": "Pau"})
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
-    subclasses_dictionary["IndoorTemperatureDaemon"](world, "Asie")
+    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]("Asie")
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["ColdWaterDaemon"](world, "Mephisto", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]("Mephisto", {"location": "Pau"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    subclasses_dictionary["IrradiationDaemon"](world, "toto", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["IrradiationDaemon"]("toto", {"location": "Pau"})
 
     # Wind
-    subclasses_dictionary["WindDaemon"](world, "Wind_Daemon", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["WindDaemon"]("Wind_Daemon", {"location": "Pau"})
 
 
-def create_dataloggers(world, renewable_proportion):
+def create_dataloggers(renewable_proportion):
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["ContractBalanceDatalogger"](world)
-    subclasses_dictionary["AggregatorBalanceDatalogger"](world)
-    subclasses_dictionary["NatureBalanceDatalogger"](world)
+    subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
 
-    subclasses_dictionary["ECOSAggregatorDatalogger"](world)
-    subclasses_dictionary["GlobalValuesDatalogger"](world)
+    subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
+    subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()
 
 
     # datalogger used to get back producer outputs
-    producer_datalogger = Datalogger(world, "producer_datalogger", "ProducerBalances.txt")
+    producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
 
     if renewable_proportion != "no_renewable":
         producer_datalogger.add(f"PV_producer.LVE.energy_erased")

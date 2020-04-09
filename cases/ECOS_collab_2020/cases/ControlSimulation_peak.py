@@ -1,4 +1,3 @@
-# first run for SFT 2020
 # Exchange strategy: BAU
 # Contract: 100 Normal, 0 DLC, 0 Curtailment
 # renewable sizing: peak
@@ -26,28 +25,28 @@ world = create_world_with_set_parameters(chosen_strategy, DSM_proportion, sizing
 # Model creation
 # ##############################################################################################
 # Strategies
-strategies = create_strategies(world, chosen_strategy)
+strategies = create_strategies(chosen_strategy)
 
 # Natures
-natures = create_natures(world)
+natures = create_natures()
 
 # Contracts
-[contracts, price_IDs] = create_contracts(world, natures)
+[contracts, price_IDs] = create_contracts(natures)
 
 # Aggregators
-aggregators = create_aggregators(world, natures, strategies)
+aggregators = create_aggregators(natures, strategies)
 
 # Agents
-agents = create_agents(world)
+agents = create_agents()
 
 # Devices
 create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing)
 
 # Daemons
-create_daemons(world, natures, price_IDs, sizing)
+create_daemons(natures, price_IDs, sizing)
 
 # Dataloggers
-create_dataloggers(world)
+create_dataloggers()
 
 # ##############################################################################################
 # Simulation

@@ -1,12 +1,12 @@
 # Contract are objects used to enable/disable certain operations during the supervision
 # They also serve to specify the way of billing the agents
+from src.tools.GlobalWorld import get_world
 
 
 class Contract:
 
-    def __init__(self, world, name, nature, identifier, parameters=None):
+    def __init__(self, name, nature, identifier, parameters=None):
         self._name = name
-        self._catalog = world.catalog
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
@@ -19,6 +19,9 @@ class Contract:
             self._parameters = parameters
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
+
+        world = get_world()  # get automatically the world defined for this case
+        self._catalog = world.catalog
 
         self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
         self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract

@@ -1,16 +1,18 @@
 # This class represents agent i.e the people or the enterprise which owns
 # consumption and/or production points
 # It is linked with a contract
+from src.tools.GlobalWorld import get_world
 
 
 class Agent:
 
-    def __init__(self, world, name):
+    def __init__(self, name):
         self._name = name  # the name written in the catalog
 
         self._contracts = dict()  # the contract defines the type of strategy relevant
         # for the agent for each nature of energy. A contract is a keyword (for now, at least)
 
+        world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         # Creation of specific entries in the catalog

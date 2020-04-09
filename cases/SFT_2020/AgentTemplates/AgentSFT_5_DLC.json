@@ -16,7 +16,7 @@
   "contracts": {
     "LVE_DLC":  ["LVE", "TOUCooperativeContract"],
     "LVE_BAU":  ["LVE", "FlatEgoistContract"],
-    "heat_DLC":  ["Heat", "FlatCooperativeContract"]
+    "heat_DLC":  ["LTH", "FlatCooperativeContract"]
 
   }
 

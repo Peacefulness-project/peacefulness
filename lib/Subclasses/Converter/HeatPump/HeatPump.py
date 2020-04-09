@@ -4,8 +4,8 @@ from src.common.Converter import Converter
 
 class HeatPump(Converter):
 
-    def __init__(self, world, name, contract, agent, upstream_aggregator, downstream_aggregator, technical_profile_name):
-        super().__init__(world, name, contract, agent, "lib/Subclasses/Converter/HeatPump/HeatPump.json", upstream_aggregator, downstream_aggregator, technical_profile_name)
+    def __init__(self, name, contract, agent, upstream_aggregator, downstream_aggregator, technical_profile_name):
+        super().__init__(name, contract, agent, "lib/Subclasses/Converter/HeatPump/HeatPump.json", upstream_aggregator, downstream_aggregator, technical_profile_name)
 
         self._energy_physical_limits = {"minimum_energy": self._capacity/2*0, "maximum_energy": self._capacity}
 

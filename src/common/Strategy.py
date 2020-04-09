@@ -1,14 +1,16 @@
 # This sheet describes the supervisor
 # It contains only the name of a file serving as a "main" for the supervisor and a description
 from math import inf
+from src.tools.GlobalWorld import get_world
 
 
 class Strategy:
 
-    def __init__(self, world, name, description):
+    def __init__(self, name, description):
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
+        world = get_world()  # get the object world
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         world.register_strategy(self)  # register the strategy into world dedicated dictionary

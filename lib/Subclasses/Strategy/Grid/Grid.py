@@ -6,6 +6,9 @@ from math import inf
 
 class Grid(Strategy):
 
+    def __init__(self):
+        super().__init__("grid_strategy", "Special strategy: represents an infinite source/well of energy, like the national grid of electricity or gas. Does not manage nothing: just sell or buy energy when prices are superior to the ones practiced by the grid.")
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

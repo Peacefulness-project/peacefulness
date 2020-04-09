@@ -3,13 +3,14 @@
 from datetime import datetime
 from json import load
 from math import ceil
-# Current packages
+# Local packages
 from src.tools.Utilities import middle_separation, into_list
+from src.tools.GlobalWorld import get_world
 
 
 class Device:
 
-    def __init__(self, world, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -59,6 +60,7 @@ class Device:
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
 
+        world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # linking the catalog to the device
 
         world.register_device(self)  # register this device into world dedicated dictionary
@@ -177,7 +179,7 @@ class Device:
 
     def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
         for nature in self.natures:  # publication of the consumption in the catalog
-            energy_wanted[nature.name] = self.natures[nature]["contract"].quantity_modification(energy_wanted[nature.name], self.agent.name)  # the contract may modify the energy wanted
+            energy_wanted[nature.name] = self.natures[nature]["contract"].quantity_modification(energy_wanted[nature.name], self.agent.name)  # the contract may modify the offer
             self.set_energy_wanted_quantity(nature, energy_wanted[nature.name]["energy_minimum"], energy_wanted[nature.name]["energy_nominal"], energy_wanted[nature.name]["energy_maximum"])  # publication of the energy wanted in the catalog
             self.set_energy_wanted_price(nature, energy_wanted[nature.name]["price"])  # publication of the price of the energy wanted in the catalog
 

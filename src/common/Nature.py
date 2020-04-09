@@ -1,12 +1,13 @@
 # List of energy
 # This class is just a dictionary containing the different nature of energy
 # A representative of this class is created for each world
+from src.tools.GlobalWorld import get_world
 
 
 class Nature:  # this class contains the different natures
     _list = list()  # a list indexing all types of nature
 
-    def __init__(self, world, name, description):
+    def __init__(self, name, description):
         Nature._list = list()  # a list indexing all types of nature
 
         if name in Nature._list:  # to avoid double definitions
@@ -15,6 +16,7 @@ class Nature:  # this class contains the different natures
             Nature._list.append(name)
             self._name = name  # the name of the nature, which is used as a keyword
 
+        world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         self.description = description  # a description of the nature

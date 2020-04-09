@@ -34,7 +34,7 @@
 
   "contracts": {
     "LVE_BAU":  ["LVE", "FlatCooperativeContract"],
-    "Heat_BAU":  ["Heat", "FlatEgoistContract"]
+    "Heat_BAU":  ["LTH", "FlatEgoistContract"]
   }
 
 }

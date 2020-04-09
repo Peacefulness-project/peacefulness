@@ -5,8 +5,8 @@ from src.tools.Utilities import sign
 
 class TOUCurtailmentContract(Contract):
 
-    def __init__(self, world, name, nature, identifier=None):
-        super().__init__(world, name, nature, identifier)
+    def __init__(self, name, nature, identifier=None):
+        super().__init__(name, nature, identifier)
 
         self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
                            "Meanwhile, the customer can be shifted and erased, which means she accepts not be served at all."
