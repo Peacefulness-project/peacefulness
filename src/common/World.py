@@ -113,7 +113,7 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
-    def set_time(self, start_date=datetime.now(), timestep_value=1, time_limit=24):  # definition of a time manager
+    def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 

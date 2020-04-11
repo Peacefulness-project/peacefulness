@@ -1,27 +1,8 @@
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-#
-#                                               PEACEFULNESS
-#
-#           Platform for transverse evaluation of control strategies for multi-energy smart grids
-#
-#
-#
-# Coordinators: Dr E. Franquet, Dr S. Gibout (erwin.franquet@univ-pau.fr, stephane.gibout@univ-pau.fr)
-# Contributors (alphabetical order): Dr E. Franquet, Dr S. Gibout, T. Gronier
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-# ==================================================================================================================
-
+# This case checks if the balances are made correctly at every scale.
 
 # ##############################################################################################
 # Importations
 from datetime import datetime
-
-from time import process_time
 
 from src.tools.Utilities import adapt_path
 
@@ -38,10 +19,6 @@ from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
-
-# ##############################################################################################
-# Performance measurement
-CPU_time = process_time()
 
 # ##############################################################################################
 # Minimum
@@ -96,13 +73,8 @@ world.set_time(start_date,  # time management: start date
 # Strategy
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
-# AutarkyEmergency AlwaysSatisfied WhenProfitable
-
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
+strategy_BAU = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # the strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -131,11 +103,11 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy)
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_grid)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_BAU, aggregator_grid)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat)  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_BAU)  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -144,18 +116,11 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat)  # creation of
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 
 # producers
-TOU_prices = "TOU_prices"
-BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, TOU_prices)
+prices_elec = "TOU_prices"
+BAU_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, prices_elec)
 
-flat_prices_heat = "flat_prices_heat"
-BAU_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, flat_prices_heat)
-cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, flat_prices_heat)
-
-flat_prices_elec = "flat_prices_elec"
-# cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, flat_prices_elec)
-
-owned_by_aggregator = "owned_by_aggregator"
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, owned_by_aggregator)
+prices_heat = "flat_prices_heat"
+BAU_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, prices_heat)
 
 
 # ##############################################################################################
@@ -166,13 +131,6 @@ WT_producer = Agent("WT_producer")  # creation of an agent
 
 DHN_producer = Agent("DHN_producer")  # creation of an agent
 
-heat_pump_owner = Agent("heat_pump_owner")
-
-
-# ##############################################################################################
-# Converter
-# heatpump = subclasses_dictionary["Converter"]["HeatPump"]("heat_pump", BAU_elec, heat_pump_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump")
-
 
 # ##############################################################################################
 # Device
@@ -180,25 +138,8 @@ heat_pump_owner = Agent("heat_pump_owner")
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
-heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
-
-# Performance measurement
-CPU_time_generation_of_device = process_time()
-# the following method create "n" agents with a predefined set of devices based on a JSON file
-
-
-# # # BAU contracts
-world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "LTH": flat_prices_heat})
-
-# CPU time measurement
-CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
-filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
-file = open(filename, "a")  # creation of the file
-file.write(f"time taken by the device generation phase: {CPU_time_generation_of_device}\n")
-file.close()
+# wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
+# heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
 
 # ##############################################################################################
@@ -214,8 +155,8 @@ file.close()
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("toto", 1, {"nature": LVE.name, "buying_price": 0, "selling_price": 0, "identifier": owned_by_aggregator})  # as these devices are owned by the aggregator, energy is free
 price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("titi", 1, {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_elec})  # sets prices for flat rate
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("Picsou", 1, {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_heat})  # sets prices for flat rate
-price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("Flairsou", 1, {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("Picsou", 1, {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": prices_heat})  # sets prices for flat rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("Flairsou", 1, {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": prices_elec})  # sets prices for TOU rate
 price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]("LVE_tariffs", 1, {"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
 price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]("Heat_tariffs", 1, {"nature": LTH.name, "grid_buying_price": 0.30, "grid_selling_price": 0.00})  # sets prices for the system operator
 
@@ -291,41 +232,19 @@ test_datalogger.add("egoist_family_0.money_spent")
 test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
 test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
-# CPU time measurement
-CPU_time = process_time() - CPU_time  # time taken by the initialization
-filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
-file = open(filename, "a")  # creation of the file
-file.write(f"time taken by the initialization phase: {CPU_time}\n")
-file.close()
-
 
 # ##############################################################################################
 # here we have the possibility to save the world to use it later
-save_wanted = True
+save_wanted = False
 
 if save_wanted:
-    CPU_time = process_time()  # CPU time measurement
+    world.save()  # saving the world
 
-    # world.save()  # saving the world
-
-    # CPU time measurement
-    CPU_time = process_time() - CPU_time  # time taken by the initialization
-    filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
-    file = open(filename, "a")  # creation of the file
-    file.write(f"time taken by the saving phase: {CPU_time}\n")
-    file.close()
 
 # ##############################################################################################
 # simulation
-CPU_time = process_time()  # CPU time measurement
 world.start()
 
-# CPU time measurement
-CPU_time = process_time() - CPU_time  # time taken by the initialization
-filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
-file = open(filename, "a")  # creation of the file
-file.write(f"time taken by the calculation phase: {CPU_time}\n")
-file.close()
 
 
 

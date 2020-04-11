@@ -22,7 +22,8 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
 
         for nature_name in self._natures_list:
             file.write(f"ratio_canceled.{nature_name}\t")
-            file.write(f"bill.{nature_name}\t")
+
+        file.write(f"bill\t")
 
         file.write(f"\t")
 
@@ -77,7 +78,8 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
                 canceled_ratio = None
 
             file.write(f"{canceled_ratio}\t")
-            file.write(f"{bill}\t")
+
+        file.write(f"{bill}\t")
 
         file.write("\n")
         file.close()
