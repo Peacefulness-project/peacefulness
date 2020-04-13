@@ -9,7 +9,7 @@ class IndoorTemperatureDaemon(Daemon):
     def __init__(self, name, period=0, parameters=None):
         super().__init__(name, period, parameters)
 
-        self._agent_list = None
+        self._agent_list = None  # all the agents concerned with indoor temperature
 
         # get back the list of agents needing temperature calculation
         self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient

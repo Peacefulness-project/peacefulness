@@ -5,10 +5,11 @@ from src.common.Daemon import Daemon
 
 class WindDaemon(Daemon):
 
-    def __init__(self, name, parameters, period=0):
-        super().__init__(name, period, parameters)
-
+    def __init__(self, parameters, period=0):
         self._location = parameters["location"]  # the location corresponding to the data
+
+        name = "win_speed_in_" + self._location
+        super().__init__(name, period, parameters)
 
         # getting the data for the chosen location
         file = open("lib/Subclasses/Daemon/WindDaemon/WindProfiles.json", "r")

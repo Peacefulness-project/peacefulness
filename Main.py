@@ -225,19 +225,19 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]("outdoor_temperature_daemon", {"location": "Pau"})
+outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]("water_temperature_daemon", {"location": "Pau"})
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
 
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation
-irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]("irradiation_daemon", {"location": "Pau"})
+irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
 
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]("wind_speed_daemon", {"location": "Pau"})
+wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 
 
 # ##############################################################################################

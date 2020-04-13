@@ -165,7 +165,7 @@ def create_daemons(natures, price_IDs, sizing):
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
-    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]("Azzie", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -173,11 +173,11 @@ def create_daemons(natures, price_IDs, sizing):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]("Mephisto", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    subclasses_dictionary["Daemon"]["IrradiationDaemon"]("toto", {"location": "Pau"})
+    subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
 
 
 def create_dataloggers():

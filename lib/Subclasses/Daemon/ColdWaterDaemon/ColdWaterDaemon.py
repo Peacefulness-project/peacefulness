@@ -6,10 +6,11 @@ from src.common.Daemon import Daemon
 
 class ColdWaterDaemon(Daemon):
 
-    def __init__(self, name, parameters, period=1):
-        super().__init__(name, period, parameters)
-
+    def __init__(self, parameters, period=1):
         self._location = parameters["location"]  # the location corresponding to the data
+
+        name = "cold_water_temperature_in_" + self._location
+        super().__init__(name, period, parameters)
 
         # getting the data for the chosen location
         file = open("lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json", "r")

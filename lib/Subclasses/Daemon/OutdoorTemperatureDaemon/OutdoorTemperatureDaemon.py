@@ -7,12 +7,13 @@ from src.common.Daemon import Daemon
 
 class OutdoorTemperatureDaemon(Daemon):
 
-    def __init__(self, name, parameters, period=1):
+    def __init__(self, parameters, period=1):
+        self._location = parameters["location"]  # the location corresponding to the data
+
+        name = "outdoor_temperature_in_" + self._location
         super().__init__(name, period, parameters)
 
-        self._agent_list = None
-
-        self._location = parameters["location"]  # the location corresponding to the data
+        self._agent_list = None  # all the agents concerned with outdoor temperature
 
         # getting the data for the chosen location
         file = open("lib/Subclasses/Daemon/OutdoorTemperatureDaemon/TemperatureProfiles.json", "r")
