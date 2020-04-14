@@ -6,7 +6,8 @@ from src.common.Daemon import Daemon
 
 class DissatisfactionErosionDaemon(Daemon):
 
-    def __init__(self, name, period=0, parameters=None):
+    def __init__(self, period=0, parameters=None):
+        name = "dissatisfaction_manager"
         super().__init__(name, period, parameters)
         self._coefficient = parameters["coef_1"] ** (1 / parameters["coef_2"])
 

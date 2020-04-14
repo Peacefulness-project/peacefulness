@@ -4,11 +4,7 @@
 # Importations
 from datetime import datetime
 
-from src.tools.Utilities import adapt_path
-
 from src.common.World import World
-
-from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
@@ -72,7 +68,7 @@ world.set_time(start_date,  # time management: start date
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
-# indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]("indoor_temperature", 1)
+# indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog

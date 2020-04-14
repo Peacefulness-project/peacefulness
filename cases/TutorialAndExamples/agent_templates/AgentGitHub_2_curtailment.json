@@ -12,8 +12,8 @@
   },
 
   "contracts": {
-    "LVE_curtailment":  ["LVE", "TOUCurtailmentContract", {"selling_price": 0.12, "buying_price": 0.11}],
-    "heat_curtailment":  ["LTH", "FlatCurtailmentContract", {"selling_price": 0.1, "buying_price": 0.08}]
+    "LVE_curtailment":  ["LVE", "TOUCurtailmentContract"],
+    "heat_curtailment":  ["LTH", "FlatCurtailmentContract"]
   }
 
 }

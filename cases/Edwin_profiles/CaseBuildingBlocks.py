@@ -105,13 +105,13 @@ def create_devices(world, aggregators, price_IDs, country, weather_city):
 def create_daemons(natures, price_IDs, weather):
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("Heat_tariffs", 1, {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["heat"]})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("Cold_tariffs", 1, {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["cold"]})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["cold"]})  # sets prices for the system operator
 
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"]("grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"]("grid_prices_heat", 1, {"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"]("grid_prices_cold", 1, {"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
@@ -119,7 +119,7 @@ def create_daemons(natures, price_IDs, weather):
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
-    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]("Asie")
+    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog

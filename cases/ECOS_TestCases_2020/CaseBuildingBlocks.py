@@ -139,9 +139,9 @@ def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proport
 def create_daemons(natures, price_IDs):
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("LVE_tariffs", 1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
+    subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
 
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"]("grid_prices_elec", 1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
@@ -149,7 +149,7 @@ def create_daemons(natures, price_IDs):
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
-    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]("Asie")
+    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog

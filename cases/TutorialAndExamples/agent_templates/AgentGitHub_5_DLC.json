@@ -12,9 +12,9 @@
   },
 
   "contracts": {
-    "LVE_DLC":  ["LVE", "TOUCooperativeContract", {"selling_price": 0.12, "buying_price": 0.11}],
-    "LVE_BAU":  ["LVE", "FlatEgoistContract", {"selling_price": 0.12, "buying_price": 0.11}],
-    "heat_DLC":  ["LTH", "FlatCooperativeContract", {"selling_price": 0.1, "buying_price": 0.08}]
+    "LVE_DLC":  ["LVE", "TOUCooperativeContract"],
+    "LVE_BAU":  ["LVE", "FlatEgoistContract"],
+    "heat_DLC":  ["LTH", "FlatCooperativeContract"]
 
   }
 

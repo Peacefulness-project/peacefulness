@@ -6,8 +6,9 @@ from math import exp
 
 class IndoorTemperatureDaemon(Daemon):
 
-    def __init__(self, name, period=0, parameters=None):
-        super().__init__(name, period, parameters)
+    def __init__(self):
+        name = "indoor_temperature_manager"
+        super().__init__(name, 1)  # the period is set to 1
 
         self._agent_list = None  # all the agents concerned with indoor temperature
 
