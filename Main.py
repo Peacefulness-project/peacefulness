@@ -155,7 +155,7 @@ flat_prices_elec = "flat_prices_elec"
 cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, flat_prices_elec)
 
 owned_by_aggregator = "owned_by_aggregator"
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, owned_by_aggregator)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("owned_by_aggregator", LVE, owned_by_aggregator)
 
 
 # ##############################################################################################
@@ -184,15 +184,17 @@ wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", co
 
 heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
+heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat")
+
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 
 
-# # # BAU contracts
+#BAU contracts
 world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
 world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "LTH": flat_prices_heat})
+world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": flat_prices_elec, "LTH": flat_prices_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -208,13 +210,13 @@ file.close()
 
 # Price Managers
 # these daemons fix a price for a given nature of energy
-price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": LVE.name, "buying_price": 0, "selling_price": 0, "identifier": owned_by_aggregator})  # as these devices are owned by the aggregator, energy is free
-price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_elec})  # sets prices for flat rate
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_heat})  # sets prices for flat rate
-price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
+price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LVE.name, "buying_price": 0, "selling_price": 0, "identifier": owned_by_aggregator})  # as these devices are owned by the aggregator, energy is free
+price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_elec})  # sets prices for flat rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1, "identifier": flat_prices_heat})  # sets prices for flat rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]({"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
 
-price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
-price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": LTH.name, "grid_buying_price": 0.30, "grid_selling_price": 0.00})  # sets prices for the system operator
+price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
+price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LTH.name, "grid_buying_price": 0.30, "grid_selling_price": 0.00})  # sets prices for the system operator
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog

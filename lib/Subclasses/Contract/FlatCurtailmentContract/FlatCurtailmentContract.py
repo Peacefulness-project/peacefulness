@@ -5,17 +5,10 @@ from src.tools.Utilities import sign
 
 class FlatCurtailmentContract(Contract):
 
-    def __init__(self, name, nature, identifier=None):
+    def __init__(self, name, nature, identifier):
         super().__init__(name, nature, identifier)
 
         self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
-
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):
-        pass
 
     # ##########################################################################################
     # Dynamic behaviour

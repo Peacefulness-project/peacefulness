@@ -18,7 +18,7 @@ class InstantHotWaterTank(ChargerDevice):
 
         self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
 
-    def _get_consumption(self):
+    def _read_data_profiles(self):
 
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 

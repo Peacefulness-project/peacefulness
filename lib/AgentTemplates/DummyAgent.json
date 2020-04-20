@@ -4,7 +4,7 @@
   "composition": {
     "Background": [["Background", "single", "single", [1,1], "LVE_BAU"]],
 
-    "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
+    "Charger": [["Charger", "default", "laptop_charger", [1,4], "LVE_BAU"]],
     "Cooling": [["Cooling", "residential", "house_elec", [1,1], "LVE_BAU"]],
 
     "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1], "LVE_BAU"]],

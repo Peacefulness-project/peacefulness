@@ -16,13 +16,6 @@ class Strategy:
         world.register_strategy(self)  # register the strategy into world dedicated dictionary
 
     # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _register(self, catalog):  # add a catalog and create relevant entries
-        self._catalog = catalog  # linking the local grid with the catalog of world
-
-    # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 

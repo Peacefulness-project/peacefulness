@@ -5,6 +5,8 @@
 # Importations
 from datetime import datetime
 
+from os import chdir
+
 from src.common.World import World
 
 from src.common.Nature import Nature
@@ -18,20 +20,19 @@ from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
-# ##############################################################################################
-# Rerooting
-# ##############################################################################################
-
-# here, we reroot this script at the root of the project.
-from os import chdir
-chdir("../../")  # root of the project
-
 
 # ##############################################################################################
 # Minimum
 # the following objects are necessary for the simulation to be performed
 # you need exactly one object of each type
 # ##############################################################################################
+
+# ##############################################################################################
+# Rerooting
+# ##############################################################################################
+
+# here, we reroot this script at the root of the project.
+chdir("../../")  # root of the project
 
 
 # ##############################################################################################
@@ -63,8 +64,7 @@ world.set_random_seed("tournesol")
 # ##############################################################################################
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = datetime.now()  # a start date in the datetime format
-start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24*365)  # number of time steps simulated
@@ -103,9 +103,9 @@ orgone = Nature(name, description)
 
 
 # ##############################################################################################
-# Creation of clusters
+# Creation of aggregators
 
-# and then we create a third who represents the grid
+# we create a first aggregator who represents the national electrical grid
 aggregator_name = "Enedis"
 aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy)
 
@@ -113,7 +113,7 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy)
 aggregator_name = "general_aggregator"
 aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_grid)  # creation of a aggregator
 
-# here we create another aggregator dedicated to heat
+# here we create another aggregator dedicated to heat, under the order of the local electrical grid
 aggregator_name = "Local_DHN"
 aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, 3.6, 2000)  # creation of a aggregator
 
@@ -176,12 +176,12 @@ world.agent_generation(135, "cases/TutorialAndExamples/agent_templates/AgentGitH
 
 # Price Managers
 # this daemons fix a price for a given nature of energy
-price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.11, "identifier": flat_prices_elec})  # sets prices for TOU rate
-price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08, "identifier": flat_prices_heat})  # sets prices for flat rate
+price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.11, "identifier": flat_prices_elec})  # sets prices for TOU rate
+price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]({"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08, "identifier": flat_prices_heat})  # sets prices for flat rate
 
-price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": LTH.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
+price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
+price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LTH.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -225,7 +225,7 @@ aggregator_balances = subclasses_dictionary["Datalogger"]["AggregatorBalanceData
 
 # ##############################################################################################
 # here we have the possibility to save the world to use it later
-# world.save()  # saving the world
+# world.save()  # saving the world for a later use
 
 
 # ##############################################################################################

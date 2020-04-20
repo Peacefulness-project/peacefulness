@@ -17,7 +17,7 @@ class SolarThermalCollector(NonControllableDevice):
         self._catalog.add(f"{self.name}_exergy_in", 0)
         self._catalog.add(f"{self.name}_exergy_out", 0)
 
-    def _get_consumption(self):
+    def _read_data_profiles(self):
         self._usage_profile = dict()
 
         [data_user, data_device] = self._read_consumption_data()  # getting back the profiles

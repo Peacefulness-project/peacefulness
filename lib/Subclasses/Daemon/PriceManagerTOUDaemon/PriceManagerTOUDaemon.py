@@ -4,11 +4,11 @@ from src.common.Daemon import Daemon
 
 class PriceManagerTOUDaemon(Daemon):
 
-    def __init__(self, period=0, parameters=None):
+    def __init__(self, parameters=None):
         self._identifier = parameters["identifier"]  # the identifier used for the contracts managed by this
 
         name = "price_manager_" + self._identifier
-        super().__init__(name, period, parameters)
+        super().__init__(name, 1, parameters)
 
         self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent
         self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent

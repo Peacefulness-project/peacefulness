@@ -10,13 +10,6 @@ class FlatCooperativeContract(Contract):
         self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
 
     # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):
-        pass
-
-    # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 

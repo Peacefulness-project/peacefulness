@@ -130,7 +130,6 @@ class World:
         if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        strategy._register(self._catalog)   # linking the strategy with the catalog of world
         self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
         self._used_names.append(strategy.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing

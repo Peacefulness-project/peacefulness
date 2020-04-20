@@ -95,8 +95,10 @@ class Device:
         self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
         if self._filename != "loaded device":  # if a filename has been defined...
-            self._get_consumption()  # ... then the file is converted into consumption profiles
+            self._read_data_profiles()  # ... then the file is converted into consumption profiles
             # else, the device has been loaded and does not need a data file
+
+        # self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
     # ##########################################################################################
     # Initialization
@@ -109,7 +111,7 @@ class Device:
     # Consumption reading
     # ##########################################################################################
 
-    def _get_consumption(self):
+    def _read_data_profiles(self):
         pass
 
     def _read_consumption_data(self):

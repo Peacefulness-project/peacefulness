@@ -16,7 +16,7 @@ class Background(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _get_consumption(self):
+    def _read_data_profiles(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile

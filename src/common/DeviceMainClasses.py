@@ -11,10 +11,7 @@ class NonControllableDevice(Device):
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):  # make the initialization operations specific to the device
-        pass
-
-    def _get_consumption(self):
+    def _read_data_profiles(self):
 
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
@@ -124,11 +121,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def _user_register(self):  # make the initialization operations specific to the device
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._is_done = []  # list of usage already done during one period
@@ -137,7 +131,11 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                                    0,  # last time step to launch the device initially
                                    0]  # duration during which the device has functioned
 
-    def _get_consumption(self):
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def _read_data_profiles(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -366,26 +364,21 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
-    def _user_register(self):  # make the initialization operations specific to the device
-        self._use_ID = None  # this ID references the ongoing use
-        self._is_done = []  # list of usage already done during one period
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
 
         self._latent_demand = dict()  # the energy in excess or in default after being served
 
-        self._max_power = dict()  # the max power accepted by the device, defined by the profile
-
-        # Creation of specific entries
         for nature in self._natures:
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_minimum")
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted_maximum")
             self._latent_demand[nature] = 0
 
-    def _get_consumption(self):
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def _read_data_profiles(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -519,22 +512,16 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
 
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+
+        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):  # make the initialization operations specific to the device
-
-        self._use_ID = None  # this ID references the ongoing use
-        self._is_done = []  # list of usage already done during one period
-        self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
-
-        self._demand = dict()  # the quantity of energy necessary to fulfill the need for each nature of energy
-
-        self._min_power = dict()  # the max power accepted by the device, defined by the profile for each nature of energy
-        self._max_power = dict()  # the max power accepted by the device, defined by the profile for each nature of energy
-
-    def _get_consumption(self):
+    def _read_data_profiles(self):
 
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 

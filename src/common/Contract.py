@@ -26,8 +26,6 @@ class Contract:
         self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
         self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
 
-        self._user_register()
-
         self._define_prices()  # add this contract to a list of contracts of the same identifier
         # it means that prices are set by the same daemon
 

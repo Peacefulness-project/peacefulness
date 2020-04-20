@@ -4,7 +4,7 @@ from src.common.Daemon import Daemon
 
 class GridPricesDaemon(Daemon):
 
-    def __init__(self, period=0, parameters=None):
+    def __init__(self, parameters, period=1):
         self._nature = parameters["nature"]
 
         name = "grid_prices_manager_for_nature" + self._nature

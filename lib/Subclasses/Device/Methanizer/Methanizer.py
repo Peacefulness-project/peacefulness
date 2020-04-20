@@ -10,7 +10,7 @@ class Methanizer(AdjustableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _get_consumption(self):
+    def _read_data_profiles(self):
         self._usage_profile = dict()
         self._efficiency = None
 

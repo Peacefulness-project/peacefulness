@@ -14,15 +14,7 @@ class Cooling(AdjustableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):  # make the initialization operations specific to the device
-        super()._user_register()
-        self._G = None  # this value represents the quantity of energy to necessary to heat
-        self._thermal_inertia = None  # this value represents the velocity with which the house
-        self._temperature_range = None
-        self._repartition = None  # this dictionary contains the repartition of energy between the different energies used by the device
-        # normally, the sum of these coefficients must be 1
-
-    def _get_consumption(self):
+    def _read_data_profiles(self):
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
