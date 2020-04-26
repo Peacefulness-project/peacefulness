@@ -26,13 +26,17 @@ world = create_world_with_set_parameters(exchange_strategy, distribution_strateg
 # Model creation
 # ##############################################################################################
 # Strategies
+# Strategies
 strategies = create_strategies(exchange_strategy, distribution_strategy)
 
 # Natures
 natures = create_natures()
 
+# Daemons
+price_managing_daemons = create_daemons(natures)
+
 # Contracts
-[contracts, price_IDs] = create_contracts(natures)
+contracts = create_contracts(natures, price_managing_daemons)
 
 # Aggregators
 aggregators = create_aggregators(natures, strategies)
@@ -41,13 +45,11 @@ aggregators = create_aggregators(natures, strategies)
 agents = create_agents()
 
 # Devices
-create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion)
-
-# Daemons
-create_daemons(natures, price_IDs)
+create_devices(world, aggregators, contracts, agents, price_managing_daemons, DSM_proportion)
 
 # Dataloggers
 create_dataloggers()
+
 
 # ##############################################################################################
 # Simulation

@@ -103,6 +103,39 @@ orgone = Nature(name, description)
 
 
 # ##############################################################################################
+# Creation of daemons
+
+# Price Managers
+# this daemons fix a price for a given nature of energy
+price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.11})  # sets prices for TOU rate
+price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+flat_prices_manager_heat = price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for flat rate
+
+price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
+price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LTH.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
+
+# Indoor temperature
+# this daemon is responsible for the value of indoor temperatures in the catalog
+indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
+
+# Outdoor temperature
+# this daemon is responsible for the value of outside temperature in the catalog
+outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+
+# Water temperature
+# this daemon is responsible for the value of the water temperature in the catalog
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+
+# Irradiation
+# this daemon is responsible for updating the value of raw solar irradiation
+irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+# Wind
+# this daemon is responsible for updating the value of raw solar Wind
+wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+
+
+# ##############################################################################################
 # Creation of aggregators
 
 # we create a first aggregator who represents the national electrical grid
@@ -122,14 +155,11 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, 3.6, 2000)  # 
 # Manual creation of contracts
 
 # producers
-TOU_prices = "TOU_prices"
-BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, TOU_prices)
+BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_elec_TOU)
 
-flat_prices_elec = "flat_prices_elec"
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, flat_prices_elec)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_flat)
 
-flat_prices_heat = "flat_prices_heat"
-cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, flat_prices_heat)
+cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
 
 # ##############################################################################################
@@ -156,52 +186,19 @@ heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_produ
 # Automated generation of complete agents (i.e with devices and contracts)
 
 # BAU contracts
-world.agent_generation(165, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(330, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(165, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
+world.agent_generation(165, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(330, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(165, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 # DLC contracts
-world.agent_generation(200, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(400, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(200, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
+world.agent_generation(200, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(400, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(200, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 # Curtailment contracts
-world.agent_generation(135, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(270, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-world.agent_generation(135, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": TOU_prices, "LTH": flat_prices_heat})
-
-
-# ##############################################################################################
-# Creation of daemons
-
-# Price Managers
-# this daemons fix a price for a given nature of energy
-price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.11, "identifier": flat_prices_elec})  # sets prices for TOU rate
-price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]({"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": TOU_prices})  # sets prices for TOU rate
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]({"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08, "identifier": flat_prices_heat})  # sets prices for flat rate
-
-price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LTH.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
-
-# Indoor temperature
-# this daemon is responsible for the value of indoor temperatures in the catalog
-indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
-
-# Outdoor temperature
-# this daemon is responsible for the value of outside temperature in the catalog
-outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
-
-# Water temperature
-# this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
-
-# Irradiation
-# this daemon is responsible for updating the value of raw solar irradiation
-irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
-
-# Wind
-# this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+world.agent_generation(135, "cases/TutorialAndExamples/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(270, "cases/TutorialAndExamples/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(135, "cases/TutorialAndExamples/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 
 # ##############################################################################################

@@ -1,37 +1,35 @@
-# Exchange strategy: profitable
-# Contract: 50 Normal, 33 DLC, 17 Curtailment
-# renewable sizing: peak
-
+# Main simulating instant consumption for the city of Marseille, in France, with the weather of Marseille
 
 # ##############################################################################################
 # Initialization
 # ##############################################################################################
 # Importation
-from cases.ECOS_collab_2020.CaseBuildingBlocks import *
+from cases.Edwin_profiles.CaseBuildingBlocks import *
 
 # parameters
-chosen_strategy = "Profitable"
-DSM_proportion = "low_DSM"
-sizing = "peak"
+# prices = "France"
+habits = "France"
+city_weather = "Marseille"
+set_point = "France"
 
 # Importation of subclasses
 subclasses_dictionary = get_subclasses()
 
 # world and parameters
-world = create_world_with_set_parameters(chosen_strategy, DSM_proportion, sizing)
+world = create_world_with_set_parameters(habits, city_weather, set_point)
 
 
 # ##############################################################################################
 # Model creation
 # ##############################################################################################
 # Strategies
-strategies = create_strategies(chosen_strategy)
+strategies = create_strategies()
 
 # Natures
 natures = create_natures()
 
 # Daemons
-price_managing_daemons = create_daemons(natures, sizing)
+price_managing_daemons = create_daemons(natures, city_weather)
 
 # Contracts
 contracts = create_contracts(natures, price_managing_daemons)
@@ -39,19 +37,18 @@ contracts = create_contracts(natures, price_managing_daemons)
 # Aggregators
 aggregators = create_aggregators(natures, strategies)
 
-# Agents
-agents = create_agents()
-
 # Devices
-create_devices(world, aggregators, contracts, agents, price_managing_daemons, DSM_proportion, sizing)
+create_devices(world, aggregators, price_managing_daemons, city_weather, habits, set_point)
 
 # Dataloggers
 create_dataloggers()
+
 
 # ##############################################################################################
 # Simulation
 # ##############################################################################################
 world.start()
+
 
 
 

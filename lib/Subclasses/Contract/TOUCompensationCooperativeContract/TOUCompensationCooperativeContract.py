@@ -4,8 +4,8 @@ from src.common.Contract import Contract
 
 class TOUCompensationCooperativeContract(Contract):
 
-    def __init__(self, name, nature, identifier, parameters=None):
-        super().__init__(name, nature, identifier, parameters)
+    def __init__(self, name, nature, daemon_name, parameters=None):
+        super().__init__(name, nature, daemon_name, parameters)
 
         self.description = "A contract where the price is fixed over the time at the same tariff than the TOU contract." \
                            "Moreover, the customer accepts shiftable devices to be shifted " \
@@ -20,11 +20,11 @@ class TOUCompensationCooperativeContract(Contract):
 
     # billing
     def _billing_buying(self, quantity):
-        price = self._catalog.get(f"{self.name}.buying_price") * 0.9  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.9  # getting the price per kW.h
         return price
 
     def _billing_selling(self, quantity):
-        price = self._catalog.get(f"{self.name}.selling_price") / 0.9  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.9  # getting the price per kW.h
         return price
 
     def _user_billing(self, agent_name):  # here, the user_billing is used to compensate the agent for its effort

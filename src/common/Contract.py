@@ -5,13 +5,13 @@ from src.tools.GlobalWorld import get_world
 
 class Contract:
 
-    def __init__(self, name, nature, identifier, parameters=None):
+    def __init__(self, name, nature, daemon, parameters=None):
         self._name = name
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
 
-        self._identifier = identifier
+        self._daemon_name = daemon.name
 
         # parameters is an optional dictionary which stores additional information needed by user-defined classes
         # putting these information there allow them to be saved/loaded via world method
@@ -23,8 +23,8 @@ class Contract:
         world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog
 
-        self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
-        self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
+        # self._catalog.add(f"{self.name}.buying_price", None)  # the price paid to buy energy of a given nature with this contract
+        # self._catalog.add(f"{self.name}.selling_price", None)  # the price received by selling energy  of a given nature with this contract
 
         self._define_prices()  # add this contract to a list of contracts of the same identifier
         # it means that prices are set by the same daemon
@@ -43,18 +43,18 @@ class Contract:
     # ##########################################################################################
 
     def _define_prices(self):
-        try:  # if it is the first contract of its class and nature, it creates an entry repertoring all contracts of its class and nature in the catalog
-            # later, a daemon in charge of setting prices saves the list and removes this entry
-            self._catalog.add(f"contracts_{self._identifier}", [])
-        except:
-            pass
+        # try:  # if it is the first contract of its class and nature, it creates an entry repertoring all contracts of its class and nature in the catalog
+        #     later, a daemon in charge of setting prices saves the list and removes this entry
+        # except:
+        #     pass
 
-        contract_list = self._catalog.get(f"contracts_{self._identifier}")
-        contract_list.append(self.name)
-        self._catalog.set(f"contracts_{self._identifier}", contract_list)
-
-    def _user_register(self):
+        # contract_list = self._catalog.get(f"contracts_{self._daemon_name}")
+        # contract_list.append(self.name)
+        # self._catalog.set(f"contracts_{self._daemon_name}", contract_list)
         pass
+    #
+    # def _user_register(self):
+    #     pass
 
     # ##########################################################################################
     # Dynamic behaviour

@@ -10,23 +10,11 @@ class IndoorTemperatureDaemon(Daemon):
         name = "indoor_temperature_manager"
         super().__init__(name, 1)  # the period is set to 1
 
-        self._agent_list = None  # all the agents concerned with indoor temperature
-
-        # get back the list of agents needing temperature calculation
-        self._agent_list = self._catalog.get("agents_with_temperature_devices")  # here are stored agent names, their thermal inertia and their G coefficient
-        self._catalog.remove("agents_with_temperature_devices")  # the entry is not useful anymore in the catalog, so it is deleted
-
-        # set initial indoor temperatures to the outdoor initial temperature
-        for agent_name in self._agent_list:
-            self._catalog.set(f"{agent_name}.previous_indoor_temperature", 17)
-            self._catalog.set(f"{agent_name}.current_indoor_temperature", 17)
-
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def _process(self):
-
         # indoor temperature second_update
         list_of_locations = self._catalog.get("locations")
         previous_outdoor_temperature = {}
@@ -51,5 +39,10 @@ class IndoorTemperatureDaemon(Daemon):
 
                 self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
 
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
 
-
+    @property
+    def _agent_list(self):
+        return self._catalog.get("agents_with_temperature_devices")

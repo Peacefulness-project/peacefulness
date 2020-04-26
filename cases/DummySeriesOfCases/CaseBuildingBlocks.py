@@ -66,60 +66,14 @@ def create_natures():
     return {"elec": LVE, "heat": LTH}
 
 
-def create_aggregators(natures, strategies):
-    # and then we create a third who represents the grid
-    aggregator_name = "Enedis"
-    aggregator_grid = Aggregator(aggregator_name, natures["elec"], strategies["grid"])
-
-    # here we create a second one put under the orders of the first
-    aggregator_name = "general_aggregator"
-    aggregator_elec = Aggregator(aggregator_name,  natures["elec"], strategies["BAU"], aggregator_grid)  # creation of a aggregator
-
-    # here we create another aggregator dedicated to heat
-    aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(aggregator_name,  natures["heat"], strategies["heat"], aggregator_elec, 3.6, 2000)  # creation of a aggregator
-
-    return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
-
-
-def create_contracts(natures):
-    flat_prices_elec = "flat_prices_elec"
-    contratc_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], flat_prices_elec)
-
-    flat_prices_heat = "flat_prices_heat"
-    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], flat_prices_heat)
-
-    return [{"elec": contratc_elec, "heat": contract_heat}, {"elec": flat_prices_elec, "heat": flat_prices_heat}]
-
-
-def create_agents():
-    PV_producer = Agent("PV_producer")  # the owner of the PV panels
-
-    DHN_producer = Agent("DHN_producer")  # the owner of the
-
-    return {"PV": PV_producer, "DHN": DHN_producer}
-
-
-def create_devices(world, aggregators, contracts, agents, price_IDs, renewable_capacity):
-    if renewable_capacity == "little":
-        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['elec'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 1000})  # creation of a photovoltaic panel field
-    elif renewable_capacity == "a_lot":
-        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['elec'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 3000})  # creation of a photovoltaic panel field
-
-    subclasses_dictionary["Device"]["GenericProducer"]("heat_production", contracts['heat'], agents['DHN'], aggregators['heat'], "ECOS", "ECOS")  # creation of a heat production unit
-
-    # DLC contracts
-    world.agent_generation(1000, "cases/DummySeriesOfCases/AgentTemplates/dummy_agent_template.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-
-
-def create_daemons(natures, price_IDs):
+def create_daemons(natures):
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["heat"].name, "buying_price": 0.1, "selling_price": 0.08, "identifier": price_IDs["heat"]})  # sets prices for the system operator
+    price_managing_daemon_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": natures["elec"].name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+    price_managing_daemon_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": natures["heat"].name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for the system operator
 
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["elec"].name, "grid_buying_price": 0.18, "grid_selling_price": 0.05})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["heat"].name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["elec"].name, "grid_buying_price": 0.18, "grid_selling_price": 0.05})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["heat"].name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
@@ -136,6 +90,52 @@ def create_daemons(natures, price_IDs):
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
     subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+    return {"elec":price_managing_daemon_elec, "heat":price_managing_daemon_heat}
+
+
+def create_aggregators(natures, strategies):
+    # and then we create a third who represents the grid
+    aggregator_name = "Enedis"
+    aggregator_grid = Aggregator(aggregator_name, natures["elec"], strategies["grid"])
+
+    # here we create a second one put under the orders of the first
+    aggregator_name = "general_aggregator"
+    aggregator_elec = Aggregator(aggregator_name,  natures["elec"], strategies["BAU"], aggregator_grid)  # creation of a aggregator
+
+    # here we create another aggregator dedicated to heat
+    aggregator_name = "Local_DHN"
+    aggregator_heat = Aggregator(aggregator_name,  natures["heat"], strategies["heat"], aggregator_elec, 3.6, 2000)  # creation of a aggregator
+
+    return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
+
+
+def create_contracts(natures, price_managing_daemons):
+    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], price_managing_daemons["elec"])
+
+    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], price_managing_daemons["heat"])
+
+    return {"elec": contract_elec, "heat": contract_heat}
+
+
+def create_agents():
+    PV_producer = Agent("PV_producer")  # the owner of the PV panels
+
+    DHN_producer = Agent("DHN_producer")  # the owner of the
+
+    return {"PV": PV_producer, "DHN": DHN_producer}
+
+
+def create_devices(world, aggregators, contracts, agents, price_managing_daemons, renewable_capacity):
+    if renewable_capacity == "little":
+        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['elec'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 1000})  # creation of a photovoltaic panel field
+    elif renewable_capacity == "a_lot":
+        subclasses_dictionary["Device"]["PV"]("PV_field", contracts['elec'], agents['PV'], aggregators['elec'], "ECOS", "ECOS_field", {"surface": 3000})  # creation of a photovoltaic panel field
+
+    subclasses_dictionary["Device"]["GenericProducer"]("heat_production", contracts['heat'], agents['DHN'], aggregators['heat'], "ECOS", "ECOS")  # creation of a heat production unit
+
+    # DLC contracts
+    world.agent_generation(1000, "cases/DummySeriesOfCases/AgentTemplates/dummy_agent_template.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
 
 
 def create_dataloggers():

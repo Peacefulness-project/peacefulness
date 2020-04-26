@@ -729,7 +729,6 @@ class World:
     # Utility
     # ##########################################################################################
 
-    # properties
     @property
     def name(self):  # shortcut for read-only
         return self._name

@@ -5,8 +5,8 @@ from src.tools.Utilities import sign
 
 class FlatCurtailmentContract(Contract):
 
-    def __init__(self, name, nature, identifier):
-        super().__init__(name, nature, identifier)
+    def __init__(self, name, nature, daemon_name):
+        super().__init__(name, nature, daemon_name)
 
         self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
 
@@ -16,11 +16,11 @@ class FlatCurtailmentContract(Contract):
 
     # billing
     def _billing_buying(self, quantity):
-        price = self._catalog.get(f"{self.name}.buying_price") * 0.8  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.8  # getting the price per kW.h
         return price
 
     def _billing_selling(self, quantity):
-        price = self._catalog.get(f"{self.name}.selling_price") / 0.8  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.8  # getting the price per kW.h
         return price
 
     # quantity management

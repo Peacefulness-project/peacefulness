@@ -37,7 +37,7 @@ def create_world_with_set_parameters(strategy, DSM_proportion, sizing):
     start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
-                   24 * 365*0+1)  # number of time steps simulated
+                   24 * 365)  # number of time steps simulated
 
     return world
 
@@ -72,6 +72,41 @@ def create_natures():
     return {"elec": LVE, "heat": LTH}
 
 
+def create_daemons(natures, sizing):
+    # Price Managers
+    # these daemons fix a price for a given nature of energy
+    if sizing == "peak":
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": natures["elec"].name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": natures["heat"].name, "buying_price": 0.5125, "selling_price": 0.407})  # sets prices for the system operator
+
+        subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["heat"].name, "grid_buying_price": 0.407, "grid_selling_price": 0})  # sets prices for the system operator
+    elif sizing == "mean":
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": natures["elec"].name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": natures["heat"].name, "buying_price": 0.30, "selling_price": 0.234})  # sets prices for the system operator
+
+        subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["heat"].name, "grid_buying_price": 0.234, "grid_selling_price": 0})  # sets prices for the system operator
+
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
+
+    # Outdoor temperature
+    # this daemon is responsible for the value of outdoor temperature in the catalog
+    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+
+    # Indoor temperature
+    # this daemon is responsible for the value of indoor temperatures in the catalog
+    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
+
+    # Water temperature
+    # this daemon is responsible for the value of the water temperature in the catalog
+    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+
+    # Irradiation
+    # this daemon is responsible for updating the value of raw solar irradiation
+    subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+    return {"elec": price_managing_elec,"heat": price_managing_heat}
+
+
 def create_aggregators(natures, strategies):
     # and then we create a third who represents the grid
     aggregator_name = "Enedis"
@@ -87,14 +122,12 @@ def create_aggregators(natures, strategies):
     return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat}
 
 
-def create_contracts(natures):
-    flat_prices_elec = "flat_prices_elec"
-    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], flat_prices_elec)
+def create_contracts(natures, price_managing_daemons):
+    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], price_managing_daemons["elec"])
 
-    flat_prices_heat = "flat_prices_heat"
-    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], flat_prices_heat)
+    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], price_managing_daemons["heat"])
 
-    return [{"elec": contract_elec, "heat": contract_heat}, {"elec": flat_prices_elec, "heat": flat_prices_heat}]
+    return {"elec": contract_elec, "heat": contract_heat}
 
 
 def create_agents():
@@ -105,7 +138,7 @@ def create_agents():
     return {"elec": PV_producer, "heat": solar_thermal_producer}
 
 
-def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proportion, sizing):
+def create_devices(world, aggregators, contracts, agents, price_managing_daemons, DSM_proportion, sizing):
     if sizing == "mean":
         sizing_coeff_elec = 1
         sizing_coeff_heat = 1
@@ -132,52 +165,19 @@ def create_devices(world, aggregators, contracts, agents, price_IDs, DSM_proport
         curtailment = 0
 
     # BAU contracts
-    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(BAU * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
+    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(BAU * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(BAU, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_BAU.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
 
     # DLC contracts
-    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(DLC * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
+    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(DLC * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(DLC, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_DLC.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
 
     # Curtailment contracts
-    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(curtailment * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"]})
-
-
-def create_daemons(natures, price_IDs, sizing):
-    # Price Managers
-    # these daemons fix a price for a given nature of energy
-    if sizing == "peak":
-        subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": natures["elec"].name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-        subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["heat"].name, "buying_price": 0.5125, "selling_price": 0.407, "identifier": price_IDs["heat"]})  # sets prices for the system operator
-
-        subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["heat"].name, "grid_buying_price": 0.407, "grid_selling_price": 0})  # sets prices for the system operator
-    elif sizing == "mean":
-        subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"](1, {"nature": natures["elec"].name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "hours": [[6, 12], [14, 23]], "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-        subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["heat"].name, "buying_price": 0.30, "selling_price": 0.234, "identifier": price_IDs["heat"]})  # sets prices for the system operator
-
-        subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["heat"].name, "grid_buying_price": 0.234, "grid_selling_price": 0})  # sets prices for the system operator
-
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["elec"].name, "grid_buying_price": 0.2, "grid_selling_price": 0.1})  # sets prices for the system operator
-
-    # Outdoor temperature
-    # this daemon is responsible for the value of outdoor temperature in the catalog
-    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
-
-    # Indoor temperature
-    # this daemon is responsible for the value of indoor temperatures in the catalog
-    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
-
-    # Water temperature
-    # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
-
-    # Irradiation
-    # this daemon is responsible for updating the value of raw solar irradiation
-    subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_1_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(curtailment * 2, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_2_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
+    world.agent_generation(curtailment, "cases/ECOS_collab_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregators["elec"], aggregators["heat"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"]})
 
 
 def create_dataloggers():

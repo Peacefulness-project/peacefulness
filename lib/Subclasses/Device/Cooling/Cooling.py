@@ -119,8 +119,8 @@ class Cooling(AdjustableDevice):
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent
             # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
-            self._catalog.add(f"{self.agent.name}.current_indoor_temperature")
-            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature")
+            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", 17)
+            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", 17)
 
             try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
                 # later, a daemon in charge of updating temperatures saves the list and removes this entry

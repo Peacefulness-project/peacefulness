@@ -26,8 +26,8 @@ strategies = create_strategies(chosen_strategy)
 # Natures
 natures = create_natures()
 
-# Contracts
-[contracts, price_IDs] = create_contracts(natures)
+# Daemons
+price_managing_daemons = create_daemons(natures)
 
 # Aggregators
 aggregators = create_aggregators(natures, strategies)
@@ -35,11 +35,11 @@ aggregators = create_aggregators(natures, strategies)
 # Agents
 agents = create_agents()
 
-# Devices
-create_devices(world, aggregators, contracts, agents, price_IDs, renewable_capacity)
+# Contracts
+contracts = create_contracts(natures, price_managing_daemons)
 
-# Daemons
-create_daemons(natures, price_IDs)
+# Devices
+create_devices(world, aggregators, contracts, agents, price_managing_daemons, renewable_capacity)
 
 # Dataloggers
 create_dataloggers()

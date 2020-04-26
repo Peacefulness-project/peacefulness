@@ -8,18 +8,18 @@ from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
-def create_world_with_set_parameters(city_case, city_weather):
+def create_world_with_set_parameters(habits, city_weather, set_point):
 
     # ##############################################################################################
     # Creation of the world
     # a world <=> a case, it contains all the model
     # a world needs just a name
-    name_world = city_case + "_city"
+    name_world = city_weather + "_city"
     world = World(name_world)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Edwin_profiles/Results/" + city_case + "_weather_" + city_weather  # directory where results are written
+    pathExport = "cases/Edwin_profiles/Results/" + habits + "_habits_" + city_weather + "_weather_" + set_point + "_set_point"  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -62,6 +62,32 @@ def create_natures():
     return {"elec": LVE, "heat": LTH, "cold": HTC}
 
 
+def create_daemons(natures, city_weather):
+    # Price Managers
+    # this daemons fix a price for a given nature of energy
+    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0})  # sets prices for TOU rate
+    price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0})  # sets prices for the system operator
+    price_managing_cold = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_cold", {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0})  # sets prices for the system operator
+
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+    subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
+
+    # Outdoor temperature
+    # this daemon is responsible for the value of outdoor temperature in the catalog
+    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": city_weather})
+
+    # Indoor temperature
+    # this daemon is responsible for the value of indoor temperatures in the catalog
+    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
+
+    # Water temperature
+    # this daemon is responsible for the value of the water temperature in the catalog
+    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+
+    return {"elec": price_managing_elec, "heat": price_managing_heat, "cold": price_managing_cold}
+
+
 def create_aggregators(natures, strategies):
     # and then we create a third who represents the grid
     aggregator_name = "Enedis"
@@ -82,48 +108,19 @@ def create_aggregators(natures, strategies):
     return {"grid": aggregator_grid, "elec": aggregator_elec, "heat": aggregator_heat, "cold": aggregator_cold}
 
 
-def create_contracts(natures):
-    flat_prices_elec = "flat_prices_elec"
-    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], flat_prices_elec)
+def create_contracts(natures, price_managing):
+    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", natures["elec"], price_managing["elec"])
 
-    flat_prices_heat = "flat_prices_heat"
-    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], flat_prices_heat)
+    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", natures["heat"], price_managing["heat"])
 
-    flat_prices_cold = "flat_prices_cold"
-    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_cold", natures["cold"], flat_prices_cold)
-
-    return {"elec": flat_prices_elec, "heat": flat_prices_heat, "cold": flat_prices_cold}
+    subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_cold", natures["cold"], price_managing["cold"])
 
 
-def create_devices(world, aggregators, price_IDs, country, weather_city):
+def create_devices(world, aggregators, price_managing_daemons, weather_city, habits, set_point):
     # BAU contracts
-    world.agent_generation(15, "cases/Edwin_profiles/AgentTemplates/Apartment_1_" + country + "_" + weather_city + ".json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"], "HTC": price_IDs["cold"]})
-    world.agent_generation(20, "cases/Edwin_profiles/AgentTemplates/Apartment_2_" + country + "_" + weather_city + ".json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"], "HTC": price_IDs["cold"]})
-    world.agent_generation(15, "cases/Edwin_profiles/AgentTemplates/Apartment_5_" + country + "_" + weather_city + ".json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_IDs["elec"], "LTH": price_IDs["heat"], "HTC": price_IDs["cold"]})
-
-
-def create_daemons(natures, price_IDs, weather):
-    # Price Managers
-    # this daemons fix a price for a given nature of energy
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["elec"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["elec"]})  # sets prices for TOU rate
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["heat"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["heat"]})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["PriceManagerDaemon"](1, {"nature": natures["cold"].name, "buying_price": 0, "selling_price": 0, "identifier": price_IDs["cold"]})  # sets prices for the system operator
-
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["elec"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["heat"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-    subclasses_dictionary["Daemon"]["GridPricesDaemon"](1, {"nature": natures["cold"].name, "grid_buying_price": 0, "grid_selling_price": 0})  # sets prices for the system operator
-
-    # Outdoor temperature
-    # this daemon is responsible for the value of outdoor temperature in the catalog
-    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": weather})
-
-    # Indoor temperature
-    # this daemon is responsible for the value of indoor temperatures in the catalog
-    subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
-
-    # Water temperature
-    # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+    world.agent_generation(15, "cases/Edwin_profiles/AgentTemplates/Apartment_1_" + weather_city + "_weather_" + habits + "_habits_" + set_point + "_set_point.json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"], "HTC": price_managing_daemons["cold"]})
+    world.agent_generation(20, "cases/Edwin_profiles/AgentTemplates/Apartment_2_" + weather_city + "_weather_" + habits + "_habits_" + set_point + "_set_point.json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"], "HTC": price_managing_daemons["cold"]})
+    world.agent_generation(15, "cases/Edwin_profiles/AgentTemplates/Apartment_5_" + weather_city + "_weather_" + habits + "_habits_" + set_point + "_set_point.json", [aggregators["elec"], aggregators["heat"], aggregators["cold"]], {"LVE": price_managing_daemons["elec"], "LTH": price_managing_daemons["heat"], "HTC": price_managing_daemons["cold"]})
 
 
 def create_dataloggers():
