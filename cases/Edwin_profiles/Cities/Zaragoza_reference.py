@@ -7,7 +7,6 @@
 from cases.Edwin_profiles.CaseBuildingBlocks import *
 
 # parameters
-# prices = "France"
 habits = "Spain"
 city_weather = "Zaragoza"
 set_point = "Spain"

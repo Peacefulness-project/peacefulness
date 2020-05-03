@@ -146,8 +146,6 @@ class HotWaterTank(ChargerDevice):
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
         # effort management
         energy_wanted = dict()
         energy_accorded = dict()
@@ -170,7 +168,6 @@ class HotWaterTank(ChargerDevice):
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
 
                 effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
-                effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
                 self.agent.add_effort(effort, nature)  # effort increments
 
             volume_heated = energy_accorded[nature] / (rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6))
@@ -180,11 +177,5 @@ class HotWaterTank(ChargerDevice):
                            (   hot_water_temperature - cold_water_temperature)  )
 
             self._demand[nature.name] += - volume_heated   # the energy in excess or in default
-
-        # activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean
-        # if activity:  # if the device is active
-        #     if self._remaining_time:  # decrementing the remaining time of use
-        #         self._remaining_time -= 1
-
 
 

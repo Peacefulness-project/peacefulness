@@ -9,13 +9,13 @@
 
     "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [0,0], "LVE_BAU"],
       ["Freezer", "freezer", "medium_consumption", [0,0], "LVE_BAU"]],
-    "Heating": [["Heating", "residential", "house_elec", [1,1], "LVE_BAU"]],
+    "Heating": [["Heating", "residential", "house_elec", [1,1], "LVE_BAU", {"location":  "Pau"}]],
 
     "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_elec", [1,1], "LVE_BAU"]],
     "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
 
-    "PV": [["PV", "ECOS", "ECOS", [0,0], "LVE_BAU", {"surface": 5}]],
-    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [0,0], "heat_BAU", {"surface": 1}]]
+    "PV": [["PV", "ECOS", "ECOS", [0,0], "LVE_BAU", {"surface": 5, "location":  "Pau"}]],
+    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [0,0], "heat_BAU", {"surface": 1, "location":  "Pau"}]]
   },
 
   "contracts": {

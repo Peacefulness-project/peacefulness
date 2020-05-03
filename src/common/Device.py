@@ -181,7 +181,7 @@ class Device:
 
     def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
         for nature in self.natures:  # publication of the consumption in the catalog
-            energy_wanted[nature.name] = self.natures[nature]["contract"].quantity_modification(energy_wanted[nature.name], self.agent.name)  # the contract may modify the offer
+            energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name])  # the contract may modify the offer
             self.set_energy_wanted_quantity(nature, energy_wanted[nature.name]["energy_minimum"], energy_wanted[nature.name]["energy_nominal"], energy_wanted[nature.name]["energy_maximum"])  # publication of the energy wanted in the catalog
             self.set_energy_wanted_price(nature, energy_wanted[nature.name]["price"])  # publication of the price of the energy wanted in the catalog
 
@@ -199,7 +199,14 @@ class Device:
         pass
 
     def react(self):  # method updating the device according to the decisions taken by the strategy
-        self._user_react()
+        for nature in self.natures:
+            energy_accorded = self.get_energy_accorded(nature)
+            energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
+            self.set_energy_accorded(nature, energy_accorded)
+
+        self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
+
+        self._user_react()  # device-specific actions
 
         energy_sold = dict()
         energy_bought = dict()
@@ -272,6 +279,13 @@ class Device:
     # ##########################################################################################
 
     # getter/setter for the accorded energy
+    def get_energy_accorded(self, nature):
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
+
+    def set_energy_accorded(self, nature, value):  # set the quantity of energy accorded to the device during the round
+        energy_accorded = value
+        self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", energy_accorded)
+
     def get_energy_accorded_quantity(self, nature):  # return the quantity of energy accorded to the device during the round
         return self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
 

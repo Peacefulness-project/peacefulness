@@ -12,7 +12,6 @@ class NonControllableDevice(Device):
     # ##########################################################################################
 
     def _read_data_profiles(self):
-
         [data_user, data_device] = self._read_consumption_data()  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
@@ -96,18 +95,17 @@ class NonControllableDevice(Device):
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the strategy
-        self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
-
-        # effort management
-        energy_wanted_nominal = dict()
-        energy_accorded = dict()
-        for nature in self.natures:
-            energy_wanted_nominal[nature] = self.get_energy_wanted_nom(nature)
-            energy_accorded[nature] = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] for nature in self.natures])
-            if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy...
-                effort = 42  # TODO: j'ai mis 42 en attendant qu'on se mette d'accord
-                effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-                self.agent.add_effort(effort, nature)  # effort increments
+        # # effort management
+        # energy_wanted_nominal = dict()
+        # energy_accorded = dict()
+        # for nature in self.natures:
+        #     energy_wanted_nominal[nature] = self.get_energy_wanted_nom(nature)
+        #     energy_accorded[nature] = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] for nature in self.natures])
+        #     if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy...
+        #         effort = 42  # TODO: j'ai mis 42 en attendant qu'on se mette d'accord
+        #         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
+        #         self.agent.add_effort(effort, nature)  # effort increments
+        pass
 
     # ##########################################################################################
     # Utility
@@ -325,8 +323,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
         energy_wanted = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # total energy wanted by the device
         energy_accorded = sum([self.get_energy_accorded_quantity(nature) for nature in self.natures])  # total energy accorded to the device
 
@@ -346,11 +342,11 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
             energy_min = sum([self.get_energy_wanted_min(nature) for nature in self.natures])  # total minimum energy wanted by the device
 
-            if energy_min > energy_accorded:  # if the device is inactive meanwhile its priority is 1
-                for nature in self.natures:
-                    effort = 1
-                    effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-                    self.agent.add_effort(effort, nature)  # effort increments
+            # if energy_min > energy_accorded:  # if the device is inactive meanwhile its priority is 1
+            #     for nature in self.natures:
+            #         effort = 1
+            #         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
+            #         self.agent.add_effort(effort, nature)  # effort increments
 
     # ##########################################################################################
     # Utility
@@ -476,8 +472,6 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the strategy
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
         # effort management
         energy_wanted = dict()
         energy_accorded = dict()
@@ -489,9 +483,9 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
                 energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
 
-                effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
-                effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-                self.agent.add_effort(effort, nature)  # effort increments
+                # effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
+                # effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
+                # self.agent.add_effort(effort, nature)  # effort increments
 
                 self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
 
@@ -590,9 +584,6 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def _user_react(self):  # method updating the device according to the decisions taken by the strategy
-
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
         # effort management
         energy_wanted_nominal = dict()
         energy_accorded = dict()
@@ -600,15 +591,15 @@ class ChargerDevice(Device):  # a consumption which is adjustable
             energy_wanted_nominal[nature] = self.get_energy_wanted_nom(nature)  # the nominal quantity of energy wanted
             energy_accorded[nature] = self.get_energy_accorded_quantity(nature)
 
-            if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy, then it creates effort
-                for nature in self.natures:
-                    energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
-                    energy_wanted_max = self.get_energy_wanted_max(nature)  # maximum quantity of energy
-
-                    if energy_wanted_nominal == energy_wanted_max:  # only an urgent need can generate effort
-                        effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted_nominal[nature]  # effort increases
-                        effort = self.natures[nature]["contract"].effort_modification(effort)  # here, the contract may modify effort
-                        self.agent.add_effort(effort, nature)  # effort increments
+            # if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy, then it creates effort
+            #     for nature in self.natures:
+            #         energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
+            #         energy_wanted_max = self.get_energy_wanted_max(nature)  # maximum quantity of energy
+            #
+            #         if energy_wanted_nominal == energy_wanted_max:  # only an urgent need can generate effort
+            #             effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted_nominal[nature]  # effort increases
+            #             effort = self.natures[nature]["contract"].effort_modification(effort)  # here, the contract may modify effort
+            #             self.agent.add_effort(effort, nature)  # effort increments
 
             for nature in self._natures:
                 self._demand[nature.name] -= energy_accorded[nature]  # the energy which still has to be served

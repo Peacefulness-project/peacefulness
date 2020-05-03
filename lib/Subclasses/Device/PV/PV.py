@@ -9,6 +9,7 @@ class PV(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/PV/PV.json", user_profile_name, usage_profile_name, parameters)
 
         self._surface = parameters["surface"]
+        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
         # initialization of PV
         for line in self._user_profile:
@@ -37,9 +38,6 @@ class PV(NonControllableDevice):
 
         # usage profile
         self._usage_profile[data_device["usage_profile"]["nature"]] = None
-
-        # location
-        self._location = data_user["location"]
 
         # efficiency
         self._efficiency = data_device["usage_profile"]["efficiency"]

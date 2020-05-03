@@ -5,7 +5,7 @@ from src.tools.Utilities import adapt_path
 
 class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=0):
+    def __init__(self, period=1):
         super().__init__("ECOS_aggregators_results", "ECOS_aggregators_results", period)
 
         self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names

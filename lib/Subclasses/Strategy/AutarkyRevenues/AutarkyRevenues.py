@@ -13,7 +13,9 @@ class AutarkyRevenues(Strategy):
     # ##########################################################################################
 
     def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        self._catalog.set(f"{aggregator.name}.quantities_asked", [{"quantity": 0, "price": 0}])  # always refuses to exchange with outside
+        quantities_and_prices = [{"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}]  # always refuses to exchange with outside
+
+        return quantities_and_prices
 
     def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator
         energy_bought_inside = 0  # the absolute value of energy bought inside
@@ -35,7 +37,7 @@ class AutarkyRevenues(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # ##########################################################################################
         # distribution of energy

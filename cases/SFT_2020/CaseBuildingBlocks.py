@@ -36,7 +36,7 @@ def create_world_with_set_parameters(exchange_strategy, distribution_strategy, D
     start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
-                   24 * 365)  # number of time steps simulated
+                   24 * 365*0+1)  # number of time steps simulated
 
     return world
 

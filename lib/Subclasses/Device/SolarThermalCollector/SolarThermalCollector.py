@@ -8,6 +8,7 @@ class SolarThermalCollector(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/SolarThermalCollector/SolarThermalCollector.json", user_profile_name, usage_profile_name, parameters)
 
         self._surface = parameters["surface"]
+        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -32,9 +33,6 @@ class SolarThermalCollector(NonControllableDevice):
         self._a1 = data_device["usage_profile"]["a1"]
         self._a2 = data_device["usage_profile"]["a2"]
         self._fluid_temperature = data_device["fluid_temperature"]
-
-        # location
-        self._location = data_user["location"]
 
         self._unused_nature_removal()
 

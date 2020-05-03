@@ -46,7 +46,6 @@
   "user_profile":{
     "residential": {
       "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
-      "location": "Pau",
 
       "period": 24,
       "offset": 12,
@@ -58,7 +57,6 @@
 
     "base_profile_Marseille_weather_France_habits_France_set_point": {
       "profile": [[[5, 5], [19.9, 20, 20.1]], [[18.5, 1.5], [19.9, 20, 20.1]]],
-      "location": "Marseille",
 
       "period": 24,
       "offset": 12,
@@ -71,7 +69,6 @@
 
     "base_profile_Zaragoza_weather_Spain_habits_Spain_set_point": {
       "profile": [[[1, 2], [20.9, 21, 21.1]], [[6.5, 5], [20.9, 21, 21.1]], [[18.5, 1.5], [20.9, 21, 21.1]]],
-      "location": "Zaragoza",
 
       "period": 24,
       "offset": 12,
@@ -83,7 +80,6 @@
 
     "base_profile_Zaragoza_weather_France_habits_France_set_point": {
       "profile": [[[5, 5], [19.9, 20, 20.1]], [[18.5, 1.5], [19.9, 20, 20.1]]],
-      "location": "Zaragoza",
 
       "period": 24,
       "offset": 12,
@@ -95,7 +91,6 @@
 
     "base_profile_Marseille_weather_France_habits_Spain_set_point": {
       "profile": [[[5, 5], [20.9, 21, 21.1]], [[18.5, 1.5], [20.9, 21, 21.1]]],
-      "location": "Marseille",
 
       "period": 24,
       "offset": 12,
@@ -107,7 +102,6 @@
 
     "base_profile_Zaragoza_weather_France_habits_Spain_set_point": {
       "profile": [[[5, 5], [20.9, 21, 21.1]], [[18.5, 1.5], [20.9, 21, 21.1]]],
-      "location": "Zaragoza",
 
       "period": 24,
       "offset": 12,

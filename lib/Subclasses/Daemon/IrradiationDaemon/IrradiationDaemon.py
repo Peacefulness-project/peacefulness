@@ -5,7 +5,7 @@ from src.common.Daemon import Daemon
 
 class IrradiationDaemon(Daemon):
 
-    def __init__(self, parameters, period=0):
+    def __init__(self, parameters, period=1):
         self._location = parameters["location"]
 
         name = "solar_irradiation_in_" + self._location

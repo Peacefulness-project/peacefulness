@@ -135,8 +135,5 @@ class InstantHotWaterTank(ChargerDevice):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
-
 
 

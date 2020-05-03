@@ -4,8 +4,10 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class WindTurbine(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/WindTurbine/WindTurbine.json", user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/WindTurbine/WindTurbine.json", user_profile_name, usage_profile_name, parameters)
+
+        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -26,9 +28,6 @@ class WindTurbine(NonControllableDevice):
 
         # usage profile
         self._usage_profile[data_device["usage_profile"]["nature"]] = None
-
-        # location
-        self._location = data_user["location"]
 
         self._efficiency = data_device["usage_profile"]["efficiency"]  # efficiency
         self._max_power = data_device["usage_profile"]["max_power"]  # max power

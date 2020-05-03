@@ -4,7 +4,7 @@ from src.common.Contract import Contract
 
 class TOUCompensationCooperativeContract(Contract):
 
-    def __init__(self, name, nature, daemon_name, parameters=None):
+    def __init__(self, name, nature, daemon_name, parameters):
         super().__init__(name, nature, daemon_name, parameters)
 
         self.description = "A contract where the price is fixed over the time at the same tariff than the TOU contract." \
@@ -19,11 +19,21 @@ class TOUCompensationCooperativeContract(Contract):
     # ##########################################################################################
 
     # billing
-    def _billing_buying(self, quantity):
+    def _billing(self, quantity, agent_name):  # as the tariffs are not the same for selling or buying energy, this function redirects to the relevant function
+        if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
+            price = self._billing_buying(quantity["energy_maximum"])
+        elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
+            price = self._billing_selling(quantity["energy_maximum"])
+        else:  # if there is no need
+            price = None  # no price is attributed
+
+        return price
+
+    def _billing_buying(self):
         price = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.9  # getting the price per kW.h
         return price
 
-    def _billing_selling(self, quantity):
+    def _billing_selling(self):
         price = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.9  # getting the price per kW.h
         return price
 

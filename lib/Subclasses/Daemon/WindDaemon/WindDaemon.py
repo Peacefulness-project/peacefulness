@@ -5,7 +5,7 @@ from src.common.Daemon import Daemon
 
 class WindDaemon(Daemon):
 
-    def __init__(self, parameters, period=0):
+    def __init__(self, parameters, period=1):
         self._location = parameters["location"]  # the location corresponding to the data
 
         name = "win_speed_in_" + self._location

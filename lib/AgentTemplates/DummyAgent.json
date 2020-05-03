@@ -5,30 +5,30 @@
     "Background": [["Background", "single", "single", [1,1], "LVE_BAU"]],
 
     "Charger": [["Charger", "default", "laptop_charger", [1,4], "LVE_BAU"]],
-    "Cooling": [["Cooling", "residential", "house_elec", [1,1], "LVE_BAU"]],
+    "Cooling": [["Cooling", "residential", "house_elec", [1,1], "LVE_BAU", {"location":  "Pau"}]],
 
     "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1], "LVE_BAU"]],
     "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
 
     "GenericProducer": [["GenericProducer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
 
-    "Heating": [["Heating", "residential", "house_heat", [1,1], "Heat_BAU"]],
+    "Heating": [["Heating", "residential", "house_heat", [1,1], "Heat_BAU", {"location":  "Pau"}]],
     "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "Heat_BAU"]],
 
     "Light": [["Light", "residential", "house", [1,1], "LVE_BAU"]],
 
     "Methanizer": [["Methanizer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
 
-    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 1}]],
+    "PV": [["PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 1, "location":  "Pau"}]],
 
     "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"],
                      ["Freezer", "refrigerator", "medium_consumption", [1,1], "LVE_BAU"]],
 
-    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [1,1], "Heat_BAU", {"surface": 1}]],
+    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [1,1], "Heat_BAU", {"surface": 1, "location":  "Pau"}]],
 
     "WashingMachine": [["WashingMachine", "single", "medium_consumption", [1,1], "LVE_BAU"]],
     "WaterHeater": [["WaterHeater", "single", "coffee_maker", [1,1], "LVE_BAU"]],
-    "WindTurbine": [["WindTurbine", "ECOS", "ECOS", [1,1], "LVE_BAU"]]
+    "WindTurbine": [["WindTurbine", "ECOS", "ECOS", [1,1], "LVE_BAU", {"location":  "Pau"}]]
 
   },
 

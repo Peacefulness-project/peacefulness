@@ -7,9 +7,13 @@ from src.tools.GlobalWorld import get_world
 
 class Aggregator:
 
-    def __init__(self, name, nature, strategy, superior=None, efficiency=1, capacity=inf):
+    def __init__(self, name, nature, strategy, agent, contract, superior=None, efficiency=1, capacity=inf):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
+
+        self._agent = agent
+
+        self._contract = contract
 
         self._strategy = strategy  # the strategy, i.e the strategy applied by this aggregator
 
@@ -30,8 +34,10 @@ class Aggregator:
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         # Creation of specific entries in the catalog
-        self._catalog.add(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the aggregator to its superior
-        self._catalog.add(f"{self.name}.quantities_given", [])  # couple price/quantities accorded by the aggregator superior
+        if self.superior:
+            self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_wanted", [])  # couples price/quantities sent by the aggregator to its superior
+            self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_accorded", [])  # couple price/quantities accorded by the aggregator superior
+            # the nature of the energy wanted and accorded is that of the superior
 
         self._catalog.add(f"{self.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the aggregator during the round
         self._catalog.add(f"{self.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the aggregator during the round
@@ -46,8 +52,10 @@ class Aggregator:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
-        self._catalog.set(f"{self.name}.quantities_asked", [])  # couples price/quantities sent by the aggregator to its superior
-        self._catalog.set(f"{self.name}.quantities_given", [])  # couple price/quantities accorded by the aggregator superior
+        if self.superior:
+            self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_wanted", [])  # couples price/quantities sent by the aggregator to its superior
+            self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_accorded", [])  # couple price/quantities accorded by the aggregator superior
+            # the nature of the energy wanted and accorded is that of the superior
 
         self._catalog.set(f"{self.name}.energy_bought", {"inside": 0, "outside": 0})  # accounts for the energy bought by the aggregator during the round
         self._catalog.set(f"{self.name}.energy_sold", {"inside": 0, "outside": 0})  # accounts for the energy sold by the aggregator during the round
@@ -59,7 +67,12 @@ class Aggregator:
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.ask()
 
-        self._strategy.ascendant_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
+        quantities_and_prices = self._strategy.ascendant_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
+
+        if quantities_and_prices:
+            quantities_and_prices = [self._contract.contract_modification(element) for element in quantities_and_prices]
+            self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_wanted", quantities_and_prices)  # publish its needs
+            # the nature of the energy wanted is that of the superior
 
     def distribute(self):  # aggregators distribute the energy they exchanged with outside
         self._strategy.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior

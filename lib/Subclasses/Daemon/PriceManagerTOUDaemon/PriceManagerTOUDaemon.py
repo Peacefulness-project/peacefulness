@@ -4,7 +4,7 @@ from src.common.Daemon import Daemon
 
 class PriceManagerTOUDaemon(Daemon):
 
-    def __init__(self, name, parameters=None):
+    def __init__(self, name, parameters):
         super().__init__(name, 1, parameters)
 
         self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent

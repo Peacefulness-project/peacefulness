@@ -7,8 +7,10 @@ from src.common.Device import DeviceException
 
 class Cooling(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Cooling/Cooling.json", user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
+        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Cooling/Cooling.json", user_profile_name, usage_profile_name, parameters)
+
+        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -33,9 +35,6 @@ class Cooling(AdjustableDevice):
         # parameters
         # max power
         self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
-
-        # location
-        self._location = data_user["location"]
 
         # repartition of consumption between the different natures of energy
         self._repartition = data_device["usage_profile"][0]  # this dictionary contains the repartition of energy between the different energies used by the device
@@ -106,15 +105,6 @@ class Cooling(AdjustableDevice):
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-
-        # management of the location
-        try:
-            self._catalog.add("locations", [])
-        except:
-            pass
-        location = self._catalog.get("locations")
-        if self._location not in location:  # if the location of the device is not already in the list of locations
-            location.append(self._location)  # add the location of the device to the list of locations
 
         # managing the temperature at the level of the agent
         try:  # there can be only one temperature in the catalog for each agent
@@ -237,7 +227,6 @@ class Cooling(AdjustableDevice):
 
         current_indoor_temperature += - power / self._G * self._thermal_inertia
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
-        self._moment = (self._moment + 1) % self._period  # incrementing the moment in the period
 
 
 

@@ -21,44 +21,33 @@ class WhenProfitablePartial(Strategy):
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
         energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
+        self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        quantities_exchanged = 0  # the quantity of energy exchanged internally allowed by the strategy
         quantities_and_prices = []  # a list containing couples energy/prices
 
-        self._get_quantities(aggregator)  # updates the quantities the aggregator has to manage
+        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
+
+        sort_function = self.get_price  # we choose a sort criteria
+
+        # formulation of needs
+        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
-        # ##########################################################################################
-        # management of grid call
-        # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price
-        # and another one, associated to non-urgent needs
+        [buying_price, selling_price, final_price] = self._calculate_prices(sorted_demands, sorted_offers, max_price, min_price)  # initialization of prices
 
-        price = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # as the aggregator can't sell energy
+        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
 
-        # calculate the quantities needed to fulfill its needs
-        # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, price, quantities_and_prices)
+        self._quantities_exchanged_internally[aggregator.name] = {"quantity": quantities_exchanged, "price": final_price}  # we store this value for the descendant phase
 
-        # as the aggregator cannot sell energy, we remove the negative quantities
-        lines_to_remove = list()
-        for i in range(len(quantities_and_prices) - 1):
-            if quantities_and_prices[i]["quantity"] < 0:  # if the aggregator wants to sell energy
-                lines_to_remove.append(i)  # we remove it form the list
+        quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
-        lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
-
-        for line_index in lines_to_remove:  # removing the already served elements
-            quantities_and_prices.pop(line_index)
-
-        # ##########################################################################################
-        # publication of the needs
-
-        self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+        return quantities_and_prices
 
     def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator
         energy_bought_outside = 0  # the absolute value of energy bought outside
@@ -84,7 +73,7 @@ class WhenProfitablePartial(Strategy):
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)

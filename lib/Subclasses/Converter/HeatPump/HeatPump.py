@@ -36,7 +36,7 @@ class HeatPump(Converter):
         energy_maximum = energy_nominal
 
         energy_needed = {"energy_minimum": energy_minimum, "energy_nominal": energy_nominal, "energy_maximum": energy_maximum, "price": None}
-        energy_needed = self.contract.quantity_modification(energy_needed, self.agent.name)  # the contract may modify the energy wanted
+        energy_needed = self.contract.contract_modification(energy_needed, self.agent.name)  # the contract may modify the energy wanted
         self._catalog.set(f"{self.name}.{self.natures['upstream'].name}.energy_wanted", energy_needed)
 
     def first_react(self):  # this method adapts the converter to the decision taken by the upstream aggregator

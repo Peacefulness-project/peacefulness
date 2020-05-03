@@ -21,31 +21,43 @@ class SubaggregatorHeatRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
+        sort_function = self.get_revenue  # we choose a sort criteria
+
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
-
-        self._get_quantities(aggregator)  # updates the quantities the aggregator has to manage
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, max_price, min_price, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+
+        # ##########################################################################################
+        # energy converters management
+        sorted_offers = []  # a list of all the offers of production
+
+        if aggregator.converters:  # if there are converters
+            sort_function_converters = self.get_price  # converters offers are classed by decreasing prices
+            [sorted_conversion_offers, sorted_offers] = self._sort_conversion_offers(aggregator, sort_function_converters, sorted_offers, sort_function)
+
+            if maximum_energy_consumed > maximum_energy_produced:  # if there is a lack of energy
+                energy_to_convert = maximum_energy_consumed - maximum_energy_produced
+                energy_converted = self._call_to_converters(aggregator, min_price, sorted_conversion_offers, energy_to_convert)  # the amount of energy converted
+                maximum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
+                minimum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
 
         # ##########################################################################################
         # management of grid call
         # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price
         # and another one, associated to non-urgent needs
 
-        price = self._catalog.get(f"{aggregator.nature.name}.grid_buying_price")  # as the aggregator can't sell energy
-
         # calculate the quantities needed to fulfill its needs
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, price, quantities_and_prices)
+        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
         for i in range(len(quantities_and_prices)):
-            if quantities_and_prices[i]["quantity"] < 0:  # if the aggregator wants to sell energy
+            if quantities_and_prices[i]["energy_maximum"] <= 0:  # if the aggregator wants to sell energy
                 lines_to_remove.append(i)  # we remove it form the list
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
@@ -54,9 +66,11 @@ class SubaggregatorHeatRevenues(Strategy):
             quantities_and_prices.pop(line_index)
 
         # ##########################################################################################
-        # publication of the needs
+        # publication of the needs to its superior
 
-        self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+        quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+
+        return quantities_and_prices
 
     def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator
         energy_bought_outside = 0  # the absolute value of energy bought outside
