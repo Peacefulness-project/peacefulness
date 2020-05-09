@@ -96,10 +96,8 @@ world.set_time(start_date,  # time management: start date
 # Strategy
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
-# AutarkyEmergency AlwaysSatisfied WhenProfitable
-
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AutarkyRevenues"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 # the heat strategy
 strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartial"]()
@@ -177,14 +175,15 @@ aggregator_manager = Agent("aggregator_manager")
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 
 # producers
-BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_TOU_elec.name)
+BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_manager_heat.name)
-cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat.name)
+BAU_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_manager_heat)
 
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_cooperative_elec.name)
+cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
-contract_owned_by_aggregator = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator.name)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_cooperative_elec)
+
+contract_owned_by_aggregator = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator)
 
 
 # ##############################################################################################
@@ -195,15 +194,15 @@ contract_owned_by_aggregator = subclasses_dictionary["Contract"]["FlatCooperativ
 
 # and then we create a third who represents the grid
 aggregator_name = "Enedis"
-aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_manager, BAU_elec)
+aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_manager)
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, BAU_elec, aggregator_grid)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_manager, BAU_elec, aggregator_elec)  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_manager, aggregator_elec, BAU_elec)  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -226,9 +225,9 @@ heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_cont
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec.name, "LTH": price_manager_heat.name})
-world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec.name, "LTH": price_manager_heat.name})
-world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec.name, "LTH": price_manager_heat.name})
+world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

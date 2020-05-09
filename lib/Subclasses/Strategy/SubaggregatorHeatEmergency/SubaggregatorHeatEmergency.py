@@ -69,6 +69,7 @@ class SubaggregatorHeatEmergency(Strategy):
         # publication of the needs to its superior
 
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+        # print(quantities_and_prices)
 
         return quantities_and_prices
 

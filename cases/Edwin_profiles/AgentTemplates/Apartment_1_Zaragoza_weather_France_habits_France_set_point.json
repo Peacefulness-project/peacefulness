@@ -5,8 +5,8 @@
     "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_BAU"]],
 
     "InstantHotWaterTank": [["InstantHotWaterTank", "ECOS_1", "1_people_heat", [1,1], "Heat_BAU"]],
-    "Heating": [["Heating", "base_profile_Zaragoza_weather_France_habits_France_set_point", "apartment_heat_instant_consumption", [1,1], "Heat_BAU"]],
-    "Cooling": [["Cooling", "base_profile_Zaragoza_weather_France_habits_France_set_point", "apartment_cold_instant_consumption", [1,1], "Cold_BAU"]],
+    "Heating": [["Heating", "base_profile_Zaragoza_weather_France_habits_France_set_point", "apartment_heat_instant_consumption", [1,1], "Heat_BAU", {"location":  "Zaragoza"}]],
+    "Cooling": [["Cooling", "base_profile_Zaragoza_weather_France_habits_France_set_point", "apartment_cold_instant_consumption", [1,1], "Cold_BAU", {"location":  "Zaragoza"}]],
 
     "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_BAU"]]
   },

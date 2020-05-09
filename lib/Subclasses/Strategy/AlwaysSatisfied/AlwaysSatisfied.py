@@ -50,73 +50,79 @@ class AlwaysSatisfied(Strategy):
 
         # counting the offers and the demands at its own level
         # what was asked
-        for element in self._catalog.get(f"{aggregator.name}.{aggregator.nature.name}.energy_wanted"):
+        for element in self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_wanted"):
             if element["energy_maximum"] > 0:  # energy the aggregator wanted to buy
                 quantities_asked["bought"] += element["energy_maximum"]  # the quantity of energy asked the aggregator wanted to buy
             elif element["energy_maximum"] < 0:  # energy the aggregator wanted to sell
                 quantities_asked["sold"] += element["energy_maximum"]  # the quantity of energy asked the aggregator wanted to sell
 
         # what is given
-        for element in self._catalog.get(f"{aggregator.name}.{aggregator.nature.name}.energy_accorded"):
-            if element["energy_maximum"] > 0:  # energy bought by the aggregator
-                quantities_given["bought"] += element["energy_maximum"]  # the quantity of energy sold to the aggregator
+        for element in self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded"):
+            if element["quantity"] > 0:  # energy bought by the aggregator
+                quantities_given["bought"] += element["quantity"]  # the quantity of energy sold to the aggregator
                 element["price"] = min(element["price"], max_price)  # maximum price is artificially limited
 
                 # making balances
                 # energy bought
-                energy_bought_outside += element["energy_maximum"]  # the absolute value of energy bought outside
-                money_spent_outside += element["energy_maximum"] * element["price"]  # the absolute value of money spent outside
+                energy_bought_outside += element["quantity"]  # the absolute value of energy bought outside
+                money_spent_outside += element["quantity"] * element["price"]  # the absolute value of money spent outside
 
-            elif element["energy_maximum"] < 0:  # energy sold by the aggregator
-                quantities_given["sold"] += element["energy_maximum"]  # the quantity of energy bought by the aggregator
+            elif element["quantity"] < 0:  # energy sold by the aggregator
+                quantities_given["sold"] += element["quantity"]  # the quantity of energy bought by the aggregator
                 element["price"] = max(element["price"], min_price)  # minimum price is artificially limited
 
                 # making balances
                 # energy sold
-                energy_sold_outside -= element["energy_maximum"]  # the absolute value of energy sold outside
-                money_earned_outside -= element["energy_maximum"] * element["price"]  # the absolute value of money earned outside
+                energy_sold_outside -= element["quantity"]  # the absolute value of energy sold outside
+                money_earned_outside -= element["quantity"] * element["price"]  # the absolute value of money earned outside
 
         # energy distribution and billing
         if quantities_given == quantities_asked:  # if the aggregator got what it wanted
 
             # quantities concerning devices
-            for device_name in aggregator.devices:
-                energy = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
-                price = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
+            for name in aggregator.devices:
+                energy = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
+                price = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
 
                 # balances
                 if energy > 0:  # energy bought
                     price = min(price, max_price)
 
-                    self._catalog.set(f"{device_name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
 
                     money_earned_inside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                 elif energy < 0:  # energy sold
                     price = max(price, min_price)
 
-                    self._catalog.set(f"{device_name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
 
                     money_spent_inside -= energy * price  # money spent by buying energy from the device
                     energy_bought_inside -= energy  # the absolute value of energy bought inside
 
             # quantities concerning subaggregators
             for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
-                quantities_and_prices = self._catalog.get(f"{subaggregator.name}.quantities_asked")
-                self._catalog.set(f"{subaggregator.name}.quantities_given", quantities_and_prices)
+                quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+                quantities_accorded = []
 
                 # balances
                 for element in quantities_and_prices:  # for each couple energy/price
-                    if element["quantity"] > 0:  # energy bought
+                    couple = {"quantity": element["energy_maximum"], "price": element["price"]}
+                    if element["energy_maximum"] > 0:  # energy bought
                         element["price"] = min(element["price"], max_price)  # maximum price is artificially limited
 
-                        money_earned_inside += element["quantity"] * element["price"]  # money earned by selling energy to the subaggregator
-                        energy_sold_inside += element["quantity"]  # the absolute value of energy sold inside
-                    elif element["quantity"] < 0:  # energy sold
+                        money_earned_inside += element["energy_maximum"] * element["price"]  # money earned by selling energy to the subaggregator
+                        energy_sold_inside += element["energy_maximum"]  # the absolute value of energy sold inside
+                    elif element["energy_maximum"] < 0:  # energy sold
                         element["price"] = max(element["price"], min_price)  # minimum price is artificially limited
 
-                        money_spent_inside -= element["quantity"] * element["price"]  # money spent by buying energy from the subaggregator
-                        energy_bought_inside -= element["quantity"]  # the absolute value of energy bought inside
+                        money_spent_inside -= element["energy_maximum"] * element["price"]  # money spent by buying energy from the subaggregator
+                        energy_bought_inside -= element["energy_maximum"]  # the absolute value of energy bought inside
+
+                    quantities_accorded.append(couple)
+
+                self._catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", quantities_accorded)
+
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
             raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")

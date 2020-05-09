@@ -7,10 +7,10 @@
     "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1], "LVE_DLC"]],
     "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1], "LVE_DLC"]],
 
-    "Heating": [["Heating", "residential", "house_heat", [1,1], "heat_DLC"]],
+    "Heating": [["Heating", "residential", "house_heat", [1,1], "heat_DLC", {"location": "Pau"}]],
     "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_heat", [1,1], "heat_DLC"]],
 
-    "PV": [["roof_PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 5}]]
+    "PV": [["roof_PV", "ECOS", "ECOS", [1,1], "LVE_BAU", {"surface": 5, "location": "Pau"}]]
   },
 
   "contracts": {

@@ -8,8 +8,8 @@
     "Dryer": [["Dryer", "ECOS_2", "ECOS", [1,1], "LVE_BAU"]],
 
     "InstantHotWaterTank": [["InstantHotWaterTank", "ECOS_1", "2_people_heat", [1,1], "Heat_BAU"]],
-    "Heating": [["Heating", "base_profile_Zaragoza_weather_Spain_habits_Spain_set_point", "apartment_heat_instant_consumption", [1,1], "Heat_BAU"]],
-    "Cooling": [["Cooling", "base_profile_Zaragoza_weather_Spain_habits_Spain_set_point", "apartment_cold_instant_consumption", [1,1], "Cold_BAU"]],
+    "Heating": [["Heating", "base_profile_Zaragoza_weather_Spain_habits_Spain_set_point", "apartment_heat_instant_consumption", [1,1], "Heat_BAU", {"location":  "Zaragoza"}]],
+    "Cooling": [["Cooling", "base_profile_Zaragoza_weather_Spain_habits_Spain_set_point", "apartment_cold_instant_consumption", [1,1], "Cold_BAU", {"location":  "Zaragoza"}]],
 
     "Background": [["Background", "ECOS", "ECOS_2", [1,1], "LVE_BAU"]]
   },

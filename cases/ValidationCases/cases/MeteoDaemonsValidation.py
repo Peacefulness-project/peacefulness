@@ -143,8 +143,6 @@ validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("meteo_r
 # simulation
 world.start()
 
-# ##############################################################################################
-# Validation
 
 
 

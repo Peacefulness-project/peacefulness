@@ -75,7 +75,7 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of supervisors
+# Creation of strategies
 
 # the BAU strategy
 strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
@@ -111,8 +111,12 @@ price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"](
 price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 flat_prices_manager_heat = price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for flat rate
 
-price_elec_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LVE.name, "grid_buying_price": 0.2, "grid_selling_price": 0.05})  # sets prices for the system operator
-price_heat_grid = subclasses_dictionary["Daemon"]["GridPricesDaemon"]({"nature": LTH.name, "grid_buying_price": 0.10, "grid_selling_price": 0.08})  # sets prices for the system operator
+price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("grid_prices", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0.05})  # sets prices for TOU rate
+
+# limit prices
+# the following daemons fix the maximum and minimum price at which energy can be exchanged
+limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.05})  # sets limit price accepted
+limit_prices_heat_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.10, "limit_selling_price": 0.08})  # sets limit prices accepted
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -136,19 +140,21 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 
 
 # ##############################################################################################
-# Creation of aggregators
+# Manual creation of agents
 
-# we create a first aggregator who represents the national electrical grid
-aggregator_name = "Enedis"
-aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy)
+# the first block corresponds to the producers
+PV_producer = Agent("PV_producer")  # creation of an agent
 
-# here we create a second one put under the orders of the first
-aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_grid)  # creation of a aggregator
+WT_producer = Agent("WT_producer")  # creation of an agent
 
-# here we create another aggregator dedicated to heat, under the order of the local electrical grid
-aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, 3.6, 2000)  # creation of a aggregator
+DHN_producer = Agent("DHN_producer")  # creation of an agent
+
+# the second block corresponds to the grid managers (i.e the owners of the aggregators)
+grid_manager = Agent("grid_manager")  # creation of an agent
+
+local_electrical_grid = Agent("local_electrical_grid")  # creation of an agent
+
+DHN_manager = Agent("DHN_manager")  # creation of an agent
 
 
 # ##############################################################################################
@@ -157,27 +163,35 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, 3.6, 2000)  # 
 # producers
 BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_elec_TOU)
 
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_flat)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_flat)  # a contract
 
 cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
+contract_grid = subclasses_dictionary["Contract"]["FlatEgoistContract"]("grid_prices_manager", LVE, price_manager_grid)  # this contract is the one between the local electrical grid and the national one
+
 
 # ##############################################################################################
-# Manual creation of agents
+# Creation of aggregators
 
-PV_producer = Agent("PV_producer")  # creation of an agent
+# we create a first aggregator who represents the national electrical grid
+aggregator_name = "Enedis"
+aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
-WT_producer = Agent("WT_producer")  # creation of an agent
+# here we create a second one put under the orders of the first
+aggregator_name = "general_aggregator"
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, local_electrical_grid, aggregator_grid, contract_grid)  # creation of a aggregator
 
-DHN_producer = Agent("DHN_producer")  # creation of an agent
+# here we create another aggregator dedicated to heat, under the order of the local electrical grid
+aggregator_name = "Local_DHN"
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, DHN_manager, aggregator_elec, cooperative_contract_elec, 3.6, 2000)  # creation of a aggregator
 
 
 # ##############################################################################################
 # Manual creation of devices
 
-PV_field = subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 2500})  # creation of a photovoltaic panel field
+PV_field = subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 2500, "location": "Pau"})  # creation of a photovoltaic panel field
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS")  # creation of a wind turbine
+wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
 
 heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 

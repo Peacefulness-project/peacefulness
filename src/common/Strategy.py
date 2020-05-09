@@ -144,7 +144,6 @@ class Strategy:
     def _exchanges_balance(self, aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside):
         if aggregator.superior:
             for element in self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded"):
-                # print(element)
                 if element["quantity"] > 0:  # energy bought by the aggregator
                     # making balances
                     # energy bought
@@ -306,12 +305,6 @@ class Strategy:
     def _publish_needs(self, aggregator, quantities_and_prices):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
         energy_pullable = aggregator.capacity  # total energy obtainable from the superior through the connection
         energy_pushable = aggregator.capacity  # total energy givable from the superior through the connection
-
-        # def get_price(line):
-        #     return line["price"]
-        #
-        # print(quantities_and_prices)
-        # quantities_and_prices = sorted(quantities_and_prices, key=get_price, reverse=True)  # sort the quantities and price by decreasing price
 
         # capacity and efficiency management
         # at this point, couples are formulated from this aggregator point of view (without the effect of capacity and of efficiency)

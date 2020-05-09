@@ -5,13 +5,13 @@ from src.tools.GlobalWorld import get_world
 
 class Contract:
 
-    def __init__(self, name, nature, daemon_name, parameters=None):
+    def __init__(self, name, nature, daemon, parameters=None):
         self._name = name
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
 
-        self._daemon_name = daemon_name
+        self._daemon_name = daemon.name
 
         # parameters is an optional dictionary which stores additional information needed by user-defined classes
         # putting these information there allow them to be saved/loaded via world method

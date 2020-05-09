@@ -7,7 +7,7 @@
     "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1], "LVE_curtailment"]],
     "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1], "LVE_curtailment"]],
 
-    "Heating": [["Heating", "residential", "house_elec", [1,1], "LVE_curtailment"]],
+    "Heating": [["Heating", "residential", "house_elec", [1,1], "LVE_curtailment", {"location": "Pau"}]],
     "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_elec", [1,1], "LVE_curtailment"]]
   },
 
