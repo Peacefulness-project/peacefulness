@@ -13,7 +13,7 @@ from cases.ECOS_TestCases_2020.CommonBlocks import *
 
 # parameters
 exchange_strategy = "Profitable"
-distribution_strategy = "Emergency"
+distribution_strategy = "Partial"
 renewable_proportion = "high_renewable"
 DSM_proportion = "low_DSM"
 

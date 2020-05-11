@@ -14,7 +14,7 @@ from cases.ECOS_TestCases_2020.CommonBlocks import *
 # parameters
 exchange_strategy = "BAU"
 distribution_strategy = "BAU"
-renewable_proportion = "high_renewable"
+renewable_proportion = "low_renewable"
 DSM_proportion = "no_DSM"
 
 # Importation of subclasses

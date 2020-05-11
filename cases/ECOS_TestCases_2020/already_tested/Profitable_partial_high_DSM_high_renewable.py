@@ -2,7 +2,7 @@
 # Exchange strategy: Profitable
 # Distribution strategy: Partial
 # Contract: 33 Normal, 40 DLC, 27 Curtailment
-# renewable sizing: low
+# renewable sizing: high
 
 
 # ##############################################################################################
@@ -13,8 +13,8 @@ from cases.ECOS_TestCases_2020.CommonBlocks import *
 
 # parameters
 exchange_strategy = "Profitable"
-distribution_strategy = "Emergency"
-renewable_proportion = "low_renewable"
+distribution_strategy = "Partial"
+renewable_proportion = "high_renewable"
 DSM_proportion = "high_DSM"
 
 # Importation of subclasses
