@@ -1,0 +1,43 @@
+{
+  "device_consumption": {
+    "dummy_usage": {
+      "usage_profile": {"LVE": 1},
+      "consumption_variation": 0,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 2}
+    },
+
+    "dummy_usage_consuming": {
+      "usage_profile": {"LVE": 2},
+      "consumption_variation": 0,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 2}
+    }
+  },
+
+  "user_profile":{
+    "dummy_user": {
+      "profile": [[7, 1]],
+      "location": "Pau",
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "month_dependency": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+
+    "dummy_user_early": {
+      "profile": [[6, 1]],
+      "location": "Pau",
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "month_dependency": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    }
+  }
+}

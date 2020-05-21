@@ -9,16 +9,12 @@ class PriceManagerTOUDaemon(Daemon):
 
         self._buying_price = parameters["buying_price"]  # the price for buying 1 kWh of energy for the agent
         self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent
-        # self._contract_list = None  # the list of contracts taken in charge by this daemon, added later
-
-        # self._contract_list = self._catalog.get(f"contracts_{self._identifier}")  # the list of contract this daemon has to take in charge
-        # self._catalog.remove(f"contracts_{self._identifier}")  # as this key is not used anymore, it is deleted
 
         self._hours = []
         hours_range = parameters["hours"]
         for hour_range in hours_range:
             for i in range(hour_range[0], hour_range[1]):
-                self._hours.append(i)
+                self._hours.append(i-1)
 
         self._moment = None  # indicates if the tariff is HP or HC
 

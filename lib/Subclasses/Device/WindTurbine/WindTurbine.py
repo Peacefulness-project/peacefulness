@@ -4,17 +4,14 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class WindTurbine(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/WindTurbine/WindTurbine.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/WindTurbine/WindTurbine.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-
-    def _user_register(self):
-        pass
 
     def _read_data_profiles(self):
         self._usage_profile = dict()
@@ -47,6 +44,7 @@ class WindTurbine(NonControllableDevice):
         air_density = 1.17  # air density in kg.m-3
 
         energy_received = 1/2 * air_density * self._surface * wind**3 / 1000  # power received in kw
+        print(energy_received, self._surface, wind)
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device

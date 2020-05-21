@@ -14,11 +14,13 @@ class ValidationDaemon(Daemon):
 
         self._description = parameters["description"]
 
+        self._tolerance = parameters["tolerance"]  # the tolerance to accept or reject a value
+
         self._problem = {key: [] for key in parameters["reference_values"].keys()}  # a list containing all the round when a problem occured
 
         # the message are both prompted and written in a file
         message = f"{self.name}: {self._description}\n" \
-            f"The following keys are checked:{self._reference_values.keys()}\n"
+            f"The following keys are checked: {self._reference_values.keys()}\n"
 
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")  # the file resuming the results of the test
 
@@ -47,7 +49,7 @@ class ValidationDaemon(Daemon):
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
 
-            if data_to_check[key] == self._reference_values[key][iteration]:  # if the key are the same
+            if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same
                 message = f"{key} : OK"
             else:  # if the results and the data in the catalog are different
                 message = f"{key} : KO, reference value = {self._reference_values[key][iteration]} and simulation value = {data_to_check[key]}"
@@ -57,7 +59,7 @@ class ValidationDaemon(Daemon):
             self._write_and_print(message, file)
 
         if self._catalog.get("time_limit") - 1 == self._catalog.get("simulation_time"):  # at the last iteration, a resume is written and printed
-            message = "Resume of the test:"
+            message = "\nResume of the test:"
             self._write_and_print(message, file)
 
             for key in self._reference_values.keys():

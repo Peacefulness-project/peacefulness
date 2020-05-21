@@ -13,7 +13,10 @@ class ColdWaterDaemon(Daemon):
         super().__init__(name, 1, parameters)
 
         # getting the data for the chosen location
-        file = open("lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json", "r")
+        if "datafile" in parameters:  # if the user has chosen another datafile
+            file = open(parameters["datafile"], "r")
+        else:
+            file = open("lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json", "r")
         data = load(file)[self._location]
         file.close()
 

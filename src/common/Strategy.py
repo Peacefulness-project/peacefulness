@@ -384,6 +384,9 @@ class Strategy:
     def get_price(self, line):
         return line["price"]
 
+    def get_quantity(self, line):
+        return line["quantity"]
+
     def _sort_quantities(self, aggregator, sort_function):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are sorted by emergency
         sorted_offers = []  # a list where the offers of energy are sorted by emergency
@@ -460,15 +463,15 @@ class Strategy:
         for i in range(len(sorted_demands)):  # demands
             energy = sorted_demands[i]["quantity"]
 
-            if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
-                energy = energy_available_consumption  # it is served partially, even if it is urgent
-
             name = sorted_demands[i]["name"]
             price = sorted_demands[i]["price"]
             price = min(price, max_price)
 
             if sorted_demands[i]["emergency"] == 1:  # if it is urgent
                 lines_to_remove.append(i)
+
+                if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    energy = energy_available_consumption  # it is served partially, even if it is urgent
 
                 couple = {"quantity": energy, "price": price}
                 if name in aggregator.subaggregators:  # if it is a subaggregator
@@ -501,7 +504,6 @@ class Strategy:
                 sorted_demands[i]["quantity"] = energy - energy_minimum
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
-
         for line_index in lines_to_remove:  # removing the already served elements
             sorted_demands.pop(line_index)
 
@@ -657,6 +659,7 @@ class Strategy:
 
     def _distribute_consumption_partial_service(self, aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside):  # distribution among consumptions
         energy_total = 0
+
         for element in sorted_demands:  # we sum all the emergency and the energy of demands1
             energy_total += element["quantity"]
 

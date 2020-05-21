@@ -5,8 +5,8 @@ from math import sin, pi
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/PV/PV.json", user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/PV/PV.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
         self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data

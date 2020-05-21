@@ -3,10 +3,10 @@
 from src.common.Strategy import Strategy
 
 
-class LightAutarkyEmergency(Strategy):
+class LightAutarkyQuantity(Strategy):
 
     def __init__(self):
-        super().__init__("light_autarky_emergency_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
+        super().__init__("light_autarky_quantity_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -59,7 +59,7 @@ class LightAutarkyEmergency(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
+        sort_function = self.get_quantity  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -97,7 +97,7 @@ class LightAutarkyEmergency(Strategy):
 
         # ##########################################################################################
         # updates the balances
-        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside)
+        self._update_balances(aggregator, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0)
 
 
 

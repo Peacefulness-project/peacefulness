@@ -12,7 +12,10 @@ class WindDaemon(Daemon):
         super().__init__(name, period, parameters)
 
         # getting the data for the chosen location
-        file = open("lib/Subclasses/Daemon/WindDaemon/WindProfiles.json", "r")
+        if "datafile" in parameters:  # if the user has chosen another datafile
+            file = open(parameters["datafile"], "r")
+        else:
+            file = open("lib/Subclasses/Daemon/WindDaemon/WindProfiles.json", "r")
         data = load(file)[self._location]
         file.close()
 
@@ -39,7 +42,7 @@ class WindDaemon(Daemon):
 
     def _get_temperature_365_days(self):
         month = self._catalog.get("physical_time").month
-        hour = self._catalog.get("physical_time").hour
+        hour = (self._catalog.get("physical_time").hour+1) % 24
         return self._wind_values[str(month)][hour]
 
 

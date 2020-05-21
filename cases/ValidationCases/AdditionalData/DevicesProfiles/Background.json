@@ -1,0 +1,42 @@
+{
+  "device_consumption": {
+    "dummy_usage": {
+      "usage_profile": {"LVE": {"weekday": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+        "weekend": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]}
+      },
+      "consumption_variation": 0
+    },
+
+    "dummy_usage_heat": {
+      "usage_profile": {"LTH": {"weekday": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+        "weekend": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]}
+      },
+      "consumption_variation": 0
+    },
+
+    "dummy_usage_gas": {
+      "usage_profile": {"LPG": {"weekday": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+        "weekend": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]}
+      },
+      "consumption_variation": 0
+    },
+
+    "dummy_producer_distribution_test": {
+      "usage_profile": {"LVE": {"weekday": [-0.0116111, -0.0348333, 0, 0, 0, 0, 0, 0, -0.0116111, -0.0348333, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "weekend": [-0.0116111, -0.0348333, 0, 0, 0, 0, 0, 0, -0.0116111, -0.0348333, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+      },
+      "consumption_variation": 0
+    }
+
+  },
+
+  "user_profile":{
+    "dummy_user": {
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "duration_variation": 0
+    }
+  }
+}

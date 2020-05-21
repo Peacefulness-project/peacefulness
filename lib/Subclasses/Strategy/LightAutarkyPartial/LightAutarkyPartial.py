@@ -3,10 +3,10 @@
 from src.common.Strategy import Strategy
 
 
-class LightAutarkyEmergency(Strategy):
+class LightAutarkyPartial(Strategy):
 
     def __init__(self):
-        super().__init__("light_autarky_emergency_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
+        super().__init__("light_autarky_partial_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -90,14 +90,14 @@ class LightAutarkyEmergency(Strategy):
 
         # then we distribute the remaining quantities according to our sort
         # distribution among consumptions
-        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
         # distribution among productions
-        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
+        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
         # ##########################################################################################
         # updates the balances
-        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside)
+        self._update_balances(aggregator, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0)
 
 
 

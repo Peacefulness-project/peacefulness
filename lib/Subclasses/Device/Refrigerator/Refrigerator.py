@@ -7,8 +7,8 @@ from src.common.Device import DeviceException
 
 class Refrigerator(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name):
-        super().__init__(name, contracts, agent, aggregators, "lib/Subclasses/Device/Refrigerator/Refrigerator.json", user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/Refrigerator/Refrigerator.json"):
+        super().__init__(name, contracts, agent, aggregators,filename, user_profile_name, usage_profile_name)
 
     # ##########################################################################################
     # Initialization

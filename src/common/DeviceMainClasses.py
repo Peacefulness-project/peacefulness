@@ -297,6 +297,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
             for i in range(len(self._user_profile)):
                 line = self._user_profile[i]
+                # print(line, self._moment, self._is_done, self._remaining_time)
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in energy_wanted:
                         energy_wanted[nature]["energy_maximum"] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
@@ -317,8 +318,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             for nature in energy_wanted:
                 ratio = self._usage_profile[-self._remaining_time][1]  # emergency associated
                 energy_wanted[nature]["energy_minimum"] = 0
-                energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
                 energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
+                energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -339,6 +340,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                     self._remaining_time = len(self._usage_profile) - 1
 
                 self._interruption_data[2] += 1  # it has been working for one more time step
+            else:  # if it has not started
+                self._is_done.pop()
 
             energy_min = sum([self.get_energy_wanted_min(nature) for nature in self.natures])  # total minimum energy wanted by the device
 

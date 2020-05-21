@@ -1,0 +1,33 @@
+{
+  "device_consumption": {
+    "dummy_elec": {
+      "usage_profile": [{"LVE": 1}, 1, 0.1],
+      "consumption_variation": 0,
+      "max_power": {"LVE": 5}
+    },
+    "dummy_heat": {
+      "usage_profile": [{"LTH": 1}, 1, 0.1],
+      "consumption_variation": 0,
+      "max_power": {"LTH": 5}
+    },
+    "dummy_gas": {
+      "usage_profile": [{"LPG": 1}, 1, 0.1],
+      "consumption_variation": 0,
+      "max_power": {"LPG": 5}
+    }
+  },
+
+  "user_profile":{
+    "dummy_user": {
+      "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "temperature_variation": 0,
+      "duration_variation": 0
+    }
+
+  }
+}
