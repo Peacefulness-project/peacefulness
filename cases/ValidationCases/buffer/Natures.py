@@ -105,9 +105,9 @@ aggregators_manager = Agent("aggregators_manager")
 
 # ##############################################################################################
 # Manual creation of contracts
-BAU_contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_contract_elec", LVE, price_manager_elec)
-BAU_contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_contract_heat", LTH, price_manager_heat)
-BAU_contract_gas = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_contract_gas", LPG, price_manager_gas)
+BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract_elec", LVE, price_manager_elec)
+BAU_contract_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract_heat", LTH, price_manager_heat)
+BAU_contract_gas = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract_gas", LPG, price_manager_gas)
 
 
 # ##############################################################################################

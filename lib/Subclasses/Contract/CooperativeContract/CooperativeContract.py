@@ -1,15 +1,13 @@
-# This contract is a contract in which the customer give poser to the supervisor but does not accept not be served.
+# This contract is a contract in which the customer makes no effort.
 from src.common.Contract import Contract
 
 
-class TOUCooperativeContract(Contract):
+class CooperativeContract(Contract):
 
     def __init__(self, name, nature, daemon_name):
         super().__init__(name, nature, daemon_name)
 
-        self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
-                           "Meanwhile, the customer accepts shiftable devices to be shifted " \
-                           "and to define a range of energy instead of a nominal energy for adjustable devices."
+        self.description = "A contract where the customer can be shifted."
 
     # ##########################################################################################
     # Dynamic behaviour
@@ -22,8 +20,6 @@ class TOUCooperativeContract(Contract):
             quantity["price"] = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.9  # getting the price per kW.h
 
         return quantity
-
-
 
 
 

@@ -15,9 +15,9 @@
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "FlatEgoistContract"],
-    "Heat_BAU":  ["LTH", "FlatEgoistContract"],
-    "Cold_BAU":  ["HTC", "FlatEgoistContract"]
+    "LVE_BAU":  ["LVE", "EgoistContract"],
+    "Heat_BAU":  ["LTH", "EgoistContract"],
+    "Cold_BAU":  ["HTC", "EgoistContract"]
   }
 
 }

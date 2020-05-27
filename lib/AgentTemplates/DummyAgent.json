@@ -10,7 +10,7 @@
     "Dishwasher": [["Dishwasher", "single", "medium_consumption", [1,1], "LVE_BAU"]],
     "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
 
-    "GenericProducer": [["GenericProducer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
+    "DummyProducer": [["DummyProducer", "ECOS", "ECOS", [1,1], "Heat_BAU"]],
 
     "Heating": [["Heating", "residential", "house_heat", [1,1], "Heat_BAU", {"location":  "Pau"}]],
     "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "Heat_BAU"]],
@@ -33,8 +33,8 @@
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "FlatCooperativeContract"],
-    "Heat_BAU":  ["LTH", "FlatEgoistContract"]
+    "LVE_BAU":  ["LVE", "CooperativeContract"],
+    "Heat_BAU":  ["LTH", "EgoistContract"]
   }
 
 }

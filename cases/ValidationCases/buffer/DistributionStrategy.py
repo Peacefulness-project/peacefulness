@@ -115,11 +115,11 @@ aggregators_manager = Agent("aggregators_manager")
 
 # ##############################################################################################
 # Manual creation of contracts
-elec_contract = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("elec_contract", LVE, price_manager_elec)
+elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("elec_contract", LVE, price_manager_elec)
 
-elec_expensive_contract = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("elec_expensive_contract", LVE, price_manager_elec_expensive)
+elec_expensive_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("elec_expensive_contract", LVE, price_manager_elec_expensive)
 
-producer_elec_contract = subclasses_dictionary["Contract"]["FlatCurtailmentContract"]("producer_elec_contract", LVE, price_manager_elec)
+producer_elec_contract = subclasses_dictionary["Contract"]["CurtailmentContract"]("producer_elec_contract", LVE, price_manager_elec)
 
 # ##############################################################################################
 # Creation of aggregators

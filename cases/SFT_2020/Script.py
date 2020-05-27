@@ -119,14 +119,14 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # ##############################################################################################
     # Contracts
-    BAU_contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, price_managing_elec)  # contract for the PV field
-    cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
+    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)  # contract for the PV field
+    cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
 
-    contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("BAU_heat", LTH, price_managing_heat)  # contract for the biomass unit
+    contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("BAU_heat", LTH, price_managing_heat)  # contract for the biomass unit
 
-    grid_contract = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("grid_tariffs", LVE, price_managing_grid)
+    grid_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("grid_tariffs", LVE, price_managing_grid)
 
-    DHN_contract = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("DHN_tariffs", LVE, price_managing_DHN)
+    DHN_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_tariffs", LVE, price_managing_DHN)
 
     # ##############################################################################################
     # Aggregators
@@ -146,7 +146,7 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
     # Devices
     subclasses_dictionary["Device"]["PV"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 2500, "location": "Pau"})  # creation of a photovoltaic panel field
     subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS_low", {"location": "Pau"})  # creation of a wind turbine
-    subclasses_dictionary["Device"]["GenericProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+    subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == "high_DSM":
@@ -185,9 +185,9 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
     # Dataloggers
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
     subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()

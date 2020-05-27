@@ -220,9 +220,9 @@ class Device:
             price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
 
             if energy_amount < 0:  # if the device consumes energy
-                energy_sold[nature.name] = energy_amount
+                energy_sold[nature.name] = - energy_amount
                 energy_bought[nature.name] = 0
-                money_earned[nature.name] = price * energy_amount
+                money_earned[nature.name] = - price * energy_amount
                 money_spent[nature.name] = 0
 
             else:  # if the device delivers energy
@@ -242,7 +242,7 @@ class Device:
             self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
             self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the aggregator to buy energy during the round
-            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature - money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
+            self._catalog.set(f"{nature.name}.money_earned", money_earned_nature + money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
 
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
@@ -253,7 +253,7 @@ class Device:
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract + money_spent[nature.name])  # money spent by the contract to buy energy during the round
-            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract - money_earned[nature.name])  # money earned by the contract by selling energy during the round
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract + money_earned[nature.name])  # money earned by the contract by selling energy during the round
 
         # balance at the agent level
         for nature in self.natures:
@@ -269,7 +269,7 @@ class Device:
         money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
 
         self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
-        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent - sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
+        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent + sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
 
     def _user_react(self):  # where users put device-specific behaviors
         pass

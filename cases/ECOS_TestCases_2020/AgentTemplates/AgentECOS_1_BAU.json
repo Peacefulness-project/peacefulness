@@ -10,7 +10,7 @@
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "TOUEgoistContract"]
+    "LVE_BAU":  ["LVE", "EgoistContract"]
   }
 
 }

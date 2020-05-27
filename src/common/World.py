@@ -113,13 +113,19 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
+    def choose_exports(self, option):  # optionally, you can export
+        if option == "LaTeX":
+            pass  # tire la bobinette
+        elif option == "matplotlib":
+            pass  # et la chevillette cherra
+
     def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
         self._catalog.add("time_step", timestep_value)  # value of a time step, used to adapt hourly-defined profiles
         self._timestep_value = timedelta(hours=timestep_value)
-        self._time_limit = time_limit
+        self._time_limit = time_limit  # the number of the last iteration
         self._catalog.add("time_limit", time_limit)
 
     # the following methods concern objects modeling a case
@@ -152,10 +158,8 @@ class World:
         if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        if isinstance(aggregator.superior, Aggregator):  # if the superior of the aggregator is another aggregator
+        if aggregator.superior:  # if the aggregator has a superior
             aggregator.superior._subaggregators.append(aggregator)
-        elif aggregator.superior == "exchange":  # if the superior of the aggregator is the exchange node
-            self._catalog.exchange_nodes[aggregator] = []
 
         self._catalog.aggregators[aggregator.name] = aggregator  # registering the aggregator in the dedicated dictionary
         self._used_names.append(aggregator.name)  # adding the name to the list of used names
@@ -178,6 +182,9 @@ class World:
 
         if isinstance(agent, Agent) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
+
+        if agent.superior:  # if the agent has a superior
+            agent.superior._owned_agents_name.append(agent)
 
         self._catalog.agents[agent.name] = agent  # registering the agent in the dedicated dictionary
         self._used_names.append(agent.name)  # adding the name to the list of used names
@@ -364,10 +371,20 @@ class World:
 
         return organized_aggregators_list
 
+    def _identify_independant_agents(self):
+        independant_agent_list = []  # a list containing all the independant agents
+        for agent in self._catalog.agents.values():
+            if not agent.superior:  # if the agent has no superior, it is added to the list of independant agents
+                independant_agent_list.append(agent)
+
+        return independant_agent_list
+
     def start(self):
         self._check()  # check if everything is fine in world definition
 
         classed_aggregator_list = self._set_order_of_aggregators()
+
+        independant_agents_list = self._identify_independant_agents()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -445,6 +462,10 @@ class World:
             for converter in self._catalog.converters.values():
                 converter.second_react()
 
+            # agent report what happened to their potential owner (i.e to another agent)
+            for agent in independant_agents_list:
+                agent.report()
+
             # data exporting
             for datalogger in self._catalog.dataloggers.values():
                 datalogger.launch()
@@ -457,9 +478,6 @@ class World:
             self._update_time()
 
             print()
-
-        # self.catalog.print_debug()  # display the content of the catalog
-        # print(self)  # give the name of the world and the quantity of productions and consumptions
 
     # ##########################################################################################
     # Dynamic behavior

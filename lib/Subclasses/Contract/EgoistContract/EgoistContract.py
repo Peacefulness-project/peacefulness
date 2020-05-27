@@ -2,12 +2,12 @@
 from src.common.Contract import Contract
 
 
-class FlatEgoistContract(Contract):
+class EgoistContract(Contract):
 
     def __init__(self, name, nature, daemon_name):
         super().__init__(name, nature, daemon_name)
 
-        self.description = "A contract where the price is fixed over the time. Moreover, the customer always gets what she asks."
+        self.description = "A contract where the customer always gets what she asks."
 
     # ##########################################################################################
     # Dynamic behaviour

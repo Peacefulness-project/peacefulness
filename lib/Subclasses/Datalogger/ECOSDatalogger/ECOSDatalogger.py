@@ -12,7 +12,7 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
         self._agents_list = self._catalog.get("dictionaries")['agents'].keys()  # get all the names
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
-        file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
+        file = open(self._filename, "a+")
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
             file.write(f"{aggregator_name}_self_sufficiency_consumption\t")
@@ -27,8 +27,8 @@ class ECOSAggregatorDatalogger(Datalogger):  # a sub-class of dataloggers design
 
         file.write(f"\t")
 
-    def _save(self):
-        file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
+    def _process(self):
+        file = open(self._filename, "a+")
 
         # aggregator data
         for aggregator_name in self._aggregators_list:
@@ -90,8 +90,6 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
     def __init__(self, period=0):
         super().__init__("global_values", "global_values", period)
 
-        self._last_turn = None
-
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
         self._peak = dict()
@@ -102,7 +100,7 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
 
         self._last_turn = self._catalog.get("time_limit") - 1  # the number of the last iteration
 
-    def _save(self):
+    def _process(self):
         # at every turn, the peak are reactualized
         for nature_name in self._peak:
             if self._peak[nature_name]["peak_consumption"] < self._catalog.get(f"{nature_name}.energy_consumed"):
@@ -114,7 +112,7 @@ class GlobalValuesDatalogger(Datalogger):  # a sub-class of dataloggers designed
 
         # at the last turn, the file is written
         if self._last_turn == self._catalog.get("simulation_time"):
-            file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")
+            file = open(self._filename, "a+")
 
             for nature_name in self._peak:
                 file.write(f" peak_consumption_{nature_name}: {self._peak[nature_name]['peak_consumption']}\n")

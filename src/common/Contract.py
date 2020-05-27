@@ -25,7 +25,7 @@ class Contract:
 
         # Creation of specific entries
         self._catalog.add(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
-        self._catalog.add(f"{self.name}.money_spent"), 0  # the money spent by all the devices ruled by this contract during this round
+        self._catalog.add(f"{self.name}.money_spent", 0)  # the money spent by all the devices ruled by this contract during this round
 
         self._catalog.add(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
         self._catalog.add(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round

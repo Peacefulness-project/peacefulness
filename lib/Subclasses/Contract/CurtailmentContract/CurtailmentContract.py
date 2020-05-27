@@ -1,15 +1,14 @@
-# This contract is a contract in which the customer accepts to never be served.
+# This contract is a contract in which the customer makes no effort.
 from src.common.Contract import Contract
 from src.tools.Utilities import sign
 
 
-class TOUCurtailmentContract(Contract):
+class CurtailmentContract(Contract):
 
     def __init__(self, name, nature, daemon_name):
         super().__init__(name, nature, daemon_name)
 
-        self.description = "A contract where the price is fixed over the time at a lower tariff than the TOU contract." \
-                           "Meanwhile, the customer can be shifted and erased, which means she accepts not be served at all."
+        self.description = "A contract where the customer can be curtailed."
 
     # ##########################################################################################
     # Dynamic behaviour

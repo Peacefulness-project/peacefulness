@@ -100,11 +100,11 @@ aggregators_manager = Agent("aggregators_manager")
 
 # ##############################################################################################
 # Manual creation of contracts
-BAU_contract = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_contract", LVE, price_manager_elec)
+BAU_contract = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract", LVE, price_manager_elec)
 
-curtailment_contract = subclasses_dictionary["Contract"]["FlatCurtailmentContract"]("curtailment_contract", LVE, price_manager_elec)
+curtailment_contract = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_contract", LVE, price_manager_elec)
 
-cooperative_contract = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
+cooperative_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
 
 
 # ##############################################################################################
@@ -123,17 +123,17 @@ aggregator_always_satisfied = Aggregator("local_grid_quantity", LVE, strategy_al
 # light autarky strategy
 device_BAU_light_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_light_autarky", BAU_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_light_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_light_autarky", curtailment_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_light_autarky = subclasses_dictionary["Device"]["GenericProducer"]("production_light_autarky", cooperative_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/GenericProducer.json")
+production_light_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_light_autarky", cooperative_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 # autarky strategy
 device_BAU_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_autarky", BAU_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_autarky", curtailment_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_autarky = subclasses_dictionary["Device"]["GenericProducer"]("production_autarky", cooperative_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/GenericProducer.json")
+production_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_autarky", cooperative_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 # always satisfied strategy
 device_BAU_always_satisfied = subclasses_dictionary["Device"]["Background"]("device_BAU_always_satisfied", BAU_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_always_satisfied = subclasses_dictionary["Device"]["Background"]("device_curtailment_always_satisfied", curtailment_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_always_satisfied = subclasses_dictionary["Device"]["GenericProducer"]("production_always_satisfied", cooperative_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/GenericProducer.json")
+production_always_satisfied = subclasses_dictionary["Device"]["DummyProducer"]("production_always_satisfied", cooperative_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 
 # ##############################################################################################
@@ -142,13 +142,13 @@ description = "This script checks that exchange strategies work"
 
 
 reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "light_autarky_owner.LVE.energy_sold": [0, -2, -4, -6, -8, -10, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12],
+                    "light_autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
 
                     "autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "autarky_owner.LVE.energy_sold": [0, -2, -4, -6, -8, -10, -12, -12, -12, -12, -12, -12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
                     "always_satisfied_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
-                    "always_satisfied_owner.LVE.energy_sold": [-12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12]
+                    "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
                     }
 
 filename = "exchange_strategy_validation"

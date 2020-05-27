@@ -83,7 +83,7 @@ start_date = datetime.now()  # a start date in the datetime format
 start_date = start_date.replace(year=2019, month=4, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24*7)  # number of time steps simulated
+               24)  # number of time steps simulated
 
 # ##############################################################################################
 # Model
@@ -97,7 +97,7 @@ world.set_time(start_date,  # time management: start date
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # the heat strategy
 strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartial"]()
@@ -128,9 +128,9 @@ LTH = load_low_temperature_heat()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
+price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France"})  # sets prices for flat rate
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
-price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
 limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.30, "limit_selling_price": 0.00})  # sets prices for the system operator
@@ -175,15 +175,15 @@ aggregator_manager = Agent("aggregator_manager")
 # contracts have to be defined for each nature for each agent BUT are not linked initially to a nature
 
 # producers
-BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_TOU_elec)
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_manager_heat)
+BAU_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
 
-cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
+cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_cooperative_elec)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_cooperative_elec)
 
-contract_owned_by_aggregator = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator)
+contract_owned_by_aggregator = subclasses_dictionary["Contract"]["CooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator)
 
 
 # ##############################################################################################
@@ -198,7 +198,7 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_man
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
@@ -218,7 +218,7 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
 
-# heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
 heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
 
@@ -227,7 +227,7 @@ CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
 world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
 world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(0, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
+world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -244,14 +244,21 @@ file.close()
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  aggregator
-# contract_balances = subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
-aggregator_balances = subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
-nature_balances = subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
 
-#
-# ECOS_agent_datalogger = subclasses_dictionary["Datalogger"]["ECOSDatalogger"].ECOSAgentDatalogger("month")
-# ECOS_aggregator_datalogger = subclasses_dictionary["Datalogger"]["ECOSDatalogger"].ECOSDatalogger()
-# global_values_datalogger = subclasses_dictionary["Datalogger"]["ECOSDatalogger"].GlobalValuesDatalogger()
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
+subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
 
 # datalogger used to get back producer outputs

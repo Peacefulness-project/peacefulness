@@ -2,13 +2,13 @@
 from src.common.Datalogger import Datalogger
 
 
-class ContractBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
+class ContractBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
     def __init__(self, period=1):
-        super().__init__("contract_balances", "ContractsBalances.txt", period)
-
-        self.add("simulation_time")
-        self.add("physical_time")
+        if period == "global":
+            super().__init__("contract_balances_global", "ContractsBalances_global.txt", period)
+        else:
+            super().__init__(f"contract_balances_frequency_{period}", f"ContractsBalances_frequency_{period}.txt", period)
 
         self._contracts_list = self._catalog.get("dictionaries")['contracts'].keys()  # get all the names
 

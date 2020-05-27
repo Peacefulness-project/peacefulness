@@ -122,13 +122,13 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # ##############################################################################################
     # Contracts
-    contract_grid = subclasses_dictionary["Contract"]["FlatEgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
 
-    contract_DHN = subclasses_dictionary["Contract"]["FlatEgoistContract"]("DHN_grid", LTH, price_managing_daemon_DHN)
+    contract_DHN = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_grid", LTH, price_managing_daemon_DHN)
 
-    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, price_managing_elec)
+    contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)
 
-    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_managing_heat)
+    contract_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_managing_heat)
 
     # ##############################################################################################
     # Aggregators
@@ -190,9 +190,9 @@ def simulation(strategy, DSM_proportion, sizing):
     # Dataloggers
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
     subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()

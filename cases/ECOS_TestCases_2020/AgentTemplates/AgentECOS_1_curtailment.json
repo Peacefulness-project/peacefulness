@@ -10,7 +10,7 @@
   },
 
   "contracts": {
-    "LVE_curtailment":  ["LVE", "TOUCurtailmentContract"]
+    "LVE_curtailment":  ["LVE", "CurtailmentContract"]
   }
 
 }

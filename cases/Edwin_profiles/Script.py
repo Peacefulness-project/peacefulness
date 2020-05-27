@@ -99,11 +99,11 @@ def simulation(habits, weather_city, set_point):
 
     # ##############################################################################################
     # Contracts
-    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, price_managing_elec)
+    contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)
 
-    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_managing_heat)
+    contract_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_managing_heat)
 
-    contract_cold = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_cold", HTC, price_managing_cold)
+    contract_cold = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_cold", HTC, price_managing_cold)
 
     # ##############################################################################################
     # Aggregators
@@ -132,7 +132,7 @@ def simulation(habits, weather_city, set_point):
 
     # ##############################################################################################
     # Dataloggers
-    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     # ##############################################################################################
     # Simulation

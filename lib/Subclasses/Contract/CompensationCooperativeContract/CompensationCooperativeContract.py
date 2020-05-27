@@ -2,7 +2,7 @@
 from src.common.Contract import Contract
 
 
-class TOUCompensationCooperativeContract(Contract):
+class CompensationCooperativeContract(Contract):
 
     def __init__(self, name, nature, daemon_name, parameters):
         super().__init__(name, nature, daemon_name, parameters)

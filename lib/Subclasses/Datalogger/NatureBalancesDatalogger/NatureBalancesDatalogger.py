@@ -2,13 +2,13 @@
 from src.common.Datalogger import Datalogger
 
 
-class NatureBalanceDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
+class NatureBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
     def __init__(self, period=1):
-        super().__init__("nature_balances", "NaturesBalances.txt", period)
-
-        self.add("simulation_time")
-        self.add("physical_time")
+        if period == "global":
+            super().__init__("nature_balances_global", "NaturesBalances_global.txt", period)
+        else:
+            super().__init__(f"nature_balances_frequency_{period}", f"NaturesBalances_frequency_{period}.txt", period)
 
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 

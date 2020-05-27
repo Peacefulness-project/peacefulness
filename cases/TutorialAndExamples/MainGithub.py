@@ -161,13 +161,13 @@ DHN_manager = Agent("DHN_manager")  # creation of an agent
 # Manual creation of contracts
 
 # producers
-BAU_elec = subclasses_dictionary["Contract"]["TOUEgoistContract"]("BAU_elec", LVE, price_manager_elec_TOU)
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec_TOU)
 
-cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_flat)  # a contract
+cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_flat)  # a contract
 
-cooperative_contract_heat = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
+cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
-contract_grid = subclasses_dictionary["Contract"]["FlatEgoistContract"]("grid_prices_manager", LVE, price_manager_grid)  # this contract is the one between the local electrical grid and the national one
+contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_grid)  # this contract is the one between the local electrical grid and the national one
 
 
 # ##############################################################################################
@@ -193,7 +193,7 @@ PV_field = subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, PV_produc
 
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["GenericProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
 
 # ##############################################################################################
@@ -230,8 +230,8 @@ producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  cluster
-nature_balances = subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
-aggregator_balances = subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
+nature_balances = subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
+aggregator_balances = subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
 
 # ##############################################################################################

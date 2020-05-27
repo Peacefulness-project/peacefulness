@@ -24,7 +24,7 @@ def simulation(chosen_strategy, renewable_capacity):
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Edwin_profiles/Results/" + chosen_strategy + "_" + renewable_capacity + "_renewable"  # directory where results are written
+    pathExport = "cases/DummySeriesOfCases/Results/" + chosen_strategy + "_" + renewable_capacity + "_renewable"  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -103,11 +103,11 @@ def simulation(chosen_strategy, renewable_capacity):
 
     # ##############################################################################################
     # Contracts
-    contract_grid = subclasses_dictionary["Contract"]["FlatEgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
 
-    contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, price_managing_daemon_elec)
+    contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_daemon_elec)
 
-    contract_heat = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_heat", LTH, price_managing_daemon_heat)
+    contract_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_managing_daemon_heat)
 
     # ##############################################################################################
     # Aggregators
@@ -132,7 +132,7 @@ def simulation(chosen_strategy, renewable_capacity):
     elif renewable_capacity == "a_lot":
         subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, local_electrical_grid_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 3000, "location": "Pau"})  # creation of a photovoltaic panel field
 
-    subclasses_dictionary["Device"]["GenericProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+    subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
     # DLC contracts
     world.agent_generation(1000, "cases/DummySeriesOfCases/AgentTemplates/dummy_agent_template.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_daemon_elec, "LTH": price_managing_daemon_heat})
@@ -142,9 +142,9 @@ def simulation(chosen_strategy, renewable_capacity):
 
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
     subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()

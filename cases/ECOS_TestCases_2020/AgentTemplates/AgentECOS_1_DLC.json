@@ -10,7 +10,7 @@
   },
 
   "contracts": {
-    "LVE_DLC":  ["LVE", "TOUCooperativeContract"]
+    "LVE_DLC":  ["LVE", "CooperativeContract"]
   }
 
 }

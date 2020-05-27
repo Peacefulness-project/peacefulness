@@ -105,11 +105,11 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
 
     # ##############################################################################################
     # Contracts
-    BAU_contract_elec = subclasses_dictionary["Contract"]["FlatEgoistContract"]("BAU_elec", LVE, price_managing_daemon_grid)  # contract for the PV field
+    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_daemon_grid)  # contract for the PV field
 
-    cooperative_contract_elec = subclasses_dictionary["Contract"]["FlatCooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
+    cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
 
-    contract_grid = subclasses_dictionary["Contract"]["FlatEgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
 
     # ##############################################################################################
     # Aggregators
@@ -167,9 +167,9 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     # Dataloggers
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ContractBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AggregatorBalanceDatalogger"]()
-    subclasses_dictionary["Datalogger"]["NatureBalanceDatalogger"]()
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
     subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()

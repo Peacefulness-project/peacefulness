@@ -2,9 +2,9 @@
 from src.common.DeviceMainClasses import NonControllableDevice
 
 
-class GenericProducer(NonControllableDevice):
+class DummyProducer(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/GenericProducer/GenericProducer.json"):
+    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/DummyProducer/DummyProducer.json"):
         super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name)
 
     # ##########################################################################################

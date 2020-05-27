@@ -44,7 +44,6 @@ class WindTurbine(NonControllableDevice):
         air_density = 1.17  # air density in kg.m-3
 
         energy_received = 1/2 * air_density * self._surface * wind**3 / 1000  # power received in kw
-        print(energy_received, self._surface, wind)
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device

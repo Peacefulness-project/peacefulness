@@ -1,4 +1,4 @@
-# This script checks that the billing works well for contracts
+# This script checks that agents hierarchy balances work well
 
 # ##############################################################################################
 # Importations
@@ -40,7 +40,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/ValidationCases/Results/ContractsTariffs")  # here, you have to put the path to your results directory
+world.set_directory("cases/ValidationCases/Results/Agents")  # here, you have to put the path to your results directory
 
 
 # ##############################################################################################
@@ -64,8 +64,8 @@ world.set_time(start_date,  # time management: start date
 
 # ##############################################################################################
 # Creation of strategies
-# the different distribution strategies
-strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+# BAU strategy
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -79,64 +79,62 @@ LVE = load_low_voltage_electricity()
 
 # ##############################################################################################
 # Creation of daemons
-price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0, 0], "hours": [[6, 22]]})  # sets prices for flat rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
 
-subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
-
+subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0, "limit_selling_price": 0})  # sets prices for the system operator
 
 # ##############################################################################################
 # Manual creation of agents
-flat_owner = Agent("flat_owner")
-TOU_owner = Agent("TOU_owner")
+sup_agent = Agent("sup_agent")
+
+inf_agent = Agent("inf_agent", sup_agent)
 
 aggregators_manager = Agent("aggregators_manager")
 
 
 # ##############################################################################################
 # Manual creation of contracts
-flat_elec_contract = subclasses_dictionary["Contract"]["FlatEgoistContract"]("flat_elec_contract", LVE, price_manager_elec_flat)
-
-TOU_elec_contract = subclasses_dictionary["Contract"]["TOUEgoistContract"]("TOU_elec_contract", LVE, price_manager_elec_TOU)
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
 
 
 # ##############################################################################################
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manager, aggregator_grid, flat_elec_contract)
+aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec)
 
 
 # ##############################################################################################
 # Manual creation of devices
+device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, sup_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-# Each device is created 3 times
-# BAU contract
-subclasses_dictionary["Device"]["Background"]("flat_device", flat_elec_contract, flat_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-
-# Cooperative contract
-subclasses_dictionary["Device"]["Background"]("TOU_device", TOU_elec_contract, TOU_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, inf_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################
 # Creation of the validation daemon
-description = "This script checks that the billing works well for contracts."
+description = "This script checks that agents hierarchy balances work well"
 
 
-reference_values = {"flat_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3],
-                    "TOU_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 2.2, 2.3],
+reference_values = {"sup_agent.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
+                    "inf_agent.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
 
-filename = "contracts_tariffs_validation"
+filename = "agents_validation"
 
 parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("contracts_tariffs_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("agents_test", parameters)
 
 
 # ##############################################################################################
 # Simulation start
 world.start()
+
+
+
+
+
 
 
 
