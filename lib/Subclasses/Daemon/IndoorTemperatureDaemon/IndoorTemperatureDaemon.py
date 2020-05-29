@@ -30,12 +30,13 @@ class IndoorTemperatureDaemon(Daemon):
                 G = self._agent_list[agent_name][1]
 
                 previous_indoor_temperature = self._catalog.get(f"{agent_name}.previous_indoor_temperature")
-                current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")
+                current_indoor_temperature = self._catalog.get(f"{agent_name}.current_indoor_temperature")  # the temperature impacted by heating and cooling but not the exterior
+
+                deltaT_heating_or_cooling = current_indoor_temperature - previous_indoor_temperature  # impact of heating and cooling on the indoor temperature
+                current_indoor_temperature = current_outdoor_temperature[location] + \
+                                            (previous_indoor_temperature - current_outdoor_temperature[location]) * exp(-time_step/thermal_inertia) + deltaT_heating_or_cooling
 
                 self._catalog.set(f"{agent_name}.previous_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
-                deltaT_heating_or_cooling = current_indoor_temperature - previous_indoor_temperature
-                current_indoor_temperature = previous_outdoor_temperature[location] + \
-                                            (previous_indoor_temperature - previous_outdoor_temperature[location]) * exp(-time_step/thermal_inertia) + deltaT_heating_or_cooling
 
                 self._catalog.set(f"{agent_name}.current_indoor_temperature", current_indoor_temperature)  # updating the previous temperature
 

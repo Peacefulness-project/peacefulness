@@ -1,25 +1,48 @@
 {
   "device_consumption": {
     "dummy_elec": {
-      "usage_profile": [{"LVE": 1}, 1, 0.1],
+      "usage_profile": [{"LVE": 1}, 0.00001, 0.036],
       "consumption_variation": 0,
-      "max_power": {"LVE": 5}
-    },
-    "dummy_heat": {
-      "usage_profile": [{"LTH": 1}, 1, 0.1],
-      "consumption_variation": 0,
-      "max_power": {"LTH": 5}
-    },
-    "dummy_gas": {
-      "usage_profile": [{"LPG": 1}, 1, 0.1],
-      "consumption_variation": 0,
-      "max_power": {"LPG": 5}
+      "max_power": {"LVE": 20}
     }
   },
 
   "user_profile":{
     "dummy_user": {
-      "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
+      "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [10, 11, 12]]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "temperature_variation": 0,
+      "duration_variation": 0
+    },
+
+    "dummy_user_early": {
+      "profile": [[[4, 5], [19, 20, 21]], [[9, 9], [10, 11, 12]]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "temperature_variation": 0,
+      "duration_variation": 0
+    },
+
+    "dummy_user_hot": {
+      "profile": [[[5, 5], [21, 22, 23]], [[10, 9], [12, 13, 14]]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 0,
+      "temperature_variation": 0,
+      "duration_variation": 0
+    },
+
+    "dummy_user_short_usage": {
+      "profile": [[[5, 4], [19, 20, 21]], [[10, 8], [10, 11, 12]]],
 
       "period": 24,
       "offset": 0,
@@ -28,6 +51,5 @@
       "temperature_variation": 0,
       "duration_variation": 0
     }
-
   }
 }

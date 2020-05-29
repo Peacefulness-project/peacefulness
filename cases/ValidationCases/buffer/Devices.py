@@ -85,6 +85,11 @@ price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("pric
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 
+
+# Indoor temperature
+# this daemon is responsible for the value of indoor temperatures in the catalog
+indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
+
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
 outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
@@ -142,7 +147,7 @@ description = "This script checks that devices are working well."
 
 
 reference_values = {"background_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0],
+                    "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 14.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 0, 0, 0, 0],
                     "dishwasher_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "PV_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00185, 0.17665, 0.2805, 0.39845, 0.4373, 0.4681, 0.4173, 0.2925, 0.20285, 0, 0, 0, 0, 0, 0, 0],
                     "hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

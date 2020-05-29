@@ -17,9 +17,30 @@ class Heating(AdjustableDevice):
             self._catalog.add("locations", [])
         except:
             pass
+
         location = self._catalog.get("locations")
         if self._location not in location:  # if the location of the device is not already in the list of locations
             location.append(self._location)  # add the location of the device to the list of locations
+
+        # managing the temperature at the level of the agent
+        try:  # there can be only one temperature in the catalog for each agent
+            # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
+            outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
+            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", outdoor_temperature)
+            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", outdoor_temperature)
+
+            try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
+                # later, a daemon in charge of updating temperatures saves the list and removes this entry
+                self._catalog.add("agents_with_temperature_devices", {})
+            except:
+                pass
+
+            agent_list = self._catalog.get("agents_with_temperature_devices")
+            agent_list[self.agent.name] = [self._thermal_inertia, self._G]
+            self._catalog.set("agents_with_temperature_devices", agent_list)
+
+        except:
+            pass
 
     # ##########################################################################################
     # Initialization
@@ -115,25 +136,6 @@ class Heating(AdjustableDevice):
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
-        # managing the temperature at the level of the agent
-        try:  # there can be only one temperature in the catalog for each agent
-            # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
-            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", 17)
-            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", 17)
-
-            try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
-                # later, a daemon in charge of updating temperatures saves the list and removes this entry
-                self._catalog.add("agents_with_temperature_devices", {})
-            except:
-                pass
-
-            agent_list = self._catalog.get("agents_with_temperature_devices")
-            agent_list[self.agent.name] = [self._thermal_inertia, self._G]
-            self._catalog.set("agents_with_temperature_devices", agent_list)
-
-        except:
-            pass
-
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data["profile"]:
@@ -184,15 +186,15 @@ class Heating(AdjustableDevice):
 
                 for nature in energy_wanted:
                     # min power calculation:
-                    energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia * self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia * self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_minimum"] = min(energy_wanted[nature]["energy_minimum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_minimum"] = max(0, energy_wanted[nature]["energy_minimum"])
                     # nominal power calculation:
-                    energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia * self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia * self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_nominal"] = min(energy_wanted[nature]["energy_nominal"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_nominal"] = max(0, energy_wanted[nature]["energy_nominal"])
                     # max power calculation:
-                    energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))# / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_maximum"] = max(0, energy_wanted[nature]["energy_maximum"])
 
