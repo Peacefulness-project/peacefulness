@@ -24,9 +24,6 @@ class PV(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):
-        pass
-
     def _read_data_profiles(self):
         self._usage_profile = dict()
 

@@ -50,13 +50,14 @@ class ValidationDaemon(Daemon):
             data_to_check[key] = self._catalog.get(key)
 
             if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same
-                message = f"{key} : OK"
+                pass
+                # message = f"{key} : OK"
             else:  # if the results and the data in the catalog are different
                 message = f"{self._catalog.get('physical_time')}\n" \
                     f"{key} : KO, reference value = {self._reference_values[key][iteration]} and simulation value = {data_to_check[key]}"
                 self._problem[key].append(iteration)
 
-            self._write_and_print(message, file)
+                self._write_and_print(message, file)
 
         if self._catalog.get("time_limit") - 1 == self._catalog.get("simulation_time"):  # at the last iteration, a resume is written and printed
             message = "\nResume of the test:"

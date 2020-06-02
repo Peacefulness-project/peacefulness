@@ -13,11 +13,6 @@ class InstantHotWaterTank(ChargerDevice):
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):  # make the initialization operations specific to the device
-        super()._user_register()  # perform the actions specific to charger devices
-
-        self._month_dependency = None  # a monthly factor representing the variation of consumption of domestic hot water
-
     def _read_data_profiles(self):
 
         [data_user, data_device] = self._read_consumption_data()  # parsing the data

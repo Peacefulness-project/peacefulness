@@ -7,16 +7,15 @@ class SolarThermalCollector(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/SolarThermalCollector/SolarThermalCollector.json"):
         super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
 
+        self._catalog.add(f"{self.name}_exergy_in", 0)
+        self._catalog.add(f"{self.name}_exergy_out", 0)
+
         self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-
-    def _user_register(self):
-        self._catalog.add(f"{self.name}_exergy_in", 0)
-        self._catalog.add(f"{self.name}_exergy_out", 0)
 
     def _read_data_profiles(self):
         self._usage_profile = dict()

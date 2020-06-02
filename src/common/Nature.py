@@ -20,7 +20,6 @@ class Nature:  # this class contains the different natures
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         self.description = description  # a description of the nature
-        self._grid = False  # a flag indicating if this nature is linked to a major grid
 
         # Creation of specific entries in the catalog
         self._catalog.add(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
@@ -45,10 +44,6 @@ class Nature:  # this class contains the different natures
     # ##########################################################################################
     # Utility
     # ##########################################################################################
-
-    @property
-    def has_external_grid(self):
-        return self._grid
 
     def list(cls):  # a method allowing to get a list of energy types
         return cls._list

@@ -30,8 +30,6 @@ class Device:
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
         # 1 key <=> 1 energy nature
         self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
-        self._inputs = dict()
-        self._outputs = dict()
 
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
@@ -92,24 +90,16 @@ class Device:
             except:
                 pass
 
-        self._user_register()  # here the possibility is let to the user to modify things according to his needs
-
         if self._filename != "loaded device":  # if a filename has been defined...
             self._read_data_profiles()  # ... then the file is converted into consumption profiles
             # else, the device has been loaded and does not need a data file
-
-        # self._user_register()  # here the possibility is let to the user to modify things according to his needs
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _user_register(self):  # where users put device-specific behaviors
-        pass
-
     # ##########################################################################################
     # Consumption reading
-    # ##########################################################################################
 
     def _read_data_profiles(self):
         pass
