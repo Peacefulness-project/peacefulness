@@ -1,4 +1,4 @@
-# This script is here to help you not loose you when creating a case.
+# This script is here to help not loose yourself when creating a case.
 
 # ##############################################################################################
 # Importations

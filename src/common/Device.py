@@ -196,8 +196,7 @@ class Device:
 
         self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
-        self._user_react()  # device-specific actions
-
+    def make_balances(self):
         energy_sold = dict()
         energy_bought = dict()
         energy_erased = dict()
@@ -260,9 +259,6 @@ class Device:
 
         self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
         self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent + sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
-
-    def _user_react(self):  # where users put device-specific behaviors
-        pass
 
     # ##########################################################################################
     # Utility

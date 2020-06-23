@@ -39,12 +39,6 @@ class SubaggregatorHeatRevenues(Strategy):
             sort_function_converters = self.get_price  # converters offers are classed by decreasing prices
             [sorted_conversion_offers, sorted_offers] = self._sort_conversion_offers(aggregator, sort_function_converters, sorted_offers, sort_function)
 
-            if maximum_energy_consumed > maximum_energy_produced:  # if there is a lack of energy
-                energy_to_convert = maximum_energy_consumed - maximum_energy_produced
-                energy_converted = self._call_to_converters(aggregator, min_price, sorted_conversion_offers, energy_to_convert)  # the amount of energy converted
-                maximum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
-                minimum_energy_consumed -= energy_converted  # deducing the quantity of converted energy to the needs in consumption
-
         # ##########################################################################################
         # management of grid call
         # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price

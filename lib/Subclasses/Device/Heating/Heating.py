@@ -2,7 +2,7 @@
 from math import exp
 # Current packages
 from src.common.DeviceMainClasses import AdjustableDevice
-from src.common.Device import DeviceException
+from src.common.Device import DeviceException, Device
 
 
 class Heating(AdjustableDevice):
@@ -200,7 +200,8 @@ class Heating(AdjustableDevice):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+    def react(self):  # method updating the device according to the decisions taken by the supervisor
+        Device.react(self)  # actions needed for all the devices
 
         for nature in self._natures:
             energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy

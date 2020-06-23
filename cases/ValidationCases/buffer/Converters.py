@@ -1,4 +1,4 @@
-# This script checks that the billing works well for contracts
+# This script checks that devices are working well.
 
 # ##############################################################################################
 # Importations
@@ -18,6 +18,7 @@ from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -40,7 +41,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/ValidationCases/Results/ContractsTariffs")  # here, you have to put the path to your results directory
+world.set_directory("cases/ValidationCases/Results/Converters")  # here, you have to put the path to your results directory
 
 
 # ##############################################################################################
@@ -64,8 +65,12 @@ world.set_time(start_date,  # time management: start date
 
 # ##############################################################################################
 # Creation of strategies
-# the different distribution strategies
-strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+
+# BAU strategy
+BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+# autarky strategy
+autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -76,75 +81,72 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 # low voltage electricity
 LVE = load_low_voltage_electricity()
 
+LTH = load_low_temperature_heat()
+
 
 # ##############################################################################################
 # Creation of daemons
-price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0, 0], "hours": [[6, 22]]})  # sets prices for flat rate
-price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"nature": LVE.name, "location":"France"})  # sets prices for RTP rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
+price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France"})  # sets prices for flat rate
 
-subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": -1})  # sets prices for the system operator
+subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
+subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 
 
 # ##############################################################################################
 # Manual creation of agents
-flat_owner = Agent("flat_owner")
-TOU_owner = Agent("TOU_owner")
-RTP_owner = Agent("RTP_owner")
+consumer_owner = Agent("consumer_owner")
+converter_owner = Agent("converter_owner")
 
 aggregators_manager = Agent("aggregators_manager")
 
 
 # ##############################################################################################
 # Manual creation of contracts
-flat_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("flat_elec_contract", LVE, price_manager_elec_flat)
+BAU_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("BAU_elec", LVE, price_manager_elec)
 
-TOU_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("TOU_elec_contract", LVE, price_manager_elec_TOU)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_heat", LTH, price_manager_RTP_heat)
 
-RTP_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("RTP_elec_contract", LVE, price_manager_elec_RTP)
+threshold_heat = subclasses_dictionary["Contract"]["ThresholdPricesContract"]("threshold_heat", LTH, price_manager_RTP_heat, {"buying_threshold": 0, "selling_threshold": 0.2})
 
 
 # ##############################################################################################
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manager, aggregator_grid, flat_elec_contract)
+aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_elec)
 
+aggregator_heat = Aggregator("aggregator_heat", LTH, autarky_strategy, aggregators_manager)
 
 # ##############################################################################################
 # Manual creation of devices
-
-# Each device is created 3 times
-# flat contract
-subclasses_dictionary["Device"]["Background"]("flat_device", flat_elec_contract, flat_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-
-# TOU contract
-subclasses_dictionary["Device"]["Background"]("TOU_device", TOU_elec_contract, TOU_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-
-# RTP contract
-subclasses_dictionary["Device"]["Background"]("RTP_device", RTP_elec_contract, RTP_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Background"]("background", cooperative_heat, consumer_owner, aggregator_heat, "dummy_user", "dummy_usage_heat", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_elec, threshold_heat], converter_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump", "cases/ValidationCases/AdditionalData/DevicesProfiles/HeatPump.json")
 
 
 # ##############################################################################################
 # Creation of the validation daemon
-description = "This script checks that the billing works well for contracts."
+description = "This script checks that converters are working well."
 
 
-reference_values = {"flat_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3],
-                    "TOU_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 2.2, 2.3],
-                    "RTP_owner.money_spent": [0, 0.1703*1, 0.155*2, 0.1402*3, 0.0855*4, 0.0684*5, 0.0669*6, 0.0873*7, 0.1524*8, 0.1306*9, 0.1332*10, 0.1261*11, 0.1441*12, 0.1454*13, 0.1214*14, 0.1234*15, 0.1166*16, 0.1205*17, 0.179*18, 0.2*19, 0.2*20, 0.2*21, 0.2*22, 0.2*23]
+reference_values = {"consumer_owner.LTH.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 0],
+                    "converter_owner.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 0],
+                    "converter_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9.5, 10, 10.5, 11, 0]
                     }
 
-filename = "contracts_tariffs_validation"
+filename = "converters_validation"
 
 parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("contracts_tariffs_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("devices_test", parameters)
 
 
 # ##############################################################################################
 # Simulation start
 world.start()
+
+
+
 
 
 

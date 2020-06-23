@@ -80,7 +80,7 @@ world.set_random_seed("tournesol")
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime.now()  # a start date in the datetime format
-start_date = start_date.replace(year=2019, month=4, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = start_date.replace(year=2020, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -128,9 +128,10 @@ LTH = load_low_temperature_heat()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France"})  # sets prices for flat rate
+price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_elec", {"location": "France"})  # sets prices for flat rate
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France"})  # sets prices for flat rate
 
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
 limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.30, "limit_selling_price": 0.00})  # sets prices for the system operator
@@ -185,6 +186,7 @@ cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContra
 
 contract_owned_by_aggregator = subclasses_dictionary["Contract"]["CooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator)
 
+contract_converter_heat = subclasses_dictionary["Contract"]["ThresholdPricesContract"]("contract_converter_heat", LTH, price_manager_RTP_heat, {"buying_threshold": 0, "selling_threshold": 0.2})
 
 # ##############################################################################################
 # Aggregator
@@ -206,28 +208,25 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 
 
 # ##############################################################################################
-# Converter
-# heatpump = subclasses_dictionary["Converter"]["HeatPump"]("heat_pump", BAU_elec, heat_pump_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump")
-
-
-# ##############################################################################################
 # Device
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
-
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
-
+# wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
+#
+# heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+#
 heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+
+heat_pump = subclasses_dictionary["Device"]["HeatPump"]("converter", [cooperative_contract_elec, contract_converter_heat], DHN_producer, aggregator_elec, aggregator_heat, "dummy_heat_pump")
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
+# world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+# world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+# world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -280,20 +279,20 @@ producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
 # producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
 # producer_datalogger.add(f"{PV_field.name}_exergy_out")
 # producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
-producer_datalogger.add("Pau.reference_temperature")
-producer_datalogger.add("Pau.irradiation_value")
-
-test_datalogger = Datalogger("test_datalogger", "test")
-test_datalogger.add("egoist_single_0.LVE.energy_bought")
-test_datalogger.add("egoist_single_0.LTH.energy_bought")
-test_datalogger.add("egoist_single_0.money_spent")
-
-test_datalogger.add("egoist_family_0.LVE.energy_bought")
-test_datalogger.add("egoist_family_0.LTH.energy_bought")
-test_datalogger.add("egoist_family_0.money_spent")
-
-test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
-test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
+# producer_datalogger.add("Pau.reference_temperature")
+# producer_datalogger.add("Pau.irradiation_value")
+#
+# test_datalogger = Datalogger("test_datalogger", "test")
+# test_datalogger.add("egoist_single_0.LVE.energy_bought")
+# test_datalogger.add("egoist_single_0.LTH.energy_bought")
+# test_datalogger.add("egoist_single_0.money_spent")
+#
+# test_datalogger.add("egoist_family_0.LVE.energy_bought")
+# test_datalogger.add("egoist_family_0.LTH.energy_bought")
+# test_datalogger.add("egoist_family_0.money_spent")
+#
+# test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
+# test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization

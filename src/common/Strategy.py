@@ -87,15 +87,6 @@ class Strategy:
                         minimum_energy_produced -= energy_minimum
                     maximum_energy_produced -= energy_maximum
 
-        # quantities concerning converters
-        for converter_name in aggregator.converters:
-            energy_minimum = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
-            energy_maximum = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
-
-            # balances
-            minimum_energy_produced -= energy_minimum
-            energy_available_from_converters -= energy_maximum
-
         return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters]
 
     # ##########################################################################################
@@ -326,50 +317,6 @@ class Strategy:
                 energy_pushable += element["energy_maximum"] * aggregator.efficiency
 
         return quantities_and_prices
-
-    # ##########################################################################################
-    # converters management
-    # ##########################################################################################
-
-    def _call_to_converters(self, aggregator, min_price, sorted_conversion_offers, energy_to_convert):  # method attributing demands to converters according to the quantity of energy to be converted
-        i = 0
-        energy_converted = 0
-
-        if len(sorted_conversion_offers) >= 1:  # if there are still offers
-            while energy_to_convert > - sorted_conversion_offers[i]["quantity"] and i < len(sorted_conversion_offers) - 1:  # as long as there is energy available
-                converter_name = sorted_conversion_offers[i]["name"]
-                energy = sorted_conversion_offers[i]["quantity"]  # the quantity of energy needed
-                price = sorted_conversion_offers[i]["price"]  # the price of energy
-                price = max(price, min_price)
-                Emin = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_asked")["quantity"]  # we get back the minimum, which has already been served
-
-                self._catalog.set(f"{converter_name}.{aggregator.nature.name}.energy_asked", {"quantity": Emin + energy, "price": price})
-                energy_converted += energy
-
-                i += 1
-
-        # this line gives the remnant of energy to the last unserved device
-        if sorted_conversion_offers[i]["quantity"]:  # if the demand really exists
-            converter_name = sorted_conversion_offers[i]["name"]
-            energy = max(sorted_conversion_offers[i]["quantity"], - energy_to_convert)  # the quantity of energy needed
-            price = sorted_conversion_offers[i]["price"]  # the price of energy
-            price = max(price, min_price)
-
-            Emin = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_asked")["quantity"]  # we get back the minimum, which has already been served
-
-            self._catalog.set(f"{converter_name}.{aggregator.nature.name}.energy_asked", {"quantity": Emin + energy, "price": price})
-            energy_converted += energy
-
-        return energy_converted
-
-    def _energy_received_from_converters(self, aggregator, money_spent_outside, energy_bought_outside):
-        for converter_name in aggregator.converters:
-            quantity = self._catalog.get(f"{converter_name}.{aggregator.nature.name}.energy_accorded")
-
-            money_spent_outside -= quantity["quantity"] * quantity["price"]  # the absolute value of money spent outside
-            energy_bought_outside -= quantity["quantity"]  # the absolute value of energy bought outside
-
-        return [money_spent_outside, energy_bought_outside]
 
     # ##########################################################################################
     # sort functions
@@ -613,7 +560,7 @@ class Strategy:
         i = 0
 
         if len(sorted_offers) >= 1:  # if there are offers
-            while energy_available_production > - sorted_offers[i]["quantity"] and i < len(sorted_offers) - 1:  # as long as there is energy available
+            while energy_available_production >= - sorted_offers[i]["quantity"] and i < len(sorted_offers) - 1:  # as long as there is energy available
                 name = sorted_offers[i]["name"]
                 energy = sorted_offers[i]["quantity"]  # the quantity of energy needed
                 price = sorted_offers[i]["price"]  # the price of energy

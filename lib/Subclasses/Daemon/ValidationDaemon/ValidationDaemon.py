@@ -10,7 +10,7 @@ class ValidationDaemon(Daemon):
 
         self._reference_values = parameters["reference_values"]  # the reference values
 
-        self._filename = parameters["filename"]  # the name of the file were results are written
+        self._filename = parameters["filename"] + ".txt"  # the name of the file were results are written
 
         self._description = parameters["description"]
 
@@ -44,15 +44,14 @@ class ValidationDaemon(Daemon):
         data_to_check = {}
         iteration = self._catalog.get("simulation_time")
 
-        file.write(f"\niteration {iteration}\n")
 
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
 
             if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same
                 pass
-                # message = f"{key} : OK"
             else:  # if the results and the data in the catalog are different
+                file.write(f"\niteration {iteration}\n")
                 message = f"{self._catalog.get('physical_time')}\n" \
                     f"{key} : KO, reference value = {self._reference_values[key][iteration]} and simulation value = {data_to_check[key]}"
                 self._problem[key].append(iteration)

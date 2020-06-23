@@ -1,7 +1,8 @@
 from src.common.DeviceMainClasses import ChargerDevice
+from src.common.Device import Device
 
 
-class HotWaterTank(ChargerDevice):
+class HotWaterTank(ChargerDevice, Device):
 
     def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
         super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name)
@@ -146,7 +147,9 @@ class HotWaterTank(ChargerDevice):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the supervisor
+    def react(self):  # method updating the device according to the decisions taken by the supervisor
+        Device.react(self)  # actions needed for all the devices
+
         # effort management
         energy_wanted = dict()
         energy_accorded = dict()

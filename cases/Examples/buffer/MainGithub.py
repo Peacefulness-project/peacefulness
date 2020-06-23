@@ -1,4 +1,4 @@
-# This script is the one given in example in the github wiki.
+# This script is the one deconstructed in the tuto to create a case on the wiki.
 
 
 # ##############################################################################################

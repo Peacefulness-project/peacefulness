@@ -1,7 +1,8 @@
 # ##############################################################################################
 # Native packages
 # Current packages
-from src.common.Device import Device
+from src.common.Device import Device, DeviceException
+from json import load
 
 
 # ##############################################################################################
@@ -93,19 +94,6 @@ class NonControllableDevice(Device):
                     energy_wanted[nature]["energy_maximum"] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
-
-    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
-        # # effort management
-        # energy_wanted_nominal = dict()
-        # energy_accorded = dict()
-        # for nature in self.natures:
-        #     energy_wanted_nominal[nature] = self.get_energy_wanted_nom(nature)
-        #     energy_accorded[nature] = sum([self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"] for nature in self.natures])
-        #     if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy...
-        #         effort = 42  # TODO: j'ai mis 42 en attendant qu'on se mette d'accord
-        #         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-        #         self.agent.add_effort(effort, nature)  # effort increments
-        pass
 
     # ##########################################################################################
     # Utility
@@ -293,7 +281,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                        for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
 
-        if not self._remaining_time:  # if the device is not running then it's the user_profile which is taken into account
+        if not self._remaining_time:  # if the device is not running then it's the user_profile who is taken into account
 
             for i in range(len(self._user_profile)):
                 line = self._user_profile[i]
@@ -323,15 +311,16 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):
+    def react(self):
+        super().react()  # actions needed for all the devices
+
         energy_wanted = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # total energy wanted by the device
         energy_accorded = sum([self.get_energy_accorded_quantity(nature) for nature in self.natures])  # total energy accorded to the device
 
         if self._remaining_time and energy_accorded < energy_wanted:  # if the device has started and not been served, then it has been interrupted
             self._interruption_data[0] = True  # it is flagged as "interrupted"
 
-        # effort and interruption management
-        if energy_wanted:  # if the device is active
+        elif energy_wanted:  # if the device is active
 
             if energy_accorded:  # if it has been served
                 if self._remaining_time:  # if it has started
@@ -344,12 +333,6 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 self._is_done.pop()
 
             energy_min = sum([self.get_energy_wanted_min(nature) for nature in self.natures])  # total minimum energy wanted by the device
-
-            # if energy_min > energy_accorded:  # if the device is inactive meanwhile its priority is 1
-            #     for nature in self.natures:
-            #         effort = 1
-            #         effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-            #         self.agent.add_effort(effort, nature)  # effort increments
 
     # ##########################################################################################
     # Utility
@@ -474,7 +457,9 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
             self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
+    def react(self):  # method updating the device according to the decisions taken by the strategy
+        super().react()  # actions needed for all the devices
+
         # effort management
         energy_wanted = dict()
         energy_accorded = dict()
@@ -482,15 +467,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             energy_wanted[nature] = self.get_energy_wanted_nom(nature)
             energy_accorded[nature] = self.get_energy_accorded_quantity(nature)
 
-            if energy_wanted[nature] != energy_accorded[nature]:  # if it is not the nominal wanted energy, then it creates effort
-                energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
-                energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
-
-                # effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
-                # effort = self.natures[nature]["contract"].effort_modification(effort, self.agent.name)  # here, the contract may modify effort
-                # self.agent.add_effort(effort, nature)  # effort increments
-
-                self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
+            self._latent_demand[nature] += energy_wanted[nature] - energy_accorded[nature]  # the energy in excess or in default
 
         activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean
         if activity:  # if the device is active
@@ -586,23 +563,15 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def _user_react(self):  # method updating the device according to the decisions taken by the strategy
+    def react(self):  # method updating the device according to the decisions taken by the strategy
+        super().react()  # actions needed for all the devices
+
         # effort management
         energy_wanted_nominal = dict()
         energy_accorded = dict()
         for nature in self._natures:
             energy_wanted_nominal[nature] = self.get_energy_wanted_nom(nature)  # the nominal quantity of energy wanted
             energy_accorded[nature] = self.get_energy_accorded_quantity(nature)
-
-            # if energy_wanted_nominal != energy_accorded:  # if it is not the nominal wanted energy, then it creates effort
-            #     for nature in self.natures:
-            #         energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
-            #         energy_wanted_max = self.get_energy_wanted_max(nature)  # maximum quantity of energy
-            #
-            #         if energy_wanted_nominal == energy_wanted_max:  # only an urgent need can generate effort
-            #             effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted_nominal[nature]  # effort increases
-            #             effort = self.natures[nature]["contract"].effort_modification(effort)  # here, the contract may modify effort
-            #             self.agent.add_effort(effort, nature)  # effort increments
 
             for nature in self._natures:
                 self._demand[nature.name] -= energy_accorded[nature]  # the energy which still has to be served
@@ -623,10 +592,78 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         return "charger"
 
 
+class Converter(Device):
 
+    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profile_name, parameters=None):
+        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, None, profile_name, parameters)
 
+        self._upstream_aggregator = {"name": upstream_aggregator.name, "nature": upstream_aggregator.nature.name, "contract": contracts}  # the aggregator who has to adapt
+        self._downstream_aggregator = {"name": downstream_aggregator.name, "nature": downstream_aggregator.nature.name, "contract": contracts}   # the aggregator who has the last word
 
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
 
+    def _read_data_profiles(self):
+        # parsing the data
+        file = open(self._filename, "r")
+        data = load(file)
+
+        # getting the user profile
+        try:
+            technical_data = data[self._usage_profile_name]
+        except:
+            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles for the class {type(self).__name__}: {data.keys()}")
+
+        file.close()
+
+        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": technical_data["capacity"]}
+        self._efficiency = technical_data["efficiency"]  # the efficiency of the converter
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def update(self):  # method updating needs of the devices before the supervision
+        # downstream side
+        energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
+                         for nature in self.natures}  # consumption that will be asked eventually
+
+        nature_name = self._downstream_aggregator["nature"]
+        energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
+        energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
+        energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"]  # the physical maximum of energy this converter can consume
+
+        # upstream side
+        nature_name = self._upstream_aggregator["nature"]
+        energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self._efficiency  # the physical minimum of energy this converter has to consume
+        energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency  # the physical minimum of energy this converter has to consume
+        energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency  # the physical maximum of energy this converter can consume
+
+        self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
+
+    def react(self):
+        # determination of the energy consumed/produced
+        energy_wanted_downstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"]  # the energy asked by the downstream aggregator
+        energy_available_upstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency  # the energy accorded by the upstream aggregator
+        energy_furnished_downstream = min(-energy_available_upstream, energy_wanted_downstream)
+        energy_consumed_upstream = - energy_furnished_downstream / self._efficiency
+
+        # downstream side
+        price = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["price"]
+        self._catalog.set(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded", {"quantity": energy_furnished_downstream, "price": price})  # the quantity of energy furnished to the downstream aggregator
+
+        # upstream side
+        price = self._catalog.get(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded")["price"]
+        self._catalog.set(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded", {"quantity": energy_consumed_upstream, "price": price})  # the quantity of energy furnished to the downstream aggregator
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "converter"
 
 
 

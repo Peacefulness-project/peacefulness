@@ -207,46 +207,6 @@ class World:
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         self._used_names.append(device.name)  # adding the name to the list of used names
 
-    def _search_superior_aggregator(self, aggregator):  # this method returns he ultimate chief of the given aggregator
-        if aggregator.superior:
-            chief = self._search_superior_aggregator(aggregator.superior)
-        else:  # it the aggregator of highest rank
-            chief = aggregator
-
-        return chief
-
-    def register_converter(self, converter):  # method connecting one device to the world
-        if converter.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{converter.name} already in use")
-
-        if isinstance(converter, Converter) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        # checking if the agent is defined correctly
-        if converter._agent.name not in self._catalog.agents:  # if the specified agent does not exist
-            raise WorldException(f"{converter._agent.name} does not exist")
-
-        converter.aggregators["downstream_aggregator"].add_converter(converter.name)  # adding the device name to the list of converters of its donwstream aggregator
-        converter.aggregators["upstream_aggregator"].add_device(converter.name)  # adding the converter name to the list of devices fo its upstream aggregator
-
-        downstream_aggregator = self._search_superior_aggregator(converter.aggregators["downstream_aggregator"])
-        upstream_aggregator = self._search_superior_aggregator(converter.aggregators["upstream_aggregator"])
-
-        # adding these aggregators to the correct order of passage
-        if [downstream_aggregator, upstream_aggregator] in self._aggregator_order:  # if a bridge has already been created in the same sense between these two aggregators
-            pass  # we do nothing
-        else:  # else we check that they have not been engaged somewhere
-            registered_downstream_aggregators = [couple[0] for couple in self._aggregator_order]
-            registered_upstream_aggregators = [couple[1] for couple in self._aggregator_order]
-
-            if downstream_aggregator not in registered_downstream_aggregators and upstream_aggregator not in registered_upstream_aggregators:
-                self._aggregator_order.append([downstream_aggregator, upstream_aggregator])
-            else:
-                raise WorldException(f"il ne faut pas croiser les effluves, c'est mal")  # virer cette blague eud'brun
-
-        self._catalog.converters[converter.name] = converter  # registering the device in the dedicated dictionary
-        self._used_names.append(converter.name)  # adding the name to the list of used names
-
     def register_datalogger(self, datalogger):  # link a datalogger with a world (and its catalog)
         if datalogger.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
@@ -299,7 +259,7 @@ class World:
 
             # creation of an agent
             agent_name = f"{data['template name']}_{str(i)}"
-            agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_5
+            agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_"number"
 
             # creation of devices
             for device_data in data["composition"]:
@@ -344,47 +304,29 @@ class World:
         if "path" not in self.catalog.keys:
             raise WorldException(f"A path to the results files is needed")
 
-    def _set_order_of_aggregators(self):
+    def _identify_independent_aggregators(self):
         # first, we identify all the highest rank aggregators, who are the sole being called directly by world
-        highest_rank_aggregators = []
+        independent_aggregators_list = []
         for aggregator in self._catalog.aggregators.values():
             if not aggregator.superior:
-                highest_rank_aggregators.append(aggregator)
+                independent_aggregators_list.append(aggregator)
 
-        organized_aggregators_list = []
-        downstream_aggregator_list = [couple[0] for couple in self._aggregator_order]  # the list of upstream aggregators
-        upstream_aggregator_list = [couple[1] for couple in self._aggregator_order]  # the list of upstream aggregators
-        aggregators_to_tidy = [couple for couple in self._aggregator_order]  # this list contains the aggregators not organized yet
-        # writing directly aggregators_to_tidy = aggregator_order just creates a pointer
+        return independent_aggregators_list
 
-        # béquille
-        unclassed_aggregators = []
-        for aggregator in highest_rank_aggregators:  # as we have just implemented heatpumps, we only need to treat heat aggregators before
-            if aggregator.nature.name == "Heat":
-                organized_aggregators_list.append({"aggregator": aggregator, "converters": aggregator.converters})
-            else:
-                unclassed_aggregators.append(aggregator)
-
-        for aggregator in unclassed_aggregators:
-            if aggregator not in organized_aggregators_list:
-                organized_aggregators_list.append({"aggregator": aggregator, "converters": aggregator.converters})
-
-        return organized_aggregators_list
-
-    def _identify_independant_agents(self):
-        independant_agent_list = []  # a list containing all the independant agents
+    def _identify_independent_agents(self):
+        independent_agent_list = []  # a list containing all the independant agents
         for agent in self._catalog.agents.values():
             if not agent.superior:  # if the agent has no superior, it is added to the list of independant agents
-                independant_agent_list.append(agent)
+                independent_agent_list.append(agent)
 
-        return independant_agent_list
+        return independent_agent_list
 
     def start(self):
         self._check()  # check if everything is fine in world definition
 
-        classed_aggregator_list = self._set_order_of_aggregators()
+        independent_aggregators_list = self._identify_independent_aggregators()
 
-        independant_agents_list = self._identify_independant_agents()
+        independent_agents_list = self._identify_independent_agents()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -434,22 +376,14 @@ class World:
                 forecaster.fait_quelque_chose()
 
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
-            for element in classed_aggregator_list:  # aggregators are called according to the predefined order
-                element["aggregator"].ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+            for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
+                aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
-                for converter_name in element["converters"]:
-                    converter = self._catalog.converters[converter_name]
-                    converter.second_update()
-            classed_aggregator_list.reverse()  # we have to reverse the order in the descendant phase, as upstream aggregator have tot ake their decision before downstream ones
 
             # descendant phase: balances with remote energy
-            for element in classed_aggregator_list:  # aggregators are called according to the predefined order
-                for converter_name in element["converters"]:
-                    converter = self._catalog.converters[converter_name]
-                    converter.first_react()
-                element["aggregator"].distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+            for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
+                aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
-            classed_aggregator_list.reverse()
 
             # ###########################
             # End of the turn
@@ -458,12 +392,15 @@ class World:
             # devices and converters update their state according to the quantity of energy received/given
             for device in self._catalog.devices.values():
                 device.react()
+                device.make_balances()
 
-            for converter in self._catalog.converters.values():
-                converter.second_react()
+            # balance phase, where results are
+            for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
+                aggregator.make_balances()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                # the method is recursive
 
             # agent report what happened to their potential owner (i.e to another agent)
-            for agent in independant_agents_list:
+            for agent in independent_agents_list:
                 agent.report()
 
             # data exporting

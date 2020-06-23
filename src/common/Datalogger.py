@@ -34,7 +34,7 @@ class Datalogger:
         world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # catalog from which data is extracted
 
-        self._filename = self._catalog.get('path') + "/outputs/" + filename
+        self._filename = self._catalog.get('path') + "/outputs/" + filename + ".txt"
 
         world.register_datalogger(self)  # register this datalogger into world dedicated dictionary
 
