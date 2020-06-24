@@ -1,4 +1,4 @@
-# This script checks that devices are working well.
+# This script checks that converters are working well.
 
 # ##############################################################################################
 # Importations
@@ -69,7 +69,7 @@ world.set_time(start_date,  # time management: start date
 # BAU strategy
 BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-# autarky strategy
+# BAU strategy
 autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
@@ -81,13 +81,13 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 # low voltage electricity
 LVE = load_low_voltage_electricity()
 
+# low temperature heat
 LTH = load_low_temperature_heat()
-
 
 # ##############################################################################################
 # Creation of daemons
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
-price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France"})  # sets prices for flat rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_heat", {"location": "France"})  # sets prices for flat rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
@@ -95,7 +95,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit
 
 # ##############################################################################################
 # Manual creation of agents
-consumer_owner = Agent("consumer_owner")
+background_owner = Agent("background_owner")
 converter_owner = Agent("converter_owner")
 
 aggregators_manager = Agent("aggregators_manager")
@@ -103,25 +103,24 @@ aggregators_manager = Agent("aggregators_manager")
 
 # ##############################################################################################
 # Manual creation of contracts
-BAU_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("BAU_elec", LVE, price_manager_elec)
-
-cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_heat", LTH, price_manager_RTP_heat)
-
-threshold_heat = subclasses_dictionary["Contract"]["ThresholdPricesContract"]("threshold_heat", LTH, price_manager_RTP_heat, {"buying_threshold": 0, "selling_threshold": 0.2})
+BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract_elec", LVE, price_manager_elec)
+curtailment_contract_heat = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_contract_heat", LTH, price_manager_heat)
+threshold_contract_heat = subclasses_dictionary["Contract"]["ThresholdPricesContract"]("threshold_contract_heat", LTH, price_manager_heat, {"buying_threshold": 0, "selling_threshold": 0.2})
 
 
 # ##############################################################################################
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_elec)
+aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
 
 aggregator_heat = Aggregator("aggregator_heat", LTH, autarky_strategy, aggregators_manager)
 
+
 # ##############################################################################################
 # Manual creation of devices
-subclasses_dictionary["Device"]["Background"]("background", cooperative_heat, consumer_owner, aggregator_heat, "dummy_user", "dummy_usage_heat", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_elec, threshold_heat], converter_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump", "cases/ValidationCases/AdditionalData/DevicesProfiles/HeatPump.json")
+subclasses_dictionary["Device"]["Background"]("background", curtailment_contract_heat, background_owner, aggregator_heat, "dummy_user", "dummy_usage_heat", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_contract_elec, threshold_contract_heat], converter_owner, aggregator_elec, aggregator_heat, "dummy_heat_pump", "cases/ValidationCases/AdditionalData/DevicesProfiles/HeatPump.json")
 
 
 # ##############################################################################################
@@ -129,9 +128,9 @@ subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_elec, threshold_he
 description = "This script checks that converters are working well."
 
 
-reference_values = {"consumer_owner.LTH.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 0],
-                    "converter_owner.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 0],
-                    "converter_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9.5, 10, 10.5, 11, 0]
+reference_values = {"background_owner.LTH.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 22],
+                    "converter_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9.5, 10, 10.5, 11, 11],
+                    "converter_owner.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 22]
                     }
 
 filename = "converters_validation"
