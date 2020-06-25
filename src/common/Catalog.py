@@ -12,15 +12,15 @@ class Catalog:
     # Data management
     # ##########################################################################################
 
-    def add(self, name, val=None):  # add a key in our catalog, value is optional
+    def add(self, name, value=None):  # add a key in our catalog, value is optional
         if name in self._data:  # checking if the key already exists
             raise CatalogException(f"key {name} already exists")
-        self._data[name] = val
+        self._data[name] = value
 
-    def set(self, name, val):  # setting a value to a pre-existing key
+    def set(self, name, value):  # setting a value to a pre-existing key
         if name not in self._data:  # checking if the key already exists
             raise CatalogException(f"key {name} does not exist")
-        self._data[name] = val
+        self._data[name] = value
 
     def get(self, name):  # getting the value associated with a key
         if name not in self._data:  # checking if the key already exists

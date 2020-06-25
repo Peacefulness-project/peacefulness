@@ -64,19 +64,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-
-# BAU strategy
-BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# BAU strategy
-autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -91,6 +78,19 @@ price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("p
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
+
+
+# ##############################################################################################
+# Creation of strategies
+
+# BAU strategy
+BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+# BAU strategy
+autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 
 # ##############################################################################################

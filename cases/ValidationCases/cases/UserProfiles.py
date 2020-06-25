@@ -63,16 +63,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-# the different distribution strategies
-strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -95,6 +85,16 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
 outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+
+# ##############################################################################################
+# Creation of strategies
+# the different distribution strategies
+strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
+
 
 # ##############################################################################################
 # Manual creation of agents

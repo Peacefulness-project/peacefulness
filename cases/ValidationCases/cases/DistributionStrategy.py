@@ -63,18 +63,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-# the different distribution strategies
-strategy_emergency = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
-strategy_price = subclasses_dictionary["Strategy"]["AutarkyPrice"]()
-strategy_quantity = subclasses_dictionary["Strategy"]["AutarkyQuantity"]()
-strategy_partial = subclasses_dictionary["Strategy"]["AutarkyPartial"]()
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -90,6 +78,17 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
 water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau", "datafile": "cases/ValidationCases/AdditionalData/Meteo/ColdWaterTemperatureProfiles.json"})
+
+# ##############################################################################################
+# Creation of strategies
+# the different distribution strategies
+strategy_emergency = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
+strategy_price = subclasses_dictionary["Strategy"]["AutarkyPrice"]()
+strategy_quantity = subclasses_dictionary["Strategy"]["AutarkyQuantity"]()
+strategy_partial = subclasses_dictionary["Strategy"]["AutarkyPartial"]()
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 
 # ##############################################################################################

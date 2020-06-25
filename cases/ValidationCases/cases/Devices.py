@@ -64,16 +64,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-
-# BAU strategy
-BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -105,6 +95,16 @@ irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"loca
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
 wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau", "datafile": "cases/ValidationCases/AdditionalData/Meteo/WindProfiles.json"})
+
+
+# ##############################################################################################
+# Creation of strategies
+
+# BAU strategy
+BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 
 # ##############################################################################################

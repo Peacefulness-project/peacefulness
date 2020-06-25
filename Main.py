@@ -93,20 +93,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Strategy
-# this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
-
-# the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartial"]()
-
-# the strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Nature list
 # this object represents a nature of energy present in world
 
@@ -157,6 +143,23 @@ irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"loca
 # this daemon is responsible for updating the value of raw solar Wind
 wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 
+# Forecast
+# this daemon is supposed to create predictions about future consumption and demands
+forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dummy_forecaster")
+
+# ##############################################################################################
+# Strategy
+# this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
+
+# the BAU strategy
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+# the heat strategy
+strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartial"]()
+
+# the strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
+
 
 # ##############################################################################################
 # Agent
@@ -200,7 +203,7 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_man
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec, forecaster=forecast_daemon)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"

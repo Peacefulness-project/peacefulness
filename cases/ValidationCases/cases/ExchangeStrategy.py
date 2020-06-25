@@ -63,18 +63,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-# the different distribution strategies
-strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
-strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
-strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -85,6 +73,18 @@ LVE = load_low_voltage_electricity()
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
+
+
+# ##############################################################################################
+# Creation of strategies
+# the different distribution strategies
+strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
+strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 
 # ##############################################################################################

@@ -90,6 +90,13 @@ class Strategy:
         return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters]
 
     # ##########################################################################################
+    # forecast
+    # ##########################################################################################
+
+    def call_to_converters(self, aggregator):
+        aggregator.forecaster.get_predictions()
+
+    # ##########################################################################################
     # ascendant phase functions
     # ##########################################################################################
 

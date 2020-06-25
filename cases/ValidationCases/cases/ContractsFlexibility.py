@@ -1,4 +1,4 @@
-# This script check that aggregators do not make a difference between devices and sub-aggregators
+# This script checks that the flexibility works well for contracts
 
 # ##############################################################################################
 # Importations
@@ -40,7 +40,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/ValidationCases/Results/Subaggregators")  # here, you have to put the path to your results directory
+world.set_directory("cases/ValidationCases/Results/ContractsFlexibility")  # here, you have to put the path to your results directory
 
 
 # ##############################################################################################
@@ -63,15 +63,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-# BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -81,52 +72,71 @@ LVE = load_low_voltage_electricity()
 # Creation of daemons
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
 
-subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0, "limit_selling_price": 0})  # sets prices for the system operator
+subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
+
+
+# ##############################################################################################
+# Creation of strategies
+# the different distribution strategies
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
+
 
 # ##############################################################################################
 # Manual creation of agents
-devices_owner_sup = Agent("device_owner_sup")
-
-devices_owner_inf = Agent("device_owner_inf")
+BAU_owner = Agent("BAU_owner")
+cooperative_owner = Agent("cooperative_owner")
+curtailment_owner = Agent("curtailment_owner")
 
 aggregators_manager = Agent("aggregators_manager")
 
 
 # ##############################################################################################
 # Manual creation of contracts
-BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
+BAU_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract", LVE, price_manager_elec)
 
+cooperative_elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_elec_contract", LVE, price_manager_elec)
+
+curtailment_elec_contract = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_elec_contract", LVE, price_manager_elec)
 
 # ##############################################################################################
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec_sup = Aggregator("local_grid_superior", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec)
-
-aggregator_elec_inf = Aggregator("local_grid_inferior", LVE, strategy_elec, aggregators_manager, aggregator_elec_sup, BAU_elec)
+aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec_contract)
 
 
 # ##############################################################################################
 # Manual creation of devices
-device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, devices_owner_sup, aggregator_elec_sup, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, devices_owner_inf, aggregator_elec_inf, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+# Each device is created 3 times
+# BAU contract
+subclasses_dictionary["Device"]["Dishwasher"]("BAU_dishwasher", BAU_elec_contract, BAU_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+
+# Cooperative contract
+subclasses_dictionary["Device"]["Dishwasher"]("cooperative_dishwasher", cooperative_elec_contract, cooperative_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+
+# Curtailment contract
+subclasses_dictionary["Device"]["Dishwasher"]("curtailment_dishwasher", curtailment_elec_contract, curtailment_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 
 
 # ##############################################################################################
 # Creation of the validation daemon
-description = "This script check that aggregators do not make a difference between devices and sub-aggregators"
+description = "This script checks that the flexibility works well for contracts."
 
 
-reference_values = {"device_owner_sup.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "device_owner_inf.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+reference_values = {"BAU_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "cooperative_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0],
+                    "curtailment_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                     }
 
-filename = "subaggregators_validation"
+filename = "contracts_flexibility_validation"
 
 parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("subaggregators_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("contracts_flexibility_test", parameters)
 
 
 # ##############################################################################################

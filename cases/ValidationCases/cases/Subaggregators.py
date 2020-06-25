@@ -1,4 +1,4 @@
-# This script checks that agents hierarchy balances work well
+# This script check that aggregators do not make a difference between devices and sub-aggregators
 
 # ##############################################################################################
 # Importations
@@ -40,7 +40,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/ValidationCases/Results/Agents")  # here, you have to put the path to your results directory
+world.set_directory("cases/ValidationCases/Results/Subaggregators")  # here, you have to put the path to your results directory
 
 
 # ##############################################################################################
@@ -63,15 +63,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-# BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 # low voltage electricity
 LVE = load_low_voltage_electricity()
@@ -84,10 +75,19 @@ price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("pric
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0, "limit_selling_price": 0})  # sets prices for the system operator
 
 # ##############################################################################################
-# Manual creation of agents
-sup_agent = Agent("sup_agent")
+# Creation of strategies
+# BAU strategy
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-inf_agent = Agent("inf_agent", sup_agent)
+# strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
+
+
+# ##############################################################################################
+# Manual creation of agents
+devices_owner_sup = Agent("device_owner_sup")
+
+devices_owner_inf = Agent("device_owner_inf")
 
 aggregators_manager = Agent("aggregators_manager")
 
@@ -101,40 +101,37 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, 
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec)
+aggregator_elec_sup = Aggregator("local_grid_superior", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec)
+
+aggregator_elec_inf = Aggregator("local_grid_inferior", LVE, strategy_elec, aggregators_manager, aggregator_elec_sup, BAU_elec)
 
 
 # ##############################################################################################
 # Manual creation of devices
-device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, sup_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, devices_owner_sup, aggregator_elec_sup, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, inf_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, devices_owner_inf, aggregator_elec_inf, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################
 # Creation of the validation daemon
-description = "This script checks that agents hierarchy balances work well"
+description = "This script check that aggregators do not make a difference between devices and sub-aggregators"
 
 
-reference_values = {"sup_agent.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
-                    "inf_agent.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+reference_values = {"device_owner_sup.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    "device_owner_inf.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
 
-filename = "agents_validation"
+filename = "subaggregators_validation"
 
 parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("agents_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("subaggregators_test", parameters)
 
 
 # ##############################################################################################
 # Simulation start
 world.start()
-
-
-
-
-
 
 
 

@@ -7,7 +7,7 @@ from src.tools.GlobalWorld import get_world
 
 class Aggregator:
 
-    def __init__(self, name, nature, strategy, agent, superior=None, contract=None, efficiency=1, capacity=inf):
+    def __init__(self, name, nature, strategy, agent, superior=None, contract=None, efficiency=1, capacity=inf, forecaster=None):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
 
@@ -16,7 +16,10 @@ class Aggregator:
         self._strategy = strategy  # the strategy, i.e the strategy applied by this aggregator
 
         self.superior = superior  # the other aggregator this one is obeying to
-        # It can be None
+        # it can be None
+
+        self.forecaster = forecaster  # the forecast data
+        # it can be None
 
         self._devices = list()  # a list of the devices managed by the aggregator
         self._subaggregators = list()  # a list of the aggregators managed by the aggregator
@@ -105,7 +108,51 @@ class Aggregator:
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.make_balances()
 
-        # balance at the agent level
+        energy_bought_outside = self._catalog.get(f"{self.name}.energy_bought")["outside"]  # the absolute value of energy bought outside
+        energy_sold_outside = self._catalog.get(f"{self.name}.energy_sold")["outside"]  # the absolute value of energy sold outside
+        energy_bought_inside = 0  # the absolute value of energy bought inside
+        energy_sold_inside = 0  # the absolute value of energy sold inside
+
+        money_earned_outside = self._catalog.get(f"{self.name}.money_earned")["outside"]  # the absolute value of money earned outside
+        money_spent_outside = self._catalog.get(f"{self.name}.money_spent")["outside"]  # the absolute value of money spent outside
+        money_earned_inside = 0  # the absolute value of money earned inside
+        money_spent_inside = 0  # the absolute value of money spent inside
+
+        # quantities concerning devices
+        for device_name in self.devices:
+            energy = self._catalog.get(f"{device_name}.{self.nature.name}.energy_accorded")["quantity"]  # the maximum quantity of energy asked
+            price = self._catalog.get(f"{device_name}.{self.nature.name}.energy_accorded")["price"]  # the price of the energy asked
+
+            # balances
+            if energy > 0:  # energy bought
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+            elif energy < 0:  # energy sold
+                money_spent_inside -= energy * price  # money spent by buying energy from the device
+                energy_bought_inside -= energy  # the absolute value of energy bought inside
+
+        # quantities concerning subaggregators
+        for subaggregator in self.subaggregators:
+            for element in self._catalog.get(f"{subaggregator.name}.{self.nature.name}.energy_accorded"):
+                energy = element["quantity"]  # the quantity of energy accorded
+                price = element["price"]  # the price of the energy accorded
+
+                # balances
+                if energy > 0:  # energy bought
+                    money_earned_inside += energy * price  # money earned by selling energy to the device
+                    energy_sold_inside += energy  # the absolute value of energy sold inside
+                elif energy < 0:  # energy sold
+                    money_spent_inside -= energy * price  # money spent by buying energy from the device
+                    energy_bought_inside -= energy  # the absolute value of energy bought inside
+
+        # updating balances at the aggregator level
+        self._catalog.set(f"{self.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
+        self._catalog.set(f"{self.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
+
+        self._catalog.set(f"{self.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
+        self._catalog.set(f"{self.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+
+        # updating balances at the agent level
         energy_sold = sum(self._catalog.get(f"{self.name}.energy_sold").values())
         energy_bought = sum(self._catalog.get(f"{self.name}.energy_bought").values())
         energy_sold_agent = self._catalog.get(f"{self.agent.name}.{self.nature.name}.energy_sold")

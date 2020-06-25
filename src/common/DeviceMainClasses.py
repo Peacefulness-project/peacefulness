@@ -648,6 +648,7 @@ class Converter(Device):
         energy_available_upstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency  # the energy accorded by the upstream aggregator
         energy_furnished_downstream = min(-energy_available_upstream, energy_wanted_downstream)
         energy_consumed_upstream = - energy_furnished_downstream / self._efficiency
+        # print(energy_furnished_downstream, energy_consumed_upstream)
 
         # downstream side
         price = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["price"]
@@ -655,7 +656,7 @@ class Converter(Device):
 
         # upstream side
         price = self._catalog.get(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded")["price"]
-        self._catalog.set(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded", {"quantity": energy_consumed_upstream, "price": price})  # the quantity of energy furnished to the downstream aggregator
+        self._catalog.set(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded", {"quantity": energy_consumed_upstream, "price": price})  # the quantity of energy consumed from the upstream aggregator
 
     # ##########################################################################################
     # Utility

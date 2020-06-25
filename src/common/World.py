@@ -371,10 +371,6 @@ class World:
             # Calculus phase
             # ###########################
 
-            # forecasting
-            for forecaster in self._catalog.forecasters.values():  # forecasters compute predictions
-                forecaster.fait_quelque_chose()
-
             # ascendant phase: balances with local energy and formulation of needs (both in demand and in offer)
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
                 aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
