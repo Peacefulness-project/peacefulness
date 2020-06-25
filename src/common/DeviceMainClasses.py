@@ -625,10 +625,10 @@ class Converter(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        # downstream side
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
+        # downstream side
         nature_name = self._downstream_aggregator["nature"]
         energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
         energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
@@ -648,7 +648,6 @@ class Converter(Device):
         energy_available_upstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency  # the energy accorded by the upstream aggregator
         energy_furnished_downstream = min(-energy_available_upstream, energy_wanted_downstream)
         energy_consumed_upstream = - energy_furnished_downstream / self._efficiency
-        # print(energy_furnished_downstream, energy_consumed_upstream)
 
         # downstream side
         price = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["price"]

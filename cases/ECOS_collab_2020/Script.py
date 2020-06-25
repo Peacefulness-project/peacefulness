@@ -47,24 +47,6 @@ def simulation(strategy, DSM_proportion, sizing):
     # ##############################################################################################
 
     # ##############################################################################################
-    # Strategies
-    if strategy == "BAU":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
-    elif strategy == "Profitable":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitableEmergency"]()
-    else:
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"{strategy}Emergency"]()
-
-    # the DHN strategy
-    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
-
-    # the national grid strategy
-    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
-
-    # ##############################################################################################
     # Natures
     # low voltage electricity
     LVE = load_low_voltage_electricity()
@@ -107,6 +89,24 @@ def simulation(strategy, DSM_proportion, sizing):
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
     subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+    # ##############################################################################################
+    # Strategies
+    if strategy == "BAU":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
+    elif strategy == "Profitable":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitableEmergency"]()
+    else:
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"{strategy}Emergency"]()
+
+    # the DHN strategy
+    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
+
+    # the national grid strategy
+    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
 
     # ##############################################################################################
     # Agents

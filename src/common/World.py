@@ -22,6 +22,7 @@ from src.common.Datalogger import Datalogger
 from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.GlobalWorld import set_world
+from src.tools.GraphAndTex import export_in_LaTeX, export_in_matplotlib
 
 
 # ##############################################################################################
@@ -113,11 +114,11 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
-    def choose_exports(self, option):  # optionally, you can export
-        if option == "LaTeX":
-            pass  # tire la bobinette
-        elif option == "matplotlib":
-            pass  # et la chevillette cherra
+    def choose_exports(self, option):  # optionally, you can export using keywords
+        if "LaTeX" in option:  # launch the dedicated function
+            export_in_LaTeX()
+        if "matplotlib" in option:  # launch the dedicated function
+            export_in_matplotlib()
 
     def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds

@@ -46,24 +46,6 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
     # ##############################################################################################
 
     # ##############################################################################################
-    # Strategies
-    if exchange_strategy == "BAU":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
-    elif exchange_strategy == "Profitable":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitable{distribution_strategy}"]()
-    else:
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"Autarky{distribution_strategy}"]()
-
-    # the DHN strategy
-    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeat{distribution_strategy}"]()
-
-    # the national grid strategy
-    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
-
-    # ##############################################################################################
     # Natures
     # low voltage electricity
     LVE = load_low_voltage_electricity()
@@ -102,6 +84,24 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # Wind
     subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+
+    # ##############################################################################################
+    # Strategies
+    if exchange_strategy == "BAU":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
+    elif exchange_strategy == "Profitable":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitable{distribution_strategy}"]()
+    else:
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"Autarky{distribution_strategy}"]()
+
+    # the DHN strategy
+    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeat{distribution_strategy}"]()
+
+    # the national grid strategy
+    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
 
     # ##############################################################################################
     # Agents

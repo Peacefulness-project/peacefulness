@@ -46,19 +46,6 @@ def simulation(chosen_strategy, renewable_capacity):
     # ##############################################################################################
 
     # ##############################################################################################
-    # Strategies
-    if chosen_strategy == "strategy_1":
-        strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-    elif chosen_strategy == "strategy_2":
-        strategy_elec = subclasses_dictionary["Strategy"][f"LightAutarkyEmergency"]()
-
-    # the DHN strategy
-    strategy_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
-
-    # the supervisor grid, which always proposes an infinite quantity to sell and to buy
-    grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-    # ##############################################################################################
     # Natures
     # low voltage electricity
     LVE = load_low_voltage_electricity()
@@ -92,6 +79,19 @@ def simulation(chosen_strategy, renewable_capacity):
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
     subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+    # ##############################################################################################
+    # Strategies
+    if chosen_strategy == "strategy_1":
+        strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+    elif chosen_strategy == "strategy_2":
+        strategy_elec = subclasses_dictionary["Strategy"][f"LightAutarkyEmergency"]()
+
+    # the DHN strategy
+    strategy_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
+
+    # the supervisor grid, which always proposes an infinite quantity to sell and to buy
+    grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
     # ##############################################################################################
     # Agents

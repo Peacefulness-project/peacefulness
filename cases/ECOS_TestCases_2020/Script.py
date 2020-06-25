@@ -46,21 +46,6 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     # ##############################################################################################
 
     # ##############################################################################################
-    # Strategies
-    if exchange_strategy == "BAU":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
-    elif exchange_strategy == "Profitable":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitable{distribution_strategy}"]()
-    else:
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"Autarky{distribution_strategy}"]()
-
-    # the national grid strategy
-    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
-
-    # ##############################################################################################
     # Natures
     # low voltage electricity
     LVE = load_low_voltage_electricity()
@@ -92,6 +77,21 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
 
     # Wind
     subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+
+    # ##############################################################################################
+    # Strategies
+    if exchange_strategy == "BAU":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
+    elif exchange_strategy == "Profitable":
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitable{distribution_strategy}"]()
+    else:
+        # the local electrical grid strategy
+        supervisor_elec = subclasses_dictionary["Strategy"][f"Autarky{distribution_strategy}"]()
+
+    # the national grid strategy
+    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
 
     # ##############################################################################################
     # Agents

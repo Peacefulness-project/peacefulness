@@ -12,6 +12,12 @@ from csv import reader
 from time import process_time
 
 
+def export_in_LaTeX():  # je me chargerai de changer la signature dans world si besoin
+    pass
+
+
+def export_in_matplotlib():  # idem
+    pass
 
 # =============================================================================================================
 # =============================================================================================================

@@ -45,14 +45,6 @@ def simulation(habits, weather_city, set_point):
     # ##############################################################################################
 
     # ##############################################################################################
-    # Strategies
-    # BAU strategy
-    supervisor_BAU = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-    # the supervisor grid, which always proposes an infinite quantity to sell and to buy
-    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
-
-    # ##############################################################################################
     # Natures
     # low voltage electricity
     LVE = load_low_voltage_electricity()
@@ -86,6 +78,14 @@ def simulation(habits, weather_city, set_point):
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
     subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+
+    # ##############################################################################################
+    # Strategies
+    # BAU strategy
+    supervisor_BAU = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+    # the supervisor grid, which always proposes an infinite quantity to sell and to buy
+    grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
 
     # ##############################################################################################
     # Agents

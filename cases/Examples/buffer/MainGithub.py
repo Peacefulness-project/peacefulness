@@ -75,19 +75,6 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 
 # ##############################################################################################
-# Creation of strategies
-
-# the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
-# the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
-
-# the strategy grid, which always proposes an infinite quantity to sell and to buy
-grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
-
-
-# ##############################################################################################
 # Creation of nature
 
 # low voltage electricity
@@ -137,6 +124,19 @@ irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"loca
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
 wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+
+
+# ##############################################################################################
+# Creation of strategies
+
+# the BAU strategy
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+
+# the heat strategy
+strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
+
+# the strategy grid, which always proposes an infinite quantity to sell and to buy
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 
 # ##############################################################################################
