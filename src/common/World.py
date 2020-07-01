@@ -114,11 +114,8 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
-    def choose_exports(self, option):  # optionally, you can export using keywords
-        if "LaTeX" in option:  # launch the dedicated function
-            export_in_LaTeX()
-        if "matplotlib" in option:  # launch the dedicated function
-            export_in_matplotlib()
+    def choose_exports(self, export_formats):  # optionally, you can export using keywords
+        self._catalog.add("export_formats", export_formats)
 
     def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
@@ -412,6 +409,10 @@ class World:
             self._update_time()
 
             print()
+
+        for datalogger in self._catalog.dataloggers.values():
+            datalogger.final_process()
+            datalogger.final_export()
 
     # ##########################################################################################
     # Dynamic behavior
