@@ -44,7 +44,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 CPU_time = process_time()
 
 # ##############################################################################################
-# Minimum
+# Settings
 # the following objects are necessary for the simulation to be performed
 # you need exactly one object of each type
 # ##############################################################################################
@@ -84,6 +84,12 @@ start_date = start_date.replace(year=2020, month=1, day=1, hour=0, minute=0, sec
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
+
+
+# ##############################################################################################
+# Optionnal
+world.complete_message("CO2", 0)
+
 
 # ##############################################################################################
 # Model
@@ -125,7 +131,7 @@ limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
-indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
+# indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
@@ -155,7 +161,7 @@ forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dumm
 strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartial"]()
+strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
 
 # the strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -172,6 +178,8 @@ DHN_producer = Agent("DHN_producer")  # creation of an agent
 heat_pump_owner = Agent("heat_pump_owner")
 
 aggregator_manager = Agent("aggregator_manager")
+
+CO2_producer = Agent("CO2_producer")
 
 # ##############################################################################################
 # Contract
@@ -220,9 +228,11 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 #
 # heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 #
-heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+# heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
 
-heat_pump = subclasses_dictionary["Device"]["HeatPump"]("converter", [cooperative_contract_elec, contract_converter_heat], DHN_producer, aggregator_elec, aggregator_heat, "dummy_heat_pump")
+test_CO2_elec = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_elec", BAU_elec, CO2_producer, aggregator_elec, "dummy", "dummy_elec")
+
+test_CO2_heat = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_heat", BAU_heat, CO2_producer, aggregator_heat, "dummy", "dummy_heat")
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()

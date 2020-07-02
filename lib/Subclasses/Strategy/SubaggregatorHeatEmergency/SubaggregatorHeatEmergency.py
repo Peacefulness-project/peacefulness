@@ -32,14 +32,6 @@ class SubaggregatorHeatEmergency(Strategy):
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # ##########################################################################################
-        # energy converters management
-        sorted_offers = []  # a list of all the offers of production
-
-        if aggregator.converters:  # if there are converters
-            sort_function_converters = self.get_price  # converters offers are classed by decreasing prices
-            [sorted_conversion_offers, sorted_offers] = self._sort_conversion_offers(aggregator, sort_function_converters, sorted_offers, sort_function)
-
-        # ##########################################################################################
         # management of grid call
         # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price
         # and another one, associated to non-urgent needs

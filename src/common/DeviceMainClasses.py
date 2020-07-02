@@ -83,8 +83,8 @@ class NonControllableDevice(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                         for nature in self._usage_profile}  # consumption that will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for line in self._user_profile:
             if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
@@ -278,14 +278,13 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
 
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                       for nature in self._usage_profile[0][0]}  # consumption which will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile who is taken into account
 
             for i in range(len(self._user_profile)):
                 line = self._user_profile[i]
-                # print(line, self._moment, self._is_done, self._remaining_time)
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in energy_wanted:
                         energy_wanted[nature]["energy_maximum"] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
@@ -442,8 +441,8 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                       for nature in self._usage_profile[0]}  # consumption which will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
 
@@ -545,8 +544,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
     def update(self):  # method updating needs of the devices before the supervision
 
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                       for nature in self._usage_profile}  # consumption which will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if self._remaining_time == 0:  # checking if the device has to start
             for usage in self._user_profile:
@@ -625,8 +624,7 @@ class Converter(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                         for nature in self.natures}  # consumption that will be asked eventually
+        energy_wanted = {nature.name: {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]} for nature in self.natures}  # consumption which will be asked eventually
 
         # downstream side
         nature_name = self._downstream_aggregator["nature"]
@@ -640,6 +638,7 @@ class Converter(Device):
         energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency  # the physical minimum of energy this converter has to consume
         energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency  # the physical maximum of energy this converter can consume
 
+        print(energy_wanted)
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):

@@ -49,6 +49,8 @@ class World:
         # Randomness management
         self._random_seed = None  # the seed used in the random number generator of Python
 
+        self._additional_elements = dict()  # a dictionary containing the additional information added by the user to the messages exchanged between devices, contracts and aggregators
+
         # dictionaries contained by world
         self._subclasses_dictionary = get_subclasses()  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons, devices and Supervisors
@@ -74,8 +76,6 @@ class World:
 
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
-
-        self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
 
         set_world(self)  # set world as a global variable ued later to instantiate objects
 
@@ -114,6 +114,10 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
+    def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
+        # this new element requires to modify the related device, contract and strategy subclasses to have some effect
+        self._additional_elements[additional_element] = default_value
+
     def choose_exports(self, option):  # optionally, you can export using keywords
         if "LaTeX" in option:  # launch the dedicated function
             export_in_LaTeX()
@@ -137,6 +141,8 @@ class World:
         if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
+        strategy.complete_message(self._additional_elements)  # the  message is completed with the new elements added in world
+
         self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
         self._used_names.append(strategy.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -158,6 +164,9 @@ class World:
 
         if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
+
+        for element in self._additional_elements:  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{aggregator.name}.{element}", 0)
 
         if aggregator.superior:  # if the aggregator has a superior
             aggregator.superior._subaggregators.append(aggregator)
@@ -202,8 +211,13 @@ class World:
         if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        for nature in device.natures:  # adding the device name to its aggregator list of devices
-            device._natures[nature]["aggregator"].add_device(device.name)
+        device.complete_message(self._additional_elements)  # the  message is completed with the new elements added in world
+
+        for nature in device.natures:
+            device._natures[nature]["aggregator"].add_device(device.name)  # adding the device name to its aggregator list of devices
+
+            for element in self._additional_elements:  # for all new elements, an entry is created in the catalog
+                self._catalog.add(f"{device.name}.{nature.name}.{element}", 0)
 
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         self._used_names.append(device.name)  # adding the name to the list of used names

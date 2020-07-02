@@ -13,7 +13,7 @@ class AutarkyPartial(Strategy):
     # ##########################################################################################
 
     def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        quantities_and_prices = [{"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}]  # always refuses to exchange with outside
+        quantities_and_prices = [self._messages["ascendant"]]  # always refuses to exchange with outside
 
         return quantities_and_prices
          
@@ -42,7 +42,7 @@ class AutarkyPartial(Strategy):
         # ##########################################################################################
         # distribution of energy
 
-        if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid
+        if maximum_energy_produced <= minimum_energy_consumed or maximum_energy_consumed <= minimum_energy_produced:  # if there is no possibility to balance the grid
             # we consider that the gird falls
             # updates the balances
             self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": 0, "outside": 0})

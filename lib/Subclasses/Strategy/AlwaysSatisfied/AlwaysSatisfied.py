@@ -3,7 +3,6 @@
 from src.common.Strategy import Strategy
 from src.tools.Utilities import sign
 from src.common.Strategy import SupervisorException
-
 from math import inf
 
 
@@ -26,7 +25,10 @@ class AlwaysSatisfied(Strategy):
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
         energy_difference = maximum_energy_consumed - maximum_energy_produced
 
-        quantities_and_prices = [{"energy_minimum": energy_difference, "energy_nominal": energy_difference, "energy_maximum": energy_difference, "price": None}]  # wants to satisfy everyone
+        quantities_and_prices = [self._messages["ascendant"]]  # the standard ascendant message
+        quantities_and_prices[0]["energy_minimum"] = energy_difference
+        quantities_and_prices[0]["energy_nominal"] = energy_difference
+        quantities_and_prices[0]["energy_maximum"] = energy_difference
 
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
@@ -81,21 +83,33 @@ class AlwaysSatisfied(Strategy):
 
             # quantities concerning devices
             for name in aggregator.devices:
+                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
                 energy = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
                 price = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
+
+                # user-added elements management
+                additional_elements = {element: message[element] for element in message}
+                additional_elements.pop("quantity")
+                additional_elements.pop("price")
+                for additional_element in additional_elements:
+                    message[additional_element] = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")[additional_element]
 
                 # balances
                 if energy > 0:  # energy bought
                     price = min(price, max_price)
 
-                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+                    message["quantity"] = energy
+                    message["price"] = price
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", message)
 
                     money_earned_inside += energy * price  # money earned by selling energy to the device
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                 elif energy < 0:  # energy sold
                     price = max(price, min_price)
 
-                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", {"quantity": energy, "price": price})
+                    message["quantity"] = energy
+                    message["price"] = price
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", message)
 
                     money_spent_inside -= energy * price  # money spent by buying energy from the device
                     energy_bought_inside -= energy  # the absolute value of energy bought inside
@@ -107,7 +121,17 @@ class AlwaysSatisfied(Strategy):
 
                 # balances
                 for element in quantities_and_prices:  # for each couple energy/price
-                    couple = {"quantity": element["energy_maximum"], "price": element["price"]}
+                    message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                    message["quantity"] = element["energy_maximum"]
+                    message["price"] = element["price"]
+
+                    # user-added elements management
+                    additional_elements = {element: message[element] for element in message}
+                    additional_elements.pop("quantity")
+                    additional_elements.pop("price")
+                    for additional_element in additional_elements:
+                        message[additional_element] = element[additional_element]
+
                     if element["energy_maximum"] > 0:  # energy bought
                         element["price"] = min(element["price"], max_price)  # maximum price is artificially limited
 
@@ -119,7 +143,7 @@ class AlwaysSatisfied(Strategy):
                         money_spent_inside -= element["energy_maximum"] * element["price"]  # money spent by buying energy from the subaggregator
                         energy_bought_inside -= element["energy_maximum"]  # the absolute value of energy bought inside
 
-                    quantities_accorded.append(couple)
+                    quantities_accorded.append(message)
 
                 self._catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", quantities_accorded)
 

@@ -1,0 +1,29 @@
+{
+  "device_consumption": {
+    "dummy_elec": {
+      "usage_profile": {"LVE": 0.1},
+      "consumption_variation": 0.1,
+      "CO2_production": 1
+    },
+
+    "dummy_heat": {
+      "usage_profile": {"LTH": 0.1},
+      "consumption_variation": 0.1,
+      "CO2_production": 5
+    }
+
+  },
+
+  "user_profile":{
+    "dummy": {
+      "profile": [[12, 12]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 1,
+      "duration_variation": 0.1
+    }
+  }
+
+}

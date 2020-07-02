@@ -2,6 +2,8 @@
 from src.common.Daemon import Daemon
 from src.tools.Utilities import adapt_path
 
+from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import set_problem
+
 
 class ValidationDaemon(Daemon):
 
@@ -44,7 +46,6 @@ class ValidationDaemon(Daemon):
         data_to_check = {}
         iteration = self._catalog.get("simulation_time")
 
-
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
 
@@ -55,6 +56,7 @@ class ValidationDaemon(Daemon):
                 message = f"{self._catalog.get('physical_time')}\n" \
                     f"{key} : KO, reference value = {self._reference_values[key][iteration]} and simulation value = {data_to_check[key]}"
                 self._problem[key].append(iteration)
+                set_problem(True)  # reports to the upper level that a problem occured
 
                 self._write_and_print(message, file)
 

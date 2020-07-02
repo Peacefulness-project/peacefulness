@@ -31,6 +31,9 @@ class Device:
         # 1 key <=> 1 energy nature
         self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
 
+        self._messages = {"ascendant": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
+                         "descendant": {"quantity": 0, "price": 0}}
+
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
             if aggregator.nature in self.natures:
@@ -67,8 +70,8 @@ class Device:
             if nature not in self.agent.natures:  # complete the list of natures of the agent
                 self.agent._contracts[nature] = None
 
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})  # the energy asked or proposed by the device and the price associated
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})  # the energy delivered or accepted by the strategy
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self._messages["ascendant"])  # the energy asked or proposed by the device and the price associated
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self._messages["descendant"])  # the energy delivered or accepted by the strategy
 
             try:  # creates an entry for effort in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressed by the agent
@@ -97,6 +100,11 @@ class Device:
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
+
+    def complete_message(self, additional_elements):
+        for message in self._messages:
+            old_message = self._messages[message]
+            self._messages[message] = {**old_message, **additional_elements}
 
     # ##########################################################################################
     # Consumption reading
@@ -134,12 +142,10 @@ class Device:
         # the period MUST be a multiple of the time step
 
         if type(data_user["offset"]) is float or type(data_user["offset"]) is int:
-            self._offset = data_user[
-                "offset"]  # the delay between the beginning of the period and the beginning of the year
+            self._offset = data_user["offset"]  # the delay between the beginning of the period and the beginning of the year
         elif data_user["offset"] == "Week":  # if the usage takes place the WE, the offset is set at saturday at 0:00 AM
             year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
-            weekday = datetime(year=year, month=1,
-                               day=1).weekday()  # the day corresponding to the first day of the year: 0 for Monday, 1 for Tuesday, etc
+            weekday = datetime(year=year, month=1, day=1).weekday()  # the day corresponding to the first day of the year: 0 for Monday, 1 for Tuesday, etc
             offset = weekday  # delay in days between monday and the day
             # without the max(), for a sunday, offset would have been -1, which cause trouble if the period is superior to 1 week
             offset *= 24  # delay in hours between saturday and the day
@@ -180,9 +186,13 @@ class Device:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the balances
+        # print(self._messages["ascendant"])
+        messages = {"ascendant": {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]},
+                    "descendant": {element: self._messages["descendant"][element] for element in self._messages["descendant"]}}
+
         for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", {"quantity": 0, "price": 0})
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None})
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", messages["descendant"])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", messages["ascendant"])
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", 0)
 
     def update(self):  # method updating needs of the devices before the supervision

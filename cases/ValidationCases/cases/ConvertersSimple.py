@@ -41,7 +41,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/ValidationCases/Results/Converters")  # here, you have to put the path to your results directory
+world.set_directory("cases/ValidationCases/Results/ConvertersSimple")  # here, you have to put the path to your results directory
 
 
 # ##############################################################################################
