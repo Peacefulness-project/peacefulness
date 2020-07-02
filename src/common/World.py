@@ -77,6 +77,8 @@ class World:
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
 
+        self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
+
         set_world(self)  # set world as a global variable ued later to instantiate objects
 
     # ##########################################################################################
@@ -114,15 +116,12 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
+    def choose_exports(self, export_formats):  # optionally, you can export using keywords
+        self._catalog.add("export_formats", export_formats)
+
     def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
         # this new element requires to modify the related device, contract and strategy subclasses to have some effect
         self._additional_elements[additional_element] = default_value
-
-    def choose_exports(self, option):  # optionally, you can export using keywords
-        if "LaTeX" in option:  # launch the dedicated function
-            export_in_LaTeX()
-        if "matplotlib" in option:  # launch the dedicated function
-            export_in_matplotlib()
 
     def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
@@ -426,6 +425,10 @@ class World:
             self._update_time()
 
             print()
+
+        for datalogger in self._catalog.dataloggers.values():
+            datalogger.final_process()
+            datalogger.final_export()
 
     # ##########################################################################################
     # Dynamic behavior

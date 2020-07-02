@@ -4,6 +4,7 @@
 from numpy import mean
 from math import inf
 
+from src.tools.GraphAndTex import export
 from src.tools.GlobalWorld import get_world
 
 
@@ -162,6 +163,19 @@ class Datalogger:
             file.write("\n")
 
         file.close()
+
+    # ##########################################################################################
+    # Final operations
+    # ##########################################################################################
+
+    def final_process(self):
+        pass
+
+    def final_export(self):  # call the relevant export functions
+        for export_format in self._catalog.get("export_formats"):
+            x_values = {}           # todo: remplir les deux trucs...
+            y_values = {}
+            export(export_format, x_values, y_values)
 
     # ##########################################################################################
     # Utilities

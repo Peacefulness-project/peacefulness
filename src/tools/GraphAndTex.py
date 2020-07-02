@@ -11,12 +11,24 @@ from csv import reader
 
 from time import process_time
 
+def export(fomat, x_values, y_values):
+    #switch(fomat) {
+#        case "csv": export_in_csv(x_values, y_values);
+        #            break;
+        #case "LaTeX": export_in_LaTeX(x_values, y_values);
+        #    break;
+        #case "matplotlib": export_in_matplotlib();
+        #break;
+    #}
 
-def export_in_LaTeX():  # je me chargerai de changer la signature dans world si besoin
+
+def export_in_csv(x_values, y_values):
     pass
 
+def export_in_LaTeX(x_values, y_values):  # je me chargerai de changer la signature dans world si besoin
+    pass
 
-def export_in_matplotlib():  # idem
+def export_in_matplotlib(x_values, y_values):  # idem
     pass
 
 # =============================================================================================================
