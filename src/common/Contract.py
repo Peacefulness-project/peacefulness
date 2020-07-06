@@ -43,6 +43,9 @@ class Contract:
         self._catalog.set(f"{self.name}.energy_bought", 0)  # the energy bought by all the devices attached to this contract during this round
         self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
 
+        for element in self._catalog.get("additional_elements"):
+            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+
     # quantities management
     def contract_modification(self, quantity):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency
         pass  # a method to determine the price must be defined in the subclasses

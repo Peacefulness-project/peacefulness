@@ -91,10 +91,6 @@ class Datalogger:
             self._process()  # writes the data in the file
             self._next_time += self._period  # calculates the next period of writing
 
-        if self._global:  # if only global values are wanted
-            if self._catalog.get("simulation_time") == self._catalog.get("time_limit") - 1:
-                self._final_calculation()
-
     def _regular_process(self):  # record all the chosen key regularly in a file
         file = open(self._filename, "a+")
         # both physical date and time and iteration number are systematically added
@@ -151,25 +147,23 @@ class Datalogger:
         file.write("\n")
         file.close()
 
-    def _final_calculation(self):  # if the datalogger stores only global values, it is there that they are calculated
-        file = open(self._filename, "a+")
-
-        for key in self._buffer:
-            file.write(f"for the key {key}:\n")
-            file.write(f"\tmean: {self._buffer[key]['mean']}\n")
-            file.write(f"\tmin: {self._buffer[key]['min']}\n")
-            file.write(f"\tmax: {self._buffer[key]['max']}\n")
-            file.write(f"\tsum: {self._buffer[key]['sum']}\n")
-            file.write("\n")
-
-        file.close()
-
     # ##########################################################################################
     # Final operations
     # ##########################################################################################
 
     def final_process(self):
-        pass
+        if self._global:  # if global values are wanted
+            file = open(self._filename, "a+")
+
+            for key in self._buffer:
+                file.write(f"for the key {key}:\n")
+                file.write(f"\tmean: {self._buffer[key]['mean']}\n")
+                file.write(f"\tmin: {self._buffer[key]['min']}\n")
+                file.write(f"\tmax: {self._buffer[key]['max']}\n")
+                file.write(f"\tsum: {self._buffer[key]['sum']}\n")
+                file.write("\n")
+
+            file.close()
 
     def final_export(self):  # call the relevant export functions
         for export_format in self._catalog.get("export_formats"):

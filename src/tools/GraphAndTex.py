@@ -12,14 +12,15 @@ from csv import reader
 from time import process_time
 
 def export(fomat, x_values, y_values):
-    #switch(fomat) {
-#        case "csv": export_in_csv(x_values, y_values);
-        #            break;
-        #case "LaTeX": export_in_LaTeX(x_values, y_values);
-        #    break;
-        #case "matplotlib": export_in_matplotlib();
-        #break;
+    # switch(fomat) {
+    #    case "csv": export_in_csv(x_values, y_values);
+    #                break;
+    #     case "LaTeX": export_in_LaTeX(x_values, y_values);
+    #        break;
+    #     case "matplotlib": export_in_matplotlib();
+    #     break;
     #}
+    pass
 
 
 def export_in_csv(x_values, y_values):
@@ -242,7 +243,7 @@ def write_LaTeX_source(dir_results, filename, dataFile, xlabel, ylabel, indicesP
 def graph_SFT(directory):
 
     latexCommand = "pdflatex "
-    deleteCommand = "rm "  # todo: disjonction os
+    deleteCommand = "rm "
 
     # Data samples
     # -----------------------------------------------------

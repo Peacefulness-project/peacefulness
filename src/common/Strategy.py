@@ -191,6 +191,7 @@ class Strategy:
         message["energy_minimum"] = energy_minimum
         message["energy_nominal"] = energy_nominal
         message["energy_maximum"] = energy_maximum
+
         quantities_and_prices.append(message)
 
         return quantities_and_prices

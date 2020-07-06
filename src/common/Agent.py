@@ -41,6 +41,9 @@ class Agent:
 
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)  # quantity of energy wanted but not served by the supervisor
 
+        for element in self._catalog.get("additional_elements"):
+            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+
     def report(self):  # function allowing agents to get information from their owned agents and pass it to their superior
         for agent in self._owned_agents_name:
             agent.report()

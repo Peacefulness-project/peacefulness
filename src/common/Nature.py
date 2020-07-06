@@ -41,6 +41,9 @@ class Nature:  # this class contains the different natures
         self._catalog.set(f"{self.name}.money_spent", 0)  # energy received by the agent during the current round
         self._catalog.set(f"{self.name}.money_earned", 0)  # energy delivered by the agent during the current round
 
+        for element in self._catalog.get("additional_elements"):
+            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+
     # ##########################################################################################
     # Utility
     # ##########################################################################################

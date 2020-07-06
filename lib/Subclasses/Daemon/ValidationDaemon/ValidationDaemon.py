@@ -21,6 +21,11 @@ class ValidationDaemon(Daemon):
 
         self._problem = {key: [] for key in parameters["reference_values"].keys()}  # a list containing all the round when a problem occured
 
+        self._x_values = {"iteration": []}
+        self._y_values = {f"reference value of {key_checked}": parameters["reference_values"][key_checked] for key_checked in parameters["reference_values"]}
+        for key in parameters["reference_values"].keys():
+            self._y_values[f"simulation value of {key}"] = []
+
         # the message are both prompted and written in a file
         message = f"{self.name}: {self._description}\n" \
             f"The following keys are checked: {self._reference_values.keys()}\n"
@@ -30,13 +35,6 @@ class ValidationDaemon(Daemon):
         self._write_and_print(message, file)
 
         file.close()
-
-    # ##########################################################################################
-    # Initialization
-    # ##########################################################################################
-
-    def add_key(self):
-        pass
 
     # ##########################################################################################
     # Dynamic behavior
@@ -49,6 +47,8 @@ class ValidationDaemon(Daemon):
 
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
+            self._x_values["iteration"].append(self._catalog.get("simulation_time"))
+            self._y_values[f"simulation value of {key}"].append(self._catalog.get(key))
 
             if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same
                 pass
@@ -61,18 +61,6 @@ class ValidationDaemon(Daemon):
 
                 self._write_and_print(message, file)
 
-        if self._catalog.get("time_limit") - 1 == self._catalog.get("simulation_time"):  # at the last iteration, a resume is written and printed
-            message = "\nResume of the test:"
-            self._write_and_print(message, file)
-
-            for key in self._reference_values.keys():
-                if self._problem[key]:
-                    message = f"a problem has been encountered for the key {key} at the iterations {self._problem[key]}"
-                else:
-                    message = f"no problem encountered for key {key}"
-
-                self._write_and_print(message, file)
-
         file.close()
 
     # ##########################################################################################
@@ -80,13 +68,25 @@ class ValidationDaemon(Daemon):
     # ##########################################################################################
 
     def final_process(self):
-        pass
+        file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")  # the file resuming the results of the test
+        data_to_check = {}
+        iteration = self._catalog.get("simulation_time")
 
-    def final_export(self):  # call the relevant export functions
+        message = "\nResume of the test:"
+        self._write_and_print(message, file)
+
+        for key in self._reference_values.keys():
+            if self._problem[key]:
+                message = f"a problem has been encountered for the key {key} at the iterations {self._problem[key]}"
+            else:
+                message = f"no problem encountered for key {key}"
+
+            self._write_and_print(message, file)
+
+        file.close()
+
         for export_format in self._catalog.get("export_formats"):
-            x_values = {}           # todo: remplir les deux trucs...
-            y_values = {}
-            export(export_format, x_values, y_values)
+            export(export_format, self._x_values, self._y_values)
 
     # ##########################################################################################
     # Utilities

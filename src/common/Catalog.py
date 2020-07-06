@@ -52,51 +52,39 @@ class Catalog:
     
     # ##########################################################################################
     # Dictionaries direct access
-    # ##########################################################################################            
-
-    @property
-    def forecasters(self):  # for read only
-        return self._data["dictionaries"]["forecasters"]
-
-    @property
-    def strategies(self):  # for read only
-        return self._data["dictionaries"]["strategys"]
+    # ##########################################################################################
 
     @property
     def natures(self):  # for read only
         return self._data["dictionaries"]["natures"]
 
     @property
-    def aggregators(self):  # for read only
-        return self._data["dictionaries"]["aggregators"]
+    def daemons(self):  # for read only
+        return self._data["dictionaries"]["daemons"]
 
     @property
-    def exchange_nodes(self):  # for read only
-        return self._data["dictionaries"]["exchange_nodes"]
+    def strategies(self):  # for read only
+        return self._data["dictionaries"]["strategys"]
+
+    @property
+    def agents(self):  # for read only
+        return self._data["dictionaries"]["agents"]
 
     @property
     def contracts(self):  # for read only
         return self._data["dictionaries"]["contracts"]
-    
+
     @property
-    def agents(self):  # for read only
-        return self._data["dictionaries"]["agents"]
+    def aggregators(self):  # for read only
+        return self._data["dictionaries"]["aggregators"]
 
     @property
     def devices(self):  # for read only
         return self._data["dictionaries"]["devices"]
 
     @property
-    def converters(self):  # for read only
-        return self._data["dictionaries"]["converters"]
-
-    @property
     def dataloggers(self):  # for read only
         return self._data["dictionaries"]["dataloggers"]
-
-    @property
-    def daemons(self):  # for read only
-        return self._data["dictionaries"]["daemons"]
 
 
 # Exception

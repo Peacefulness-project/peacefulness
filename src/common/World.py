@@ -15,11 +15,10 @@ from src.common.Aggregator import Aggregator
 from src.common.Contract import Contract
 from src.common.Agent import Agent
 from src.common.Device import Device
-from src.common.Converter import Converter
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
 
-from src.tools.Utilities import big_separation, adapt_path
+from src.tools.Utilities import big_separation, adapt_path, into_list
 from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.GlobalWorld import set_world
 from src.tools.GraphAndTex import export_in_LaTeX, export_in_matplotlib
@@ -49,28 +48,21 @@ class World:
         # Randomness management
         self._random_seed = None  # the seed used in the random number generator of Python
 
-        self._additional_elements = dict()  # a dictionary containing the additional information added by the user to the messages exchanged between devices, contracts and aggregators
+        self._catalog.add("additional_elements", dict())  # a dictionary containing the additional information added by the user to the messages exchanged between devices, contracts and aggregators
 
         # dictionaries contained by world
         self._subclasses_dictionary = get_subclasses()  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons, devices and Supervisors
         dictionaries = dict()
 
-        dictionaries["forecasters"] = dict()  # objects which are responsible for predicting both quantities produced and consumed
-        dictionaries["strategys"] = dict()  # objects which perform the calculus
-
         dictionaries["natures"] = dict()  # types of energy presents in world
-
-        dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
-        dictionaries["exchange_nodes"] = dict()  # objects organizing exchanges between aggregators
-        
-        dictionaries["contracts"] = dict()  # dict containing the different contracts
-        dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
-        dictionaries["devices"] = dict()  # dict containing the devices
-        dictionaries["converters"] = dict()  # dict containing the conversion points
-
-        dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
         dictionaries["daemons"] = dict()  # dict containing the daemons
+        dictionaries["strategys"] = dict()  # objects which perform the calculus
+        dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
+        dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        dictionaries["contracts"] = dict()  # dict containing the different contracts
+        dictionaries["devices"] = dict()  # dict containing the devices
+        dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
 
         self._catalog.add("dictionaries", dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
@@ -79,14 +71,18 @@ class World:
 
         self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
 
-        set_world(self)  # set world as a global variable ued later to instantiate objects
+        self._catalog.add("export_formats", [])  # where the desired export formats are written
+
+        set_world(self)  # set world as a global variable used later to instantiate objects
 
     # ##########################################################################################
     # Construction
     # methods are arranged in the order they are supposed to be used
     # ##########################################################################################
 
-    # the following methods concern objects absolutely needed for world to perform a calculus
+    # ##########################################################################################
+    # settings
+
     def set_directory(self, path):  # definition of a case directory and creation of the directory
         instant_date = datetime.now()  # get the current time
         instant_date = instant_date.strftime("%Y_%m_%d-%H_%M_%S")  # the directory is named after the date
@@ -116,13 +112,6 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
-    def choose_exports(self, export_formats):  # optionally, you can export using keywords
-        self._catalog.add("export_formats", export_formats)
-
-    def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
-        # this new element requires to modify the related device, contract and strategy subclasses to have some effect
-        self._additional_elements[additional_element] = default_value
-
     def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
@@ -132,19 +121,18 @@ class World:
         self._time_limit = time_limit  # the number of the last iteration
         self._catalog.add("time_limit", time_limit)
 
-    # the following methods concern objects modeling a case
-    def register_strategy(self, strategy):  # definition of the strategy
-        if strategy.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{strategy.name} already in use")
+    # ##########################################################################################
+    # options
 
-        if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
+    def choose_exports(self, export_formats):  # optionally, you can export using keywords
+        self._catalog.add("export_formats", into_list(export_formats))
 
-        strategy.complete_message(self._additional_elements)  # the  message is completed with the new elements added in world
+    def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
+        # this new element requires to modify the related device, contract and strategy subclasses to have some effect
+        self._catalog.get("additional_elements")[additional_element] = default_value
 
-        self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
-        self._used_names.append(strategy.name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing
+    # ##########################################################################################
+    # modelling
 
     def register_nature(self, nature):  # definition of natures dictionary
         if nature.name in self._used_names:  # checking if the name is already used
@@ -153,38 +141,38 @@ class World:
         if isinstance(nature, Nature) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
+        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{nature.name}.{element}", self._catalog.get("additional_elements")[element])
+
         self._catalog.natures[nature.name] = nature
         self._used_names.append(nature.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def register_aggregator(self, aggregator):  # method connecting one aggregator to the world
-        if aggregator.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{aggregator.name} already in use")
+    def register_daemon(self, daemon):  # link a daemon with a world (and its catalog)
+        if daemon.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{daemon.name} already in use")
 
-        if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
+        if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        for element in self._additional_elements:  # for all new elements, an entry is created in the catalog
-            self._catalog.add(f"{aggregator.name}.{element}", 0)
-
-        if aggregator.superior:  # if the aggregator has a superior
-            aggregator.superior._subaggregators.append(aggregator)
-
-        self._catalog.aggregators[aggregator.name] = aggregator  # registering the aggregator in the dedicated dictionary
-        self._used_names.append(aggregator.name)  # adding the name to the list of used names
+        self._catalog.daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
+        self._used_names.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
-    def register_contract(self, contract):
-        if contract.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{contract.name} already in use")        
-    
-        if isinstance(contract, Contract) is False:  # checking if the object has the expected type
+    def register_strategy(self, strategy):  # definition of the strategy
+        if strategy.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{strategy.name} already in use")
+
+        if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
-        
-        self._catalog.contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
-        self._used_names.append(contract.name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing   
-        
+
+        strategy.complete_message(
+            self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
+
+        self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
+        self._used_names.append(strategy.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
     def register_agent(self, agent):  # method connecting one agent to the world
         if agent.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{agent.name} already in use")
@@ -192,11 +180,45 @@ class World:
         if isinstance(agent, Agent) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
+        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{agent.name}.{element}", self._catalog.get("additional_elements")[element])
+
         if agent.superior:  # if the agent has a superior
             agent.superior._owned_agents_name.append(agent)
 
         self._catalog.agents[agent.name] = agent  # registering the agent in the dedicated dictionary
         self._used_names.append(agent.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def register_contract(self, contract):
+        if contract.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{contract.name} already in use")
+
+        if isinstance(contract, Contract) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{contract.name}.{element}", self._catalog.get("additional_elements")[element])
+
+        self._catalog.contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
+        self._used_names.append(contract.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing   
+        
+    def register_aggregator(self, aggregator):  # method connecting one aggregator to the world
+        if aggregator.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{aggregator.name} already in use")
+
+        if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{aggregator.name}.{element}", self._catalog.get("additional_elements")[element])
+
+        if aggregator.superior:  # if the aggregator has a superior
+            aggregator.superior._subaggregators.append(aggregator)
+
+        self._catalog.aggregators[aggregator.name] = aggregator  # registering the aggregator in the dedicated dictionary
+        self._used_names.append(aggregator.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_device(self, device):  # method connecting one device to the world
@@ -210,13 +232,10 @@ class World:
         if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        device.complete_message(self._additional_elements)  # the  message is completed with the new elements added in world
+        device.complete_message(self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
 
         for nature in device.natures:
             device._natures[nature]["aggregator"].add_device(device.name)  # adding the device name to its aggregator list of devices
-
-            for element in self._additional_elements:  # for all new elements, an entry is created in the catalog
-                self._catalog.add(f"{device.name}.{nature.name}.{element}", 0)
 
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         self._used_names.append(device.name)  # adding the name to the list of used names
@@ -230,17 +249,6 @@ class World:
 
         self._catalog.dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
-        # used_name is a general list: it avoids erasing
-
-    def register_daemon(self, daemon):  # link a daemon with a world (and its catalog)
-        if daemon.name in self._used_names:  # checking if the name is already used
-            raise WorldException(f"{daemon.name} already in use")
-
-        if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        self._catalog.daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
-        self._used_names.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     # ##########################################################################################
@@ -353,33 +361,25 @@ class World:
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
-            for strategy in self._catalog.strategies.values():
-                strategy.reinitialize()
 
             for nature in self._catalog.natures.values():
                 nature.reinitialize()
 
-            for contract in self._catalog.contracts.values():
-                contract.reinitialize()
+            for strategy in self._catalog.strategies.values():
+                strategy.reinitialize()
 
             for agent in self._catalog.agents.values():
                 agent.reinitialize()
+
+            for contract in self._catalog.contracts.values():
+                contract.reinitialize()
 
             for aggregator in self._catalog.aggregators.values():
                 aggregator.reinitialize()
 
             for device in self._catalog.devices.values():
                 device.reinitialize()
-
-            for converter in self._catalog.converters.values():
-                converter.reinitialize()
-
-            # devices and converters publish the quantities they are interested in (both in demand and in offer)
-            for device in self._catalog.devices.values():
-                device.update()
-
-            for converter in self._catalog.converters.values():
-                converter.first_update()
+                device.update()  # devices publish the quantities they are interested in (both in demand and in offer)
 
             # ###########################
             # Calculus phase
@@ -429,6 +429,9 @@ class World:
         for datalogger in self._catalog.dataloggers.values():
             datalogger.final_process()
             datalogger.final_export()
+
+        for daemon in self._catalog.daemons.values():
+            daemon.final_process()
 
     # ##########################################################################################
     # Dynamic behavior
