@@ -229,7 +229,6 @@ class Device:
 
             for element in self._additional_elements:
                 additional_elements_value[element][nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")[element]
-            # print(additional_elements_value)
 
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
@@ -280,7 +279,6 @@ class Device:
         for element in self._additional_elements:
             old_value = self._catalog.get(f"{self.agent.name}.{element}")
             self._catalog.set(f"{self.agent.name}.{element}", old_value + sum(additional_elements_value[element].values()))
-            # print(element, self._catalog.get(f"{self.agent.name}.{element}"))
 
     # ##########################################################################################
     # Utility

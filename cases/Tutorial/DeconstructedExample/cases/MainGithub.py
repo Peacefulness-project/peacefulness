@@ -5,7 +5,7 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
+from os import chdir, listdir
 
 from src.common.World import World
 
@@ -28,14 +28,6 @@ from src.tools.SubclassesDictionary import get_subclasses
 # ##############################################################################################
 
 # ##############################################################################################
-# Rerooting
-# ##############################################################################################
-
-# here, we reroot this script at the root of the project.
-chdir("../../../")  # root of the project
-
-
-# ##############################################################################################
 # Importation of subclasses
 # all the subclasses are imported in the following dictionary
 subclasses_dictionary = get_subclasses()
@@ -51,7 +43,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-pathExport = "cases/Tutorial/Results/disc_world"
+pathExport = "cases/Tutorial/DeconstructedExample/Results"
 world.set_directory(pathExport)  # registration
 
 
@@ -200,19 +192,19 @@ heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_product
 # Automated generation of complete agents (i.e with devices and contracts)
 
 # BAU contracts
-world.agent_generation(165, "cases/Tutorial/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(330, "cases/Tutorial/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(165, "cases/Tutorial/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(330, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 # DLC contracts
-world.agent_generation(200, "cases/Tutorial/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(400, "cases/Tutorial/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(200, "cases/Tutorial/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(400, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 # Curtailment contracts
-world.agent_generation(135, "cases/Tutorial/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(270, "cases/Tutorial/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
-world.agent_generation(135, "cases/Tutorial/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(270, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
+world.agent_generation(135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat})
 
 
 # ##############################################################################################

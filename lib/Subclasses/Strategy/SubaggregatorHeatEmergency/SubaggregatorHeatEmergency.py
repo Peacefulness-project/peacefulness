@@ -39,7 +39,6 @@ class SubaggregatorHeatEmergency(Strategy):
         # calculate the quantities needed to fulfill its needs
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
         quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
-        print(quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
@@ -56,7 +55,6 @@ class SubaggregatorHeatEmergency(Strategy):
         # publication of the needs to its superior
 
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
-        print(quantities_and_prices)
 
         return quantities_and_prices
 
