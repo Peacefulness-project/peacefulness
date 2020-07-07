@@ -4,7 +4,7 @@ from os import listdir, chdir
 
 chdir("../../../")  # set the relative path to the project root
 
-root_path = "cases/Tutorial/BasicTutorial/cases/"  # the path to the cases
+root_path = "cases/Tutorial/BasicTutorial/exercises/"  # the path to the cases
 
 simulation_mains = listdir(root_path)  # the main corresponding to each case we want tot test
 
