@@ -1,4 +1,4 @@
-__problem__ = None
+__problem__ = False
 
 
 def set_problem(boolean):

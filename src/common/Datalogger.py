@@ -39,6 +39,9 @@ class Datalogger:
 
         world.register_datalogger(self)  # register this datalogger into world dedicated dictionary
 
+        self._x_values = {"iteration": []}
+        self._y_values = {}
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -82,6 +85,7 @@ class Datalogger:
 
         if current_time == 0 and not self._global:  # initialization of the file
             self._save_header()  # name of each piece of data is written at the top of the file
+            self._y_values = {key: [] for key in self._list}
 
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
@@ -96,8 +100,10 @@ class Datalogger:
         # both physical date and time and iteration number are systematically added
         file.write(str(self._catalog.get("physical_time")))  # date time in string
         file.write(str(self._catalog.get("simulation_time")))  # iteration number as a string
+        self._x_values["iteration"].append(self._catalog.get("simulation_time"))
 
         for key in self._list:
+            self._y_values[key].append(self._list[key](key))
             value = self._list[key](key)
 
             file.write(f"{value}\t")
@@ -167,9 +173,7 @@ class Datalogger:
 
     def final_export(self):  # call the relevant export functions
         for export_format in self._catalog.get("export_formats"):
-            x_values = {}           # todo: remplir les deux trucs...
-            y_values = {}
-            export(export_format, x_values, y_values)
+            export(export_format, self._x_values, self._y_values)
 
     # ##########################################################################################
     # Utilities
