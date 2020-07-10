@@ -125,7 +125,7 @@ class World:
     # options
 
     def choose_exports(self, export_formats):  # optionally, you can export using keywords
-        self._catalog.add("export_formats", into_list(export_formats))
+        self._catalog.set("export_formats", into_list(export_formats))
 
     def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
         # this new element requires to modify the related device, contract and strategy subclasses to have some effect
