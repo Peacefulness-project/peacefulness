@@ -37,7 +37,6 @@ subclasses_dictionary = get_subclasses()
 name_world = "validation"
 world = World(name_world)  # creation
 
-world.choose_exports("matplotlib")
 
 # ##############################################################################################
 # Definition of the path to the files
