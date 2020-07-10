@@ -79,7 +79,7 @@ world.set_random_seed("tournesol")
 # ##############################################################################################
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = start_date.replace(year=2020, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = datetime(year=2020, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
