@@ -29,12 +29,15 @@ message = f"Summary of the test\n"
 print(f"{little_separation}\n"+message)
 file.write(f"{message}")
 if bool(problem_list):  # if a problem occured
-    message = f"a problem occured in the following tests:{problem_list}"
+    message = f"a problem occurred in the following tests:{problem_list}"
     print(message)
     file.write(f"{message}")
 else:
-    message = "No problem occured"
+    message = f"The test run was checking the following elements:\n"
+    for file_path in simulation_mains:
+        message += f"\t=> {file_path} \n"
+    message += "Finally, no problem occurred\n"
     print(message)
-    file.write(f"{message}")
+    file.write(f"{message}\n")
 
 file.close()

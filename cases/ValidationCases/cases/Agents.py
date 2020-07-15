@@ -59,6 +59,12 @@ world.set_time(start_date,  # time management: start date
 
 
 # ##############################################################################################
+# Definition of the type of exports
+export_formats = ["csv", "LaTeX", "matplotlib"]
+export_formats = ["csv"]
+world.choose_exports(export_formats)
+
+# ##############################################################################################
 # Model
 # ##############################################################################################
 
@@ -116,14 +122,17 @@ device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_ele
 # Creation of the validation daemon
 description = "This script checks that agents hierarchy balances work well"
 
+filename = "agents_validation"
 
 reference_values = {"sup_agent.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
                     "inf_agent.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
+reference_values_labels = {"abscissa": "hour",
+                           "sup_agent.LVE.energy_bought": "toto",
+                           "inf_agent.LVE.energy_bought": "titi"
+                    }
 
-filename = "agents_validation"
-
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "reference_values_labels": reference_values_labels, "tolerance": 1E-6}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("agents_test", parameters)
 

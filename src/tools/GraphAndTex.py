@@ -11,26 +11,91 @@ from csv import reader
 
 from time import process_time
 
-def export(fomat, x_values, y_values):
-    # switch(fomat) {
-    #    case "csv": export_in_csv(x_values, y_values);
-    #                break;
-    #     case "LaTeX": export_in_LaTeX(x_values, y_values);
-    #        break;
-    #     case "matplotlib": export_in_matplotlib();
-    #     break;
-    #}
-    pass
+# Specific imports
+from src.tools.Utilities import adapt_path
+
+# ##############################################################################################
+# Basic export functions
+
+def write_and_print(message, file):  # write in the chosen file and print the message
+    file.write(message + "\n")
+    print(message)
+
+# ##############################################################################################
+# Export functions for numerical data
+
+def export(format, x_values, y_values, x_values_label, y_values_label, directory):
+    # Basic controls
+    if len(x_values) != 1:
+        message = "The x_values dict to export has more than one series of values"
+        raise ExportException(message)
+
+    # Management of the exports depending on the choice of the user
+    message = "Exporting step"
+    print(message)
+
+    if format == "csv":
+        message = "\tExporting in csv"
+        print(message)
+        export_in_csv(x_values, y_values, directory)
+    elif format == "LaTeX":
+        message = "\tExporting using LaTeX"
+        print(message)
+        export_in_LaTeX(x_values, y_values, x_values_label, y_values_label, directory)
+    elif format == "matplotlib":
+        message = "\tExporting using matplotlib"
+        print(message)
+        export_in_matplotlib(x_values, y_values, x_values_label, y_values_label, directory)
+    else:
+        raise ExportException(f"export format {format} is unknown")
 
 
-def export_in_csv(x_values, y_values):
+def export_in_csv(x_values, y_values, directory):
+    file = open(adapt_path([directory, "outputs", "raw_results.csv"]), "a+")
+
+    # Headers
+    header = []
+    for elt in x_values.keys():
+        header.append(elt)
+    for elt in y_values.keys():
+        header.append(elt)
+
+    message = ' ; '.join(header)
+    file.write(message + "\n")
+
+    # Data
+    data = []
+    data.append(x_values["iteration"])
+    for i in range(1, len(header)):
+        data.append(y_values[header[i]])
+
+    number_rows = len(x_values["iteration"])
+    number_columns = len(data)
+    for i in range(0,number_rows):
+        message = f"{data[0][i]}"
+        for j in range(1, number_columns):
+            message += f";\t{data[j][i]}"
+        file.write(message + "\n")
+
+    # End
+    file.close()
+
+def export_in_LaTeX(x_values, y_values, x_values_label, y_values_label, directory):  # je me chargerai de changer la signature dans world si besoin
     pass
 
-def export_in_LaTeX(x_values, y_values):  # je me chargerai de changer la signature dans world si besoin
+def export_in_matplotlib(x_values, y_values, x_values_label, y_values_label, directory):  # idem
     pass
 
-def export_in_matplotlib(x_values, y_values):  # idem
-    pass
+# ##############################################################################################
+# Others
+
+# Exception
+class ExportException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+
 
 # =============================================================================================================
 # =============================================================================================================
