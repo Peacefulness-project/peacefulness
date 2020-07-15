@@ -32,7 +32,7 @@ subclasses_dictionary = get_subclasses()
 # ##############################################################################################
 # Creation of the world
 # TODO: create a world called tuto_world
-
+World("pas le bon nom")
 
 # ##############################################################################################
 # Definition of the path to the files

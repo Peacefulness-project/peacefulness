@@ -27,7 +27,7 @@ def write_and_print(message, file):  # write in the chosen file and print the me
 def export(format, x_values, y_values, x_values_label, y_values_label, directory):
     # Basic controls
     if len(x_values) != 1:
-        message = "The x_values dict to export has more than one series of values"
+        message = "The x_values dict requires exactly one series of values"
         raise ExportException(message)
 
     # Management of the exports depending on the choice of the user
@@ -53,29 +53,28 @@ def export(format, x_values, y_values, x_values_label, y_values_label, directory
 def export_in_csv(x_values, y_values, directory):
     file = open(adapt_path([directory, "outputs", "raw_results.csv"]), "a+")
 
-    # Headers
+    # Extraction of the data
     header = []
+    data = []
     for elt in x_values.keys():
+        number_rows = len(x_values[elt])
         header.append(elt)
+        data.append(x_values[elt])
     for elt in y_values.keys():
         header.append(elt)
+        data.append(y_values[elt])
 
-    message = ' ; '.join(header)
+    number_columns = len(data)
+
+    # Export in the 'csv' file
+    message = '\t'.join(header)
     file.write(message + "\n")
 
-    # Data
-    data = []
-    data.append(x_values["iteration"])
-    for i in range(1, len(header)):
-        data.append(y_values[header[i]])
-
-    number_rows = len(x_values["iteration"])
-    number_columns = len(data)
     for i in range(0,number_rows):
-        message = f"{data[0][i]}"
-        for j in range(1, number_columns):
-            message += f";\t{data[j][i]}"
-        file.write(message + "\n")
+        for j in range(0, number_columns):
+            message = f"{data[j][i]}\t"
+            file.write(message)
+        file.write("\n")
 
     # End
     file.close()
