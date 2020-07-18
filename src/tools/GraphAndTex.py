@@ -34,18 +34,16 @@ def write_and_print(message, file):  # write in the chosen file and print the me
 # ##############################################################################################
 # Export functions for numerical data
 
-def methode_graphique(options, filename, x, y, labels):        # todo: changer le nom
+def export(options, filename, x, y, labels):
     if "csv" in options.formats:
-        exporter_en_csv(options, filename, x, y, labels)
+        export_csv(options, filename, x, y, labels)
     if "LaTeX" in options.formats:
-        exporter_en_latex(options, filename, x, y, labels)
+        export_latex(options, filename, x, y, labels)
     if "matplotlib" in options.formats:
-        exporter_en_matplotlib(options, filename, x, y, labels)
+        export_matplotlib(options, filename, x, y, labels)
 
 
-def exporter_en_csv(options, filename, x, y, labels):
-    absolute_filename = path.abspath(filename)
-
+def export_csv(options, filename, x, y, labels):
     # Configure the exported data
     text = ""
     data = []
@@ -73,7 +71,7 @@ def exporter_en_csv(options, filename, x, y, labels):
     file.close()
 
 
-def exporter_en_latex(options, filename, x, y, labels):
+def export_latex(options, filename, x, y, labels):
     absolute_filename = path.abspath(filename)
 
     # Configure the future exported file
@@ -207,7 +205,7 @@ def exporter_en_latex(options, filename, x, y, labels):
     file.close()
 
 
-def exporter_en_matplotlib(options, filename, x, y, labels):
+def export_matplotlib(options, filename, x, y, labels):
     absolute_filename = path.abspath(filename)
 
     # Configure the future exported file

@@ -6,7 +6,7 @@ from math import inf
 
 from src.tools.FilesExtensions import __text_extension__
 
-from src.tools.GraphAndTex import __default_graph_options__, methode_graphique
+from src.tools.GraphAndTex import __default_graph_options__, export
 from src.tools.GlobalWorld import get_world
 
 
@@ -186,7 +186,7 @@ class Datalogger:
             file.close()
 
     def final_export(self):  # call the relevant export functions
-        methode_graphique(self._graph_options, self._path+self._filename, self._x_values, self._y_values, self._graph_labels)
+        export(self._graph_options, self._path + self._filename, self._x_values, self._y_values, self._graph_labels)
 
     # ##########################################################################################
     # Utilities
