@@ -21,7 +21,6 @@ from src.common.Datalogger import Datalogger
 from src.tools.Utilities import big_separation, adapt_path, into_list
 from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.GlobalWorld import set_world
-from src.tools.GraphAndTex import export_in_LaTeX, export_in_matplotlib
 
 
 # ##############################################################################################

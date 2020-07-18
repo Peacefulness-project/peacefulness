@@ -1,6 +1,6 @@
 # This daemon is here to validate at each turn that calculation are made correctly.
 from src.common.Daemon import Daemon
-from src.tools.GraphAndTex import export, write_and_print
+from src.tools.GraphAndTex import write_and_print
 from src.tools.Utilities import adapt_path
 
 from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import set_problem
@@ -100,5 +100,5 @@ class ValidationDaemon(Daemon):
         # Export
         directory = self._catalog.get("path")
 
-        for export_format in self._catalog.get("export_formats"):
-            export(export_format, self._x_values, self._y_values, self._x_values_label, self._y_values_label, directory)
+#        for export_format in self._catalog.get("export_formats"):                  # todo: adapter a partir du nouveau graph and tex
+#            export(export_format, self._x_values, self._y_values, self._x_values_label, self._y_values_label, directory)

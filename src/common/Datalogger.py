@@ -4,16 +4,17 @@
 from numpy import mean
 from math import inf
 
-from src.tools.GraphAndTex import export
+from src.tools.FilesExtensions import __text_extension__
+
+from src.tools.GraphAndTex import __default_graph_options__, methode_graphique
 from src.tools.GlobalWorld import get_world
 
 
 class Datalogger:
 
-    def __init__(self, name, filename, period=0, sum_over_time=False):
+    def __init__(self, name, filename, period=0, sum_over_time=False, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y", "y2label": "Y2"}):
         self._name = name
 
-        self._filename = filename  # the name of the file where the data will be written
         self._sum = sum_over_time  # enables integration of a data between 2 periods
 
         self._list = dict()  # list of catalog keys which has to be written
@@ -35,18 +36,22 @@ class Datalogger:
         world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # catalog from which data is extracted
 
-        self._filename = self._catalog.get('path') + "/outputs/" + filename + ".txt"
+        self._path = self._catalog.get('path') + "/outputs/"
+        self._filename = filename
 
         world.register_datalogger(self)  # register this datalogger into world dedicated dictionary
 
-        self._x_values = {"iteration": []}
+        self._x_values = {}
         self._y_values = {}
+
+        self._graph_options = graph_options
+        self._graph_labels = graph_labels
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def add(self, name, function="default"):  # add 1 key of the catalog to the datalogger
+    def add(self, name, function="default", graph_status="Y", graph_legend=False):  # add 1 key of the catalog to the datalogger
         if function == "default":
             self._list[name] = self._catalog.get  # creates an entry in the buffer if needed
         else:
@@ -57,6 +62,17 @@ class Datalogger:
         elif type(self._list[name](name) == float) and (self._period > 1):  # numeric keys are added to a buffer
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
+
+        if not graph_legend:
+            graph_legend = name
+        if graph_status == "X":
+            self._x_values[name] = {"values": []}
+        elif graph_status == "Y":
+            self._y_values[name] = {"values": [], "legend": graph_legend, "label": 1}
+        elif graph_status == "Y2":
+            self._y_values[name] = {"values": [], "legend": graph_legend, "label": 2}
+        else:
+            pass
 
     def add_all(self):  # add all keys from the catalog to the datalogger
         for name in self._catalog.keys:
@@ -85,7 +101,6 @@ class Datalogger:
 
         if current_time == 0 and not self._global:  # initialization of the file
             self._save_header()  # name of each piece of data is written at the top of the file
-            self._y_values = {key: [] for key in self._list}
 
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
@@ -96,17 +111,18 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _regular_process(self):  # record all the chosen key regularly in a file
-        file = open(self._filename, "a+")
-        # both physical date and time and iteration number are systematically added
-        file.write(str(self._catalog.get("physical_time")))  # date time in string
-        file.write(str(self._catalog.get("simulation_time")))  # iteration number as a string
-        self._x_values["iteration"].append(self._catalog.get("simulation_time"))
+        file = open(self._path+self._filename+__text_extension__, "a+")
 
-        for key in self._list:
-            self._y_values[key].append(self._list[key](key))
+        for key in self._x_values:
             value = self._list[key](key)
-
+            self._x_values[key]["values"].append(value)
             file.write(f"{value}\t")
+
+        for key in self._y_values:
+            value = self._list[key](key)
+            self._y_values[key]["values"].append(value)
+            file.write(f"{value}\t")
+
             if (type(value) == float) and (self._period > 1):
                 processed_data = self._data_processing(value)  # returns the mean, the min and the max over the period for a key
                 file.write(f"{processed_data['mean']}\t"  # saves the mean
@@ -115,7 +131,9 @@ class Datalogger:
                            )
                 if self._sum:  # if sum is enabled, write the sum of the data over the time
                     file.write(f"{self._data_sum(value)}\t")
+
             self._buffer[key] = []  # Reinitialization of the buffer
+
         file.write("\n")
         file.close()
 
@@ -135,11 +153,7 @@ class Datalogger:
                 self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
 
     def _save_header(self):  # create the headers of the column
-        file = open(self._filename, 'a+')
-
-        # both physical date and time and iteration number are systematically added
-        file.write("physical time\t")
-        file.write("iteration\t")
+        file = open(self._path+self._filename+__text_extension__, 'a+')
 
         for name in self._list:
             file.write(f"{name}\t")
@@ -159,7 +173,7 @@ class Datalogger:
 
     def final_process(self):
         if self._global:  # if global values are wanted
-            file = open(self._filename, "a+")
+            file = open(self._path+self._filename+__text_extension__, "a+")
 
             for key in self._buffer:
                 file.write(f"for the key {key}:\n")
@@ -172,8 +186,7 @@ class Datalogger:
             file.close()
 
     def final_export(self):  # call the relevant export functions
-        for export_format in self._catalog.get("export_formats"):
-            export(export_format, self._x_values, self._y_values)
+        methode_graphique(self._graph_options, self._path+self._filename, self._x_values, self._y_values, self._graph_labels)
 
     # ##########################################################################################
     # Utilities

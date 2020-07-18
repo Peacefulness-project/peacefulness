@@ -1,18 +1,31 @@
 # Native Packages
+import datetime
+
 import matplotlib as mpl
 
 import matplotlib.pyplot as plt
 
 import numpy as np
 
-from os import listdir, chdir, system, makedirs
+from os import listdir, chdir, system, makedirs, path
 
 from csv import reader
 
 from time import process_time
 
 # Specific imports
+from src.tools.FilesExtensions import __text_extension__, __tex_extension__, __csv_extension__
+
 from src.tools.Utilities import adapt_path
+
+# ##############################################################################################
+class graph_options():
+    def __init__(self, formats, graph_type, graph_style):
+        self.formats = formats
+        self.graph_type = graph_type
+        self.graph_style = graph_style
+
+__default_graph_options__ = graph_options("None", "single_series", "lines")
 
 # ##############################################################################################
 # Basic export functions
@@ -24,66 +37,177 @@ def write_and_print(message, file):  # write in the chosen file and print the me
 # ##############################################################################################
 # Export functions for numerical data
 
-def export(format, x_values, y_values, x_values_label, y_values_label, directory):
-    # Basic controls
-    if len(x_values) != 1:
-        message = "The x_values dict requires exactly one series of values"
-        raise ExportException(message)
-
-    # Management of the exports depending on the choice of the user
-    message = "Exporting step"
-    print(message)
-
-    if format == "csv":
-        message = "\tExporting in csv"
-        print(message)
-        export_in_csv(x_values, y_values, directory)
-    elif format == "LaTeX":
-        message = "\tExporting using LaTeX"
-        print(message)
-        export_in_LaTeX(x_values, y_values, x_values_label, y_values_label, directory)
-    elif format == "matplotlib":
-        message = "\tExporting using matplotlib"
-        print(message)
-        export_in_matplotlib(x_values, y_values, x_values_label, y_values_label, directory)
-    else:
-        raise ExportException(f"export format {format} is unknown")
+def methode_graphique(options, filename, x, y, labels):        # todo: changer le nom
+    if "csv" in options.formats:
+        exporter_en_csv(options, filename, x, y, labels)
+    if "LaTeX" in options.formats:
+        exporter_en_latex(options, filename, x, y, labels)
+    if "matplotlib" in options.formats:
+        exporter_en_matplotlib(options, filename, x, y, labels)
 
 
-def export_in_csv(x_values, y_values, directory):
-    file = open(adapt_path([directory, "outputs", "raw_results.csv"]), "a+")
+def exporter_en_csv(options, filename, x, y, labels):
+    absolute_filename = path.abspath(filename)
 
-    # Extraction of the data
-    header = []
+    # Configure the exported data
+    text = ""
     data = []
-    for elt in x_values.keys():
-        number_rows = len(x_values[elt])
-        header.append(elt)
-        data.append(x_values[elt])
-    for elt in y_values.keys():
-        header.append(elt)
-        data.append(y_values[elt])
+    for key in x:
+        text += key
+        data.append(x[key]["values"])
+    for key in y:
+        text += "; " + key
+        data.append(y[key]["values"])
+    text += "\n"
 
-    number_columns = len(data)
+    for key in x:
+        number_rows = len(x[key]["values"])
+    number_columns = 1 + len(y)
 
-    # Export in the 'csv' file
-    message = '\t'.join(header)
-    file.write(message + "\n")
+    for i in range(0, number_rows):
+        text += str(data[0][i])
+        for j in range(1, number_columns):
+            text += "; " + str(data[j][i])
+        text += "\n"
 
-    for i in range(0,number_rows):
-        for j in range(0, number_columns):
-            message = f"{data[j][i]}\t"
-            file.write(message)
-        file.write("\n")
-
-    # End
+    # Export
+    file = open(filename + __csv_extension__, "x")
+    file.write(text)
     file.close()
 
-def export_in_LaTeX(x_values, y_values, x_values_label, y_values_label, directory):  # je me chargerai de changer la signature dans world si besoin
+
+def exporter_en_latex(options, filename, x, y, labels):
+    absolute_filename = path.abspath(filename)
+
+    # Configure the future exported file
+    if options.graph_style == "lines":
+        tikz_plot_options = "mark=none, line width=1.25"
+    elif options.graph_style == "points":
+        tikz_plot_options = "only marks, mark size=1.25"
+
+    is_date = False
+    xticklabel_angle = 0
+    for key in x:
+        if isinstance(x[key]["values"][0], datetime.datetime):
+            is_date = True
+            xticklabel_angle = 90
+
+    is_multiple = (options.graph_type == "multiple_series")
+
+    # Build the script
+    text = r"\documentclass{standalone}"
+    text += "%" + "\n"
+    text += "%" + "\n"
+    text += "%" + "\n"
+    text += r"% Packages" + "\n"
+    text += r"\usepackage{amsmath}" + "\n"
+    text += r"\usepackage{tikz}" + "\n"
+    text += r"\usepackage{pgfplots}" + "\n"
+    text += r"\usepackage{pgfplotstable}" + "\n"
+    text += r"\usepackage{siunitx}" + "\n"
+    text += "\n"
+    text += r"\usepgfplotslibrary{dateplot}" + "\n"
+    text += r"\pgfplotsset{compat = 1.16}" + "\n"
+    text += "%" + "\n"
+    text += "%" + "\n"
+    text += r"% Main" + "\n"
+    text += "%" + "\n"
+    text += r"\begin{document}"
+    text += "\n"
+    text += "\n"
+    text += r"\pgfplotstableread[col sep=semicolon]{" + absolute_filename + __csv_extension__ + "}{\\data}" + "\n"
+    text += "\n"
+    text += r"\begin{tikzpicture}" + "\n"
+    text += r"\begin{axis}[" + "\n"
+    text += "\t" + r"%xmin = 0.0, xmax = 1.0," + "\n"
+    text += "\t" + r"%ymin = 0.0, ymax = 1.0," + "\n"
+    text += "\t" + r"xlabel = {" + labels["xlabel"] + "}," + "\n"
+    text += "\t" + r"ylabel = {" + labels["ylabel"] + "}," + "\n"
+    text += "\t" + r"xlabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"xticklabel style = {rotate=" + str(xticklabel_angle) + r", anchor=near xticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    if is_date:
+        text += "\t" + "%" + "\n"
+        text += "\t" + r"date coordinates in = x," + "\n"
+        text += "\t" + r"xticklabel = {\year-\month-\day \, \hour:\minute}," + "\n"
+    if is_multiple:
+        text += "\t" + "%" + "\n"
+        text += "\t" + r"legend pos = north west," + "\n"
+        text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
+        text += "\t" + r"legend cell align = left," + "\n"
+        text += "\t" + r"legend columns={2}," + "\n"
+        text += "\t" + r"legend image post style={scale=2}," + "\n"
+    text += "\t" + r"]" + "\n"
+    for key in y:
+        if y[key]["label"] == 1:
+            text += "\t" + r"\addplot+[" + tikz_plot_options + "] "
+            for keyy in x:
+                text += "table[ x = " + keyy + ", y = " + key + "]{\\data};"
+            text += "\n"
+    if is_multiple:
+        text += "\t" + r"\legend{ "
+        buffer = []
+        for key in y:
+            if y[key]["label"] == 1:
+                buffer.append(y[key]["legend"])
+        text += ', '.join(buffer)
+        text += "}" + "\n"
+    text += r"\end{axis}" + "\n"
+    if 'y2label' in labels:                                     # todo: check correspondance Y2 et y2label...
+        text += r"\begin{axis}[" + "\n"
+        text += "\t" + r"hide x axis," + "\n"
+        text += "\t" + r"axis y line* = right," + "\n"
+        text += "\t" + r"%xmin = 0.0, xmax = 1.0," + "\n"
+        text += "\t" + r"%ymin = 0.0, ymax = 1.0," + "\n"
+        text += "\t" + r"ylabel = {" + labels["y2label"] + "}," + "\n"
+        text += "\t" + r"ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
+        text += "\t" + r"ylabel near ticks," + "\n"
+        text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
+        if is_date:
+            text += "\t" + "%" + "\n"
+            text += "\t" + r"date coordinates in = x," + "\n"
+            text += "\t" + r"xticklabel = {\year-\month-\day \, \hour:\minute}," + "\n"
+        if is_multiple:
+            text += "\t" + "%" + "\n"
+            text += "\t" + r"legend pos = north east," + "\n"
+            text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
+            text += "\t" + r"legend cell align = left," + "\n"
+            text += "\t" + r"legend columns={2}," + "\n"
+            text += "\t" + r"legend image post style={scale=2}," + "\n"
+        text += "\t" + r"]" + "\n"
+        for key in y:
+            if y[key]["label"] == 2:
+                text += "\t" + r"\addplot+[" + tikz_plot_options + ", densely dashed] "
+                for keyy in x:
+                    text += "table[ x = " + keyy + ", y = " + key + "]{\\data};"
+                text += "\n"
+        if is_multiple:
+            text += "\t" + r"\legend{ "
+            buffer = []
+            for key in y:
+                if y[key]["label"] == 2:
+                    buffer.append(y[key]["legend"])
+            text += ', '.join(buffer)
+            text += "}" + "\n"
+        text += r"\end{axis}" + "\n"
+    text += r"\end{tikzpicture}"
+    text += "\n"
+    text += "\n"
+    text += r"\pgfplotstableclear\data" + "\n"
+    text += "\n"
+    text += "\n"
+    text += r"\end{document}" + "\n"
+
+    # # Export
+    file = open(filename+__tex_extension__, "x")
+    file.write(text)
+    file.close()
+
+
+def exporter_en_matplotlib(options, filename, x, y, labels):
     pass
 
-def export_in_matplotlib(x_values, y_values, x_values_label, y_values_label, directory):  # idem
-    pass
 
 # ##############################################################################################
 # Others
@@ -182,65 +306,6 @@ def write_results(dir_results, filename, vectX, vectY):  # fichier txt avec vale
     results.write(raw_results)
 
 
-def write_LaTeX_source(dir_results, filename, dataFile, xlabel, ylabel, indicesPlot):
-    # Test if filename is a str
-    if type(filename) != str:
-        raise TypeError("The argument filename must be a string")
-
-    results = open(filename, "x")
-
-    text = r"\documentclass{standalone}"
-    text += "\n"
-    text += r"% Packages"
-    text += "\n"
-    text += r"\usepackage{tikz}"
-    text += "\n"
-    text += r"\usepackage{pgfplots}"
-    text += "\n"
-    text += r"\usepackage{pgfplotstable}"
-    text += "\n"
-    text += r"\pgfplotsset{compat = 1.16}"
-    text += "\n"
-    text += r"\usepackage{siunitx}"
-    text += "\n"
-    text += "\n"
-    text += "\n"
-    text += "\n"
-    text += r"% Main"
-    text += "\n"
-    text += r"\begin{document}"
-    text += "\n"
-    text += "\n"
-    text += r"\pgfplotstableread[col sep = comma]{"+dataFile+"}{\\data}"
-    text += "\n"
-    text += r"\begin{tikzpicture}"
-    text += "\n"
-    text += r"\begin{axis}["
-    text += "\n"
-    text += r"  %xmin=0.0, xmax=1.0,"
-    text += "\n"
-    text += r"  %ymin=0.0, ymax=1.0,"
-    text += "\n"
-    text += r"  xlabel={"+xlabel+"},"
-    text += "\n"
-    text += r"  ylabel={" + ylabel + "},"
-    text += "\n"
-    text += r"]"
-    text += "\n"
-    for i in range(len(indicesPlot)):
-        text += r"    \addplot+[mark=none, line width=1.25] table[ x index = "+str(indicesPlot[i][0])+", y index = "+str(indicesPlot[i][1])+"]{\\data};"
-        text += "\n"
-    text += "\n"
-    text += r"\end{axis}"
-    text += "\n"
-    text += r"\end{tikzpicture}"
-    text += "\n"
-    text += r"\pgfplotstableclear\dataA"
-    text += "\n"
-    text += "\n"
-    text += r"\end{document}"
-
-    results.write(text)
 
 # =============================================================================================================
 #                       Export du pdf directement depuis python

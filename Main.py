@@ -38,6 +38,8 @@ from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
+from src.tools.GraphAndTex import graph_options
+
 
 # ##############################################################################################
 # Performance measurement
@@ -84,7 +86,7 @@ world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
 
-world.choose_exports("matplotlib")
+#world.choose_exports("matplotlib")
 
 # ##############################################################################################
 # Optionnal
@@ -275,6 +277,7 @@ subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global"
 
 # datalogger used to get back producer outputs
 producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+producer_datalogger.add("physical_time", graph_status="X")
 
 # producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
 # producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
@@ -306,6 +309,37 @@ producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
 #
 # test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
 # test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
+
+
+test_export1_graph_options = graph_options(["csv", "LaTeX"], "single_series", "lines")
+CO2_datalogger = Datalogger("Coco_l_asticot", "test_export1", graph_options=test_export1_graph_options, graph_labels={"xlabel": "$\\alpha \, [\si{\meter\per\second}]$", "ylabel": "$\\beta \, [\si{\watt}]$"})
+CO2_datalogger.add("physical_time", graph_status="X")
+CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y")
+
+test_export1_graph_options = graph_options(["csv", "LaTeX"], "single_series", "points")
+CO2_datalogger = Datalogger("toto", "test_export1b", graph_options=test_export1_graph_options, graph_labels={"xlabel": "$\\alpha \, [\si{\meter\per\second}]$", "ylabel": "$\\beta \, [\si{\watt}]$"})
+CO2_datalogger.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="X")
+CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y")
+
+test_export2_graph_options = graph_options(["csv", "LaTeX"], "single_series", "points")
+CO2_datalogger2 = Datalogger("Jean_sans_peur", "test_export2", graph_options=test_export2_graph_options, graph_labels={"xlabel": "riri", "ylabel": "machine"})
+CO2_datalogger2.add("physical_time", graph_status="X", graph_legend="t")
+CO2_datalogger2.add(f"{CO2_producer.name}.LVE.energy_bought")
+CO2_datalogger2.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y")
+
+test_export3_graph_options = graph_options(["csv", "LaTeX"], "multiple_series", "lines")
+CO2_datalogger3 = Datalogger("Richard_lionheart", "test_export3", graph_options=test_export3_graph_options, graph_labels={"xlabel": "riri", "ylabel": "machine"})
+CO2_datalogger3.add("physical_time", graph_status="X", graph_legend="t")
+CO2_datalogger3.add(f"{CO2_producer.name}.LVE.energy_bought")
+CO2_datalogger3.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y", graph_legend=r"$\aleph$")
+CO2_datalogger3.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_legend=r"$\gamma$")
+
+test_export4_graph_options = graph_options(["csv", "LaTeX"], "multiple_series", "lines")
+CO2_datalogger4 = Datalogger("ZIzou", "test_export4", graph_options=test_export4_graph_options, graph_labels={"xlabel": r"$\beta \, [\si{\joule}]$", "ylabel": r"$\dfrac{1+\sqrt{\chi}}{\zeta} \, [\si{\joule}]$", "y2label": r"$\dfrac{\rho}{\Xi} \, [\si{\joule}]$"})
+CO2_datalogger4.add(f"physical_time", graph_status="X", graph_legend=r"Erreur si visible")
+CO2_datalogger4.add(f"{CO2_producer.name}.LTH.energy_erased", graph_status="Y", graph_legend=r"$\aleph$")
+CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_legend=r"$\gamma$")
+CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_erased", graph_status="Y2", graph_legend=r"$\gamma$")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
@@ -342,7 +376,6 @@ filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  
 file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the calculation phase: {CPU_time}\n")
 file.close()
-
 
 
 
