@@ -1,10 +1,6 @@
 # Native Packages
 import datetime
 
-import matplotlib as mpl
-
-import matplotlib.pyplot as plt
-
 import numpy as np
 
 from os import listdir, chdir, system, makedirs, path
@@ -14,11 +10,12 @@ from csv import reader
 from time import process_time
 
 # Specific imports
-from src.tools.FilesExtensions import __text_extension__, __tex_extension__, __csv_extension__
+from src.tools.FilesExtensions import __pdf_extension__, __csv_extension__, __tex_extension__, __matplotlib_extension__
 
 from src.tools.Utilities import adapt_path
 
 # ##############################################################################################
+
 class graph_options():
     def __init__(self, formats, graph_type, graph_style):
         self.formats = formats
@@ -80,6 +77,11 @@ def exporter_en_latex(options, filename, x, y, labels):
     absolute_filename = path.abspath(filename)
 
     # Configure the future exported file
+    text = "% LaTeX script" + "\n"
+    text += "%=================================" + "\n"
+    text += "\n"
+    text += "\n"
+
     if options.graph_style == "lines":
         tikz_plot_options = "mark=none, line width=1.25"
     elif options.graph_style == "points":
@@ -95,7 +97,7 @@ def exporter_en_latex(options, filename, x, y, labels):
     is_multiple = (options.graph_type == "multiple_series")
 
     # Build the script
-    text = r"\documentclass{standalone}"
+    text += r"\documentclass{standalone}" + "\n"
     text += "%" + "\n"
     text += "%" + "\n"
     text += "%" + "\n"
@@ -199,14 +201,132 @@ def exporter_en_latex(options, filename, x, y, labels):
     text += "\n"
     text += r"\end{document}" + "\n"
 
-    # # Export
+    # Export
     file = open(filename+__tex_extension__, "x")
     file.write(text)
     file.close()
 
 
 def exporter_en_matplotlib(options, filename, x, y, labels):
-    pass
+    absolute_filename = path.abspath(filename)
+
+    # Configure the future exported file
+    mpl_built_filename = absolute_filename + __pdf_extension__
+
+    text = "# Python script" + "\n"
+    text += "#=================================" + "\n"
+    text += "\n"
+    text += "\n"
+
+    if options.graph_style == "points":
+        mpl_plot_options = ", 's'"
+    else:
+        mpl_plot_options = ""
+
+    is_multiple = (options.graph_type == "multiple_series")
+
+    # Build the script
+    text += "# Packages" + "\n"
+    text += r"import matplotlib as mpl" + "\n"
+    text += r"import matplotlib.pyplot as plt" + "\n"
+    text += r"import pandas as pd" + "\n"
+    text += "\n"
+    text += "\n"
+    text += "\n"
+    text += "#" + "\n"
+    text += "# Main" + "\n"
+    text += "#" + "\n"
+    text += "\n"
+    text += "# Reading the data and preparing the graph options" + "\n"
+    text += "columns_list = ["
+    buffer = []
+    buffer2 = []
+    for key in x:
+        tmp = f'"{key}"'
+        buffer.append(tmp)
+    for key in y:
+        tmp = f'"{key}"'
+        buffer.append(tmp)
+        tmp = str(y[key]["legend"])
+        tmp2 = f'"{tmp}"'
+        buffer2.append(tmp2)
+    text += ', '.join(buffer)
+    text += "]" + "\n"
+    text += r'df = pd.read_csv("' + absolute_filename + __csv_extension__ + '", sep="; ", usecols = columns_list, engine="python")' + "\n"
+    text += "data = []" + "\n"
+    text += "for j in range(0, len(columns_list)):" + "\n"
+    text += "\t" + "buffer = []" + "\n"
+    text += "\t" + "for i in range(0, len(df)):" + "\n"
+    text += "\t" +"\t" + "buffer.append(df.iloc[i][j])" + "\n"
+    text += "\t" + "data.append(buffer)" + "\n"
+    text += "\n"
+    text += "y_legends = ["
+    text += ', '.join(buffer2)
+    text += "]" + "\n"
+    text += "\n"
+    text += "# Preparing the LaTeX configuration" + "\n"
+    text += r"pgf_with_latex = {  # setup matplotlib to use latex for output" + "\n"
+    text += "\t" + r'"pgf.texsystem": "pdflatex",' + "\n"
+    text += "\t" + r'"text.usetex": True,  # use LaTeX to write all text' + "\n"
+    text += "\t" + r'"font.family": "serif",' + "\n"
+    text += "\t" + r'"font.serif": [],  # blank entries should cause plots' + "\n"
+    text += "\t" + r'"font.sans-serif": [],  # to inherit fonts from the document' + "\n"
+    text += "\t" + r'"font.monospace": [],' + "\n"
+    text += "\t" + r'"axes.labelsize": 10,  # LaTeX default is 10pt font.' + "\n"
+    text += "\t" + r'"font.size": 10,' + "\n"
+    text += "\t" + r'"legend.fontsize": 8,  # Make the legend/label fonts' + "\n"
+    text += "\t" + r'"xtick.labelsize": 8,  # a little smaller' + "\n"
+    text += "\t" + r'"ytick.labelsize": 8,' + "\n"
+    text += "\t" + r'# "figure.size": [],     # default fig size of 0.9 textwidth' + "\n"
+    text += "\t" + r'"text.latex.preamble": [' + "\n"
+    text += "\t" + "\t" + r'r"\usepackage{amsmath}",' + "\n"
+    text += "\t" + "\t" + r'r"\usepackage{siunitx}"' + "\n"
+    text += "\t" + r"]" + "\n"
+    text += r"}" + "\n"
+    text += r"mpl.rcParams.update(pgf_with_latex)" + "\n"
+    text += "\n"
+    text += r"# Plot !" + "\n"
+    text += r"fig = plt.figure()" + "\n"
+    text += "\n"
+    i = 1
+    for key in y:
+        for keyy in x:
+            if y[key]["label"] == 1:
+                text += r"plt.plot(data[0], data[" + str(i) + "]" + mpl_plot_options + ", linewidth=1.5, label=y_legends[" + str(i-1) +"])" + "\n"
+                i += 1
+    text += "\n"
+    if is_multiple:
+        text += r"plt.legend(frameon=False, loc='upper left', markerscale=2, fontsize='x-small')" + "\n"
+        text += "\n"
+    text += r"plt.xlabel(" + '"' + labels["xlabel"] + '"' + ")" + "\n"
+    text += r"plt.ylabel(" + '"' + labels["ylabel"] + '"' + ")" + "\n"
+    text += r"plt.tick_params(axis='x', rotation=0)" + "\n"
+    text += r"plt.tick_params(axis='y', rotation=0)" + "\n"
+    text += "\n"
+    if 'y2label' in labels:
+        text += "\n"
+        text += r"plt.twinx()" + "\n"
+        text += "\n"
+        for key in y:
+            for keyy in x:
+                if y[key]["label"] == 2:
+                    text += r"plt.plot(data[0], data[" + str(
+                        i) + "]" + mpl_plot_options + ", linewidth=1.5, linestyle='dashed', label=y_legends[" + str(i - 1) + "])" + "\n"
+        text += "\n"
+        if is_multiple:
+            text += r"plt.legend(frameon=False, loc='upper right', markerscale=2, fontsize='x-small')" + "\n"
+            text += "\n"
+        text += r"plt.ylabel(" + '"' + labels["y2label"] + '"' + ")" + "\n"
+        text += r"plt.tick_params(axis='y', rotation=0)" + "\n"
+        text += "\n"
+    text += r"# Export" + "\n"
+    text += r"filename = " + f'"{str(mpl_built_filename)}"' + "\n"
+    text += r"fig.savefig(filename)" + "\n"
+
+    # Export
+    file = open(filename + __matplotlib_extension__, "x")
+    file.write(text)
+    file.close()
 
 
 # ##############################################################################################
@@ -220,64 +340,47 @@ class ExportException(Exception):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # =============================================================================================================
 # =============================================================================================================
 # =============================================================================================================
 
-# def exportFigures(directoryname, nameVariable, valuesX, valuesY, labelX, labelY, legendY=None):
-#
-#     # 1/ various test
-#     # Test if nameVariable is a str
-#     if type(nameVariable) != str:
-#         raise TypeError("The argument nameVariable must be a string")
-#
-#     # Test if it is a single plot or not
-#     lengthList = len(valuesY)
-#     if (lengthList < 1):
-#         raise ValueError("The 'y' argument should be a list with a set of points")
-#
-#     os.chdir(directoryname)
-#
-#     filename = nameVariable + ".pdf"
-#
-#     # 2/ Prepare the LaTeX properties
-#     pgf_with_latex = {  # setup matplotlib to use latex for output
-#         "pgf.texsystem": "pdflatex",
-#         "text.usetex": True,  # use LaTeX to write all text
-#         "font.family": "serif",
-#         "font.serif": [],  # blank entries should cause plots
-#         "font.sans-serif": [],  # to inherit fonts from the document
-#         "font.monospace": [],
-#         "axes.labelsize": 10,  # LaTeX default is 10pt font.
-#         "font.size": 10,
-#         "legend.fontsize": 8,  # Make the legend/label fonts
-#         "xtick.labelsize": 8,  # a little smaller
-#         "ytick.labelsize": 8,
-#         # "figure.size": [],     # default fig size of 0.9 textwidth
-#         "text.latex.preamble": [
-#             r'\usepackage{amsmath}',
-#             r'\usepackage{siunitx}'
-#         ]
-#     }
-#
-#     mpl.rcParams.second_update(pgf_with_latex)
-#
-#     # 3/ Plot !
-#     fig = plt.figure()
-#     if legendY!=None:
-#         for i in range(lengthList):
-#             plt.plot(valuesX, valuesY[i], linewidth=0.5, label=legendY[i])
-#         plt.xlabel(labelX)
-#         plt.ylabel(labelY)
-#         plt.legend()
-#     else:
-#         for i in range(lengthList):
-#             plt.plot(valuesX, valuesY[i], linewidth=0.5)
-#         plt.xlabel(labelX)
-#         plt.ylabel(labelY)
-#
-#     # 4/ Export
-#     fig.savefig(filename)
+
 
 def write_results(dir_results, filename, vectX, vectY):  # fichier txt avec valeurs brutes
     # Test if filename is a str
@@ -305,68 +408,6 @@ def write_results(dir_results, filename, vectX, vectY):  # fichier txt avec vale
 
     results.write(raw_results)
 
-
-
-# =============================================================================================================
-#                       Export du pdf directement depuis python
-# =============================================================================================================
-
-# # Plotting a simple graph (only one plot)
-# #-----------------------------------------------------
-#
-# listValuesX = Xvalues
-# listValuesY = YvaluesSimple
-#
-# # Ex 1
-# nameVariable = "rho"
-# xLabel = r"$\aleph \,[\si{\joule\per\kelvin\per\kilogram}]$"
-# yLabel = r"$\rho \,[\si{\joule\per\kelvin\per\kilogram}]$"
-#
-# exportFigures(outputDir, nameVariable, listValuesX, listValuesY, xLabel, yLabel)
-#
-# os.chdir("../")
-#
-# # Ex 2
-# nameVariable = "beta"
-# xLabel = r"$\aleph \,[\si{\joule\per\kelvin\per\kilogram}]$"
-# yLabel = r"$\beta \,[\si{\joule\per\kelvin\per\kilogram}]$"
-# legend = list()
-# legend.append("x+y")
-#
-# exportFigures(outputDir, nameVariable, listValuesX, listValuesY, xLabel, yLabel, legend)
-#
-# os.chdir("../")
-#
-# # Plotting multiple graph (several plots on the same figure)
-# #-----------------------------------------------------
-#
-# listValuesY = YvaluesMultiple
-#
-# # Ex 1
-# nameVariable = "gamma"
-# xLabel = r"$\aleph \,[\si{\joule\per\kelvin\per\kilogram}]$"
-# yLabel = r"$\gamma \,[\si{\joule\per\kelvin\per\kilogram}]$"
-#
-# exportFigures(outputDir, nameVariable, listValuesX, listValuesY, xLabel, yLabel)
-#
-# os.chdir("../")
-#
-# # Ex 2
-# nameVariable = "omega"
-# xLabel = r"$\omega \,[\si{\cubic\meter}]$"
-# yLabel = r"$\gamma \,[\si{\joule\per\kelvin\per\kilogram}]$"
-# legend = list()
-# legend.append("a")
-# legend.append("$\phi$")
-#
-# exportFigures(outputDir, nameVariable, listValuesX, listValuesY, xLabel, yLabel, legend)
-#
-#
-# os.chdir("../")
-
-# =============================================================================================================
-#                      Export des données brutes et construction d'un fichier LaTeX
-# =============================================================================================================
 
 
 def graph_SFT(directory):
