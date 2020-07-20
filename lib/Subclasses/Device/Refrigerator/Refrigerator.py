@@ -161,9 +161,8 @@ class Refrigerator(AdjustableDevice):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                         for nature in self._repartition}  # Emin, Enom, Emax and the price
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for line in self._user_profile:
 

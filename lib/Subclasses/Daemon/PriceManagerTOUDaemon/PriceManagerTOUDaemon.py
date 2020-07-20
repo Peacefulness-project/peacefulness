@@ -11,10 +11,10 @@ class PriceManagerTOUDaemon(Daemon):
         self._selling_price = parameters["selling_price"]  # the price for selling 1 kWh of energy for the agent
 
         self._hours = []
-        hours_range = parameters["hours"]
+        hours_range = parameters["on-peak_hours"]
         for hour_range in hours_range:
             for i in range(hour_range[0], hour_range[1]):
-                self._hours.append(i-1)
+                self._hours.append(i)
 
         self._moment = None  # indicates if the tariff is HP or HC
 

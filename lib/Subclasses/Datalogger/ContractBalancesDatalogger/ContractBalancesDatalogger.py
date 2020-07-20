@@ -6,9 +6,9 @@ class ContractBalancesDatalogger(Datalogger):  # a sub-class of dataloggers desi
 
     def __init__(self, period=1):
         if period == "global":
-            super().__init__("contract_balances_global", "ContractsBalances_global.txt", period)
+            super().__init__("contract_balances_global", "ContractsBalances_global", period)
         else:
-            super().__init__(f"contract_balances_frequency_{period}", f"ContractsBalances_frequency_{period}.txt", period)
+            super().__init__(f"contract_balances_frequency_{period}", f"ContractsBalances_frequency_{period}", period)
 
         self._contracts_list = self._catalog.get("dictionaries")['contracts'].keys()  # get all the names
 

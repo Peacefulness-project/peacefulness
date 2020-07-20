@@ -7,9 +7,9 @@ class SelfSufficiencyDatalogger(Datalogger):  # a sub-class of dataloggers desig
 
     def __init__(self, period=1):
         if period == "global":
-            super().__init__("self_sufficiency_global", "SelfSufficiency_global.txt", period)
+            super().__init__("self_sufficiency_global", "SelfSufficiency_global", period)
         else:
-            super().__init__(f"self_sufficiency_frequency_{period}", f"SelfSufficiency_frequency_{period}.txt", period)
+            super().__init__(f"self_sufficiency_frequency_{period}", f"SelfSufficiency_frequency_{period}", period)
 
         def create_self_consumption_function(aggregator_name):  # this function returns a function calculating the unbalance value of the agent for the considered
 

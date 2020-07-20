@@ -96,8 +96,8 @@ class HotWaterTank(ChargerDevice, Device):
     # ##########################################################################################
 
     def update(self):
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                       for nature in self._usage_profile}  # consumption which will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         # first we second_update the time remaining until the next need
         if self._remaining_time:  # if we know when will be the next need
