@@ -259,7 +259,7 @@ def export_matplotlib(options, filename, x, y, labels):
     text += "\t" + "data.append(buffer)" + "\n"
     text += "\n"
     text += "y_legends = ["
-    text += ', '.join(buffer2)
+    text += ', '.join(buffer2).replace('\\','\\\\')
     text += "]" + "\n"
     text += "\n"
     text += "# Preparing the LaTeX configuration" + "\n"
@@ -296,8 +296,8 @@ def export_matplotlib(options, filename, x, y, labels):
     if is_multiple:
         text += r"plt.legend(frameon=False, loc='upper left', markerscale=2, fontsize='x-small')" + "\n"
         text += "\n"
-    text += r"plt.xlabel(" + '"' + labels["xlabel"] + '"' + ")" + "\n"
-    text += r"plt.ylabel(" + '"' + labels["ylabel"] + '"' + ")" + "\n"
+    text += r"plt.xlabel(" + '"' + labels["xlabel"].replace('\\','\\\\') + '"' + ")" + "\n"
+    text += r"plt.ylabel(" + '"' + labels["ylabel"].replace('\\','\\\\') + '"' + ")" + "\n"
     text += r"plt.tick_params(axis='x', rotation=0)" + "\n"
     text += r"plt.tick_params(axis='y', rotation=0)" + "\n"
     text += "\n"
@@ -314,7 +314,7 @@ def export_matplotlib(options, filename, x, y, labels):
         if is_multiple:
             text += r"plt.legend(frameon=False, loc='upper right', markerscale=2, fontsize='x-small')" + "\n"
             text += "\n"
-        text += r"plt.ylabel(" + '"' + labels["y2label"] + '"' + ")" + "\n"
+        text += r"plt.ylabel(" + '"' + labels["y2label"].replace('\\','\\\\') + '"' + ")" + "\n"
         text += r"plt.tick_params(axis='y', rotation=0)" + "\n"
         text += "\n"
     text += r"# Export" + "\n"

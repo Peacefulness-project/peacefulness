@@ -312,23 +312,23 @@ producer_datalogger.add("physical_time", graph_status="X")
 
 
 test_export1_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series", "lines")
-CO2_datalogger = Datalogger("Coco_l_asticot", "test_export1", graph_options=test_export1_graph_options, graph_labels={"xlabel": "$\\alpha \, [\si{\meter\per\second}]$", "ylabel": "$\\beta \, [\si{\watt}]$"})
+CO2_datalogger = Datalogger("Coco_l_asticot", "test_export1", graph_options=test_export1_graph_options, graph_labels={"xlabel": r"$\varepsilon \, [\si{\meter\per\second}]$", "ylabel": r"$\beta \, [\si{\watt}]$"})
 CO2_datalogger.add("physical_time", graph_status="X")
 CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y")
 
 test_export1_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series", "points")
-CO2_datalogger = Datalogger("toto", "test_export1b", graph_options=test_export1_graph_options, graph_labels={"xlabel": "$\\alpha \, [\si{\meter\per\second}]$", "ylabel": "$\\beta \, [\si{\watt}]$"})
+CO2_datalogger = Datalogger("toto", "test_export1b", graph_options=test_export1_graph_options, graph_labels={"xlabel": r"$\alpha \, [\si{\meter\per\second}]$", "ylabel": r"$\beta \, [\si{\watt}]$"})
 CO2_datalogger.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="X")
 CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y")
 
 test_export2_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series", "points")
-CO2_datalogger2 = Datalogger("Jean_sans_peur", "test_export2", graph_options=test_export2_graph_options, graph_labels={"xlabel": "riri", "ylabel": "machine"})
+CO2_datalogger2 = Datalogger("Jean_sans_peur", "test_export2", graph_options=test_export2_graph_options, graph_labels={"xlabel": r"$x$", "ylabel": r"$y \times z$"})
 CO2_datalogger2.add("physical_time", graph_status="X", graph_legend="t")
 CO2_datalogger2.add(f"{CO2_producer.name}.LVE.energy_bought", graph_legend=r"$\rho \mathcal{P}$")
 CO2_datalogger2.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y", graph_legend=r"$\mathsf{g}$")
 
 test_export3_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "multiple_series", "lines")
-CO2_datalogger3 = Datalogger("Richard_lionheart", "test_export3", graph_options=test_export3_graph_options, graph_labels={"xlabel": "riri", "ylabel": "machine"})
+CO2_datalogger3 = Datalogger("Richard_lionheart", "test_export3", graph_options=test_export3_graph_options, graph_labels={"xlabel": r"$\mathcal{P}$", r"ylabel": "$Y$"})
 CO2_datalogger3.add("physical_time", graph_status="X", graph_legend="t")
 CO2_datalogger3.add(f"{CO2_producer.name}.LVE.energy_bought")
 CO2_datalogger3.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y", graph_legend=r"$\aleph$")
@@ -339,7 +339,7 @@ CO2_datalogger4 = Datalogger("ZIzou", "test_export4", graph_options=test_export4
 CO2_datalogger4.add(f"physical_time", graph_status="X", graph_legend=r"Erreur si visible")
 CO2_datalogger4.add(f"{CO2_producer.name}.LTH.energy_erased", graph_status="Y", graph_legend=r"$\aleph$")
 CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_legend=r"$\gamma$")
-CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_erased", graph_status="Y2", graph_legend=r"$\gamma$")
+CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_erased", graph_status="Y2", graph_legend=r"$\eta$")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
