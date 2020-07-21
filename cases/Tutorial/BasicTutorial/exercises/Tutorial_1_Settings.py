@@ -1,12 +1,12 @@
 # Tutorial 1
 # Settings
-from cases.Tutorial.BasicTutorial.AdidtionalData.Correction_scripts import correction_1_settings  # a specific importation
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_1_settings  # a specific importation
 
 # ##############################################################################################
 # Usual importations
 from datetime import datetime
 
-from os import chdir, listdir
+from os import chdir
 
 from src.common.World import World
 
@@ -18,6 +18,11 @@ from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
+
+# ##############################################################################################
+# Rerooting
+chdir("../../../../")
+
 
 # ##############################################################################################
 # Importation of subclasses
@@ -42,7 +47,7 @@ World("pas le bon nom")
 # ##############################################################################################
 # Definition of the random seed
 # The default seed is the current time (the value returned by datetime.now())
-# TODO: set sunflower as the seed for the random generator
+# TODO: set the string sunflower as the seed for the random generator
 
 
 # ##############################################################################################

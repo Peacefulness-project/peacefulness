@@ -6,9 +6,9 @@ class AgentBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designe
 
     def __init__(self, period=1):
         if period == "global":
-            super().__init__("agent_balances_global", "AgentsBalances_global.txt", period)
+            super().__init__("agent_balances_global", "AgentsBalances_global", period)
         else:
-            super().__init__(f"agent_balances_frequency_{period}", f"AgentsBalances_frequency_{period}.txt", period)
+            super().__init__(f"agent_balances_frequency_{period}", f"AgentsBalances_frequency_{period}", period)
 
         agents_list = self._catalog.get("dictionaries")['agents'].values()  # get all the agents
 

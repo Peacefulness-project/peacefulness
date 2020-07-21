@@ -33,8 +33,8 @@ class DummyProducer(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
-        energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                         for nature in self.natures}  # consumption that will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device

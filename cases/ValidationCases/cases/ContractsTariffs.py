@@ -71,7 +71,7 @@ LVE = load_low_voltage_electricity()
 # ##############################################################################################
 # Creation of daemons
 price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0, 0], "hours": [[6, 22]]})  # sets prices for flat rate
+price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0, 0], "on-peak_hours": [[6, 22]]})  # sets prices for flat rate
 price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"nature": LVE.name, "location":"France"})  # sets prices for RTP rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": -1})  # sets prices for the system operator
