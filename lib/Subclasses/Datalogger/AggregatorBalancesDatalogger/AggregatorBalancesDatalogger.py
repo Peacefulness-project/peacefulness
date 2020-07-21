@@ -26,6 +26,10 @@ class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers de
 
         self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
 
+        if not self._global:
+            self.add(f"simulation_time", graph_status="X")
+            self.add(f"physical_time", graph_status=None)
+
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
             self.add(f"{aggregator_name}.energy_sold_inside", create_get_energy_function(aggregator_name, "sold", "inside"))
             self.add(f"{aggregator_name}.energy_sold_outside", create_get_energy_function(aggregator_name, "sold", "outside"))

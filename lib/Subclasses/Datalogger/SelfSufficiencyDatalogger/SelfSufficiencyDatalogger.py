@@ -11,6 +11,10 @@ class SelfSufficiencyDatalogger(Datalogger):  # a sub-class of dataloggers desig
         else:
             super().__init__(f"self_sufficiency_frequency_{period}", f"SelfSufficiency_frequency_{period}", period)
 
+        if not self._global:
+            self.add(f"simulation_time", graph_status="X")
+            self.add(f"physical_time", graph_status=None)
+
         def create_self_consumption_function(aggregator_name):  # this function returns a function calculating the unbalance value of the agent for the considered
 
             def get_self_consumption(name):

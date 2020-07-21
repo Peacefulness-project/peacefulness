@@ -1,0 +1,20 @@
+{
+  "template name": "5_people_DLC",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_5", [1,1], "LVE_DLC"]],
+    "Dishwasher": [["Dishwasher", "ECOS_5", "ECOS", [1,1], "LVE_DLC"]],
+    "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1], "LVE_DLC"]],
+    "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1], "LVE_DLC"]],
+
+    "Heating": [["Heating", "residential", "house_heat", [1,1], "heat_DLC", {"location":  "Pau"}]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_heat", [1,1], "heat_DLC"]]
+  },
+
+  "contracts": {
+    "LVE_DLC":  ["LVE", "CooperativeContract"],
+    "heat_DLC":  ["LTH", "CooperativeContract"]
+
+  }
+
+}

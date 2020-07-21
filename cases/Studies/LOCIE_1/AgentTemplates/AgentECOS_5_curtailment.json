@@ -1,0 +1,19 @@
+{
+  "template name": "5_people_curtailment",
+
+  "composition": {
+    "Background": [["Background", "ECOS", "ECOS_5", [1,1], "LVE_curtailment"]],
+    "Dishwasher": [["Dishwasher", "ECOS_5", "ECOS", [1,1], "LVE_curtailment"]],
+    "WashingMachine": [["WashingMachine", "ECOS_5", "ECOS", [1,1], "LVE_curtailment"]],
+    "Dryer": [["Dryer", "ECOS_5", "ECOS", [1,1], "LVE_curtailment"]],
+
+    "Heating": [["Heating", "residential", "house_heat", [1,1], "heat_curtailment", {"location":  "Pau"}]],
+    "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_heat", [1,1], "heat_curtailment"]]
+  },
+
+  "contracts": {
+    "LVE_curtailment":  ["LVE", "CurtailmentContract"],
+    "heat_curtailment":  ["LTH", "CurtailmentContract"]
+  }
+
+}

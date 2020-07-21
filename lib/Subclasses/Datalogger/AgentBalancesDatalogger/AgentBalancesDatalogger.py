@@ -19,6 +19,11 @@ class AgentBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designe
             return imbalance_calculation
 
         for agent in agents_list:  # for each aggregator registered into world, all the relevant keys are added
+
+            if not self._global:
+                self.add(f"simulation_time", graph_status="X")
+                self.add(f"physical_time", graph_status=None)
+
             for nature in agent.natures:
                 self.add(f"{agent.name}.{nature.name}.energy_bought")
                 self.add(f"{agent.name}.{nature.name}.energy_sold")

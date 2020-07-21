@@ -1,6 +1,8 @@
 # this datalogger
 from src.common.Datalogger import Datalogger
 
+from src.tools.FilesExtensions import __text_extension__
+
 
 class PeakToAverageDatalogger(Datalogger):  # a sub-class of dataloggers designed to export values concerning the whole run
 
@@ -13,8 +15,8 @@ class PeakToAverageDatalogger(Datalogger):  # a sub-class of dataloggers designe
             self.add(f"{nature_name}.energy_consumed")
             self.add(f"{nature_name}.energy_produced")
 
-    def _final_calculation(self):
-        file = open(self._filename, "a+")
+    def final_process(self):
+        file = open(self._path + self._filename + __text_extension__, "a+")
 
         natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
         for nature_name in natures_list:

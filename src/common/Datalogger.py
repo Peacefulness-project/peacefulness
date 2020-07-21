@@ -78,6 +78,22 @@ class Datalogger:
         for name in self._catalog.keys:
             self.add(name)
 
+    def inital_operations(self):  # create the headers of the column
+        if not self._global:
+            file = open(self._path+self._filename+__text_extension__, 'a+')
+
+            for name in self._list:
+                file.write(f"{name}\t")
+
+                if name in self._buffer:
+                    file.write(f"mean_{name}\t"
+                               f"min_{name}\t"
+                               f"max_{name}\t")
+                    if self._sum:  # if sum is enabled, add it to the file
+                        file.write(f"sum_{name}\t")
+            file.write("\n")
+            file.close()
+
     # ##########################################################################################
     # Data processing
     # ##########################################################################################
@@ -99,9 +115,6 @@ class Datalogger:
     def launch(self):  # write data at the given frequency
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
-        if current_time == 0 and not self._global:  # initialization of the file
-            self._save_header()  # name of each piece of data is written at the top of the file
-
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
                 self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
@@ -113,14 +126,14 @@ class Datalogger:
     def _regular_process(self):  # record all the chosen key regularly in a file
         file = open(self._path+self._filename+__text_extension__, "a+")
 
-        for key in self._x_values:
+        for key in self._list:
             value = self._list[key](key)
-            self._x_values[key]["values"].append(value)
-            file.write(f"{value}\t")
 
-        for key in self._y_values:
-            value = self._list[key](key)
-            self._y_values[key]["values"].append(value)
+            if key in self._x_values:
+                self._x_values[key]["values"].append(value)
+            if key in self._y_values:
+                self._y_values[key]["values"].append(value)
+
             file.write(f"{value}\t")
 
             if (type(value) == float) and (self._period > 1):
@@ -151,21 +164,6 @@ class Datalogger:
                 the_sum = self._buffer[key]["sum"] + current_value
 
                 self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
-
-    def _save_header(self):  # create the headers of the column
-        file = open(self._path+self._filename+__text_extension__, 'a+')
-
-        for name in self._list:
-            file.write(f"{name}\t")
-
-            if name in self._buffer:
-                file.write(f"mean_{name}\t"
-                           f"min_{name}\t"
-                           f"max_{name}\t")
-                if self._sum:  # if sum is enabled, add it to the file
-                    file.write(f"sum_{name}\t")
-        file.write("\n")
-        file.close()
 
     # ##########################################################################################
     # Final operations

@@ -1,6 +1,5 @@
 # device representing a photovoltaic panel
 from src.common.DeviceMainClasses import NonControllableDevice
-from math import sin, pi
 
 
 class PV(NonControllableDevice):
@@ -10,11 +9,6 @@ class PV(NonControllableDevice):
 
         self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
-
-        # initialization of PV
-        for line in self._user_profile:
-            solar_prod = sin((line[0] - 8.5) * pi / 9) * line[1]
-            line[1] = max(0, solar_prod)
 
         # creation of keys for exergy
         self._catalog.add(f"{self.name}_exergy_in", 0)

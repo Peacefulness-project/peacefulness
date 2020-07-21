@@ -12,6 +12,10 @@ class NatureBalancesDatalogger(Datalogger):  # a sub-class of dataloggers design
 
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
+        if not self._global:
+            self.add(f"simulation_time", graph_status="X")
+            self.add(f"physical_time", graph_status=None)
+
         for nature_name in self._natures_list:  # for each nature registered into world, all the relevant keys are added
             self.add(f"{nature_name}.energy_consumed")
             self.add(f"{nature_name}.energy_produced")

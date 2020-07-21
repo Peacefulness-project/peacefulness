@@ -343,11 +343,16 @@ class World:
         return independent_agent_list
 
     def start(self):
+
+        # Initialization
         self._check()  # check if everything is fine in world definition
 
         independent_aggregators_list = self._identify_independent_aggregators()
 
         independent_agents_list = self._identify_independent_agents()
+
+        for datalogger in self._catalog.dataloggers.values():
+            datalogger.inital_operations()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -425,6 +430,7 @@ class World:
 
             print()
 
+        # Post-processing
         for datalogger in self._catalog.dataloggers.values():
             datalogger.final_process()
             datalogger.final_export()

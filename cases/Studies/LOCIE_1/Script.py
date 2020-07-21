@@ -25,7 +25,7 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ECOS_collab_2020/Results/" + strategy + "_" + DSM_proportion + "_" + sizing  # directory where results are written
+    pathExport = "cases/Studies/LOCIE_1/Results/" + strategy + "_" + DSM_proportion + "_" + sizing  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -58,21 +58,27 @@ def simulation(strategy, DSM_proportion, sizing):
     # Daemons
     # Price Managers
     # these daemons fix a price for a given nature of energy
+
     if sizing == "peak":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
-        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.5125, "selling_price": 0.407})  # sets prices for the system operator
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.407, "selling_price": 0})  # price manager for the local electrical grid
-        subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.407, "limit_selling_price": 0})  # sets prices for the system operator
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": None, "selling_price": None})  # sets prices for the system operator
+
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": None, "selling_price": 0})  # price manager for the local electrical grid
+
     elif sizing == "mean":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
-        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.30, "selling_price": 0.234})  # sets prices for the system operator
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.234, "selling_price": 0})  # price manager for the local electrical grid
-        subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.234, "limit_selling_price": 0})  # sets prices for the system operator
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": None, "selling_price": None})  # sets prices for the system operator
+
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": None, "selling_price": 0})  # price manager for the local electrical grid
 
     price_managing_daemon_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_grid", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0.1})  # price manager for the local electrical grid
-    subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
+
+    # limit prices
+    subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
+
+    subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
@@ -98,9 +104,9 @@ def simulation(strategy, DSM_proportion, sizing):
     elif strategy == "Profitable":
         # the local electrical grid strategy
         supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitableEmergency"]()
-    else:
+    elif strategy == "Autarky":
         # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"{strategy}Emergency"]()
+        supervisor_elec = subclasses_dictionary["Strategy"][f"LightAutarkyEmergency"]()
 
     # the DHN strategy
     supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
@@ -124,7 +130,7 @@ def simulation(strategy, DSM_proportion, sizing):
     # Contracts
     contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
 
-    contract_DHN = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_grid", LTH, price_managing_daemon_DHN)
+    contract_DHN = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_grid", LVE, price_managing_daemon_DHN)
 
     contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)
 
@@ -172,19 +178,19 @@ def simulation(strategy, DSM_proportion, sizing):
         curtailment = 0
 
     # BAU contracts
-    world.agent_generation(BAU, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(BAU * 2, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(BAU, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(BAU, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(BAU * 2, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(BAU, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
 
     # DLC contracts
-    world.agent_generation(DLC, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(DLC * 2, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(DLC, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(DLC, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(DLC * 2, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(DLC, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
 
     # Curtailment contracts
-    world.agent_generation(curtailment, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(curtailment * 2, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(curtailment, "cases/Studies/ECOS_collab_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(curtailment, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(curtailment * 2, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation(curtailment, "cases/Studies/LOCIE_1/AgentTemplates/AgentECOS_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
 
     # ##############################################################################################
     # Dataloggers
@@ -192,13 +198,23 @@ def simulation(strategy, DSM_proportion, sizing):
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
-    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
-    subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
-    subclasses_dictionary["Datalogger"]["MismatchDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
+
+    subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
+
+    subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
+
+    subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
     # datalogger used to get back producer outputs
     producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+
+    producer_datalogger.add(f"simulation_time")
+    producer_datalogger.add(f"physical_time")
 
     producer_datalogger.add(f"PV_producer.LVE.energy_erased")
     producer_datalogger.add(f"solar_thermal_producer.LTH.energy_erased")

@@ -12,28 +12,27 @@ from time import process_time
 # Specific imports
 from src.tools.FilesExtensions import __pdf_extension__, __csv_extension__, __tex_extension__, __matplotlib_extension__
 
-from src.tools.Utilities import adapt_path
 
 # ##############################################################################################
-
 class graph_options():
     def __init__(self, formats, graph_type, graph_style):
         self.formats = formats
         self.graph_type = graph_type
         self.graph_style = graph_style
 
+
 __default_graph_options__ = graph_options("None", "single_series", "lines")
+
 
 # ##############################################################################################
 # Basic export functions
-
 def write_and_print(message, file):  # write in the chosen file and print the message
     file.write(message + "\n")
     print(message)
 
+
 # ##############################################################################################
 # Export functions for numerical data
-
 def export(options, filename, x, y, labels):
     if "csv" in options.formats:
         export_csv(options, filename, x, y, labels)
