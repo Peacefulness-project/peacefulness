@@ -51,7 +51,7 @@ class Datalogger:
     # Initialization
     # ##########################################################################################
 
-    def add(self, name, function="default", graph_status="Y", graph_legend=False):  # add 1 key of the catalog to the datalogger
+    def add(self, name, function="default", graph_status="Y", graph_style="lines", graph_legend=False):  # add 1 key of the catalog to the datalogger
         if function == "default":
             self._list[name] = self._catalog.get  # creates an entry in the buffer if needed
         else:
@@ -63,16 +63,20 @@ class Datalogger:
             # it allows to return the mean, the min and the max
             self._buffer[name] = []  # creates an entry in the buffer
 
+        # todo: pas de graph_legend ni graph_type pour graph_status="X"... on les ignore ou on pète une erreur ?
+        # todo: graph_status="X" ne doit apparaitre qu'une fois
+
         if not graph_legend:
             graph_legend = name
         if graph_status == "X":
             self._x_values[name] = {"values": []}
         elif graph_status == "Y":
-            self._y_values[name] = {"values": [], "legend": graph_legend, "label": 1}
+            self._y_values[name] = {"values": [], "style": graph_style, "legend": graph_legend, "label": 1}
         elif graph_status == "Y2":
-            self._y_values[name] = {"values": [], "legend": graph_legend, "label": 2}
+            self._y_values[name] = {"values": [], "style": graph_style, "legend": graph_legend, "label": 2}
         else:
             pass
+
 
     def add_all(self):  # add all keys from the catalog to the datalogger
         for name in self._catalog.keys:

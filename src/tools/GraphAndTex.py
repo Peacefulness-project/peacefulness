@@ -17,12 +17,14 @@ from src.tools.Utilities import adapt_path
 # ##############################################################################################
 
 class graph_options():
-    def __init__(self, formats, graph_type, graph_style):
+    def __init__(self, formats, graph_type):
         self.formats = formats
         self.graph_type = graph_type
-        self.graph_style = graph_style
 
-__default_graph_options__ = graph_options("None", "single_series", "lines")
+        # Controls
+        #todo: csv toujours requis... si on choisit LaTeX et matplotlib... le rajouter automatiquement dans ces cas ? en informant l'utilisateur
+
+__default_graph_options__ = graph_options("None", "single_series")
 
 # ##############################################################################################
 # Basic export functions
@@ -80,11 +82,6 @@ def export_latex(options, filename, x, y, labels):
     text += "\n"
     text += "\n"
 
-    if options.graph_style == "lines":
-        tikz_plot_options = "mark=none, line width=1.25"
-    elif options.graph_style == "points":
-        tikz_plot_options = "only marks, mark size=1.25"
-
     is_date = False
     xticklabel_angle = 0
     for key in x:
@@ -141,6 +138,10 @@ def export_latex(options, filename, x, y, labels):
     text += "\t" + r"]" + "\n"
     for key in y:
         if y[key]["label"] == 1:
+            if y[key]["style"] == "lines":
+                tikz_plot_options = "mark=none, line width=1.25"
+            else:
+                tikz_plot_options = "only marks, mark size=1.25"
             text += "\t" + r"\addplot+[" + tikz_plot_options + "] "
             for keyy in x:
                 text += "table[ x = " + keyy + ", y = " + key + "]{\\data};"
@@ -178,6 +179,10 @@ def export_latex(options, filename, x, y, labels):
         text += "\t" + r"]" + "\n"
         for key in y:
             if y[key]["label"] == 2:
+                if y[key]["style"] == "lines":
+                    tikz_plot_options = "mark=none, line width=1.25"
+                else:
+                    tikz_plot_options = "only marks, mark size=1.25"
                 text += "\t" + r"\addplot+[" + tikz_plot_options + ", densely dashed] "
                 for keyy in x:
                     text += "table[ x = " + keyy + ", y = " + key + "]{\\data};"
@@ -215,11 +220,6 @@ def export_matplotlib(options, filename, x, y, labels):
     text += "#=================================" + "\n"
     text += "\n"
     text += "\n"
-
-    if options.graph_style == "points":
-        mpl_plot_options = ", 's'"
-    else:
-        mpl_plot_options = ""
 
     is_multiple = (options.graph_type == "multiple_series")
 
@@ -290,6 +290,10 @@ def export_matplotlib(options, filename, x, y, labels):
     for key in y:
         for keyy in x:
             if y[key]["label"] == 1:
+                if y[key]["style"] == "points":
+                    mpl_plot_options = ", 's'"
+                else:
+                    mpl_plot_options = ""
                 text += r"plt.plot(data[0], data[" + str(i) + "]" + mpl_plot_options + ", linewidth=1.5, label=y_legends[" + str(i-1) +"])" + "\n"
                 i += 1
     text += "\n"
@@ -308,6 +312,10 @@ def export_matplotlib(options, filename, x, y, labels):
         for key in y:
             for keyy in x:
                 if y[key]["label"] == 2:
+                    if y[key]["style"] == "points":
+                        mpl_plot_options = ", 's'"
+                    else:
+                        mpl_plot_options = ""
                     text += r"plt.plot(data[0], data[" + str(
                         i) + "]" + mpl_plot_options + ", linewidth=1.5, linestyle='dashed', label=y_legends[" + str(i - 1) + "])" + "\n"
         text += "\n"
