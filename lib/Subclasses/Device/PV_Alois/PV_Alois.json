@@ -1,0 +1,21 @@
+{
+  "device_consumption": {
+    "ECOS": {
+      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT_temperature": 293.15, "NOCT_irradiation": 800, "gamma": 0.12},
+      "efficiency_variation": 0.1
+    },
+
+    "ECOS_field": {
+      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT_temperature": 293.15, "NOCT_irradiation": 800, "gamma": 0.12},
+      "efficiency_variation": 0
+    }
+  },
+
+  "user_profile": {
+    "ECOS": {
+
+      "offset": 0,
+      "period": 24
+    }
+  }
+}

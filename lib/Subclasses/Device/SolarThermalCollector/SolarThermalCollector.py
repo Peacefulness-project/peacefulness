@@ -43,7 +43,7 @@ class SolarThermalCollector(NonControllableDevice):
         energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
                          for nature in self.natures}  # consumption that will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}.irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
+        irradiation = self._catalog.get(f"{self._location}.direct_normal_irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
         temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
 
         efficiency = max(self._a0 * irradiation - self._a1 / (self._fluid_temperature - temperature) - self._a2 / (self._fluid_temperature - temperature) ** 2, 0)  # the efficiency cannot be negative
