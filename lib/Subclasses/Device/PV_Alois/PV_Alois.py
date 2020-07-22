@@ -66,14 +66,12 @@ class PV_Alois(NonControllableDevice):
         energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
         cell_temperature = ambient_temperature + (self._NOCT_temperature - ambient_temperature) * irradiation / self._NOCT_irradiation
-        print(cell_temperature)
+
         if (irradiation > 0):
             efficiency = self._efficiency_pan * (1 - self._kappa * (cell_temperature - self._NOCT_temperature) + self._gamma * log10( irradiation / self._NOCT_irradiation))
 
         else:
             efficiency = 0
-
-        print(efficiency)
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = - energy_received * efficiency  # energy produced by the device
