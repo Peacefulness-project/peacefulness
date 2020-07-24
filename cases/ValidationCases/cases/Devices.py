@@ -6,17 +6,15 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -145,6 +143,7 @@ subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_tur
 # Creation of the validation daemon
 description = "This script checks that devices are working well."
 
+filename = "devices_validation"
 
 reference_values = {"background_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 14.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 0, 0, 0, 0],
@@ -154,9 +153,117 @@ reference_values = {"background_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 
                     "wind_turbine_owner.LVE.energy_sold": [0.00014625, 0.00014625, 0.00117, 0.003948749999999999, 0.00936, 0.01828125, 0.03158999999999999, 0.05016375, 0.07488, 0.10661625, 0.14625, 0.19465875, 0.25271999999999994, 0.32131125, 0.40131, 0.49359374999999994, 0.59904, 0.71852625, 0.85293, 1.00312875, 1.17, 1.35442125, 1.55727, 1.7794237499999999]
                     }
 
-filename = "devices_validation"
+name = "LVE_background_bought"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "background_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "LVE_heating_bought"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_dishwasher_bought"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "dishwasher_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "dishwasher_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_PV_sold"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\textrm{B} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "PV_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "PV_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_DHW_bought"
+export_plot5 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_WT_sold"
+export_plot6 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\textrm{B} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "wind_turbine_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "wind_turbine_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_renewable_sold"
+export_plot7 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\textrm{B}_{\textrm{PV}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "PV_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "PV_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."} ]
+          },
+    "Y2": {"label": r"$\textrm{B}_{\textrm{WT}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "wind_turbine_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "wind_turbine_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LVE_total_energy_bought"
+export_plot8 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LVE.energy_bought_reference", "style": "points", "legend": r"bkg"},
+                      {"catalog_name_entry": "heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"htg"},
+                      {"catalog_name_entry": "dishwasher_owner.LVE.energy_bought_reference", "style": "points", "legend": r"dshwr"},
+                      {"catalog_name_entry": "hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"DHW"}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LVE.energy_bought_simulation", "style": "lines",  "legend": r""},
+                      {"catalog_name_entry": "heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "dishwasher_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5, export_plot6, export_plot7, export_plot8]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("devices_test", parameters)
 

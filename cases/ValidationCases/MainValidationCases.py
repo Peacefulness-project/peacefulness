@@ -14,15 +14,15 @@ problem_list = list()  # a list of all the tests where a problem occured
 
 for file_path in simulation_mains:
     exec(open(root_path + file_path).read(), globals())  # to execute the different simulations
-    if get_problem():  # if a problem occured
+    if get_problem():  # if a problem occurred
         problem_list.append(file_path)
     set_problem(False)
 
 # summary
 # creation of the file
 instant_date = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-makedirs(f"cases/ValidationCases/Results/Summary/Tests_{str(instant_date)}")
-file = open(f"cases/ValidationCases/Results/Summary/Tests_{str(instant_date)}/summary.txt", "a+")  # the file resuming the results of the tests
+makedirs(f"cases/ValidationCases/Results/_Summary/Tests_{str(instant_date)}")
+file = open(f"cases/ValidationCases/Results/_Summary/Tests_{str(instant_date)}/summary.txt", "a+")  # the file resuming the results of the tests
 
 # redaction of the file
 message = f"Summary of the test\n"

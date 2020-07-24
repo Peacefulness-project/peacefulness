@@ -6,18 +6,17 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -57,12 +56,6 @@ world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
 
-
-# ##############################################################################################
-# Definition of the type of exports
-export_formats = ["csv", "LaTeX", "matplotlib"]
-export_formats = ["csv"]
-world.choose_exports(export_formats)
 
 # ##############################################################################################
 # Model
@@ -128,12 +121,47 @@ reference_values = {"sup_agent.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 1
                     "inf_agent.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
 
-reference_values_labels = {"abscissa": "hour",
-                           "sup_agent.LVE.energy_bought": "toto",
-                           "inf_agent.LVE.energy_bought": "titi"
-                    }
+name = "Agent_sup_LVE_balances"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "sup_agent.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "sup_agent.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "filename": filename, "reference_values": reference_values, "reference_values_labels": reference_values_labels, "tolerance": 1E-6}
+name = "Agent_inf_LVE_balances"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [{"catalog_name_entry": "inf_agent.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                     {"catalog_name_entry": "inf_agent.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}]
+          }
+}
+
+name = "Agent_Alltogether_LVE_balances"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{\textrm{sup}} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "sup_agent.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "sup_agent.LVE.energy_bought_simulation", "style": "points", "legend": r"num."} ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{\textrm{inf}} \, [\si{\newton}]$",
+          "graphs": [{"catalog_name_entry": "inf_agent.LVE.energy_bought_reference", "style": "lines", "legend": r"ref."},
+                     {"catalog_name_entry": "inf_agent.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("agents_test", parameters)
 
