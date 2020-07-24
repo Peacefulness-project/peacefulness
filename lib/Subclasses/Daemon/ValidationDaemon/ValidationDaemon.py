@@ -1,6 +1,8 @@
 # This daemon is here to validate at each turn that calculation are made correctly.
 from src.common.Daemon import Daemon
-from src.tools.GraphAndTex import write_and_print
+from src.common.Datalogger import Datalogger
+
+from src.tools.GraphAndTex import graph_options, write_and_print, export
 from src.tools.Utilities import adapt_path
 
 from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import set_problem
@@ -17,22 +19,16 @@ class ValidationDaemon(Daemon):
 
         self._reference_values = parameters["reference_values"]  # the reference values
 
-        self._x_values = {"iteration": []}
+        self._x_values = {"iteration": [], "physical_time": []}
         self._y_values = {f"{key_checked}_reference": parameters["reference_values"][key_checked] for key_checked in parameters["reference_values"]}
         for key in parameters["reference_values"].keys():
             self._y_values[f"{key}_simulation"] = []
 
-        self._x_values_label = {}
-        self._y_values_label = {}
-        for key in parameters["reference_values_labels"]:
-            if key == "abscissa":
-                self._x_values_label = {"iteration": parameters["reference_values_labels"][key]}
-            else:
-                self._y_values_label.update({key : parameters["reference_values_labels"][key]})
-
         self._tolerance = parameters["tolerance"]  # the tolerance to accept or reject a value
 
         self._problem = {key: [] for key in parameters["reference_values"].keys()}  # a list containing all the round when a problem occured
+
+        self._export_plots = parameters["export_plots"]
 
         # the message are both prompted and written in a file
         message = f"{self.name}: {self._description}\n" \
@@ -54,6 +50,7 @@ class ValidationDaemon(Daemon):
         iteration = self._catalog.get("simulation_time")
 
         self._x_values["iteration"].append(self._catalog.get("simulation_time"))
+        self._x_values["physical_time"].append(self._catalog.get('physical_time'))
 
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
@@ -98,7 +95,27 @@ class ValidationDaemon(Daemon):
         file.close()
 
         # Export
-        directory = self._catalog.get("path")
+        for elt in self._export_plots:
+            x_exported_values = {}
+            y_exported_values = {}
 
-#        for export_format in self._catalog.get("export_formats"):                  # todo: adapter a partir du nouveau graph and tex
-#            export(export_format, self._x_values, self._y_values, self._x_values_label, self._y_values_label, directory)
+            x_exported_values[elt["X"]["catalog_name_entry"]] = {"values": self._x_values[elt["X"]["catalog_name_entry"]]}
+
+            for list in elt["Y"]["graphs"]:
+                y_exported_values[list["catalog_name_entry"]] = {"values": self._y_values[list["catalog_name_entry"]],
+                                                                 "style": list["style"],
+                                                                 "legend": list["legend"],
+                                                                 "label": 1}
+            if "Y2" in elt.keys():
+                for list in elt["Y2"]["graphs"]:
+                    y_exported_values[list["catalog_name_entry"]] = {
+                        "values": self._y_values[list["catalog_name_entry"]],
+                        "style": list["style"],
+                        "legend": list["legend"],
+                        "label": 2}
+
+            labels = {"xlabel": elt["X"]["label"], "ylabel": elt["Y"]["label"]}
+            if "Y2" in elt.keys():
+                labels.update({"y2label": elt["Y2"]["label"]})
+
+            export(elt["options"], self._catalog.get('path')+"/outputs/"+elt["filename"], x_exported_values, y_exported_values, labels)
