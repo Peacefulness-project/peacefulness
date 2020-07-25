@@ -201,7 +201,7 @@ class Device:
             energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
             self.set_energy_accorded(nature, energy_accorded)
 
-        if self._moment:
+        if self._moment is not None:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
     def make_balances(self):

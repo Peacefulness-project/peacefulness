@@ -9,22 +9,22 @@
 
     "Dishwasher": [{"name": "Dishwasher", "user_profile": "single", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
     "Dryer": [{"name": "Dryer", "user_profile": "family", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
-    "DummyProducer": [{"name": "DummyProducer", "technical_data": "ECOS", "quantity": [1,1], "contract": "Heat_BAU"}],
+    "DummyProducer": [{"name": "DummyProducer", "technical_data": "ECOS", "quantity": [1,1], "contract": "LTH_BAU"}],
 
-    "Heating": [{"name": "Heating", "user_profile": "residential", "technical_data": "house_heat", "quantity": [1,1], "contract": "Heat_BAU", "parameters": {"location":  "Pau"}}],
+    "Heating": [{"name": "Heating", "user_profile": "residential", "technical_data": "house_heat", "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"location":  "Pau"}}],
 
-    "HotWaterTank": [{"name": "HotWaterTank", "user_profile": "ECOS_1", "technical_data": "1_people_heat", "quantity": [1,1], "contract": "Heat_BAU"}],
+    "HotWaterTank": [{"name": "HotWaterTank", "user_profile": "ECOS_1", "technical_data": "1_people_heat", "quantity": [1,1], "contract": "LTH_BAU"}],
 
     "Light": [{"name": "Light", "user_profile": "residential", "technical_data": "house", "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "Methanizer": [{"name": "Methanizer", "technical_data": "ECOS", "quantity": [1,1], "contract": "Heat_BAU"}],
+    "Methanizer": [{"name": "Methanizer", "technical_data": "ECOS", "quantity": [1,1], "contract": "LTH_BAU"}],
 
     "PV": [{"name": "PV", "technical_data": "standard", "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 1, "location":  "Pau"}}],
 
     "Refrigerator": [{"name": "Refrigerator", "user_profile": "refrigerator", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"},
                      {"name": "Freezer", "user_profile": "refrigerator", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [1,1], "contract": "Heat_BAU", "parameters": {"surface": 1, "location":  "Pau"}}],
+    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"surface": 1, "location":  "Pau"}}],
 
     "WashingMachine": [{"name": "WashingMachine", "user_profile": "single", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
     "WaterHeater": [{"name": "WaterHeater", "user_profile": "single", "technical_data": "coffee_maker", "quantity": [1,1], "contract": "LVE_BAU"}],

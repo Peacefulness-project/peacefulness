@@ -122,17 +122,17 @@ aggregator_always_satisfied = Aggregator("local_grid_quantity", LVE, strategy_al
 # light autarky strategy
 device_BAU_light_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_light_autarky", BAU_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_light_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_light_autarky", curtailment_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_light_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_light_autarky", cooperative_contract, light_autarky_owner, aggregator_light_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+production_light_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_light_autarky", cooperative_contract, light_autarky_owner, aggregator_light_autarky, "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 # autarky strategy
 device_BAU_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_autarky", BAU_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_autarky", curtailment_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_autarky", cooperative_contract, autarky_owner, aggregator_autarky, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+production_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_autarky", cooperative_contract, autarky_owner, aggregator_autarky, "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 # always satisfied strategy
 device_BAU_always_satisfied = subclasses_dictionary["Device"]["Background"]("device_BAU_always_satisfied", BAU_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_always_satisfied = subclasses_dictionary["Device"]["Background"]("device_curtailment_always_satisfied", curtailment_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-production_always_satisfied = subclasses_dictionary["Device"]["DummyProducer"]("production_always_satisfied", cooperative_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+production_always_satisfied = subclasses_dictionary["Device"]["DummyProducer"]("production_always_satisfied", cooperative_contract, always_satisfied_owner, aggregator_always_satisfied, "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 
 # ##############################################################################################

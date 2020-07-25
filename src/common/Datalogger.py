@@ -82,7 +82,7 @@ class Datalogger:
         for name in self._catalog.keys:
             self.add(name)
 
-    def inital_operations(self):  # create the headers of the column
+    def initial_operations(self):  # create the headers of the column
         if not self._global:
             file = open(self._path+self._filename+__text_extension__, 'a+')
 

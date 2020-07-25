@@ -15,12 +15,12 @@
     "Charger": [{"name": "Charger", "user_profile": "default", "technical_data": "laptop_charger", "quantity": [0,4], "contract": "LVE_BAU"}],
 
     "PV": [{"name": "PV", "technical_data": "standard", "quantity": [0,0], "contract": "LVE_BAU", "parameters": {"surface": 5, "location":  "Pau"}}],
-    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [0,0], "contract": "heat_BAU", "parameters": {"surface": 1, "location":  "Pau"}}]
+    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [0,0], "contract": "LTH_BAU", "parameters": {"surface": 1, "location":  "Pau"}}]
   },
 
   "contracts": {
     "LVE_BAU":  ["LVE", "EgoistContract"],
-    "heat_BAU":  ["LTH", "EgoistContract"]
+    "LTH_BAU":  ["LTH", "EgoistContract"]
   }
 
 }

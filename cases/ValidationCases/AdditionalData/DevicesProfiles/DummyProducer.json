@@ -4,12 +4,5 @@
       "usage_profile": {"nature": "LVE", "max_power": 12},
       "efficiency_variation": 0
     }
-  },
-
-  "user_profile": {
-    "dummy_user": {
-      "offset": 0,
-      "period": 24
-    }
   }
 }

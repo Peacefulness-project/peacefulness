@@ -12,7 +12,7 @@
 
   "contracts": {
     "LVE_BAU":  ["LVE", "EgoistContract"],
-    "heat_BAU":  ["LTH", "EgoistContract"]
+    "LTH_BAU":  ["LTH", "EgoistContract"]
   }
 
 }

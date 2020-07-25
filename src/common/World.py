@@ -348,6 +348,9 @@ class World:
 
         independent_agents_list = self._identify_independent_agents()
 
+        for datalogger in self._catalog.dataloggers.values():
+            datalogger.initial_operations()
+
         # Resolution
         for i in range(0, self.time_limit, 1):
 
