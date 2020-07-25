@@ -12,12 +12,11 @@ class NonControllableDevice(Device):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -35,7 +34,7 @@ class NonControllableDevice(Device):
             # creation of the user profile, where there are hours associated with the use of the device
             # first time step
 
-            ratio = (beginning % time_step - line[0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+            ratio = (self._moment % time_step - line[0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             if ratio <= 0:  # in case beginning - start is negative
                 ratio += 1
             self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
@@ -53,11 +52,11 @@ class NonControllableDevice(Device):
             self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
         # usage profile
-        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
+        self._technical_profile = []  # creation of an empty usage_profile with all cases ready
 
-        self._usage_profile = dict()
+        self._technical_profile = dict()
         for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
-            self._usage_profile[nature] = data_device["usage_profile"][nature]
+            self._technical_profile[nature] = data_device["usage_profile"][nature]
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -89,9 +88,9 @@ class NonControllableDevice(Device):
         for line in self._user_profile:
             if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
                 for nature in energy_wanted:
-                    energy_wanted[nature]["energy_minimum"] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
-                    energy_wanted[nature]["energy_nominal"] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
-                    energy_wanted[nature]["energy_maximum"] = self._usage_profile[nature] * line[1]  # energy needed for all natures used by the device
+                    energy_wanted[nature]["energy_minimum"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
+                    energy_wanted[nature]["energy_nominal"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
+                    energy_wanted[nature]["energy_maximum"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -107,8 +106,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._is_done = []  # list of usage already done during one period
@@ -121,12 +120,11 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -191,7 +189,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._user_profile = elements_to_keep
 
         # usage_profile
-        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
+        self._technical_profile = []  # creation of an empty usage_profile with all cases ready
 
         duration = 0
         consumption = {nature: 0 for nature in data_device["usage_profile"][0][1]}  # consumption is a dictionary containing the consumption for each nature
@@ -213,14 +211,14 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 # fulling the usage_profile
                 while duration // time_step:  # here we manage a constant consumption over several time steps
 
-                    self._usage_profile.append([{}, 0])  # creation of the entry, with a dictionary for the different natures
+                    self._technical_profile.append([{}, 0])  # creation of the entry, with a dictionary for the different natures
                     time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
                     ratio = min(time_left / data_device["usage_profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
                     for nature in data_device["usage_profile"][i][1]:  # consumption is added for each nature present
-                        self._usage_profile[-1][0][nature] = 0  # creation of the entry
-                        self._usage_profile[-1][0][nature] = consumption[nature] + data_device["usage_profile"][i][1][nature] * ratio
+                        self._technical_profile[-1][0][nature] = 0  # creation of the entry
+                        self._technical_profile[-1][0][nature] = consumption[nature] + data_device["usage_profile"][i][1][nature] * ratio
 
-                    self._usage_profile[-1][1] = max(priority, data_device["usage_profile"][i][2])  # the priority is the max betwwen the former priority and the new
+                    self._technical_profile[-1][1] = max(priority, data_device["usage_profile"][i][2])  # the priority is the max betwwen the former priority and the new
                     priority = 0
 
                     duration -= time_step  # we decrease the duration of 1 time step
@@ -235,15 +233,15 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         # then, we affect the residue of energy if one, with the appropriate priority, to the usage_profile
         if duration:  # to know if the device needs more time
-            self._usage_profile.append([0, 0])  # creation of the entry
+            self._technical_profile.append([0, 0])  # creation of the entry
             priority = data_device["usage_profile"][-1][2]
-            self._usage_profile[-1][0] = consumption
-            self._usage_profile[-1][1] = priority
+            self._technical_profile[-1][0] = consumption
+            self._technical_profile[-1][1] = priority
 
         # removal of unused natures in the self._natures
         nature_to_remove = []
         for nature in self._natures:
-            if nature.name not in self._usage_profile[0][0]:
+            if nature.name not in self._technical_profile[0][0]:
                 nature_to_remove.append(nature)
         for nature in nature_to_remove:
             self._natures[nature]["aggregator"].devices.remove(self.name)
@@ -287,8 +285,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 line = self._user_profile[i]
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in energy_wanted:
-                        energy_wanted[nature]["energy_maximum"] = self._usage_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
-                        energy_wanted[nature]["energy_nominal"] = line[1] * self._usage_profile[0][0][nature]  # it modelizes the emergency
+                        energy_wanted[nature]["energy_maximum"] = self._technical_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
+                        energy_wanted[nature]["energy_nominal"] = line[1] * self._technical_profile[0][0][nature]  # it modelizes the emergency
 
                     self._is_done.append(line[2])  # adding the usage to the list of already satisfied usages
                     # reinitialisation of the interruption data
@@ -303,9 +301,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         else:  # if the device is running then it's the usage_profile who matters
             for nature in energy_wanted:
-                ratio = self._usage_profile[-self._remaining_time][1]  # emergency associated
+                ratio = self._technical_profile[-self._remaining_time][1]  # emergency associated
                 energy_wanted[nature]["energy_minimum"] = 0
-                energy_wanted[nature]["energy_maximum"] = self._usage_profile[-self._remaining_time][0][nature]  # energy needed
+                energy_wanted[nature]["energy_maximum"] = self._technical_profile[-self._remaining_time][0][nature]  # energy needed
                 energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
@@ -325,7 +323,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 if self._remaining_time:  # if it has started
                     self._remaining_time -= 1  # decrementing the remaining time of use
                 else:  # if it has not started yet
-                    self._remaining_time = len(self._usage_profile) - 1
+                    self._remaining_time = len(self._technical_profile) - 1
 
                 self._interruption_data[2] += 1  # it has been working for one more time step
             else:  # if it has not started
@@ -345,8 +343,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
 
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
 
@@ -359,12 +357,11 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
 
         start_time_variation = self._catalog.get("gaussian")(0, data_user["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data_user["profile"]:  # modification of the basic user_profile according to the results of random generation
@@ -389,7 +386,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
         self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
 
         # usage_profile
-        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
+        self._tecnhical_profile = []  # creation of an empty usage_profile with all cases ready
 
         duration = 0
         consumption = {nature: [0, 0, 0] for nature in data_device["usage_profile"][0][1]}  # consumption is a dictionary containing the consumption for each nature
@@ -411,12 +408,12 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
                     time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
                     ratio = min(time_left / data_device["usage_profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
-                    self._usage_profile.append({})
+                    self._tecnhical_profile.append({})
                     for nature in consumption:
-                        self._usage_profile[-1][nature] = [0, 0, 0]
-                        self._usage_profile[-1][nature][0] = (consumption[nature][0] + data_device["usage_profile"][i][1][nature][0] * ratio)
-                        self._usage_profile[-1][nature][1] = (consumption[nature][1] + data_device["usage_profile"][i][1][nature][1] * ratio)
-                        self._usage_profile[-1][nature][2] = (consumption[nature][2] + data_device["usage_profile"][i][1][nature][2] * ratio)
+                        self._tecnhical_profile[-1][nature] = [0, 0, 0]
+                        self._tecnhical_profile[-1][nature][0] = (consumption[nature][0] + data_device["usage_profile"][i][1][nature][0] * ratio)
+                        self._tecnhical_profile[-1][nature][1] = (consumption[nature][1] + data_device["usage_profile"][i][1][nature][1] * ratio)
+                        self._tecnhical_profile[-1][nature][2] = (consumption[nature][2] + data_device["usage_profile"][i][1][nature][2] * ratio)
 
                     duration -= time_step  # we decrease the duration of 1 time step
                     # buffer and consumption were the residue of line i-1, so they are not relevant anymore
@@ -432,7 +429,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 
         # then, we affect the residue of energy if one, with the appropriate priority, to the usage_profile
         if duration:  # to know if the device need more time
-            self._usage_profile.append(consumption)
+            self._tecnhical_profile.append(consumption)
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -449,10 +446,10 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             for hour in self._user_profile:
                 if hour == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in energy_wanted:
-                        energy_wanted[nature]["energy_minimum"] = self._usage_profile[0][nature][0] + self._latent_demand[nature]
-                        energy_wanted[nature]["energy_nominal"] = self._usage_profile[0][nature][1] + self._latent_demand[nature]
-                        energy_wanted[nature]["energy_maximum"] = self._usage_profile[0][nature][2] + self._latent_demand[nature]
-                    self._remaining_time = len(self._usage_profile) - 1  # incrementing usage duration
+                        energy_wanted[nature]["energy_minimum"] = self._tecnhical_profile[0][nature][0] + self._latent_demand[nature]
+                        energy_wanted[nature]["energy_nominal"] = self._tecnhical_profile[0][nature][1] + self._latent_demand[nature]
+                        energy_wanted[nature]["energy_maximum"] = self._tecnhical_profile[0][nature][2] + self._latent_demand[nature]
+                    self._remaining_time = len(self._tecnhical_profile) - 1  # incrementing usage duration
 
             self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -485,8 +482,8 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
 
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
 
@@ -494,13 +491,11 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -521,8 +516,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
 
         # usage_profile
-        self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
-        self._demand = self._usage_profile  # if the simulation begins during an usage, the demand has to be initialized
+        self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
+        self._demand = self._technical_profile  # if the simulation begins during an usage, the demand has to be initialized
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -543,7 +538,6 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-
         message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
@@ -551,7 +545,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
             for usage in self._user_profile:
                 if usage[0] == self._moment:  # if the current hour matches with the start of an usage
                     self._remaining_time = usage[1] - usage[0]  # incrementing usage duration
-                    self._demand = self._usage_profile  # the demand for each nature of energy
+                    self._demand = self._technical_profile  # the demand for each nature of energy
 
         if self._remaining_time:  # if the device is active
             for nature in energy_wanted:
@@ -593,8 +587,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
 class Converter(Device):
 
-    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profile_name, parameters=None):
-        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, None, profile_name, parameters)
+    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name, parameters=None):
+        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, technical_profile_name, parameters)
 
         self._upstream_aggregator = {"name": upstream_aggregator.name, "nature": upstream_aggregator.nature.name, "contract": contracts}  # the aggregator who has to adapt
         self._downstream_aggregator = {"name": downstream_aggregator.name, "nature": downstream_aggregator.nature.name, "contract": contracts}   # the aggregator who has the last word
@@ -603,21 +597,11 @@ class Converter(Device):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
-        # getting the user profile
-        try:
-            technical_data = data[self._usage_profile_name]
-        except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined profiles for the class {type(self).__name__}: {data.keys()}")
-
-        file.close()
-
-        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": technical_data["capacity"]}
-        self._efficiency = technical_data["efficiency"]  # the efficiency of the converter
+        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"]}
+        self._efficiency = data_device["efficiency"]  # the efficiency of the converter
 
     # ##########################################################################################
     # Dynamic behavior

@@ -1,6 +1,6 @@
-# Tutorial 5
-# Agents
-from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_5_agents  # a specific importation
+# Tutorial 10
+# Dataloggers
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_10_dataloggers  # a specific importation
 
 # ##############################################################################################
 # Usual importations
@@ -82,7 +82,7 @@ LTH = load_low_temperature_heat()
 # price managers
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
 
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
+price_manager_flat_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 
 # limit prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.20, "limit_selling_price": 0.10})
@@ -104,25 +104,87 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 # ##############################################################################################
 # Strategy
 
-subclasses_dictionary["Strategy"]["Grid"]()
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
-subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+elec_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 
 # ##############################################################################################
 # Agent
 
-# TODO: create an agent called "producer"
+producer = Agent("producer")
 
-# TODO: create an agent called "aggregators_owner"
+aggregator_owner = Agent("aggregators_owner")
 
-# TODO: create an agent called "consumer"
+consumer = Agent("consumer")
+
+
+# ##############################################################################################
+# Contract
+
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_egoist", LVE, price_manager_TOU_elec)
+
+curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
+
+BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+
+
+# ##############################################################################################
+# Aggregator
+
+aggregator_grid = Aggregator("grid", LVE, grid_strategy, aggregator_owner)
+
+aggregator_elec = Aggregator("aggregator_elec", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
+
+aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity=1000)  # creation of a aggregator
+
+
+# ##############################################################################################
+# Device
+
+subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, producer, aggregator_elec, "standard_field", {"surface": 1000, "location": "Pau"})
+
+subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, "standard", {"location": "Pau"})
+
+subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, aggregator_elec, "family", "family")
+
+subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, "family", "medium_consumption")
+
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_heat, consumer, aggregator_heat, "family", "family_heat")
+
+subclasses_dictionary["Device"]["Heating"]("heating", BAU_heat, consumer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+
+# ##############################################################################################
+# Automated generation of agents
+
+world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_flat_heat})
+
+
+# ##############################################################################################
+# Datalogger
+
+# TODO: create a datalogger of the subclass "SelfSufficiencyDatalogger" with a period of 1
+subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](1)
+
+# TODO: create a datalogger of the subclass "NatureBalancesDatalogger" with a period "global"
+subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]("global")
+
+# TODO: create a datalogger called "consumer_datalogger", exporting data to the file "ConsumerData" with a period of 2 rounds
+consumer_datalogger = Datalogger("consumer_datalogger", "ConsumerData", 2)
+
+# TODO: add the key "simulation_time" as the "X" axis for "consumer_datalogger"
+consumer_datalogger.add("simulation_time", graph_status="X")
+
+# TODO: add the following keys as "Y" series to "consumer_datalogger": "consumer.LVE.energy_bought", "consumer.LTH.energy_bought", "consumer.money_spent"
+consumer_datalogger.add("consumer.LVE.energy_bought")
+consumer_datalogger.add("consumer.LTH.energy_bought")
+consumer_datalogger.add("consumer.money_spent")
 
 
 # ##############################################################################################
 # Correction
-correction_5_agents()
+correction_10_dataloggers()
 
 

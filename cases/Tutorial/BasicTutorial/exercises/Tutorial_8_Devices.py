@@ -1,6 +1,6 @@
-# Tutorial 4
-# Strategies
-from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_4_strategies  # a specific importation
+# Tutorial 8
+# Devices
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_8_devices  # a specific importation
 
 # ##############################################################################################
 # Usual importations
@@ -82,7 +82,7 @@ LTH = load_low_temperature_heat()
 # price managers
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
 
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
+price_manager_flat_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 
 # limit prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.20, "limit_selling_price": 0.10})
@@ -104,13 +104,60 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 # ##############################################################################################
 # Strategy
 
-# TODO: create a strategy "Grid"
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
-# TODO: create a strategy "AlwaysSatisfied"
+elec_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-# TODO: create a strategy "LightAutarkyEmergency"
+heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 
 # ##############################################################################################
+# Agent
+
+producer = Agent("producer")
+
+aggregator_owner = Agent("aggregators_owner")
+
+consumer = Agent("consumer")
+
+
+# ##############################################################################################
+# Contract
+
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_egoist", LVE, price_manager_TOU_elec)
+
+curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
+
+BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+
+
+# ##############################################################################################
+# Aggregator
+
+aggregator_grid = Aggregator("grid", LVE, grid_strategy, aggregator_owner)
+
+aggregator_elec = Aggregator("aggregator_elec", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
+
+aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity=1000)  # creation of a aggregator
+
+
+# ##############################################################################################
+# Device
+
+# TODO: create a PV field called "PV_field", with an egoist contract for electricity, owned by the agent producer and managed by the aggregator aggregator_elec. Its technical profile is "standard_field", its surface is 1000m2 and its location is "Pau".
+
+# TODO: create a wind turbine field called "wind_turbine", with a curtailment contract for electricity, owned by the agent producer and managed by the aggregator aggregator_elec. Its technical profile is "standard" and its location is "Pau".
+
+# TODO: create a background device called "background", with an egoist contract for electricity, owned by the agent consumer and managed by the aggregator aggregator_elec. Its user profile is "family" and its technical profile is "family".
+
+# TODO: create a dishwasher called "dishwasher", with an egoist contract for electricity, owned by the agent consumer and managed by the aggregator aggregator_elec. Its user profile is "family" and its technical profile is "medium_consumption".
+
+# TODO: create a hot water tank called "hot_water_tank", with an egoist contract for heat, owned by the agent consumer and managed by the aggregator aggregator_heat. Its user profile is "family" and its technical profile is "family_heat".
+
+# TODO: create a heating device called "heating", with an egoist contract for heat, owned by the agent consumer and managed by the aggregator aggregator_heat. Its user profile is "residential" and its technical profile is "house_heat" and its location is "Pau".
+
+# ##############################################################################################
 # Correction
-correction_4_strategies()
+correction_8_devices()
+
+

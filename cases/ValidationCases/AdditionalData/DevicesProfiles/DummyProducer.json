@@ -1,5 +1,5 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "dummy_usage": {
       "usage_profile": {"nature": "LVE", "max_power": 12},
       "efficiency_variation": 0

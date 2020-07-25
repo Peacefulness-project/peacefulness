@@ -1,5 +1,5 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "laptop_charger": {
       "usage_profile": {"LVE": 1},
       "consumption_variation": 0.1,

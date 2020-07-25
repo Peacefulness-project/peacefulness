@@ -285,22 +285,26 @@ class World:
             # creation of devices
             for device_data in data["composition"]:
                 for profile in data["composition"][device_data]:
-                    if profile[3][0] > profile[3][1]:
-                        raise WorldException(f"The minimum number of devices {profile[0]} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
-                    number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
+                    if profile["quantity"][0] > profile["quantity"][1]:
+                        raise WorldException(f"The minimum number of devices {profile['name']} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
+                    number_of_devices = self._catalog.get("int")(profile["quantity"][0], profile["quantity"][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
-                        device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                        device_name = f"{agent_name}_{profile['name']}_{j}"  # name of the device, "Profile X"_5_Light_0
                         device_class = self._subclasses_dictionary["Device"][device_data]
 
                         contracts = []
                         for contract_type in contract_dict:
-                            if profile[4] == contract_type:
+                            if profile["contract"] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
-                        if len(profile) == 5:  # if there are no parameters
-                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2])  # creation of the device
-                        else:  # if there are parameters
-                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2], profile[5])  # creation of the device
+                        if "parameters" not in profile and "user_profile" in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"])  # creation of the device
+                        elif "parameters" in profile and "user_profile" in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"], profile["parameters"])  # creation of the device
+                        elif "parameters" not in profile and "user_profile" not in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"])  # creation of the device
+                        elif "parameters" in profile and "user_profile" not in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"], profile["parameters"])  # creation of the device
 
     # ##########################################################################################
     # Initialization

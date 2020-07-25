@@ -9,19 +9,18 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class Background(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/Background/Background.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, filename="lib/Subclasses/Device/Background/Background.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
@@ -36,13 +35,13 @@ class Background(NonControllableDevice):
         time_step = self._catalog.get("time_step")
 
         # usage profile
-        self._usage_profile = []  # creation of an empty usage_profile with all cases ready
+        self._technical_profile = []  # creation of an empty usage_profile with all cases ready
 
-        self._usage_profile = dict()
+        self._technical_profile = dict()
         for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
-            self._usage_profile[nature] = list()
-            self._usage_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
-                                          2 * data_device["usage_profile"][nature]["weekend"]
+            self._technical_profile[nature] = list()
+            self._technical_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                              2 * data_device["usage_profile"][nature]["weekend"]
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -55,9 +54,9 @@ class Background(NonControllableDevice):
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = self._usage_profile[nature][self._moment]  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_nominal"] = self._usage_profile[nature][self._moment]  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_maximum"] = self._usage_profile[nature][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_minimum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_nominal"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature]["energy_maximum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

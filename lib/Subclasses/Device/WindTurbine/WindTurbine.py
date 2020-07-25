@@ -4,8 +4,8 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class WindTurbine(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/WindTurbine/WindTurbine.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/WindTurbine/WindTurbine.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
@@ -13,18 +13,14 @@ class WindTurbine(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        self._usage_profile = dict()
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
+
+        self._technical_profile = dict()
         self._efficiency = None
 
-        [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
-
-        self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
-
         # usage profile
-        self._usage_profile[data_device["usage_profile"]["nature"]] = None
+        self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
         self._efficiency = data_device["usage_profile"]["efficiency"]  # efficiency
         self._max_power = data_device["usage_profile"]["max_power"]  # max power

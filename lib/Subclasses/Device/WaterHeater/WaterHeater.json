@@ -1,5 +1,5 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "coffee_maker": {
       "usage_profile": [[0.25, {"LVE": 1}, 1], [0.25, {"LVE": 0.4}, 1]],
       "consumption_variation": 0.1,

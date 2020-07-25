@@ -1,6 +1,6 @@
-# Tutorial 4
-# Strategies
-from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_4_strategies  # a specific importation
+# Tutorial 7
+# Aggregators
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_7_aggregators  # a specific importation
 
 # ##############################################################################################
 # Usual importations
@@ -82,7 +82,7 @@ LTH = load_low_temperature_heat()
 # price managers
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
 
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
+price_manager_flat_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 
 # limit prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.20, "limit_selling_price": 0.10})
@@ -104,13 +104,45 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 # ##############################################################################################
 # Strategy
 
-# TODO: create a strategy "Grid"
+grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
-# TODO: create a strategy "AlwaysSatisfied"
+elec_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-# TODO: create a strategy "LightAutarkyEmergency"
+heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+
+
+# ##############################################################################################
+# Agent
+
+producer = Agent("producer")
+
+aggregator_owner = Agent("aggregators_owner")
+
+consumer = Agent("consumer")
+
+
+# ##############################################################################################
+# Contract
+
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_egoist", LVE, price_manager_TOU_elec)
+
+curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
+
+BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+
+
+# ##############################################################################################
+# Aggregator
+
+# TODO: create an aggregator called "grid" applying the GridStrategy and owned by the agent "aggregators_owner"
+
+# TODO: create an aggregator called "aggregator_elec" applying the AlwaysSatisfied strategy and owned by the agent "aggregators_owner". The grid is its superior and it has the BAU_elec contract with it.
+
+# TODO: create an aggregator called "aggregator_heat" applying the LightAutarkyEmergency strategy and owned by the agent "aggregators_owner". The elec aggregator is its superior, it has the BAU_elec contract with it, with an efficiency of 3.5 and a capcity of 1 MWh.
 
 
 # ##############################################################################################
 # Correction
-correction_4_strategies()
+correction_7_aggregators()
+
+

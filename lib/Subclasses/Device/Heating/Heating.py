@@ -7,8 +7,8 @@ from src.common.Device import DeviceException, Device
 
 class Heating(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/Heating/Heating.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, parameters, filename="lib/Subclasses/Device/Heating/Heating.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
@@ -46,12 +46,11 @@ class Heating(AdjustableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        beginning = self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -90,7 +89,7 @@ class Heating(AdjustableDevice):
             temperature_range[1] = line[1][1]  # the nominal of temperature accepted by the agent
             temperature_range[2] = line[1][2]  # the maximum of temperature accepted by the agent
 
-            ratio = (beginning % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+            ratio = (self._moment % time_step - line[0][0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
             if ratio <= 0:  # in case beginning - start is negative
                 ratio += 1
             for nature_name in self._repartition:  # affecting a coefficient of energy to each nature used inb the process

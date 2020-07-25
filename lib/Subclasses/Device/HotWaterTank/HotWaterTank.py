@@ -4,20 +4,18 @@ from src.common.Device import Device
 
 class HotWaterTank(ChargerDevice, Device):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -74,7 +72,7 @@ class HotWaterTank(ChargerDevice, Device):
 
         # usage_profile
         self._demand = dict()
-        self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
+        self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
         for nature in self.natures:
             self._demand[nature.name] = 0  # the demand is initialized
 
@@ -112,10 +110,10 @@ class HotWaterTank(ChargerDevice, Device):
 
                 if remaining_time < self._remaining_time:
                     self._remaining_time = remaining_time  # the time kept is the shortest
-                    for nature in self._usage_profile:
-                        self._demand[nature] = usage[1] * self._usage_profile[nature]  # and the quantity associated is kept
+                    for nature in self._technical_profile:
+                        self._demand[nature] = usage[1] * self._technical_profile[nature]  # and the quantity associated is kept
 
-        for nature in self._usage_profile:  # creating the demand in energy
+        for nature in self._technical_profile:  # creating the demand in energy
             # physical data
             Cp = 4.18 * 10 ** 3  # thermal capacity of water in J.kg-1.K-1
             rho = 1  # density of water in kg.L-1

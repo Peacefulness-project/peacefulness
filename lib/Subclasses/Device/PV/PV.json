@@ -1,21 +1,13 @@
 {
-  "device_consumption": {
-    "ECOS": {
+  "technical_data": {
+    "standard": {
       "usage_profile": {"nature": "LVE", "efficiency": 0.15},
       "efficiency_variation": 0.1
     },
 
-    "ECOS_field": {
+    "standard_field": {
       "usage_profile": {"nature": "LVE", "efficiency": 0.15},
       "efficiency_variation": 0
-    }
-  },
-
-  "user_profile": {
-    "ECOS": {
-
-      "offset": 0,
-      "period": 24
     }
   }
 }

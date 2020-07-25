@@ -94,7 +94,11 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 
 outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
 
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+
 irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
 
 
 # ##############################################################################################
@@ -110,24 +114,21 @@ subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 # ##############################################################################################
 # Agent
 
-Agent("PV_producer")
+Agent("producer")
 
 Agent("aggregators_owner")
 
-Agent("random_consumer")
+Agent("consumer")
 
 
 # ##############################################################################################
 # Contract
 
 # TODO: create an EgoistContract called "elec_contract_egoist" for nature LVE and applying the prices of the daemon price_manager_TOU_elec (created above)
-BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_egoist", LVE, price_manager_TOU_elec)
 
 # TODO: create an EgoistContract called "elec_contract_curtailment" for nature LVE and applying the prices of the daemon price_manager_TOU_elec (created above)
-curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
 # TODO: create a CooperativeContract called "heat_contract_cooperative" for nature LTH and applying the prices of the daemon price_manager_flat_heat (created above)
-BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
 
 
 # ##############################################################################################
