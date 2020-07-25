@@ -70,8 +70,6 @@ class World:
 
         self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
 
-        self._catalog.add("export_formats", [])  # where the desired export formats are written
-
         set_world(self)  # set world as a global variable used later to instantiate objects
 
     # ##########################################################################################
@@ -122,9 +120,6 @@ class World:
 
     # ##########################################################################################
     # options
-
-    def choose_exports(self, export_formats):  # optionally, you can export using keywords
-        self._catalog.set("export_formats", into_list(export_formats))
 
     def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
         # this new element requires to modify the related device, contract and strategy subclasses to have some effect
@@ -347,16 +342,11 @@ class World:
         return independent_agent_list
 
     def start(self):
-
-        # Initialization
         self._check()  # check if everything is fine in world definition
 
         independent_aggregators_list = self._identify_independent_aggregators()
 
         independent_agents_list = self._identify_independent_agents()
-
-        for datalogger in self._catalog.dataloggers.values():
-            datalogger.inital_operations()
 
         # Resolution
         for i in range(0, self.time_limit, 1):
@@ -434,7 +424,6 @@ class World:
 
             print()
 
-        # Post-processing
         for datalogger in self._catalog.dataloggers.values():
             datalogger.final_process()
             datalogger.final_export()

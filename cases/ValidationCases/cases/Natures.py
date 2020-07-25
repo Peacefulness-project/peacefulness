@@ -6,17 +6,15 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -137,15 +135,50 @@ device_gas = subclasses_dictionary["Device"]["Background"]("device_gas", BAU_con
 # Creation of the validation daemon
 description = "This script checks that natures have no influences on the calculation"
 
+filename = "natures_validation"
 
 reference_values = {"devices_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "devices_owner.LTH.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "devices_owner.LPG.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
 
-filename = "natures_validation"
+name = "LVE_balances"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "devices_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "devices_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "LTH_balances"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "devices_owner.LTH.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "devices_owner.LTH.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "LPG_balances"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "devices_owner.LPG.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "devices_owner.LPG.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("natures_test", parameters)
 

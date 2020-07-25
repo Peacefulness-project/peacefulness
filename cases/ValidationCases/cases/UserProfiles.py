@@ -6,18 +6,17 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -144,6 +143,7 @@ subclasses_dictionary["Device"]["Heating"]("heating_short_usage", elec_contract,
 # Creation of the validation daemon
 description = "This script checks that the user profiles work well"
 
+filename = "user_profiles_validation"
 
 reference_values = {"early_hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "month_dependency_hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000*2, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000*2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -155,9 +155,134 @@ reference_values = {"early_hot_water_tank_owner.LVE.energy_bought": [418/3.6/100
                     "short_usage_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 5.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 0, 0, 0, 0, 0]
                     }
 
-filename = "user_profiles_validation"
+name = "DHW_early_balances"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "DHW_monthly_balances"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "month_dependency_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "month_dependency_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "DHW_short_period_balances"
+export_plot3= {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "short_period_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "short_period_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "DHW_two_usages_balances"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "two_usages_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "two_usages_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "DHW_Alltogether_balances"
+export_plot5 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},
+                      {"catalog_name_entry": "month_dependency_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"monthly"},
+                      {"catalog_name_entry": "short_period_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"short"},
+                      {"catalog_name_entry": "two_usages_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"2 usages"}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
+          "graphs": [{"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                     {"catalog_name_entry": "month_dependency_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                     {"catalog_name_entry": "short_period_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                     {"catalog_name_entry": "two_usages_hot_water_tank_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                     ]
+          }
+}
+
+name = "Heating_early_balances"
+export_plot6 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "early_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "early_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "Heating_monthly_balances"
+export_plot7 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "hot_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "hot_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "Heating_short_period_balances"
+export_plot8= {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "short_usage_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "short_usage_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+
+name = "Heating_Alltogether_balances"
+export_plot9 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "early_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},
+                      {"catalog_name_entry": "hot_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"hot"},
+                      {"catalog_name_entry": "short_usage_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"short"}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
+          "graphs": [{"catalog_name_entry": "early_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                     {"catalog_name_entry": "hot_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                     {"catalog_name_entry": "short_usage_heating_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                     ]
+          }
+}
+
+parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5, export_plot6, export_plot7, export_plot8, export_plot9]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("distribution_strategy_test", parameters)
 

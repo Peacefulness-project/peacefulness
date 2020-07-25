@@ -6,18 +6,17 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -140,6 +139,7 @@ production_always_satisfied = subclasses_dictionary["Device"]["DummyProducer"]("
 # Creation of the validation daemon
 description = "This script checks that exchange strategies work"
 
+filename = "exchange_strategy_validation"
 
 reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "light_autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
@@ -151,9 +151,101 @@ reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10,
                     "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
                     }
 
-filename = "exchange_strategy_validation"
+name = "LVE_light_autarky"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{\textrm{sold}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "light_autarky_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "LVE_autarky"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{\textrm{sold}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "autarky_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+}
+
+name = "LVE_always_satisfied"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{\textrm{sold}} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "always_satisfied_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r"num."}
+                    ]
+          },
+}
+
+name = "Bought_Energy_Alltogether"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"lgt autark."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"autark."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_reference", "style": "points", "legend": r"alws satis."}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+name = "Sold_Energy_Alltogether"
+export_plot5 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_sold_reference", "style": "points", "legend": r"lgt autark."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_sold_reference", "style": "points", "legend": r"autark."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_sold_reference", "style": "points", "legend": r"alws satis."}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_sold_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("exchange_strategy_test", parameters)
 

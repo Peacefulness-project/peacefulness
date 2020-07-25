@@ -6,17 +6,15 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -127,15 +125,71 @@ subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_contract_elec, thr
 # Creation of the validation daemon
 description = "This script checks that converters are working well."
 
+filename = "converters_validation"
 
 reference_values = {"background_owner.LTH.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 22],
                     "converter_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9.5, 10, 10.5, 11, 11],
                     "converter_owner.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 22]
                     }
 
-filename = "converters_validation"
+name = "Bought_Energy_LTH"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LTH.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "background_owner.LTH.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "Bought_Energy_LVE-Converter-Owner"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "converter_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "converter_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "Sold_Energy_LTH-Converter-Owner"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "converter_owner.LTH.energy_sold_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "converter_owner.LTH.energy_sold_simulation", "style": "lines", "legend": r"num"},
+                      ]
+          }
+}
+
+name = "Balance_Bought_Sold_Energy_Alltogether"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LTH.energy_bought_reference", "style": "points", "legend": r"$\textrm{LTH}_\textrm{bckgd}^{\textrm{bought}}$"},
+                      {"catalog_name_entry": "converter_owner.LVE.energy_bought_reference", "style": "points", "legend": r"$\textrm{LVE}_\textrm{conv}^{\textrm{bought}}$"},
+                      {"catalog_name_entry": "converter_owner.LTH.energy_sold_reference", "style": "points", "legend": r"$\textrm{LTH}_\textrm{conv}^{\textrm{sold}}$"}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "background_owner.LTH.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "converter_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "converter_owner.LTH.energy_sold_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("devices_test", parameters)
 

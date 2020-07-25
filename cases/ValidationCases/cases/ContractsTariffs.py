@@ -6,18 +6,17 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -128,15 +127,71 @@ subclasses_dictionary["Device"]["Background"]("RTP_device", RTP_elec_contract, R
 # Creation of the validation daemon
 description = "This script checks that the billing works well for contracts."
 
+filename = "contracts_tariffs_validation"
 
 reference_values = {"flat_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3],
                     "TOU_owner.money_spent": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 2.2, 2.3],
                     "RTP_owner.money_spent": [0, 0.1703*1, 0.155*2, 0.1402*3, 0.0855*4, 0.0684*5, 0.0669*6, 0.0873*7, 0.1524*8, 0.1306*9, 0.1332*10, 0.1261*11, 0.1441*12, 0.1454*13, 0.1214*14, 0.1234*15, 0.1166*16, 0.1205*17, 0.179*18, 0.2*19, 0.2*20, 0.2*21, 0.2*22, 0.2*23]
                     }
 
-filename = "contracts_tariffs_validation"
+name = "Spent_Money_FLAT"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "flat_owner.money_spent_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "flat_owner.money_spent_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "Spent_Money_TOU"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "TOU_owner.money_spent_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "TOU_owner.money_spent_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "Spent_Money_RTP"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "RTP_owner.money_spent_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "RTP_owner.money_spent_simulation", "style": "lines", "legend": r"num"},
+                      ]
+          }
+}
+
+name = "Spent_Money_Alltogether"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "flat_owner.money_spent_reference", "style": "points", "legend": r"flat"},
+                      {"catalog_name_entry": "TOU_owner.money_spent_reference", "style": "points", "legend": r"TOU"},
+                      {"catalog_name_entry": "RTP_owner.money_spent_reference", "style": "points", "legend": r"RTP"}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "flat_owner.money_spent_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "TOU_owner.money_spent_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "RTP_owner.money_spent_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("contracts_tariffs_test", parameters)
 

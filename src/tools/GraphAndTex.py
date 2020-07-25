@@ -1,6 +1,8 @@
 # Native Packages
 import datetime
 
+from math import inf
+
 import numpy as np
 
 from os import listdir, chdir, system, makedirs, path
@@ -21,10 +23,7 @@ class graph_options():
         self.formats = formats
         self.graph_type = graph_type
 
-        # Controls
-        #todo: csv toujours requis... si on choisit LaTeX et matplotlib... le rajouter automatiquement dans ces cas ? en informant l'utilisateur
-
-__default_graph_options__ = graph_options("None", "single_series")
+__default_graph_options__ = graph_options([], "single_series")
 
 # ##############################################################################################
 # Basic export functions
@@ -36,7 +35,23 @@ def write_and_print(message, file):  # write in the chosen file and print the me
 # ##############################################################################################
 # Export functions for numerical data
 
+
+# controls
+# todo: check que pas d'export avec le même nom...
+
+
 def export(options, filename, x, y, labels):
+    # Controls
+    none_formats = False
+    if options.formats == []:
+        none_formats = True
+
+    if not none_formats:
+        if "csv" not in options.formats:
+            options.formats.append("csv")
+            print(
+                'nb: exports in LateX and/or matplotlib require a "csv" source file. The corresponding output was added.')
+
     if "csv" in options.formats:
         export_csv(options, filename, x, y, labels)
     if "LaTeX" in options.formats:
@@ -98,6 +113,7 @@ def export_latex(options, filename, x, y, labels):
     text += "%" + "\n"
     text += r"% Packages" + "\n"
     text += r"\usepackage{amsmath}" + "\n"
+    text += r"\usepackage{eurosym}" + "\n"
     text += r"\usepackage{tikz}" + "\n"
     text += r"\usepackage{pgfplots}" + "\n"
     text += r"\usepackage{pgfplotstable}" + "\n"
@@ -116,8 +132,19 @@ def export_latex(options, filename, x, y, labels):
     text += "\n"
     text += r"\begin{tikzpicture}" + "\n"
     text += r"\begin{axis}[" + "\n"
-    text += "\t" + r"%xmin = 0.0, xmax = 1.0," + "\n"
-    text += "\t" + r"%ymin = 0.0, ymax = 1.0," + "\n"
+    xmin = +inf
+    xmax = -inf
+    for key in x:
+        xmin = min(x[key]["values"])
+        xmax = max(x[key]["values"])
+    ymin = +inf
+    ymax = -inf
+    for key in y:
+        if y[key]["label"] == 1:
+            ymin = min(ymin, min(y[key]["values"]))
+            ymax = max(ymax, max(y[key]["values"]))
+    text += "\t" + r"xmin = " + str(xmin) + ", xmax = " + str(xmax) + ", " + "\n"
+    text += "\t" + r"ymin = " + str(ymin) + ", ymax = " + str(ymax) + ", " + "\n"
     text += "\t" + r"xlabel = {" + labels["xlabel"] + "}," + "\n"
     text += "\t" + r"ylabel = {" + labels["ylabel"] + "}," + "\n"
     text += "\t" + r"xlabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
@@ -133,8 +160,8 @@ def export_latex(options, filename, x, y, labels):
         text += "\t" + r"legend pos = north west," + "\n"
         text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
         text += "\t" + r"legend cell align = left," + "\n"
-        text += "\t" + r"legend columns={2}," + "\n"
-        text += "\t" + r"legend image post style={scale=2}," + "\n"
+        text += "\t" + r"legend columns={1}," + "\n"
+        text += "\t" + r"legend image post style={scale=1}," + "\n"
     text += "\t" + r"]" + "\n"
     for key in y:
         if y[key]["label"] == 1:
@@ -159,8 +186,17 @@ def export_latex(options, filename, x, y, labels):
         text += r"\begin{axis}[" + "\n"
         text += "\t" + r"hide x axis," + "\n"
         text += "\t" + r"axis y line* = right," + "\n"
-        text += "\t" + r"%xmin = 0.0, xmax = 1.0," + "\n"
-        text += "\t" + r"%ymin = 0.0, ymax = 1.0," + "\n"
+        for key in x:
+            xmin = min(x[key]["values"])
+            xmax = max(x[key]["values"])
+        ymin = +inf
+        ymax = -inf
+        for key in y:
+            if y[key]["label"] == 2:
+                ymin = min(ymin, min(y[key]["values"]))
+                ymax = max(ymax, max(y[key]["values"]))
+        text += "\t" + r"xmin = " + str(xmin) + ", xmax = " + str(xmax) + ", " + "\n"
+        text += "\t" + r"ymin = " + str(ymin) + ", ymax = " + str(ymax) + ", " + "\n"
         text += "\t" + r"ylabel = {" + labels["y2label"] + "}," + "\n"
         text += "\t" + r"ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
         text += "\t" + r"ylabel near ticks," + "\n"
@@ -174,8 +210,8 @@ def export_latex(options, filename, x, y, labels):
             text += "\t" + r"legend pos = north east," + "\n"
             text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
             text += "\t" + r"legend cell align = left," + "\n"
-            text += "\t" + r"legend columns={2}," + "\n"
-            text += "\t" + r"legend image post style={scale=2}," + "\n"
+            text += "\t" + r"legend columns={1}," + "\n"
+            text += "\t" + r"legend image post style={scale=1}," + "\n"
         text += "\t" + r"]" + "\n"
         for key in y:
             if y[key]["label"] == 2:
@@ -188,13 +224,15 @@ def export_latex(options, filename, x, y, labels):
                     text += "table[ x = " + keyy + ", y = " + key + "]{\\data};"
                 text += "\n"
         if is_multiple:
-            text += "\t" + r"\legend{ "
             buffer = []
             for key in y:
                 if y[key]["label"] == 2:
-                    buffer.append(y[key]["legend"])
-            text += ', '.join(buffer)
-            text += "}" + "\n"
+                    if(y[key]["legend"] != ""):
+                        buffer.append(y[key]["legend"])
+            if len(buffer) != 0:
+                text += "\t" + r"\legend{ "
+                text += ', '.join(buffer)
+                text += "}" + "\n"
         text += r"\end{axis}" + "\n"
     text += r"\end{tikzpicture}"
     text += "\n"
@@ -220,6 +258,11 @@ def export_matplotlib(options, filename, x, y, labels):
     text += "#=================================" + "\n"
     text += "\n"
     text += "\n"
+
+    is_date = False
+    for key in x:
+        if isinstance(x[key]["values"][0], datetime.datetime):
+            is_date = True
 
     is_multiple = (options.graph_type == "multiple_series")
 
@@ -278,6 +321,7 @@ def export_matplotlib(options, filename, x, y, labels):
     text += "\t" + r'# "figure.size": [],     # default fig size of 0.9 textwidth' + "\n"
     text += "\t" + r'"text.latex.preamble": [' + "\n"
     text += "\t" + "\t" + r'r"\usepackage{amsmath}",' + "\n"
+    text += "\t" + "\t" + r'r"\usepackage{eurosym}",' + "\n"
     text += "\t" + "\t" + r'r"\usepackage{siunitx}"' + "\n"
     text += "\t" + r"]" + "\n"
     text += r"}" + "\n"
@@ -297,8 +341,25 @@ def export_matplotlib(options, filename, x, y, labels):
                 text += r"plt.plot(data[0], data[" + str(i) + "]" + mpl_plot_options + ", linewidth=1.5, label=y_legends[" + str(i-1) +"])" + "\n"
                 i += 1
     text += "\n"
+    xmin = +inf
+    xmax = -inf
+    for key in x:
+        xmin = min(x[key]["values"])
+        xmax = max(x[key]["values"])
+    ymin = +inf
+    ymax = -inf
+    for key in y:
+        if y[key]["label"] == 1:
+            ymin = min(ymin, min(y[key]["values"]))
+            ymax = max(ymax, max(y[key]["values"]))
+    if is_date:
+        xmin = f"'{str(xmin)}'"
+        xmax = f"'{str(xmax)}'"
+    text += r"plt.xlim(xmin=" + str(xmin) + ", xmax=" + str(xmax) + ") " + "\n"
+    text += r"plt.ylim(ymin=" + str(ymin) + ", ymax=" + str(ymax) + ") " + "\n"
+    text += "\n"
     if is_multiple:
-        text += r"plt.legend(frameon=False, loc='upper left', markerscale=2, fontsize='x-small')" + "\n"
+        text += r"plt.legend(frameon=False, loc='upper left', markerscale=1, fontsize='x-small')" + "\n"
         text += "\n"
     text += r"plt.xlabel(" + '"' + labels["xlabel"].replace('\\','\\\\') + '"' + ")" + "\n"
     text += r"plt.ylabel(" + '"' + labels["ylabel"].replace('\\','\\\\') + '"' + ")" + "\n"
@@ -318,9 +379,27 @@ def export_matplotlib(options, filename, x, y, labels):
                         mpl_plot_options = ""
                     text += r"plt.plot(data[0], data[" + str(
                         i) + "]" + mpl_plot_options + ", linewidth=1.5, linestyle='dashed', label=y_legends[" + str(i - 1) + "])" + "\n"
+                    i += 1
+        text += "\n"
+        xmin = +inf
+        xmax = -inf
+        for key in x:
+            xmin = min(x[key]["values"])
+            xmax = max(x[key]["values"])
+        ymin = +inf
+        ymax = -inf
+        for key in y:
+            if y[key]["label"] == 2:
+                ymin = min(ymin, min(y[key]["values"]))
+                ymax = max(ymax, max(y[key]["values"]))
+        if is_date:
+            xmin = f"'{str(xmin)}'"
+            xmax = f"'{str(xmax)}'"
+        text += r"plt.xlim(xmin=" + str(xmin) + ", xmax=" + str(xmax) + ") " + "\n"
+        text += r"plt.ylim(ymin=" + str(ymin) + ", ymax=" + str(ymax) + ") " + "\n"
         text += "\n"
         if is_multiple:
-            text += r"plt.legend(frameon=False, loc='upper right', markerscale=2, fontsize='x-small')" + "\n"
+            text += r"plt.legend(frameon=False, loc='upper right', markerscale=1, fontsize='x-small')" + "\n"
             text += "\n"
         text += r"plt.ylabel(" + '"' + labels["y2label"].replace('\\','\\\\') + '"' + ")" + "\n"
         text += r"plt.tick_params(axis='y', rotation=0)" + "\n"
@@ -388,111 +467,111 @@ class ExportException(Exception):
 
 
 
-def write_results(dir_results, filename, vectX, vectY):  # fichier txt avec valeurs brutes
-    # Test if filename is a str
-    if type(filename) != str:
-        raise TypeError("The argument filename must be a string")
-
-    NX = len(vectX)
-    NY = len(vectY)
-
-    for i in range(NY):
-        local_values_length = len(vectY[i])
-        if(local_values_length != NX):
-            raise ValueError("Impossible to export the data with non-equal numbers of entries")
-
-    print(filename)
-
-    results = open(filename, "x")
-
-    raw_results = ""
-    for i in range(NX):
-        raw_results += str(vectX[i]) + " , "
-        for j in range(NY - 1):
-            raw_results += str(vectY[j][i]) + " , "
-        raw_results += str(vectY[NY - 1][i]) + " \n "
-
-    results.write(raw_results)
-
-
-
-def graph_SFT(directory):
-
-    latexCommand = "pdflatex "
-    deleteCommand = "rm "
-
-    # Data samples
-    # -----------------------------------------------------
-
-    # array dans array pour les y pour gérer plusieurs colonnes
-    Xvalues = np.linspace(1.0, 10.0, 5)
-    # YvaluesSimple = [np.linspace(10.0, 100.0, 5)]
-    YvaluesMultiple = [np.linspace(10.0, 100.0, 5), np.linspace(50.0, 200.0, 5)]
-
-    # print(str(Xvalues))
-    # print(str(YvaluesSimple))
-    # print(str(YvaluesMultiple))
-
-    # for files in results directory
-
-    # natures management
-    data_file = open(directory + "NaturesBalances.txt", "r")
-
-    root_name = "nature"
-
-    # reading the results file on nature balances
-    data = reader(data_file, delimiter="\t")
-    columns = []
-
-    for line in data:
-        columns = [[] for i in line]
-        break
-
-    for line in data:
-        for i in range(len(line) - 1):
-
-            # the value is summed over one day
-            j = 0
-            value = 0
-            while j < 23:
-                value += line[i]
-                j += 1
-
-            # added the value in the column
-            columns[i].append(line[i])
-            try:
-                columns[i][-1] = float(columns[i][-1])
-            except:
-                pass
-
-    outputDir = directory + root_name + "/"
-
-    nameFile = outputDir + root_name + ".txt"
-    latexFile = outputDir + root_name + ".tex"
-
-    makedirs(outputDir)
-    CPU_time = process_time()  # CPU time measurement
-
-    write_results(outputDir, nameFile, columns[0], [columns[2], columns[3], columns[6], columns[7]])
-
-    xlabel = root_name + r", [\si{\hour}]"  # number of hours since the beginning of the year
-    ylabel = root_name + r", [\si{kW.h}]"  # quantity of energy in kW.h
-
-    # creating x/y couples
-    combinatoire = list()
-
-    combinatoire.append([0, 1])  # LVE consumed
-    combinatoire.append([0, 2])  # LVE produced
-    combinatoire.append([0, 3])  # Heat consumed
-    combinatoire.append([0, 4])  # Heat produced
-
-    write_LaTeX_source(outputDir, latexFile, nameFile, xlabel, ylabel, combinatoire)
-
-    system(latexCommand+latexFile)
-    system(deleteCommand+"*aux")
-    system(deleteCommand+"*log")
-
-    CPU_time = process_time() - CPU_time  # time taken by the initialization
-
-    print(CPU_time)
+# def write_results(dir_results, filename, vectX, vectY):  # fichier txt avec valeurs brutes
+#     # Test if filename is a str
+#     if type(filename) != str:
+#         raise TypeError("The argument filename must be a string")
+#
+#     NX = len(vectX)
+#     NY = len(vectY)
+#
+#     for i in range(NY):
+#         local_values_length = len(vectY[i])
+#         if(local_values_length != NX):
+#             raise ValueError("Impossible to export the data with non-equal numbers of entries")
+#
+#     print(filename)
+#
+#     results = open(filename, "x")
+#
+#     raw_results = ""
+#     for i in range(NX):
+#         raw_results += str(vectX[i]) + " , "
+#         for j in range(NY - 1):
+#             raw_results += str(vectY[j][i]) + " , "
+#         raw_results += str(vectY[NY - 1][i]) + " \n "
+#
+#     results.write(raw_results)
+#
+#
+#
+# def graph_SFT(directory):
+#
+#     latexCommand = "pdflatex "
+#     deleteCommand = "rm "
+#
+#     # Data samples
+#     # -----------------------------------------------------
+#
+#     # array dans array pour les y pour gérer plusieurs colonnes
+#     Xvalues = np.linspace(1.0, 10.0, 5)
+#     # YvaluesSimple = [np.linspace(10.0, 100.0, 5)]
+#     YvaluesMultiple = [np.linspace(10.0, 100.0, 5), np.linspace(50.0, 200.0, 5)]
+#
+#     # print(str(Xvalues))
+#     # print(str(YvaluesSimple))
+#     # print(str(YvaluesMultiple))
+#
+#     # for files in results directory
+#
+#     # natures management
+#     data_file = open(directory + "NaturesBalances.txt", "r")
+#
+#     root_name = "nature"
+#
+#     # reading the results file on nature balances
+#     data = reader(data_file, delimiter="\t")
+#     columns = []
+#
+#     for line in data:
+#         columns = [[] for i in line]
+#         break
+#
+#     for line in data:
+#         for i in range(len(line) - 1):
+#
+#             # the value is summed over one day
+#             j = 0
+#             value = 0
+#             while j < 23:
+#                 value += line[i]
+#                 j += 1
+#
+#             # added the value in the column
+#             columns[i].append(line[i])
+#             try:
+#                 columns[i][-1] = float(columns[i][-1])
+#             except:
+#                 pass
+#
+#     outputDir = directory + root_name + "/"
+#
+#     nameFile = outputDir + root_name + ".txt"
+#     latexFile = outputDir + root_name + ".tex"
+#
+#     makedirs(outputDir)
+#     CPU_time = process_time()  # CPU time measurement
+#
+#     write_results(outputDir, nameFile, columns[0], [columns[2], columns[3], columns[6], columns[7]])
+#
+#     xlabel = root_name + r", [\si{\hour}]"  # number of hours since the beginning of the year
+#     ylabel = root_name + r", [\si{kW.h}]"  # quantity of energy in kW.h
+#
+#     # creating x/y couples
+#     combinatoire = list()
+#
+#     combinatoire.append([0, 1])  # LVE consumed
+#     combinatoire.append([0, 2])  # LVE produced
+#     combinatoire.append([0, 3])  # Heat consumed
+#     combinatoire.append([0, 4])  # Heat produced
+#
+#     write_LaTeX_source(outputDir, latexFile, nameFile, xlabel, ylabel, combinatoire)
+#
+#     system(latexCommand+latexFile)
+#     system(deleteCommand+"*aux")
+#     system(deleteCommand+"*log")
+#
+#     CPU_time = process_time() - CPU_time  # time taken by the initialization
+#
+#     print(CPU_time)
 

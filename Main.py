@@ -311,7 +311,7 @@ producer_datalogger.add("physical_time", graph_status="X")
 # test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
 # test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
-
+# Exports
 test_export1_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series")
 CO2_datalogger = Datalogger("Coco_l_asticot", "test_export1", graph_options=test_export1_graph_options, graph_labels={"xlabel": r"$\varepsilon \, [\si{\meter\per\second}]$", "ylabel": r"$\beta \, [\si{\watt}]$"})
 CO2_datalogger.add("physical_time", graph_status="X", graph_style="lines")

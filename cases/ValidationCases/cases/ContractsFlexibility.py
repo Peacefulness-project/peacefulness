@@ -6,18 +6,17 @@ from datetime import datetime
 
 from os import chdir
 
-from src.common.World import World
-
-from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
-
 from src.common.Aggregator import Aggregator
-
 from src.common.Datalogger import Datalogger
+from src.common.Nature import Nature
+from src.common.World import World
 
+from src.tools.GraphAndTex import graph_options
 from src.tools.SubclassesDictionary import get_subclasses
+
 
 # ##############################################################################################
 # Minimum
@@ -126,15 +125,71 @@ subclasses_dictionary["Device"]["Dishwasher"]("curtailment_dishwasher", curtailm
 # Creation of the validation daemon
 description = "This script checks that the flexibility works well for contracts."
 
+filename = "contracts_flexibility_validation"
 
 reference_values = {"BAU_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "cooperative_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0],
                     "curtailment_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                     }
 
-filename = "contracts_flexibility_validation"
+name = "Bought_Energy_BAU"
+export_plot1 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "BAU_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "BAU_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
 
-parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6}
+name = "Bought_Energy_CooperativeContract"
+export_plot2 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "cooperative_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "cooperative_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          }
+}
+
+name = "Bought_Energy_CurtailmentContract"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "curtailment_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "curtailment_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"num"},
+                      ]
+          }
+}
+
+name = "Bought_Energy_Alltogether"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "BAU_owner.LVE.energy_bought_reference", "style": "points", "legend": r"BAU"},
+                      {"catalog_name_entry": "cooperative_owner.LVE.energy_bought_reference", "style": "points", "legend": r"coop."},
+                      {"catalog_name_entry": "curtailment_owner.LVE.energy_bought_reference", "style": "points", "legend": r"curt."}
+                      ]
+          },
+    "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
+          "graphs": [ {"catalog_name_entry": "BAU_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "cooperative_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "curtailment_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                      ]
+          }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("contracts_flexibility_test", parameters)
 
