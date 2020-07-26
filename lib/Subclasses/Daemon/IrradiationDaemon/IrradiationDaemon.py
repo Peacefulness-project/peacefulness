@@ -16,34 +16,51 @@ class IrradiationDaemon(Daemon):
         data = load(file)[self._location]
         file.close()
 
-        self._irradiation_values = data["irradiation"]
+        self._total_irradiation_values = data["total_irradiation"]
+        self._direct_normal_irradiation_values = data["direct_normal_irradiation"]
         self._format = data["format"]
 
         # getting back the appropriate way of reading the data
-        self._files_formats = {"each_hour/month": self._get_each_hour_per_month}  # every hours in a month
+        self._files_formats = {"each_hour/month": self._get_each_hour_per_month,  # every hours in a month
+                               "day/month": self._get_1_day_per_month  # 1 day in a month
+                               }
         self._get_irradiation = self._files_formats[self._format]
 
         # setting initial values
-        self._catalog.add(f"{self._location}.irradiation_value", self._get_irradiation())  # setting the initial value of previous temperature
+        irradiation = self._get_irradiation()
+        self._catalog.add(f"{self._location}.total_irradiation_value", irradiation["total"])  # setting the initial value of previous irradiation
+        self._catalog.add(f"{self._location}.direct_normal_irradiation_value", irradiation["direct"])
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.irradiation_value", self._get_irradiation())
+        irradiation = self._get_irradiation()
+        self._catalog.set(f"{self._location}.total_irradiation_value", irradiation["total"])  # setting the initial value of previous irradiation
+        self._catalog.set(f"{self._location}.direct_normal_irradiation_value", irradiation["direct"])
 
     # ##########################################################################################
     # Reading functions
     # ##########################################################################################
 
-    def _get_each_hour_per_month(self):  # this methods is here to get the temperature when the format is 1 day/month
-        month = self._catalog.get("physical_time").month  # the month corresponding to the temperature
+    def _get_each_hour_per_month(self):  # this methods is here to get the irradiation when the format is 1 day/month
+        month = self._catalog.get("physical_time").month  # the month corresponding to the irradiation
         day = self._catalog.get("physical_time").day - 1  # the "- 1" is necessary because python indexation begins at 0 and day at 1
         hour = self._catalog.get("physical_time").hour
 
-        irradiation = self._irradiation_values[str(month)][24*day+hour]  # the value of irradiation at the current hour for the current day for the current month
+        irradiation = {}
+        irradiation["total"] = self._total_irradiation_values[str(month)][24 * day + hour]  # the value of irradiation at the current hour for the current day for the current month
+        irradiation["direct"] = self._direct_normal_irradiation_values[str(month)][24 * day + hour]
 
         return irradiation
 
+    def _get_1_day_per_month(self):  # this methods is here to get the irradiation when the format is 1 day/month
+        current_hour = self._catalog.get("physical_time").hour  # the current hour of the day
+        current_month = str(self._catalog.get("physical_time").month)  # the current month in the year
 
+        irradiation = {}
+        irradiation["total"] = self._total_irradiation_values[current_month][current_hour]  # the value of irradiation at the current hour for the current day for the current month
+        irradiation["direct"] = self._direct_normal_irradiation_values[current_month][current_hour]
+
+        return irradiation  # return the appropriate irradiation for the current moment

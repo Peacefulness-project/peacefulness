@@ -23,7 +23,9 @@ class WindDaemon(Daemon):
         self._wind_values = data["wind_speed"]
 
         # getting back the appropriate way of reading the data
-        self._files_formats = {"1/month": self._get_temperature_365_days}  # 1 representative day, hour by hour, for each month
+        self._files_formats = {"each_hour/month": self._get_each_hour_per_month,  # every hours in a month
+                               "1/month": self._get_wind_365_days  # 1 representative day, hour by hour, for each month
+                               }
         self._get_wind_speed = self._files_formats[self._format]
 
         # setting initial values
@@ -40,7 +42,15 @@ class WindDaemon(Daemon):
     # Reading functions
     # ##########################################################################################
 
-    def _get_temperature_365_days(self):
+    def _get_each_hour_per_month(self):  # this methods is here to get all wind speed for each hour
+        month = self._catalog.get("physical_time").month  # the month corresponding to the wind speed
+        day = self._catalog.get("physical_time").day - 1  # the "- 1" is necessary because python indexation begins at 0 and day at 1
+        hour = self._catalog.get("physical_time").hour
+
+        wind_values = self._wind_values[str(month)][24 * day + hour]
+        return wind_values
+
+    def _get_wind_365_days(self):
         month = self._catalog.get("physical_time").month
         hour = (self._catalog.get("physical_time").hour+1) % 24
         return self._wind_values[str(month)][hour]

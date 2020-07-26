@@ -39,7 +39,7 @@ class PV(NonControllableDevice):
         message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}.irradiation_value")
+        irradiation = self._catalog.get(f"{self._location}.total_irradiation_value")
 
         energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
