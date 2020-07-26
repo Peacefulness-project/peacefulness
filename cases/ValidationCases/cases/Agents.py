@@ -37,6 +37,7 @@ name_world = "validation"
 world = World(name_world)  # creation
 
 
+
 # ##############################################################################################
 # Definition of the path to the files
 world.set_directory("cases/ValidationCases/Results/Agents")  # here, you have to put the path to your results directory
