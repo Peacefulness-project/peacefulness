@@ -19,17 +19,13 @@ class PV_Alois(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        self._usage_profile = dict()
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
-        [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
-
-        self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
+        self._technical_profile = dict()
 
         # usage profile
-        self._usage_profile[data_device["usage_profile"]["nature"]] = None
+        self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
         # panel efficiency
         self._efficiency_pan = data_device["usage_profile"]["efficiency_pan"]

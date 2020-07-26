@@ -86,7 +86,6 @@ world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
 
-#world.choose_exports("matplotlib")
 
 # ##############################################################################################
 # Optionnal
@@ -233,9 +232,7 @@ heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_product
 
 heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
 
-test_CO2_elec = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_elec", BAU_elec, CO2_producer, aggregator_elec, "dummy", "dummy_elec")
-
-test_CO2_heat = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_heat", BAU_heat, CO2_producer, aggregator_heat, "dummy", "dummy_heat")
+subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, "standard_field", {"surface": 18, "location": "Pau"})  # creation of a photovoltaic panel field
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
