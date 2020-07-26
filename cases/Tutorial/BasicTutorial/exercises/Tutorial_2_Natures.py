@@ -1,6 +1,6 @@
 # Tutorial 3
 # Daemons
-from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_3_daemons  # a specific importation
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_2_natures  # a specific importation
 
 # ##############################################################################################
 # Usual importations
@@ -76,4 +76,4 @@ world.set_time(start_date,  # time management: start date
 
 # ##############################################################################################
 # Correction
-correction_3_daemons()
+correction_2_natures()
