@@ -6,9 +6,9 @@ class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers de
 
     def __init__(self, period=1):
         if period == "global":
-            super().__init__("aggregator_balances_global", "AggregatorsBalances_global.txt", period)
+            super().__init__("aggregator_balances_global", "AggregatorsBalances_global", period)
         else:
-            super().__init__(f"aggregator_balances_frequency_{period}", f"AggregatorsBalances_frequency_{period}.txt", period)
+            super().__init__(f"aggregator_balances_frequency_{period}", f"AggregatorsBalances_frequency_{period}", period)
 
         def create_get_energy_function(aggregator_name, bought_or_sold, inside_or_outside):  # this function returns a function calculating the unbalance value of the agent for the considered
 
@@ -25,6 +25,10 @@ class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers de
             return get_money
 
         self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
+
+        if not self._global:
+            self.add(f"simulation_time", graph_status="X")
+            self.add(f"physical_time", graph_status=None)
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
             self.add(f"{aggregator_name}.energy_sold_inside", create_get_energy_function(aggregator_name, "sold", "inside"))

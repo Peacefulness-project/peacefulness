@@ -172,7 +172,7 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["ECOSAggregatorDatalogger"]()
-    subclasses_dictionary["Datalogger"]["GlobalValuesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["MismatchDatalogger"]()
 
     # datalogger used to get back producer outputs
     producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")

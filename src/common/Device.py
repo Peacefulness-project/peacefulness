@@ -10,7 +10,7 @@ from src.tools.GlobalWorld import get_world
 
 class Device:
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters=None):
+    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -19,12 +19,10 @@ class Device:
         self._period = None  # the duration of a classic cycle of use for the user of the device
         self._offset = None  # the delay between the beginning of the period and the beginning of the year
 
-        self._user_profile_name = user_profile_name
         self._user_profile = list()  # user profile of utilisation, describing user's priority
         # the content differs depending on the kind of device
 
-        self._usage_profile_name = usage_profile_name
-        self._usage_profile = list()  # energy profile for one usage of the device
+        self._technical_profile = list()  # energy profile for one usage of the device
         # the content differs depending on the kind of device
 
         # here are data dicts dedicated to different levels of energy needed/proposed each turn
@@ -51,7 +49,7 @@ class Device:
                 try:  # "try" allows to test if self._natures[nature of the contract] was created in the aggregator definition step
                     self._natures[contract.nature]["contract"] = contract  # add the contract
                 except:
-                    raise DeviceException(f"a aggregator is missing for nature {contract.nature}")
+                    raise DeviceException(f"an aggregator is missing for nature {contract.nature}")
 
         self._agent = agent  # the agent represents the owner of the device
 
@@ -87,7 +85,7 @@ class Device:
                 pass
 
         if self._filename != "loaded device":  # if a filename has been defined...
-            self._read_data_profiles()  # ... then the file is converted into consumption profiles
+            self._read_data_profiles(user_profile, technical_profile)  # ... then the file is converted into consumption profiles
             # else, the device has been loaded and does not need a data file
 
     # ##########################################################################################
@@ -103,10 +101,10 @@ class Device:
     # ##########################################################################################
     # Consumption reading
 
-    def _read_data_profiles(self):
+    def _read_data_profiles(self, user_profile, technical_profile):
         pass
 
-    def _read_consumption_data(self):
+    def _read_consumer_data(self, user_profile):
 
         # parsing the data
         file = open(self._filename, "r")
@@ -114,19 +112,27 @@ class Device:
 
         # getting the user profile
         try:
-            data_user = data["user_profile"][self._user_profile_name]
+            user_data = data["user_profile"][user_profile]
         except:
-            raise DeviceException(f"{self._user_profile_name} does not belong to the list of predefined user profiles for the class {type(self).__name__}: {data['user_profile'].keys()}")
+            raise DeviceException(f"{user_profile} does not belong to the list of predefined user profiles for the class {type(self).__name__}: {data['user_profile'].keys()}")
 
-        # getting the usage profile
+        return user_data
+
+    def _read_technical_data(self, technical_profile):
+
+        # parsing the data
+        file = open(self._filename, "r")
+        data = load(file)
+
+        # getting the technical profile
         try:
-            data_device = data["device_consumption"][self._usage_profile_name]
+            technical_data = data["technical_data"][technical_profile]
         except:
-            raise DeviceException(f"{self._usage_profile_name} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
+            raise DeviceException(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
 
         file.close()
 
-        return [data_user, data_device]
+        return technical_data
 
     def _data_user_creation(self, data_user):  # modification to enable the device to have a period starting a saturday at 0:00 AM
 
@@ -146,7 +152,6 @@ class Device:
 
             self._offset = offset
 
-    def _offset_management(self):
         time_step = self._catalog.get("time_step")
         year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
         beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
@@ -160,7 +165,7 @@ class Device:
         nature_to_remove = []  # buffer (as it is not possible to remove keys in a dictionary being read)
 
         for nature in self._natures:
-            if nature.name not in self._usage_profile.keys():
+            if nature.name not in self._technical_profile.keys():
                 nature_to_remove.append(nature)
 
         for nature in nature_to_remove:
@@ -179,7 +184,6 @@ class Device:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the balances
-        # print(self._messages["ascendant"])
         messages = {"ascendant": {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]},
                     "descendant": {element: self._messages["descendant"][element] for element in self._messages["descendant"]}}
 
@@ -197,7 +201,8 @@ class Device:
             energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
             self.set_energy_accorded(nature, energy_accorded)
 
-        self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
+        if self._moment is not None:
+            self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
     def make_balances(self):
         energy_sold = dict()
@@ -340,14 +345,6 @@ class Device:
     @property
     def natures(self):  # shortcut for read-only
         return self._natures
-
-    @property
-    def usage_profile(self):  # shortcut for read-only
-        return self._usage_profile_name
-
-    @property
-    def user_profile(self):  # shortcut for read-only
-        return self._user_profile_name
 
     @property
     def agent(self):  # shortcut for read-only

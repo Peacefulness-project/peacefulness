@@ -21,7 +21,6 @@ from src.common.Datalogger import Datalogger
 from src.tools.Utilities import big_separation, adapt_path, into_list
 from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.GlobalWorld import set_world
-from src.tools.GraphAndTex import export_in_LaTeX, export_in_matplotlib
 
 
 # ##############################################################################################
@@ -70,8 +69,6 @@ class World:
         # It avoids to erase inadvertently pre-defined elements
 
         self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
-
-        self._catalog.add("export_formats", [])  # where the desired export formats are written
 
         set_world(self)  # set world as a global variable used later to instantiate objects
 
@@ -123,9 +120,6 @@ class World:
 
     # ##########################################################################################
     # options
-
-    def choose_exports(self, export_formats):  # optionally, you can export using keywords
-        self._catalog.add("export_formats", into_list(export_formats))
 
     def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
         # this new element requires to modify the related device, contract and strategy subclasses to have some effect
@@ -286,22 +280,26 @@ class World:
             # creation of devices
             for device_data in data["composition"]:
                 for profile in data["composition"][device_data]:
-                    if profile[3][0] > profile[3][1]:
-                        raise WorldException(f"The minimum number of devices {profile[0]} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
-                    number_of_devices = self._catalog.get("int")(profile[3][0], profile[3][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
+                    if profile["quantity"][0] > profile["quantity"][1]:
+                        raise WorldException(f"The minimum number of devices {profile['name']} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
+                    number_of_devices = self._catalog.get("int")(profile["quantity"][0], profile["quantity"][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                     for j in range(number_of_devices):
-                        device_name = f"{agent_name}_{profile[0]}_{j}"  # name of the device, "Profile X"_5_Light_0
+                        device_name = f"{agent_name}_{profile['name']}_{j}"  # name of the device, "Profile X"_5_Light_0
                         device_class = self._subclasses_dictionary["Device"][device_data]
 
                         contracts = []
                         for contract_type in contract_dict:
-                            if profile[4] == contract_type:
+                            if profile["contract"] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
-                        if len(profile) == 5:  # if there are no parameters
-                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2])  # creation of the device
-                        else:  # if there are parameters
-                            device = device_class(device_name, contracts, agent, aggregators, profile[1], profile[2], profile[5])  # creation of the device
+                        if "parameters" not in profile and "user_profile" in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"])  # creation of the device
+                        elif "parameters" in profile and "user_profile" in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"], profile["parameters"])  # creation of the device
+                        elif "parameters" not in profile and "user_profile" not in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"])  # creation of the device
+                        elif "parameters" in profile and "user_profile" not in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"], profile["parameters"])  # creation of the device
 
     # ##########################################################################################
     # Initialization
@@ -349,6 +347,9 @@ class World:
         independent_aggregators_list = self._identify_independent_aggregators()
 
         independent_agents_list = self._identify_independent_agents()
+
+        for datalogger in self._catalog.dataloggers.values():
+            datalogger.initial_operations()
 
         # Resolution
         for i in range(0, self.time_limit, 1):

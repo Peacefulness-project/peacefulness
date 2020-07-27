@@ -6,20 +6,18 @@ from math import inf
 
 class InstantHotWaterTank(ChargerDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name)
+    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-
-        [data_user, data_device] = self._read_consumption_data()  # parsing the data
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_user = self._read_consumer_data(user_profile)  # parsing the data
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
 
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
@@ -76,7 +74,7 @@ class InstantHotWaterTank(ChargerDevice):
 
         # usage_profile
         self._demand = dict()
-        self._usage_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
+        self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
         for nature in self.natures:
             self._demand[nature.name] = 0  # the demand is initialized
 
@@ -98,15 +96,15 @@ class InstantHotWaterTank(ChargerDevice):
     # ##########################################################################################
 
     def update(self):
-        energy_wanted = {nature: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                       for nature in self._usage_profile}  # consumption which will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for consumption in self._user_profile:  # for every moment when hot water is needed
             if self._moment == consumption[0]:  # if it matches with the current moment, the tank is instantly heated
-                for nature in self._usage_profile:
-                    self._demand[nature] = consumption[1] * self._usage_profile[nature]  # and the quantity associated is kept
+                for nature in self._technical_profile:
+                    self._demand[nature] = consumption[1] * self._technical_profile[nature]  # and the quantity associated is kept
 
-                for nature in self._usage_profile:  # creating the demand in energy
+                for nature in self._technical_profile:  # creating the demand in energy
                     # physical data
                     Cp = 4.18 * 10 ** 3  # thermal capacity of water in J.kg-1.K-1
                     rho = 1  # density of water in kg.L-1

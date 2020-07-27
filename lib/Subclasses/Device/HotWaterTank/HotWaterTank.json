@@ -1,11 +1,19 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "family": {
       "usage_profile": {"LVE": 6},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0.5},
       "max_power": {"LVE": 2}
+    },
+
+    "family_heat": {
+      "usage_profile": {"LTH": 6},
+      "consumption_variation": 0.1,
+
+      "min_power": {"LTH": 0.5},
+      "max_power": {"LTH": 2}
     },
 
     "5_people_heat": {
@@ -89,6 +97,17 @@
     },
 
     "ECOS_5": {
+      "profile": [[7.5, 0.25], [19, 0.25], [20.5, 0.5]],
+      "location": "Pau",
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 2.5,
+      "month_dependency": [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
+    },
+
+    "family": {
       "profile": [[7.5, 0.25], [19, 0.25], [20.5, 0.5]],
       "location": "Pau",
 

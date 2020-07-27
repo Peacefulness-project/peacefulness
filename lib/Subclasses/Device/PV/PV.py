@@ -1,20 +1,14 @@
 # device representing a photovoltaic panel
 from src.common.DeviceMainClasses import NonControllableDevice
-from math import sin, pi
 
 
 class PV(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/PV/PV.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/PV/PV.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
 
         self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
-
-        # initialization of PV
-        for line in self._user_profile:
-            solar_prod = sin((line[0] - 8.5) * pi / 9) * line[1]
-            line[1] = max(0, solar_prod)
 
         # creation of keys for exergy
         self._catalog.add(f"{self.name}_exergy_in", 0)
@@ -24,17 +18,13 @@ class PV(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self):
-        self._usage_profile = dict()
+    def _read_data_profiles(self, user_profile, technical_profile):
+        data_device = self._read_technical_data(technical_profile)  # parsing the data
 
-        [data_user, data_device] = self._read_consumption_data()  # getting back the profiles
-
-        self._data_user_creation(data_user)  # creation of an empty user profile
-
-        self._offset_management()  # implementation of the offset
+        self._technical_profile = dict()
 
         # usage profile
-        self._usage_profile[data_device["usage_profile"]["nature"]] = None
+        self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
         # efficiency
         self._efficiency = data_device["usage_profile"]["efficiency"]
@@ -46,8 +36,8 @@ class PV(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
-        energy_wanted = {nature.name: {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None}
-                         for nature in self.natures}  # consumption that will be asked eventually
+        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         irradiation = self._catalog.get(f"{self._location}.total_irradiation_value")
 

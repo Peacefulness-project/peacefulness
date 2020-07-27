@@ -1,5 +1,5 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "medium_consumption": {
       "usage_profile": [{"LVE": 1}, 1, 1200],
       "consumption_variation": 0.1,

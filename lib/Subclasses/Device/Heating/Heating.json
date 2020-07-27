@@ -1,5 +1,5 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "house_elec": {
       "usage_profile": [{"LVE": 1}, 1.5, 7200],
       "consumption_variation": 0.1,

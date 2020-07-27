@@ -1,24 +1,15 @@
 {
-  "device_consumption": {
-    "ECOS": {
+  "technical_data": {
+    "standard": {
       "usage_profile": {"nature": "LTH", "a0": 0.833, "a1": 2.7095,"a2": 0},
       "fluid_temperature": 45,
       "efficiency_variation": 0.1
     },
 
-    "ECOS_field": {
+    "standard_field": {
       "usage_profile": {"nature": "LTH", "a0": 0.833, "a1": 2.7095,"a2": 0},
       "fluid_temperature": 45,
       "efficiency_variation": 0
-    }
-
-  },
-
-  "user_profile": {
-    "ECOS": {
-
-      "offset": 0,
-      "period": 24
     }
   }
 }

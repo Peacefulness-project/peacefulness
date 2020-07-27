@@ -5,10 +5,6 @@ from src.common.DeviceMainClasses import Converter
 class HeatPump(Converter):
 
     def __init__(self, name, contracts, agent, upstream_aggregator, downstream_aggregator, technical_profile_name, filename="lib/Subclasses/Device/HeatPump/HeatPump.json"):
-        super().__init__(name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name)
-
-    # ##########################################################################################
-    # Dynamic behaviour
-    # ##########################################################################################
+        super().__init__(name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, None, technical_profile_name)
 
 

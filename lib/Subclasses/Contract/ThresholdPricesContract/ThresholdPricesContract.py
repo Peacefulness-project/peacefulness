@@ -1,4 +1,4 @@
-# This contract is a contract in which the customer makes no effort.
+# This contract is a contract in which energy is asked/proposes only when the price is below/above a defined value.
 from src.common.Contract import Contract
 
 

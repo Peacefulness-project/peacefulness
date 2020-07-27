@@ -2,25 +2,25 @@
   "template name": "egoist_family",
 
   "composition": {
-    "Background": [["Background", "ECOS", "ECOS_5", [1,1], "LVE_BAU"]],
+    "Background": [{"name": "Background", "user_profile": "ECOS", "technical_data": "ECOS_5", "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_BAU"]],
-    "Dryer": [["Dryer", "family", "medium_consumption", [1,1], "LVE_BAU"]],
+    "WashingMachine": [{"name": "WashingMachine", "user_profile": "ECOS_1", "technical_data": "ECOS", "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Dryer": [{"name": "Dryer", "user_profile": "family", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "Refrigerator": [["Refrigerator", "refrigerator", "medium_consumption", [0,0], "LVE_BAU"],
-      ["Freezer", "freezer", "medium_consumption", [0,0], "LVE_BAU"]],
-    "Heating": [["Heating", "residential", "house_elec", [1,1], "LVE_BAU", {"location":  "Pau"}]],
+    "Refrigerator": [{"name": "Refrigerator", "user_profile": "refrigerator", "technical_data": "medium_consumption", "quantity": [0,0], "contract": "LVE_BAU"},
+      {"name": "Freezer", "user_profile": "freezer", "technical_data": "medium_consumption", "quantity": [0,0], "contract": "LVE_BAU"}],
+    "Heating": [{"name": "Heating", "user_profile": "residential", "technical_data": "house_elec", "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"location":  "Pau"}}],
 
-    "HotWaterTank": [["HotWaterTank", "ECOS_5", "5_people_elec", [1,1], "LVE_BAU"]],
-    "Charger": [["Charger", "default", "laptop_charger", [0,4], "LVE_BAU"]],
+    "HotWaterTank": [{"name": "HotWaterTank", "user_profile": "ECOS_5", "technical_data": "5_people_elec", "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Charger": [{"name": "Charger", "user_profile": "default", "technical_data": "laptop_charger", "quantity": [0,4], "contract": "LVE_BAU"}],
 
-    "PV": [["PV", "ECOS", "ECOS", [0,0], "LVE_BAU", {"surface": 5, "location":  "Pau"}]],
-    "SolarThermalCollector": [["SolarThermalCollector", "ECOS", "ECOS", [0,0], "heat_BAU", {"surface": 1, "location":  "Pau"}]]
+    "PV": [{"name": "PV", "technical_data": "standard", "quantity": [0,0], "contract": "LVE_BAU", "parameters": {"surface": 5, "location":  "Pau"}}],
+    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [0,0], "contract": "LTH_BAU", "parameters": {"surface": 1, "location":  "Pau"}}]
   },
 
   "contracts": {
     "LVE_BAU":  ["LVE", "EgoistContract"],
-    "heat_BAU":  ["LTH", "EgoistContract"]
+    "LTH_BAU":  ["LTH", "EgoistContract"]
   }
 
 }

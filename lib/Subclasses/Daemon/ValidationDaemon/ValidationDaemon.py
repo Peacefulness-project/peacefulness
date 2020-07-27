@@ -1,6 +1,8 @@
 # This daemon is here to validate at each turn that calculation are made correctly.
 from src.common.Daemon import Daemon
-from src.tools.GraphAndTex import export
+from src.common.Datalogger import Datalogger
+
+from src.tools.GraphAndTex import graph_options, write_and_print, export
 from src.tools.Utilities import adapt_path
 
 from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import set_problem
@@ -11,20 +13,22 @@ class ValidationDaemon(Daemon):
     def __init__(self, name, parameters, period=1):
         super().__init__(name, period, parameters)
 
-        self._reference_values = parameters["reference_values"]  # the reference values
+        self._description = parameters["description"]
 
         self._filename = parameters["filename"] + ".txt"  # the name of the file were results are written
 
-        self._description = parameters["description"]
+        self._reference_values = parameters["reference_values"]  # the reference values
+
+        self._x_values = {"iteration": [], "physical_time": []}
+        self._y_values = {f"{key_checked}_reference": parameters["reference_values"][key_checked] for key_checked in parameters["reference_values"]}
+        for key in parameters["reference_values"].keys():
+            self._y_values[f"{key}_simulation"] = []
 
         self._tolerance = parameters["tolerance"]  # the tolerance to accept or reject a value
 
         self._problem = {key: [] for key in parameters["reference_values"].keys()}  # a list containing all the round when a problem occured
 
-        self._x_values = {"iteration": []}
-        self._y_values = {f"reference value of {key_checked}": parameters["reference_values"][key_checked] for key_checked in parameters["reference_values"]}
-        for key in parameters["reference_values"].keys():
-            self._y_values[f"simulation value of {key}"] = []
+        self._export_plots = parameters["export_plots"]
 
         # the message are both prompted and written in a file
         message = f"{self.name}: {self._description}\n" \
@@ -32,7 +36,7 @@ class ValidationDaemon(Daemon):
 
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")  # the file resuming the results of the test
 
-        self._write_and_print(message, file)
+        write_and_print(message, file)
 
         file.close()
 
@@ -45,10 +49,13 @@ class ValidationDaemon(Daemon):
         data_to_check = {}
         iteration = self._catalog.get("simulation_time")
 
+        self._x_values["iteration"].append(self._catalog.get("simulation_time"))
+        self._x_values["physical_time"].append(self._catalog.get('physical_time'))
+
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
-            self._x_values["iteration"].append(self._catalog.get("simulation_time"))
-            self._y_values[f"simulation value of {key}"].append(self._catalog.get(key))
+            #self._x_values["iteration"].append(self._catalog.get("simulation_time"))
+            self._y_values[f"{key}_simulation"].append(self._catalog.get(key))
 
             if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same
                 pass
@@ -59,7 +66,7 @@ class ValidationDaemon(Daemon):
                 self._problem[key].append(iteration)
                 set_problem(True)  # reports to the upper level that a problem occured
 
-                self._write_and_print(message, file)
+                write_and_print(message, file)
 
         file.close()
 
@@ -68,12 +75,11 @@ class ValidationDaemon(Daemon):
     # ##########################################################################################
 
     def final_process(self):
+        # List of the checked keys
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")  # the file resuming the results of the test
-        data_to_check = {}
-        iteration = self._catalog.get("simulation_time")
 
         message = "\nResume of the test:"
-        self._write_and_print(message, file)
+        write_and_print(message, file)
 
         for key in self._reference_values.keys():
             if self._problem[key]:
@@ -81,22 +87,35 @@ class ValidationDaemon(Daemon):
             else:
                 message = f"no problem encountered for key {key}"
 
-            self._write_and_print(message, file)
+            write_and_print(message, file)
+
+        message = ""
+        write_and_print(message, file)
 
         file.close()
 
-        for export_format in self._catalog.get("export_formats"):
-            export(export_format, self._x_values, self._y_values)
+        # Export
+        for elt in self._export_plots:
+            x_exported_values = {}
+            y_exported_values = {}
 
-    # ##########################################################################################
-    # Utilities
-    # ##########################################################################################
+            x_exported_values[elt["X"]["catalog_name_entry"]] = {"values": self._x_values[elt["X"]["catalog_name_entry"]]}
 
-    def _write_and_print(self, message, file):  # write in the chosen file and print the message
-        file.write(message + "\n")
-        print(message)
+            for list in elt["Y"]["graphs"]:
+                y_exported_values[list["catalog_name_entry"]] = {"values": self._y_values[list["catalog_name_entry"]],
+                                                                 "style": list["style"],
+                                                                 "legend": list["legend"],
+                                                                 "label": 1}
+            if "Y2" in elt.keys():
+                for list in elt["Y2"]["graphs"]:
+                    y_exported_values[list["catalog_name_entry"]] = {
+                        "values": self._y_values[list["catalog_name_entry"]],
+                        "style": list["style"],
+                        "legend": list["legend"],
+                        "label": 2}
 
+            labels = {"xlabel": elt["X"]["label"], "ylabel": elt["Y"]["label"]}
+            if "Y2" in elt.keys():
+                labels.update({"y2label": elt["Y2"]["label"]})
 
-
-
-
+            export(elt["options"], self._catalog.get('path')+"/outputs/"+elt["filename"], x_exported_values, y_exported_values, labels)

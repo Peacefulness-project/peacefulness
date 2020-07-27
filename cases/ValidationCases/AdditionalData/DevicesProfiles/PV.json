@@ -1,16 +1,8 @@
 {
-  "device_consumption": {
+  "technical_data": {
     "dummy_usage": {
       "usage_profile": {"nature": "LVE", "efficiency": 0.50},
       "efficiency_variation": 0
-    }
-
-  },
-
-  "user_profile": {
-    "dummy_user": {
-      "offset": 0,
-      "period": 24
     }
   }
 }

@@ -7,7 +7,7 @@ class LimitPricesDaemon(Daemon):
     def __init__(self, parameters, period=1):
         self._nature = parameters["nature"]
 
-        name = "grid_prices_manager_for_nature" + self._nature
+        name = "grid_prices_manager_for_nature_" + self._nature
         super().__init__(name, period, parameters)
 
         self._buying_price = parameters["limit_buying_price"]

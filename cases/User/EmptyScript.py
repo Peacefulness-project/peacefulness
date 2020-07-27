@@ -104,11 +104,6 @@ world.set_time(start_date,  # time management: start date
 
 
 # ##############################################################################################
-# here we have the possibility to save the world to use it later
-# world.save()  # saving the world for a later use
-
-
-# ##############################################################################################
 # Simulation start
 world.start()
 
