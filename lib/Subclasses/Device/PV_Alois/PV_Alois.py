@@ -5,8 +5,8 @@ from math import sin, pi, log10
 
 class PV_Alois(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile_name, usage_profile_name, parameters, filename="lib/Subclasses/Device/PV_Alois/PV_Alois.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile_name, usage_profile_name, parameters)
+    def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/PV_Alois/PV_Alois.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
 
         self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
@@ -35,15 +35,15 @@ class PV_Alois(NonControllableDevice):
 
         # Normal Operating Cell Temperature (NOCT) Temperature
 
-        self._NOCT_temperature = data_device["usage_profile"]["NOCT_temperature"]
+        self._NOCT = data_device["usage_profile"]["NOCT"]
 
         # Normal Operating Cell Temperature (NOCT) Irradiation
 
-        self._NOCT_irradiation = data_device["usage_profile"]["NOCT_irradiation"]
+        self._Iref = data_device["usage_profile"]["Iref"]
 
-        # gamma
+        # Reference Temperature
 
-        self._gamma = data_device["usage_profile"]["gamma"]
+        self._Tref = data_device["usage_profile"]["Tref"]
 
         self._unused_nature_removal()
 
@@ -61,13 +61,10 @@ class PV_Alois(NonControllableDevice):
 
         energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
-        cell_temperature = ambient_temperature + (self._NOCT_temperature - ambient_temperature) * irradiation / self._NOCT_irradiation
+        cell_temperature = ambient_temperature + (self._NOCT - 20) * irradiation / self._Iref
 
-        if (irradiation > 0):
-            efficiency = self._efficiency_pan * (1 - self._kappa * (cell_temperature - self._NOCT_temperature) + self._gamma * log10( irradiation / self._NOCT_irradiation))
+        efficiency = self._efficiency_pan * (1 - self._kappa * (cell_temperature - self._Tref))
 
-        else:
-            efficiency = 0
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = - energy_received * efficiency  # energy produced by the device

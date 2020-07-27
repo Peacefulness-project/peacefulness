@@ -84,13 +84,13 @@ world.set_random_seed("tournesol")
 start_date = datetime(year=2020, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24)  # number of time steps simulated
+               24*365)  # number of time steps simulated
 
 #world.choose_exports("matplotlib")
 
 # ##############################################################################################
 # Optionnal
-world.complete_message("CO2", 0)
+#world.complete_message("CO2", 0)
 
 
 # ##############################################################################################
@@ -183,6 +183,7 @@ aggregator_manager = Agent("aggregator_manager")
 
 CO2_producer = Agent("CO2_producer")
 
+solar_owner = Agent("solar_owner")
 
 # ##############################################################################################
 # Contract
@@ -227,15 +228,17 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
+#wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
+#heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
-heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+#heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
 
-test_CO2_elec = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_elec", BAU_elec, CO2_producer, aggregator_elec, "dummy", "dummy_elec")
+#subclasses_dictionary["Device"]["SolarThermalCollector"]("Jacky", BAU_heat, solar_owner, aggregator_heat, "ECOS_field", {"location": "Pau", "surface": 12})
 
-test_CO2_heat = subclasses_dictionary["Device"]["DummyCO2Device"]("test_CO2_heat", BAU_heat, CO2_producer, aggregator_heat, "dummy", "dummy_heat")
+Michel = subclasses_dictionary["Device"]["PV_Alois"]("Michel", BAU_elec, solar_owner, aggregator_elec, "standard_field", {"location": "Pau", "surface": 12})
+
+#subclasses_dictionary["Device"]["WindTurbine"]("Toto", BAU_elec, solar_owner, aggregator_elec, "ECOS", {"location": "Lyon"})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
@@ -312,35 +315,7 @@ producer_datalogger.add("physical_time", graph_status="X")
 # test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
 # Exports
-test_export1_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series")
-CO2_datalogger = Datalogger("Coco_l_asticot", "test_export1", graph_options=test_export1_graph_options, graph_labels={"xlabel": r"$\varepsilon \, [\si{\meter\per\second}]$", "ylabel": r"$\beta \, [\si{\watt}]$"})
-CO2_datalogger.add("physical_time", graph_status="X", graph_style="lines")
-CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_style="points")
 
-test_export1_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series")
-CO2_datalogger = Datalogger("toto", "test_export1b", graph_options=test_export1_graph_options, graph_labels={"xlabel": r"$\alpha \, [\si{\meter\per\second}]$", "ylabel": r"$\beta \, [\si{\watt}]$"})
-CO2_datalogger.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="X", graph_style="lines")
-CO2_datalogger.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_style="lines")
-
-test_export2_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "single_series")
-CO2_datalogger2 = Datalogger("Jean_sans_peur", "test_export2", graph_options=test_export2_graph_options, graph_labels={"xlabel": r"$x$", "ylabel": r"$y \times z$"})
-CO2_datalogger2.add("physical_time", graph_status="X", graph_legend="t")
-CO2_datalogger2.add(f"{CO2_producer.name}.LVE.energy_bought", graph_legend=r"$\rho \mathcal{P}$", graph_style="lines")
-CO2_datalogger2.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y", graph_legend=r"$\mathsf{g}$", graph_style="points")
-
-test_export3_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "multiple_series")
-CO2_datalogger3 = Datalogger("Richard_lionheart", "test_export3", graph_options=test_export3_graph_options, graph_labels={"xlabel": r"$\mathcal{P}$", r"ylabel": "$Y$"})
-CO2_datalogger3.add("physical_time", graph_status="X", graph_legend="t")
-CO2_datalogger3.add(f"{CO2_producer.name}.LVE.energy_bought")
-CO2_datalogger3.add(f"{CO2_producer.name}.LTH.energy_bought", graph_status="Y", graph_legend=r"$\aleph$")
-CO2_datalogger3.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_legend=r"$\gamma$", graph_style="points")
-
-test_export4_graph_options = graph_options(["csv", "LaTeX", "matplotlib"], "multiple_series")
-CO2_datalogger4 = Datalogger("ZIzou", "test_export4", graph_options=test_export4_graph_options, graph_labels={"xlabel": r"$\beta \, [\si{\joule}]$", "ylabel": r"$\dfrac{1+\sqrt{\chi}}{\zeta} \, [\si{\joule}]$", "y2label": r"$\dfrac{\rho}{\Xi} \, [\si{\joule}]$"})
-CO2_datalogger4.add(f"physical_time", graph_status="X", graph_legend=r"Erreur si visible")
-CO2_datalogger4.add(f"{CO2_producer.name}.LTH.energy_erased", graph_status="Y", graph_legend=r"$\aleph$", graph_style="lines")
-CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_bought", graph_status="Y", graph_legend=r"$\gamma$")
-CO2_datalogger4.add(f"{CO2_producer.name}.LVE.energy_erased", graph_status="Y2", graph_legend=r"$\eta$", graph_style="lines")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
@@ -377,6 +352,7 @@ filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  
 file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the calculation phase: {CPU_time}\n")
 file.close()
+
 
 
 
