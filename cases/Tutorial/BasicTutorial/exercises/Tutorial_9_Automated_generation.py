@@ -160,7 +160,10 @@ subclasses_dictionary["Device"]["Heating"]("heating", BAU_heat, consumer, aggreg
 # ##############################################################################################
 # Automated generation of agents
 
-# TODO: create 500 agents using the template "DummyAgent.json". Its aggregators are "aggregators_elec" and "aggregators_heat" and its price managers are "price_manager_TOU_elec" for LVE nature and "price_manager_flat_heat" for LTH nature.
+# TODO: create automatically 500 agents using the template "DummyAgent.json".
+#       Its characteristics are:
+#       1/ supervised by the aggregators "aggregators_elec" and "aggregators_heat"
+#       2/ management of prices done by the daemon 'price_manager_TOU_elec' for the low voltage electricity 'LVE', and by the daemon 'price_manager_flat_heat' for the low temperature heat 'LTH'
 
 
 # ##############################################################################################
