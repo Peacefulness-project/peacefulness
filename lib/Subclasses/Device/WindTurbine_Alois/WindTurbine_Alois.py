@@ -9,7 +9,7 @@ class WindTurbine_Alois(NonControllableDevice):
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
-        self._rugosity = parameters["rugosity"]  #the resistance of the type of field
+        self._rugosity = parameters["rugosity"]  # the resistance of the type of field
 
     # ##########################################################################################
     # Initialization
@@ -51,11 +51,10 @@ class WindTurbine_Alois(NonControllableDevice):
 
         height_ref = 10
 
-        if (self._rugosity == "flat"):
+        if self._rugosity == "flat":
             gamma = 0.1
-        if (self._rugosity == "trees"):
+        if self._rugosity == "trees":
             gamma = 0.25
-
 
         wind = wind_ref * (self._height / height_ref)**gamma
 
@@ -63,10 +62,10 @@ class WindTurbine_Alois(NonControllableDevice):
             energy_received = 0
 
         elif (wind > self._U_cut_bot) and (wind <= self._U_nom):
-            energy_received = 1/2 * air_density * self._Cp * self._surface * wind**3 * self._efficiency * (wind**3 - self._U_cut_bot**3)/(self._U_nom**3 - self._U_cut_bot**3)
+            energy_received = 1/2 * air_density * self._Cp * self._surface * wind**3 * self._efficiency * (wind**3 - self._U_cut_bot**3)/(self._U_nom**3 - self._U_cut_bot**3) / 1000
 
         elif (wind > self._U_nom) and (wind <= self._U_cut_top):
-            energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency
+            energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency / 1000
 
 
 
