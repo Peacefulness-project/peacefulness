@@ -223,7 +223,73 @@ export_plot2 = {
           }
 }
 
-parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2]}
+name = "LVE_early_emergency_energy_bought"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "early_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "early_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "early_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+name = "LVE_expensive_emergency_energy_bought"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "expensive_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "expensive_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "expensive_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "expensive_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "expensive_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+name = "LVE_consuming_emergency_energy_bought"
+export_plot5 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "consuming_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "consuming_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "consuming_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "consuming_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "consuming_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("distribution_strategy_test", parameters)
 

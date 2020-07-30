@@ -225,7 +225,7 @@ export_plot6 = {
           }
 }
 
-name = "LVE_renewable_sold"
+name = "LVE_total_energy_sold"
 export_plot7 = {
     "name": name,
     "filename": "export_"+name,
