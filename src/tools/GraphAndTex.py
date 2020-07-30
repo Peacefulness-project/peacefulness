@@ -19,7 +19,7 @@ from src.tools.Utilities import adapt_path
 # ##############################################################################################
 
 class graph_options():
-    def __init__(self, formats, graph_type):
+    def __init__(self, formats, graph_type="single_series"):
         self.formats = formats
         self.graph_type = graph_type
 

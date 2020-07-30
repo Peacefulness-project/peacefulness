@@ -95,20 +95,22 @@ Nature("PW", "Pressurized Water")
 #       4/ on-peak hours are from 6h to 12h and from 13h to 23h
 
 # limit prices
-# TODO: create a limit price manager for low voltage electricity. The price must be between 10 and 20 c/kWh.
+# TODO: create a daemons as a limit price manager for low voltage electricity. The price must be between 10 and 20 c/kWh.
 
-# TODO: create a limit price manager for low temperature heat. The price must be between 8 and 14 c/kWh.
+# TODO: create a daemons as a limit price manager for low temperature heat. The price must be between 8 and 14 c/kWh.
 
 # Meteorological daemons
-# TODO: create an indoor temperature manager.
+# TODO: create a daemon whose role is to manage the indoor temperature.
 
-# TODO: create the various daemons described below to handle meteorological conditions at a specific location
-#       Location is "Pau"
-#       The data to manage, and therefore corresponding daemons to create are:
-#       1/ outdoor temperature
-#       2/ cold water temperature of the water grid
-#       3/ irradiation
-#       4/ wind
+# TODO: In the followings, several daemons are required to handle meteorological conditions at a specific location, which in the present case is "Pau"
+# TODO: create a daemon whose role is to manage the outdoor temperature
+
+# TODO: create a daemon whose role is to manage the cold water temperature of the water grid
+
+# TODO: create a daemon whose role is to manage the irradiation
+
+# TODO: create a daemon whose role is to manage the wind
+
 
 # ##############################################################################################
 # Correction

@@ -123,11 +123,20 @@ Agent("consumer")
 # ##############################################################################################
 # Contract
 
-# TODO: create an EgoistContract called "elec_contract_egoist" for nature LVE and applying the prices of the daemon price_manager_TOU_elec (created above)
+# TODO: create a contract of 'EgoistContract' type, called "elec_contract_egoist"
+#       Its characteristics are:
+#       1/ associated with the low voltage electricity nature (see above, LVE)
+#       2/ associated with the price manager daemon managing the TOU tariff of the low voltage electricity nature (see above, price_manager_TOU_elec)
 
-# TODO: create an EgoistContract called "elec_contract_curtailment" for nature LVE and applying the prices of the daemon price_manager_TOU_elec (created above)
+# TODO: create a contract of 'CurtailmentContract' type, called "elec_contract_curtailment"
+#       Its characteristics are:
+#       1/ associated with the low voltage electricity nature (see above, LVE)
+#       2/ associated with the price manager daemon managing the TOU tariff of the low voltage electricity nature (see above, price_manager_TOU_elec)
 
-# TODO: create a CooperativeContract called "heat_contract_cooperative" for nature LTH and applying the prices of the daemon price_manager_flat_heat (created above)
+# TODO: create a contract of 'CooperativeContract' type, called "heat_contract_cooperative"
+#       Its characteristics are:
+#       1/ associated with the low temperature heat nature (see above, LTH)
+#       2/ associated with the price manager daemon managing the TOU tariff of the low temperature heat nature (see above, price_manager_flat_heat)
 
 
 # ##############################################################################################
