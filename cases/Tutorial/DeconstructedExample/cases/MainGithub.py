@@ -88,7 +88,7 @@ orgone = Nature(name, description)
 # this daemons fix a price for a given nature of energy
 price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.11})  # sets prices for TOU rate
 price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
-flat_prices_manager_heat = price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for flat rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for flat rate
 
 price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("grid_prices", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0.05})  # sets prices for TOU rate
 
