@@ -47,9 +47,10 @@ class WindTurbine_Alois(NonControllableDevice):
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         wind_ref = self._catalog.get(f"{self._location}.wind_value")  # wind speed in m.s-1
-        air_density = 1.17  # air density in kg.m-3
 
-        height_ref = 10
+        height_ref = self._catalog.get(f"{self._location}.height_ref")
+
+        air_density = 1.17  # air density in kg.m-3
 
         if self._rugosity == "flat":
             gamma = 0.1
@@ -66,7 +67,6 @@ class WindTurbine_Alois(NonControllableDevice):
 
         elif (wind > self._U_nom) and (wind <= self._U_cut_top):
             energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency / 1000
-
 
 
         for nature in energy_wanted:

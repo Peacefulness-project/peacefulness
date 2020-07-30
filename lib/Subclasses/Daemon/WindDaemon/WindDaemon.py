@@ -21,6 +21,7 @@ class WindDaemon(Daemon):
 
         self._format = data["format"]
         self._wind_values = data["wind_speed"]
+        self._height_ref = data["height_ref"]
 
         # getting back the appropriate way of reading the data
         self._files_formats = {"each_hour/month": self._get_each_hour_per_month,  # every hours in a month
@@ -30,6 +31,7 @@ class WindDaemon(Daemon):
 
         # setting initial values
         self._catalog.add(f"{self._location}.wind_value", self._get_wind_speed())
+        self._catalog.add(f"{self._location}.height_ref", self._height_ref)
 
     # ##########################################################################################
     # Dynamic behavior
