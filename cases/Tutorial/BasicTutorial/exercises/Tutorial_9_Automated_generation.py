@@ -128,7 +128,7 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_eg
 
 curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
 
 
 # ##############################################################################################
@@ -152,9 +152,9 @@ subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, 
 
 subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, "family", "medium_consumption")
 
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_heat, consumer, aggregator_heat, "family", "family_heat")
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, "family", "family_heat")
 
-subclasses_dictionary["Device"]["Heating"]("heating", BAU_heat, consumer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
 
 
 # ##############################################################################################

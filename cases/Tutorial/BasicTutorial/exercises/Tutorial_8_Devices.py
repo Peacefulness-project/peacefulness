@@ -128,7 +128,7 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_eg
 
 curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
 
 
 # ##############################################################################################
@@ -183,7 +183,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'HotWaterTank' type, called "hot_water_tank"
 #       Its characteristics are:
-#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, BAU_heat)
+#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_heat"
 #       For the technical features:
@@ -192,7 +192,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'Heating' type, called "heating"
 #       Its characteristics are:
-#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, BAU_heat)
+#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_heat"
 #       For the technical features:
