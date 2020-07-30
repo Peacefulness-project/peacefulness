@@ -107,9 +107,9 @@ aggregator_elec_inf = Aggregator("local_grid_inferior", LVE, strategy_elec, aggr
 
 # ##############################################################################################
 # Manual creation of devices
-device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, devices_owner_sup, aggregator_elec_sup, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, devices_owner_sup, aggregator_elec_sup, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, devices_owner_inf, aggregator_elec_inf, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, devices_owner_inf, aggregator_elec_inf, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################

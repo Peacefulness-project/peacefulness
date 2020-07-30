@@ -3,16 +3,16 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class DummyCO2Device(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, filename="lib/Subclasses/Device/DummyCO2Device/DummyCO2Device.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile)
+    def __init__(self, name, contracts, agent, aggregators, profiles, filename="lib/Subclasses/Device/DummyCO2Device/DummyCO2Device.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 

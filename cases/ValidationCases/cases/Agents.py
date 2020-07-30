@@ -37,7 +37,6 @@ name_world = "validation"
 world = World(name_world)  # creation
 
 
-
 # ##############################################################################################
 # Definition of the path to the files
 world.set_directory("cases/ValidationCases/Results/Agents")  # here, you have to put the path to your results directory
@@ -107,9 +106,9 @@ aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manag
 
 # ##############################################################################################
 # Manual creation of devices
-device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, sup_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, sup_agent, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, inf_agent, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, inf_agent, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################

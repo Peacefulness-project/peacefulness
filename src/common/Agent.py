@@ -33,9 +33,6 @@ class Agent:
         self._catalog.set(f"{self.name}.money_earned", 0)  # money earned by the agent by selling energy during the round
 
         for nature in self.natures:
-            cumulated_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["cumulated_effort"]  # effort management
-            self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": cumulated_effort})  # current effort is reinitialized
-
             self._catalog.set(f"{self.name}.{nature.name}.energy_bought", 0)  # energy received by the agent during the current round
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", 0)  # energy delivered by the agent during the current round
 
@@ -73,11 +70,6 @@ class Agent:
     # ##########################################################################################
     # Utilities
     # ##########################################################################################
-
-    def add_effort(self, effort, nature):
-        current_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["current_round_effort"] + effort
-        cumulated_effort = self._catalog.get(f"{self.name}.{nature.name}.effort")["cumulated_effort"] + effort
-        self._catalog.set(f"{self.name}.{nature.name}.effort", {"current_round_effort": current_effort, "cumulated_effort": cumulated_effort})
 
     @property
     def name(self):  # shortcut for read-only

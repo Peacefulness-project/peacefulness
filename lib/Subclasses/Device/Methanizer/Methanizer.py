@@ -3,15 +3,15 @@ from src.common.DeviceMainClasses import AdjustableDevice
 
 class Methanizer(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, technical_profile, filename="lib/Subclasses/Device/Methanizer/Methanizer.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile)
+    def __init__(self, name, contracts, agent, aggregators, profiles, filename="lib/Subclasses/Device/Methanizer/Methanizer.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles)
 
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._technical_profile = dict()
         self._efficiency = None

@@ -12,9 +12,9 @@ class NonControllableDevice(Device):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
@@ -106,8 +106,8 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
         self._use_ID = None  # this ID references the ongoing use
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
         self._is_done = []  # list of usage already done during one period
@@ -120,9 +120,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
@@ -343,8 +343,8 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
 
@@ -357,9 +357,9 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
@@ -482,8 +482,8 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
+    def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._remaining_time = 0  # this counter indicates if a usage is running and how much time is will run
 
@@ -491,9 +491,9 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
@@ -587,8 +587,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
 class Converter(Device):
 
-    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, technical_profile_name, parameters=None):
-        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, technical_profile_name, parameters)
+    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profiles, parameters=None):
+        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, profiles, parameters)
 
         self._upstream_aggregator = {"name": upstream_aggregator.name, "nature": upstream_aggregator.nature.name, "contract": contracts}  # the aggregator who has to adapt
         self._downstream_aggregator = {"name": downstream_aggregator.name, "nature": downstream_aggregator.nature.name, "contract": contracts}   # the aggregator who has the last word
@@ -597,8 +597,8 @@ class Converter(Device):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"]}
         self._efficiency = data_device["efficiency"]  # the efficiency of the converter
