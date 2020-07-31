@@ -145,7 +145,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'PV' type, called "PV_field"
 #       Its characteristics are:
-#       1/ governed by a business as usual "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
+#       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "producer"
 #       3/ supervised by the aggregator "aggregator_elec"
 #       For the technical features:
@@ -155,7 +155,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'WindTurbine' type, called "wind_turbine"
 #       Its characteristics are:
-#       1/ governed by a curtailment contract "CurtailmentContract" for the low voltage electricity nature (see above, curtailment_elec)
+#       1/ its contract is a "CurtailmentContract" for the low voltage electricity nature (see above, curtailment_elec)
 #       2/ owned by the agent "producer"
 #       3/ supervised by the aggregator "aggregator_elec"
 #       For the technical features:
@@ -164,7 +164,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'Background' type, called "background"
 #       Its characteristics are:
-#       1/ governed by a business as usual "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
+#       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_elec"
 #       For the technical features:
@@ -173,7 +173,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'Dishwasher' type, called "dishwasher"
 #       Its characteristics are:
-#       1/ governed by a business as usual "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
+#       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_elec"
 #       For the technical features:
@@ -182,7 +182,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'HotWaterTank' type, called "hot_water_tank"
 #       Its characteristics are:
-#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
+#       1/ its contract is a "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_heat"
 #       For the technical features:
@@ -191,7 +191,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 
 # TODO: create a device of 'Heating' type, called "heating"
 #       Its characteristics are:
-#       1/ governed by a cooperative contract "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
+#       1/ its contract is a "CooperativeContract" for the low temperature heat nature (see above, cooperative_heat)
 #       2/ owned by the agent "consumer"
 #       3/ supervised by the aggregator "aggregator_heat"
 #       For the technical features:
