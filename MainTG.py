@@ -232,7 +232,7 @@ heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_product
 
 heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau"})
 
-subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"surface": 18, "location": "Pau"})  # creation of a photovoltaic panel field
+subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "location": "Pau"})  # creation of a photovoltaic panel field
 
 
 # Performance measurement
