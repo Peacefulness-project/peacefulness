@@ -50,7 +50,16 @@ class WindTurbine_Alois(NonControllableDevice):
 
         height_ref = self._catalog.get(f"{self._location}.height_ref")
 
-        air_density = 1.17  # air density in kg.m-3
+        temperature_ref = self._catalog.get(f"{self._location}.current_outdoor_temperature") + 273.15
+
+        temperature = temperature_ref - 0.0065 * self._height
+
+        pressure = 101325 * (temperature / temperature_ref)**5.259
+
+
+        air_density = pressure / (temperature * 8.314/(29*10**(-3)))  # air density in kg.m-3
+
+        print(air_density)
 
         if self._rugosity == "flat":
             gamma = 0.1
