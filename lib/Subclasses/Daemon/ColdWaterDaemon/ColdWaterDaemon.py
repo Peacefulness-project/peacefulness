@@ -2,7 +2,7 @@
 from json import load
 from datetime import datetime
 from src.common.Daemon import Daemon
-
+from src.tools.ReadingFonction import get_1_values_per_month
 
 class ColdWaterDaemon(Daemon):
 
@@ -24,26 +24,21 @@ class ColdWaterDaemon(Daemon):
         self._format = data["format"]
 
         # getting back the appropriate way of reading the data
-        self._files_formats = {"1/month": self._get_1_temperature_per_month}  # 1 representative temperature for each month
+        self._files_formats = {"1/month": get_1_values_per_month}  # 1 representative temperature for each month
         self._get_water_temperature = self._files_formats[self._format]
 
         # initialization of the value
-        self._catalog.add(f"{self._location}.cold_water_temperature", self._get_water_temperature())
+        self._catalog.add(f"{self._location}.cold_water_temperature", self._get_water_temperature(self._temperatures, self._catalog))
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.cold_water_temperature", self._get_water_temperature())
+        self._catalog.set(f"{self._location}.cold_water_temperature", self._get_water_temperature(self._temperatures, self._catalog))
 
     # ##########################################################################################
     # Reading functions
     # ##########################################################################################
 
-    def _get_1_temperature_per_month(self):  # this methods is here to get the temperature when the format is 1 day/month
-        month = self._catalog.get("physical_time").month  # the month corresponding to the temperature
-        water_temperature = self._temperatures[str(month)]
-
-        return water_temperature
 

@@ -1,7 +1,7 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
 from json import load
 from src.common.Daemon import Daemon
-
+from src.tools.ReadingFonction import get_each_hour_per_month, get_1_day_per_month
 
 class WindDaemon(Daemon):
 
@@ -24,13 +24,13 @@ class WindDaemon(Daemon):
         self._height_ref = data["height_ref"]
 
         # getting back the appropriate way of reading the data
-        self._files_formats = {"each_hour/month": self._get_each_hour_per_month,  # every hours in a month
-                               "1/month": self._get_wind_365_days  # 1 representative day, hour by hour, for each month
+        self._files_formats = {"each_hour/month": get_each_hour_per_month,  # every hours in a month
+                               "1/month": get_1_day_per_month  # 1 representative day, hour by hour, for each month
                                }
         self._get_wind_speed = self._files_formats[self._format]
 
         # setting initial values
-        self._catalog.add(f"{self._location}.wind_value", self._get_wind_speed())
+        self._catalog.add(f"{self._location}.wind_value", self._get_wind_speed(self._wind_values, self._catalog))
         self._catalog.add(f"{self._location}.height_ref", self._height_ref)
 
     # ##########################################################################################
@@ -38,24 +38,12 @@ class WindDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.wind_value", self._get_wind_speed())
+        self._catalog.set(f"{self._location}.wind_value", self._get_wind_speed(self._wind_values, self._catalog))
 
     # ##########################################################################################
     # Reading functions
     # ##########################################################################################
 
-    def _get_each_hour_per_month(self):  # this methods is here to get all wind speed for each hour
-        month = self._catalog.get("physical_time").month  # the month corresponding to the wind speed
-        day = self._catalog.get("physical_time").day - 1  # the "- 1" is necessary because python indexation begins at 0 and day at 1
-        hour = self._catalog.get("physical_time").hour
-
-        wind_values = self._wind_values[str(month)][24 * day + hour]
-        return wind_values
-
-    def _get_wind_365_days(self):
-        month = self._catalog.get("physical_time").month
-        hour = (self._catalog.get("physical_time").hour+1) % 24
-        return self._wind_values[str(month)][hour]
 
 
 
