@@ -1,3 +1,4 @@
+from datetime import datetime
 
 def get_1_day_per_month(values, catalog):  # this methods is here to get the temperature when the format is 1 day/month
     current_hour = catalog.get("physical_time").hour  # the current hour of the day
