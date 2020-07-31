@@ -1,12 +1,12 @@
 {
   "technical_data": {
     "standard": {
-      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT": 45, "Tref": 298.15, "Iref": 800},
+      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT": 318.15, "Tref": 298.15, "Iref": 800},
       "efficiency_variation": 0.1
     },
 
     "standard_field": {
-      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT": 45, "Tref": 298.15, "Iref": 800},
+      "usage_profile": {"nature": "LVE", "efficiency_pan": 0.17, "kappa": 0.0045, "NOCT": 318.15, "Tref": 298.15, "Iref": 800},
       "efficiency_variation": 0
     }
   }

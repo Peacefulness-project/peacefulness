@@ -61,7 +61,7 @@ class PV_Alois(NonControllableDevice):
 
         energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
-        cell_temperature = ambient_temperature + (self._NOCT - 20) * irradiation / self._Iref
+        cell_temperature = ambient_temperature + (self._NOCT - (20 + 273.15)) * irradiation / self._Iref
 
         efficiency = self._efficiency_pan * (1 - self._kappa * (cell_temperature - self._Tref))
 
