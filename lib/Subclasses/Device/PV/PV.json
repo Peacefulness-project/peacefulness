@@ -1,12 +1,12 @@
 {
   "technical_data": {
     "standard": {
-      "usage_profile": {"nature": "LVE", "efficiency": 0.15},
+      "usage_profile": {"nature": "LVE", "surface_pan": 2, "efficiency": 0.15},
       "efficiency_variation": 0.1
     },
 
     "standard_field": {
-      "usage_profile": {"nature": "LVE", "efficiency": 0.15},
+      "usage_profile": {"nature": "LVE", "surface_pan": 2, "efficiency": 0.15},
       "efficiency_variation": 0
     }
   }

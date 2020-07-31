@@ -1,13 +1,13 @@
 {
   "technical_data": {
     "standard": {
-      "usage_profile": {"nature": "LTH", "a0": 0.833, "a1": 2.7095,"a2": 0},
+      "usage_profile": {"nature": "LTH", "surface_pan": 2, "a0": 0.833, "a1": 2.7095,"a2": 0},
       "fluid_temperature": 45,
       "efficiency_variation": 0.1
     },
 
     "standard_field": {
-      "usage_profile": {"nature": "LTH", "a0": 0.833, "a1": 2.7095,"a2": 0},
+      "usage_profile": {"nature": "LTH", "surface_pan": 2, "a0": 0.833, "a1": 2.7095,"a2": 0},
       "fluid_temperature": 45,
       "efficiency_variation": 0
     }
