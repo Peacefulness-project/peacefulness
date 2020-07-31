@@ -2,7 +2,7 @@
 # it fixes a price once and for all
 from json import load
 from src.common.Daemon import Daemon
-from src.tools.ReadingFonction import get_1_day_per_year
+from src.tools.ReadingFunction import get_1_day_per_year
 
 class PriceManagerRTPDaemon(Daemon):
 

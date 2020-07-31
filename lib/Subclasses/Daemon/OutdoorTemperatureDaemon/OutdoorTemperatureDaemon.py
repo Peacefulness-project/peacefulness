@@ -3,7 +3,7 @@
 from json import load
 from datetime import datetime
 from src.common.Daemon import Daemon
-from src.tools.ReadingFonction import get_1_day_per_month, get_365_days
+from src.tools.ReadingFunction import get_1_day_per_month, get_365_days
 
 
 class OutdoorTemperatureDaemon(Daemon):

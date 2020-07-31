@@ -1,7 +1,7 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
 from json import load
 from src.common.Daemon import Daemon
-from src.tools.ReadingFonction import get_each_hour_per_month, get_1_day_per_month
+from src.tools.ReadingFunction import get_each_hour_per_month, get_1_day_per_month
 
 class WindDaemon(Daemon):
 
