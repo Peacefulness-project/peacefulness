@@ -7,7 +7,7 @@ class PV(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/PV/PV.json"):
         super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
 
-        self._surface = parameters["surface"]
+        self._panels = parameters["panels"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
         # creation of keys for exergy
@@ -29,6 +29,9 @@ class PV(NonControllableDevice):
         # efficiency
         self._efficiency = data_device["usage_profile"]["efficiency"]
 
+        # panels surface
+        self._surface_pan = data_device["usage_profile"]["surface_pan"]
+
         self._unused_nature_removal()
 
     # ##########################################################################################
@@ -41,7 +44,7 @@ class PV(NonControllableDevice):
 
         irradiation = self._catalog.get(f"{self._location}.total_irradiation_value")
 
-        energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
+        energy_received = self._surface_pan * self._panels * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = - energy_received * self._efficiency  # energy produced by the device

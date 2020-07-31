@@ -8,7 +8,7 @@ class PV_Alois(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/PV_Alois/PV_Alois.json"):
         super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
 
-        self._surface = parameters["surface"]
+        self._panels = parameters["panels"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
         # creation of keys for exergy
@@ -29,6 +29,9 @@ class PV_Alois(NonControllableDevice):
 
         # panel efficiency
         self._efficiency_pan = data_device["usage_profile"]["efficiency_pan"]
+
+        # panel surface
+        self._surface_pan = data_device["usage_profile"]["surface_pan"]
 
         # kappa
         self._kappa = data_device["usage_profile"]["kappa"]
@@ -59,7 +62,7 @@ class PV_Alois(NonControllableDevice):
 
         ambient_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature") + 273.15
 
-        energy_received = self._surface * irradiation / 1000  # as irradiation is in W, it is transformed in kW
+        energy_received = self._surface_pan * self._panels * irradiation / 1000  # as irradiation is in W, it is transformed in kW
 
         cell_temperature = ambient_temperature + (self._NOCT - (20 + 273.15)) * irradiation / self._Iref
 

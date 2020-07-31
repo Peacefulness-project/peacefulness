@@ -10,8 +10,8 @@ class SolarThermalCollector(NonControllableDevice):
         self._catalog.add(f"{self.name}_exergy_in", 0)
         self._catalog.add(f"{self.name}_exergy_out", 0)
 
-        self._surface = parameters["surface"]
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
+        self._panels = parameters["panels"]
 
     # ##########################################################################################
     # Initialization
@@ -21,6 +21,9 @@ class SolarThermalCollector(NonControllableDevice):
         data_device = self._read_technical_data(technical_profile)  # parsing the data
 
         self._technical_profile = dict()
+
+        # panels surface
+        self._surface_pan = data_device["usage_profile"]["surface_pan"]
 
         # usage profile
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
@@ -44,7 +47,7 @@ class SolarThermalCollector(NonControllableDevice):
 
         efficiency = max(self._a0 * irradiation - self._a1 / (self._fluid_temperature - temperature) - self._a2 / (self._fluid_temperature - temperature) ** 2, 0)  # the efficiency cannot be negative
 
-        energy_received = self._surface * irradiation
+        energy_received = self._panels * self._surface_pan * irradiation
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = - energy_received * efficiency  # energy needed for all natures used by the device
