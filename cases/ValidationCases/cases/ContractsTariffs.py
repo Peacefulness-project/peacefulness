@@ -114,13 +114,13 @@ aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manag
 
 # Each device is created 3 times
 # flat contract
-subclasses_dictionary["Device"]["Background"]("flat_device", flat_elec_contract, flat_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Background"]("flat_device", flat_elec_contract, flat_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # TOU contract
-subclasses_dictionary["Device"]["Background"]("TOU_device", TOU_elec_contract, TOU_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Background"]("TOU_device", TOU_elec_contract, TOU_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # RTP contract
-subclasses_dictionary["Device"]["Background"]("RTP_device", RTP_elec_contract, RTP_owner, aggregator_elec, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Background"]("RTP_device", RTP_elec_contract, RTP_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################

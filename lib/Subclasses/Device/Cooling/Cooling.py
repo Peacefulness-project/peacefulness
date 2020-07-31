@@ -7,8 +7,8 @@ from src.common.Device import DeviceException, Device
 
 class Cooling(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, user_profile, technical_profile, parameters, filename="lib/Subclasses/Device/Cooling/Cooling.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters)
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/Cooling/Cooling.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
@@ -16,9 +16,9 @@ class Cooling(AdjustableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_user = self._read_consumer_data(user_profile)  # parsing the data
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_user = self._read_consumer_data(profiles["user"])  # parsing the data
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 

@@ -46,7 +46,7 @@ subclasses_dictionary = get_subclasses()
 # ##############################################################################################
 # Definition of the random seed
 # The default seed is the current time (the value returned by datetime.now())
-# TODO: set the string sunflower as the seed for the random generator
+# TODO: set the string "sunflower" as the seed for the random generator
 
 
 # ##############################################################################################

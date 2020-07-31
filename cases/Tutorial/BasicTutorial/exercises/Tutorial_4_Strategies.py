@@ -69,12 +69,9 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Natures
 
-# low voltage electricity
 LVE = load_low_voltage_electricity()
 
-# low temperature heat
 LTH = load_low_temperature_heat()
-
 
 # ##############################################################################################
 # Daemon

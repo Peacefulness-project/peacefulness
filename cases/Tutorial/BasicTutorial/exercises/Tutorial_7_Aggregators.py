@@ -69,12 +69,11 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Natures
 
-# low voltage electricity
 LVE = load_low_voltage_electricity()
 
-# low temperature heat
 LTH = load_low_temperature_heat()
 
+Nature("PW", "Pressurized Water")
 
 # ##############################################################################################
 # Daemon
@@ -128,17 +127,36 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_eg
 
 curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
 
 
 # ##############################################################################################
 # Aggregator
 
-# TODO: create an aggregator called "grid" applying the GridStrategy and owned by the agent "aggregators_owner"
+# TODO: create a general electrical aggregator called "grid"
+#       Its characteristics are:
+#       1/ associated with the low voltage electricity nature (see above, LVE)
+#       2/ applying the "Grid" strategy (see above, grid_strategy)
+#       3/ owned by the agent "aggregators_owner"
+#
 
-# TODO: create an aggregator called "aggregator_elec" applying the AlwaysSatisfied strategy and owned by the agent "aggregators_owner". The grid is its superior and it has the BAU_elec contract with it.
+# TODO: create an aggregator called "aggregator_elec"
+#       Its characteristics are:
+#       1/ associated with the low voltage electricity nature (see above, LVE)
+#       2/ applying the strategy "AlwaysSatisfied" (see above, elec_strategy)
+#       3/ owned by the agent "aggregators_owner"
+#       4/ its superior is the aggregator "grid" (see above, aggregator_grid)
+#       5/ its contract is business as usual for electricity (see above, BAU_elec)
 
-# TODO: create an aggregator called "aggregator_heat" applying the LightAutarkyEmergency strategy and owned by the agent "aggregators_owner". The elec aggregator is its superior, it has the BAU_elec contract with it, with an efficiency of 3.5 and a capcity of 1 MWh.
+# TODO: create an aggregator called "aggregator_heat"
+#       Its characteristics are:
+#       1/ associated with the low temperature nature (see above, LTH)
+#       2/ applying the strategy "LightAutarkyEmergency" (see above, heat_strategy)
+#       3/ owned by the agent "aggregators_owner"
+#       4/ its superior with the general electrical aggregator (see above, aggregator_grid)
+#       5/ its contract is business as usual "EgoistContract" (see above, BAU_elec)
+#       6/ efficiency of 3.5
+#       7/ max power of 1 MW
 
 
 # ##############################################################################################

@@ -646,7 +646,7 @@ def correction_10_dataloggers():
         print("The datalogger of the subclass SelfSufficiencyDatalogger has not been created successfully.")
         exit()
 
-    # period of the datalogger for nself-sufficiency
+    # period of the datalogger for self-sufficiency
     if world.catalog.dataloggers["self_sufficiency_frequency_1"]._period != 1 and world.catalog.dataloggers["self_sufficiency_frequency_1"]._global != False:
         print("The period of the datalogger of the subclass SelfSufficiencyDatalogger is not the correct one.")
         exit()
@@ -660,72 +660,408 @@ def correction_10_dataloggers():
     if world.catalog.dataloggers["nature_balances_global"]._period != 1 and world.catalog.dataloggers["nature_balances_global"]._global != True:
         print("The period of the datalogger of the subclass NatureBalancesDatalogger is not the correct one.")
         exit()
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
 
-    # creation of the datalogger called "consumer_datalogger"
-    if "consumer_datalogger" not in world.catalog.dataloggers:
-        print("The datalogger called consumer_datalogger has not been created successfully or does not bear the correct name.")
+    # creation of the datalogger called "consumer_datalogger_1"
+    if "consumer_datalogger_1" not in world.catalog.dataloggers:
+        print("The datalogger called consumer_datalogger_1 has not been created successfully or does not bear the correct name.")
         exit()
 
-    # file of the datalogger called "consumer_datalogger"
-    if world.catalog.dataloggers["consumer_datalogger"]._filename != "ConsumerData":
-        print("The file name of the datalogger called consumer_datalogger is not the correct one.")
+    # file of the datalogger called "consumer_datalogger_1"
+    if world.catalog.dataloggers["consumer_datalogger_1"]._filename != "ConsumerData1":
+        print("The file name of the datalogger called consumer_datalogger_1 is not the correct one.")
         exit()
 
-    # period of the datalogger called "consumer_datalogger"
-    if world.catalog.dataloggers["consumer_datalogger"]._period != 2 and world.catalog.dataloggers["consumer_datalogger"]._global != False:
-        print("The period of the datalogger called consumer_datalogger is not the correct one.")
+    # period of the datalogger called "consumer_datalogger_1"
+    if world.catalog.dataloggers["consumer_datalogger_1"]._period != 2 and world.catalog.dataloggers["consumer_datalogger_1"]._global != False:
+        print("The period of the datalogger called consumer_datalogger_1 is not the correct one.")
+        exit()
+
+    # type of export of the datalogger called "consumer_datalogger_1"
+    if world.catalog.dataloggers["consumer_datalogger_1"]._graph_options.formats != "csv":
+        print("The type of export for the output of the datalogger called consumer_datalogger_1 is not the correct one.")
         exit()
 
     # key "simulation_time"
-    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger"]._list:
-        print("The key simulation_time has not been added successfully.")
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_1"]._list:
+        print("The key simulation_time has not been added successfully for the output of the datalogger called consumer_datalogger_1.")
         exit()
         
     # graph status of "simulation_time"
-    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger"]._x_values:
-        print("The key simulation_time is not the X axis.")
-        exit()
-
-    # key "simulation_time"
-    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger"]._list:
-        print("The key simulation_time has not been added successfully.")
-        exit()
-
-    # graph status of "simulation_time"
-    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger"]._x_values:
-        print("The key simulation_time is not the X axis.")
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_1"]._x_values:
+        print("The key simulation_time is not the X axis for the output of the datalogger called consumer_datalogger_1.")
         exit()
 
     # key "consumer.LVE.energy_bought"
-    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger"]._list:
-        print("The key consumer.LVE.energy_bought has not been added successfully.")
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_1"]._list:
+        print("The key consumer.LVE.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_1.")
         exit()
 
     # graph status of "consumer.LVE.energy_bought"
-    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger"]._y_values:
-        print("The key consumer.LVE.energy_bought is not a y series.")
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_1"]._y_values:
+        print("The key consumer.LVE.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_1.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_1"]._y_values["consumer.LVE.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_1.")
+        exit()
+
+    # graph style of "consumer.LVE.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_1"]._y_values["consumer.LVE.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_1.")
+        exit()
+
+    #
+
+    # creation of the datalogger called "consumer_datalogger_2"
+    if "consumer_datalogger_2" not in world.catalog.dataloggers:
+        print("The datalogger called consumer_datalogger_2 has not been created successfully or does not bear the correct name.")
+        exit()
+
+    # file of the datalogger called "consumer_datalogger_2"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._filename != "ConsumerData2":
+        print("The file name of the datalogger called consumer_datalogger_2 is not the correct one.")
+        exit()
+
+    # period of the datalogger called "consumer_datalogger_2"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._period != 2 and world.catalog.dataloggers[
+        "consumer_datalogger_2"]._global != False:
+        print("The period of the datalogger called consumer_datalogger_2 is not the correct one.")
+        exit()
+
+    # type of export of the datalogger called "consumer_datalogger_2"
+    exported_formats = []
+    for fmt in world.catalog.dataloggers["consumer_datalogger_2"]._graph_options.formats:
+        exported_formats.append(fmt)
+
+    if exported_formats != ["csv", "LaTeX"]:
+        print("The type of export for the output of the datalogger called consumer_datalogger_2 is not the correct one.")
+        exit()
+
+    # type of plots for the export of the datalogger called "consumer_datalogger_2"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._graph_options.graph_type != "single_series":
+        print("The type of export for the output of the datalogger called consumer_datalogger_2 is not the correct one.")
+        exit()
+
+    # key "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_2"]._list:
+        print("The key simulation_time has not been added successfully for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # graph status of "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_2"]._x_values:
+        print("The key simulation_time is not the X axis for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # key "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_2"]._list:
+        print("The key consumer.LVE.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # graph status of "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_2"]._y_values:
+        print("The key consumer.LVE.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_2"]._y_values["consumer.LVE.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # graph style of "consumer.LVE.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._y_values["consumer.LVE.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_2.")
         exit()
 
     # key "consumer.LTH.energy_bought"
-    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger"]._list:
-        print("The key consumer.LTH.energy_bought has not been added successfully.")
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_2"]._list:
+        print("The key consumer.LTH.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_2.")
         exit()
 
     # graph status of "consumer.LTH.energy_bought"
-    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger"]._y_values:
-        print("The key consumer.LTH.energy_bought is not a y series.")
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_2"]._y_values:
+        print("The key consumer.LTH.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_2"]._y_values["consumer.LTH.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    # graph style of "consumer.LTH.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._y_values["consumer.LTH.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_2.")
+        exit()
+
+    #
+
+    # creation of the datalogger called "consumer_datalogger_3"
+    if "consumer_datalogger_3" not in world.catalog.dataloggers:
+        print("The datalogger called consumer_datalogger_3 has not been created successfully or does not bear the correct name.")
+        exit()
+
+    # file of the datalogger called "consumer_datalogger_3"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._filename != "ConsumerData3":
+        print("The file name of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # period of the datalogger called "consumer_datalogger_3"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._period != 4 and world.catalog.dataloggers[
+        "consumer_datalogger_3"]._global != False:
+        print("The period of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # type of export of the datalogger called "consumer_datalogger_3"
+    exported_formats = []
+    for fmt in world.catalog.dataloggers["consumer_datalogger_3"]._graph_options.formats:
+        exported_formats.append(fmt)
+
+    export_format_ok = 0
+    for fmt in exported_formats:
+        if fmt == "csv":
+            export_format_ok += 1
+        elif fmt == "LaTeX":
+            export_format_ok += 1
+
+    if export_format_ok != 2:
+        print("The type of export for the output of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # type of plots for the export of the datalogger called "consumer_datalogger_3"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._graph_options.graph_type != "multiple_series":
+        print("The type of export for the output of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # legends used for the x- and y-axis
+    if world.catalog.dataloggers["consumer_datalogger_3"]._graph_labels["xlabel"] != "X-axis":
+        print("The legend of the x axis for the export for the output of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    if world.catalog.dataloggers["consumer_datalogger_3"]._graph_labels["ylabel"] != "Y-axis":
+        print("The legend of the y axis for the export for the output of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # key "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_3"]._list:
+        print("The key simulation_time has not been added successfully for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # graph status of "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_3"]._x_values:
+        print("The key simulation_time is not the X axis for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # key "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_3"]._list:
+        print("The key consumer.LVE.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # graph status of "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_3"]._y_values:
+        print("The key consumer.LVE.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LVE.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # legend of "consumer.LVE.energy_bought"
+    tmp = r"$\alpha$"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LVE.energy_bought"]["legend"] != tmp:
+        print("The legend for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # graph style of "consumer.LVE.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LVE.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # key "consumer.LTH.energy_bought"
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_3"]._list:
+        print("The key consumer.LTH.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # graph status of "consumer.LTH.energy_bought"
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_3"]._y_values:
+        print("The key consumer.LTH.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LTH.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # legend of "consumer.LTH.energy_bought"
+    tmp = r"$\beta$"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LTH.energy_bought"]["legend"] != tmp:
+        print("The legend for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    # graph style of "consumer.LTH.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._y_values["consumer.LTH.energy_bought"]["style"] != "points":
+        print("The graph style for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
+        exit()
+
+    #
+
+    # creation of the datalogger called "consumer_datalogger_4"
+    if "consumer_datalogger_4" not in world.catalog.dataloggers:
+        print("The datalogger called consumer_datalogger_4 has not been created successfully or does not bear the correct name.")
+        exit()
+
+    # file of the datalogger called "consumer_datalogger_4"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._filename != "ConsumerData4":
+        print("The file name of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # period of the datalogger called "consumer_datalogger_4"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._period != 4 and world.catalog.dataloggers["consumer_datalogger_4"]._global != False:
+        print("The period of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # type of export of the datalogger called "consumer_datalogger_4"
+    exported_formats = []
+    for fmt in world.catalog.dataloggers["consumer_datalogger_4"]._graph_options.formats:
+        exported_formats.append(fmt)
+
+    export_format_ok = 0
+    for fmt in exported_formats:
+        if fmt == "csv":
+            export_format_ok += 1
+        elif fmt == "matplotlib":
+            export_format_ok += 1
+        elif fmt == "LaTeX":
+            export_format_ok += 1
+
+    if export_format_ok != 3:
+        print("The type of export for the output of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # type of plots for the export of the datalogger called "consumer_datalogger_4"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._graph_options.graph_type != "multiple_series":
+        print("The type of export for the output of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # legends used for the x- and y-axis
+    if world.catalog.dataloggers["consumer_datalogger_4"]._graph_labels["xlabel"] != "$t \, [\si{\hour}]$":
+        print("The legend of the x axis for the export for the output of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    if world.catalog.dataloggers["consumer_datalogger_4"]._graph_labels["ylabel"] != "$\mathcal{P}_{ref.} \, [\si{\watt}]$":
+        print("The legend of the y axis for the export for the output of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # key "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_4"]._list:
+        print("The key simulation_time has not been added successfully for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph status of "simulation_time"
+    if "simulation_time" not in world.catalog.dataloggers["consumer_datalogger_4"]._x_values:
+        print("The key simulation_time is not the X axis for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # key "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_4"]._list:
+        print("The key consumer.LVE.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph status of "consumer.LVE.energy_bought"
+    if "consumer.LVE.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_4"]._y_values:
+        print("The key consumer.LVE.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LVE.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # legend of "consumer.LVE.energy_bought"
+    tmp = r"$P_1$"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LVE.energy_bought"]["legend"] != tmp:
+        print("The legend for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph style of "consumer.LVE.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LVE.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # key "consumer.LTH.energy_bought"
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_4"]._list:
+        print("The key consumer.LTH.energy_bought has not been added successfully for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph status of "consumer.LTH.energy_bought"
+    if "consumer.LTH.energy_bought" not in world.catalog.dataloggers["consumer_datalogger_4"]._y_values:
+        print("The key consumer.LTH.energy_bought is not a y series for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # plot on the principal y-axis
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LTH.energy_bought"]["label"] != 1:
+        print("The graph status for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # legend of "consumer.LTH.energy_bought"
+    tmp = r"$P_2$"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LTH.energy_bought"]["legend"] != tmp:
+        print("The legend for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph style of "consumer.LTH.energy_bought"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.LTH.energy_bought"]["style"] != "lines":
+        print("The graph style for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_4.")
         exit()
 
     # key "consumer.money_spent"
-    if "consumer.money_spent" not in world.catalog.dataloggers["consumer_datalogger"]._list:
-        print("The key consumer.money_spent has not been added successfully.")
+    if "consumer.money_spent" not in world.catalog.dataloggers["consumer_datalogger_4"]._list:
+        print("The key consumer.money_spent has not been added successfully for the output of the datalogger called consumer_datalogger_4.")
         exit()
 
     # graph status of "consumer.money_spent"
-    if "consumer.money_spent" not in world.catalog.dataloggers["consumer_datalogger"]._y_values:
-        print("The key consumer.money_spent is not a y series.")
+    if "consumer.money_spent" not in world.catalog.dataloggers["consumer_datalogger_4"]._y_values:
+        print("The key consumer.money_spent is not a y series for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # plot on a secondary y-axis
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.money_spent"]["label"] != 2:
+        print("The graph status for the key consumer.money_spent is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # legend of "consumer.money_spent"
+    tmp = r"$\mathcal{C}$"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.money_spent"]["legend"] != tmp:
+        print("The legend for the key consumer.money_spent is not correct for the output of the datalogger called consumer_datalogger_4.")
+        exit()
+
+    # graph style of "consumer.money_spent"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._y_values["consumer.money_spent"]["style"] != "points":
+        print("The graph style for the key consumer.money_spent is not correct for the output of the datalogger called consumer_datalogger_4.")
         exit()
 
     print("Congratulations, everything is working well.")
-
-

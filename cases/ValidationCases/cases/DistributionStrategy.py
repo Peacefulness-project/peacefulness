@@ -133,32 +133,32 @@ aggregator_elec_partial = Aggregator("local_grid_partial", LVE, strategy_partial
 
 # Each device is created 4 times
 # emergency strategy
-device_early_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_emergency", elec_contract, early_emergency_owner, aggregator_elec_emergency, "dummy_user_early", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_expensive_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_emergency", elec_expensive_contract, expensive_emergency_owner, aggregator_elec_emergency, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_consuming_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_emergency", elec_contract, consuming_emergency_owner, aggregator_elec_emergency, "dummy_user", "dummy_usage_consuming", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_early_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_emergency", elec_contract, early_emergency_owner, aggregator_elec_emergency, {"user": "dummy_user_early", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_expensive_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_emergency", elec_expensive_contract, expensive_emergency_owner, aggregator_elec_emergency, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_consuming_emergency = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_emergency", elec_contract, consuming_emergency_owner, aggregator_elec_emergency, {"user": "dummy_user", "device": "dummy_usage_consuming"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 
-production_emergency = subclasses_dictionary["Device"]["Background"]("production_emergency", producer_elec_contract, aggregators_manager, aggregator_elec_emergency, "dummy_user", "dummy_producer_distribution_test", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_emergency = subclasses_dictionary["Device"]["Background"]("production_emergency", producer_elec_contract, aggregators_manager, aggregator_elec_emergency, {"user": "dummy_user", "device": "dummy_producer_distribution_test"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # price strategy
-device_early_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_price", elec_contract, early_price_owner, aggregator_elec_price, "dummy_user_early", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_expensive_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_price", elec_expensive_contract, expensive_price_owner, aggregator_elec_price, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_consuming_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_price", elec_contract, consuming_price_owner, aggregator_elec_price, "dummy_user", "dummy_usage_consuming", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_early_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_price", elec_contract, early_price_owner, aggregator_elec_price, {"user": "dummy_user_early", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_expensive_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_price", elec_expensive_contract, expensive_price_owner, aggregator_elec_price, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_consuming_price = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_price", elec_contract, consuming_price_owner, aggregator_elec_price, {"user": "dummy_user", "device": "dummy_usage_consuming"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 
-production_price = subclasses_dictionary["Device"]["Background"]("production_price", producer_elec_contract, aggregators_manager, aggregator_elec_price, "dummy_user", "dummy_producer_distribution_test", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_price = subclasses_dictionary["Device"]["Background"]("production_price", producer_elec_contract, aggregators_manager, aggregator_elec_price, {"user": "dummy_user", "device": "dummy_producer_distribution_test"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # quantity strategy
-device_early_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_quantity", elec_contract, early_quantity_owner, aggregator_elec_quantity, "dummy_user_early", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_expensive_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_quantity", elec_expensive_contract, expensive_quantity_owner, aggregator_elec_quantity, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_consuming_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_quantity", elec_contract, consuming_quantity_owner, aggregator_elec_quantity, "dummy_user", "dummy_usage_consuming", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_early_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_quantity", elec_contract, early_quantity_owner, aggregator_elec_quantity, {"user": "dummy_user_early", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_expensive_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_quantity", elec_expensive_contract, expensive_quantity_owner, aggregator_elec_quantity, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_consuming_quantity = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_quantity", elec_contract, consuming_quantity_owner, aggregator_elec_quantity, {"user": "dummy_user", "device": "dummy_usage_consuming"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 
-production_quantity = subclasses_dictionary["Device"]["Background"]("production_quantity", producer_elec_contract, aggregators_manager, aggregator_elec_quantity, "dummy_user", "dummy_producer_distribution_test", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_quantity = subclasses_dictionary["Device"]["Background"]("production_quantity", producer_elec_contract, aggregators_manager, aggregator_elec_quantity, {"user": "dummy_user", "device": "dummy_producer_distribution_test"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # partial strategy
-device_early_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_partial", elec_contract, early_partial_owner, aggregator_elec_partial, "dummy_user_early", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_expensive_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_partial", elec_expensive_contract, expensive_partial_owner, aggregator_elec_partial, "dummy_user", "dummy_usage", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-device_consuming_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_partial", elec_contract, consuming_partial_owner, aggregator_elec_partial, "dummy_user", "dummy_usage_consuming", "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_early_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_early_partial", elec_contract, early_partial_owner, aggregator_elec_partial, {"user": "dummy_user_early", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_expensive_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_expensive_partial", elec_expensive_contract, expensive_partial_owner, aggregator_elec_partial, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+device_consuming_partial = subclasses_dictionary["Device"]["HotWaterTank"]("device_consuming_partial", elec_contract, consuming_partial_owner, aggregator_elec_partial, {"user": "dummy_user", "device": "dummy_usage_consuming"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 
-production_partial = subclasses_dictionary["Device"]["Background"]("production_partial", producer_elec_contract, aggregators_manager, aggregator_elec_partial, "dummy_user", "dummy_producer_distribution_test", "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_partial = subclasses_dictionary["Device"]["Background"]("production_partial", producer_elec_contract, aggregators_manager, aggregator_elec_partial, {"user": "dummy_user", "device": "dummy_producer_distribution_test"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # ##############################################################################################
 # Creation of the validation daemon
@@ -223,7 +223,73 @@ export_plot2 = {
           }
 }
 
-parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2]}
+name = "LVE_early_emergency_energy_bought"
+export_plot3 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "early_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "early_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "early_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "early_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+name = "LVE_expensive_emergency_energy_bought"
+export_plot4 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "expensive_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "expensive_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "expensive_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "expensive_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "expensive_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "expensive_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+name = "LVE_consuming_emergency_energy_bought"
+export_plot5 = {
+    "name": name,
+    "filename": "export_"+name,
+    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
+    "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "consuming_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
+                      {"catalog_name_entry": "consuming_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"price"},
+                      {"catalog_name_entry": "consuming_quantity_owner.LVE.energy_bought_reference", "style": "points", "legend": r"qty"},
+                      {"catalog_name_entry": "consuming_partial_owner.LVE.energy_bought_reference", "style": "points", "legend": r"part."}
+                    ]
+          },
+    "Y2": {"label": r"$\mathcal{C}_{num.} \, [$\euro{}$]$",
+          "graphs": [ {"catalog_name_entry": "consuming_emergency_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_price_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_quantity_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
+                      {"catalog_name_entry": "consuming_partial_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+                    ]
+           }
+}
+
+parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5]}
 
 validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("distribution_strategy_test", parameters)
 

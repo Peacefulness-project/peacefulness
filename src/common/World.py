@@ -249,7 +249,7 @@ class World:
     # Automated generation of agents
     # ##########################################################################################
 
-    def agent_generation(self, quantity, filename, aggregators, contract_identifier):  # this method creates several agents, each with a predefinite set of devices
+    def agent_generation(self, quantity, filename, aggregators, price_manager_daemon):  # this method creates several agents, each with a predefinite set of devices
         # loading the data in the file
         file = open(filename, "r")
         data = load(file)
@@ -259,14 +259,14 @@ class World:
         contract_dict = {}
         for contract_type in data["contracts"]:  # for each contract
             contract_name = f"{data['template name']}_{contract_type}"
-            nature = self._catalog.natures[data["contracts"][contract_type][0]]
-            identifier = contract_identifier[nature.name]
-            contract_class = self._subclasses_dictionary["Contract"][data["contracts"][contract_type][1]]
+            nature = self._catalog.natures[data["contracts"][contract_type]["nature_name"]]
+            identifier = price_manager_daemon[nature.name]
+            contract_class = self._subclasses_dictionary["Contract"][data["contracts"][contract_type]["contract_subclass"]]
 
             if len(data["contracts"][contract_type]) == 2:  # if there are no parameters
                 contract = contract_class(contract_name, nature, identifier)
             else:  # if there are parameters
-                parameters = data["contracts"][contract_type][1]
+                parameters = data["contracts"][contract_type]["contract_subclass"]
                 contract = contract_class(contract_name, nature, identifier, parameters)
 
             contract_dict[contract_type] = contract
@@ -292,14 +292,10 @@ class World:
                             if profile["contract"] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
-                        if "parameters" not in profile and "user_profile" in profile:
-                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"])  # creation of the device
-                        elif "parameters" in profile and "user_profile" in profile:
-                            device_class(device_name, contracts, agent, aggregators, profile["user_profile"], profile["technical_data"], profile["parameters"])  # creation of the device
-                        elif "parameters" not in profile and "user_profile" not in profile:
-                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"])  # creation of the device
-                        elif "parameters" in profile and "user_profile" not in profile:
-                            device_class(device_name, contracts, agent, aggregators, profile["technical_data"], profile["parameters"])  # creation of the device
+                        if "parameters" in profile:
+                            device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], profile["parameters"])  # creation of the device
+                        else:
+                            device_class(device_name, contracts, agent, aggregators, profile["data_profiles"])  # creation of the device
 
     # ##########################################################################################
     # Initialization
