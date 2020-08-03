@@ -10,7 +10,7 @@ from src.tools.GlobalWorld import get_world
 
 class Device:
 
-    def __init__(self, name, contracts, agent, aggregators, filename, user_profile, technical_profile, parameters=None):
+    def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
@@ -85,7 +85,7 @@ class Device:
                 pass
 
         if self._filename != "loaded device":  # if a filename has been defined...
-            self._read_data_profiles(user_profile, technical_profile)  # ... then the file is converted into consumption profiles
+            self._read_data_profiles(profiles)  # ... then the file is converted into consumption profiles
             # else, the device has been loaded and does not need a data file
 
     # ##########################################################################################
@@ -101,7 +101,7 @@ class Device:
     # ##########################################################################################
     # Consumption reading
 
-    def _read_data_profiles(self, user_profile, technical_profile):
+    def _read_data_profiles(self, profiles):
         pass
 
     def _read_consumer_data(self, user_profile):

@@ -68,9 +68,9 @@ world.set_time(start_date,  # time management: start date
 
 # ##############################################################################################
 # Natures
-# TODO: load the low voltage nature
+# TODO: load the function that creates a nature whose type is low voltage electricity
 
-# TODO: load the low temperature nature
+# TODO: load the function that creates a nature whose type is low temperature heat
 
 # TODO: create a new type of nature, called PW, with the following description: "Pressurized Water"
 

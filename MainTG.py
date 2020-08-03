@@ -226,20 +226,21 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "standard", {"location": "Pau"})  # creation of a wind turbine
+wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"location": "Pau"})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS")  # creation of a heat production unit
+heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, {"device": "ECOS"})  # creation of a heat production unit
 
-heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau"})
 
-subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, "standard_field", {"surface": 18, "location": "Pau"})  # creation of a photovoltaic panel field
+subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "location": "Pau"})  # creation of a photovoltaic panel field
+
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
+world.agent_generation(2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec})
+world.agent_generation(2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+world.agent_generation(2, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

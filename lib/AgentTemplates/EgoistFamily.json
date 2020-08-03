@@ -2,25 +2,25 @@
   "template name": "egoist_family",
 
   "composition": {
-    "Background": [{"name": "Background", "user_profile": "ECOS", "technical_data": "ECOS_5", "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Background": [{"name": "Background", "data_profiles": {"user": "ECOS", "device": "ECOS_5"}, "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "WashingMachine": [{"name": "WashingMachine", "user_profile": "ECOS_1", "technical_data": "ECOS", "quantity": [1,1], "contract": "LVE_BAU"}],
-    "Dryer": [{"name": "Dryer", "user_profile": "family", "technical_data": "medium_consumption", "quantity": [1,1], "contract": "LVE_BAU"}],
+    "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_1", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Dryer": [{"name": "Dryer", "data_profiles": {"user": "family", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "Refrigerator": [{"name": "Refrigerator", "user_profile": "refrigerator", "technical_data": "medium_consumption", "quantity": [0,0], "contract": "LVE_BAU"},
-      {"name": "Freezer", "user_profile": "freezer", "technical_data": "medium_consumption", "quantity": [0,0], "contract": "LVE_BAU"}],
-    "Heating": [{"name": "Heating", "user_profile": "residential", "technical_data": "house_elec", "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"location":  "Pau"}}],
+    "Refrigerator": [{"name": "Refrigerator", "data_profiles": {"user": "refrigerator", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"},
+      {"name": "Freezer", "data_profiles": {"user": "freezer", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_elec"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"location":  "Pau"}}],
 
-    "HotWaterTank": [{"name": "HotWaterTank", "user_profile": "ECOS_5", "technical_data": "5_people_elec", "quantity": [1,1], "contract": "LVE_BAU"}],
-    "Charger": [{"name": "Charger", "user_profile": "default", "technical_data": "laptop_charger", "quantity": [0,4], "contract": "LVE_BAU"}],
+    "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_5", "device": "5_people_elec"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Charger": [{"name": "Charger", "data_profiles": {"user": "default", "device": "laptop_charger"}, "quantity": [1,4], "contract": "LVE_BAU"}],
 
-    "PV": [{"name": "PV", "technical_data": "standard", "quantity": [0,0], "contract": "LVE_BAU", "parameters": {"surface": 5, "location":  "Pau"}}],
-    "SolarThermalCollector": [{"name": "SolarThermalCollector", "technical_data": "standard", "quantity": [0,0], "contract": "LTH_BAU", "parameters": {"surface": 1, "location":  "Pau"}}]
+    "PV": [{"name": "PV", "data_profiles": {"device": "standard"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"panels": 5, "location":  "Pau"}}],
+    "SolarThermalCollector": [{"name": "SolarThermalCollector", "data_profiles": {"device": "standard"}, "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"panels": 1, "location":  "Pau"}}]
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "EgoistContract"],
-    "LTH_BAU":  ["LTH", "EgoistContract"]
+    "LVE_BAU":  {"nature_name": "LVE", "contract_subclass": "EgoistContract"},
+    "LTH_BAU":  {"nature_name": "LTH", "contract_subclass": "EgoistContract"}
   }
 
 }

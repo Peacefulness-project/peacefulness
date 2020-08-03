@@ -69,12 +69,11 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Natures
 
-# low voltage electricity
 LVE = load_low_voltage_electricity()
 
-# low temperature heat
 LTH = load_low_temperature_heat()
 
+Nature("PW", "Pressurized Water")
 
 # ##############################################################################################
 # Daemon
@@ -128,7 +127,7 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_eg
 
 curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
-BAU_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
 
 
 # ##############################################################################################
@@ -144,23 +143,26 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 # ##############################################################################################
 # Device
 
-subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, producer, aggregator_elec, "standard_field", {"surface": 1000, "location": "Pau"})
+subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"surface": 1000, "location": "Pau"})
 
-subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, "standard", {"location": "Pau"})
+subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"location": "Pau"})
 
-subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, aggregator_elec, "family", "family")
+subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "family"})
 
-subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, "family", "medium_consumption")
+subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "medium_consumption"})
 
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_heat, consumer, aggregator_heat, "family", "family_heat")
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, {"user": "family", "device": "family_heat"})
 
-subclasses_dictionary["Device"]["Heating"]("heating", BAU_heat, consumer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau"})
 
 
 # ##############################################################################################
 # Automated generation of agents
 
-# TODO: create 500 agents using the template "DummyAgent.json". Its aggregators are "aggregators_elec" and "aggregators_heat" and its price managers are "price_manager_TOU_elec" for LVE nature and "price_manager_flat_heat" for LTH nature.
+# TODO: create automatically 500 agents using the template "DummyAgent.json".
+#       Its characteristics are:
+#       1/ supervised by the aggregators "aggregators_elec" and "aggregators_heat"
+#       2/ management of prices done by the daemon "price_manager_TOU_elec" for the low voltage electricity, and by the daemon "price_manager_flat_heat" for the low temperature heat
 
 
 # ##############################################################################################

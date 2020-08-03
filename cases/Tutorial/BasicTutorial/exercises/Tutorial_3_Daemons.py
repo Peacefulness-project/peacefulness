@@ -8,10 +8,13 @@ from datetime import datetime
 
 from os import chdir
 
+from lib.Subclasses.Daemon.PriceManagerDaemon.PriceManagerDaemon import PriceManagerDaemon
 from src.common.World import World
 
 from src.common.Nature import Nature
 from lib.DefaultNatures.DefaultNatures import *
+
+from lib.Subclasses.Daemon.PriceManagerDaemon import PriceManagerDaemon
 
 from src.common.Agent import Agent
 
@@ -69,36 +72,42 @@ world.set_time(start_date,  # time management: start date
 # ##############################################################################################
 # Natures
 
-# low voltage electricity
 LVE = load_low_voltage_electricity()
 
-# low temperature heat
 LTH = load_low_temperature_heat()
-
 
 # ##############################################################################################
 # Daemon
 
 # price managers
-# TODO: create a price manager called "elec_prices" for the low voltage electricity with TOU prices. The prices are the following: buying energy during on-peak hours costs 17 c/kWh, buying energy during off-peak costs hours 12 c/kWh. Energy sold is always paid 15 c/kWh. On-peak hours are from 6h to 12h and from 13h to 23h.
+# TODO: create a daemon as a price manager with flat price (the standard case), called "heat_prices" and concerning the low temperature heat nature.
+#       Its characteristics are:
+#       1/ buying energy costs 12 c/kWh
+#       2/ energy sold is paid 10 c/kWh
 
-# TODO: create a price manager called "heat_prices" for the low temperature heat with flat prices. The prices are the following: buying energy costs 12 c/kWh and energy sold is paid 10 c/kWh.
+# TODO: create a daemon as a price manager with TOU prices, called "elec_prices" and concerning the low voltage electricity nature.
+#       Its characteristics are:
+#       1/ buying energy during on-peak hours costs 17 c/kWh
+#       2/ buying energy during off-peak hours costs 12 c/kWh
+#       3/ energy sold is always paid 15 c/kWh
+#       4/ on-peak hours are from 6h to 12h and from 13h to 23h
 
 # limit prices
-# TODO: create a limit price manager for low voltage electricity. The price must be between 10 and 20 c/kWh.
+# TODO: create a daemons as a limit price manager for low voltage electricity. The price must be between 10 and 20 c/kWh.
 
-# TODO: create a limit price manager for low temperature heat. The price must be between 8 and 14 c/kWh.
+# TODO: create a daemons as a limit price manager for low temperature heat. The price must be between 8 and 14 c/kWh.
 
 # Meteorological daemons
-# TODO: create an indoor temperature manager.
+# TODO: create a daemon whose role is to manage the indoor temperature.
 
-# TODO: create an outdoor temperature manager. The location (i.e the real place the data correspond to) is Pau.
+# TODO: In the followings, several daemons are required to handle meteorological conditions at a specific location, which in the present case is "Pau"
+# TODO: create a daemon whose role is to manage the outdoor temperature
 
-# TODO: create a water temperature manager. The location (i.e the real place the data correspond to) is Pau.
+# TODO: create a daemon whose role is to manage the cold water temperature of the water grid
 
-# TODO: create an irradiation manager. The location (i.e the real place the data correspond to) is Pau.
+# TODO: create a daemon whose role is to manage the irradiation
 
-# TODO: create a wind manager. The location (i.e the real place the data correspond to) is Pau.
+# TODO: create a daemon whose role is to manage the wind
 
 
 # ##############################################################################################
