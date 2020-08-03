@@ -56,10 +56,7 @@ class WindTurbine_Alois(NonControllableDevice):
 
         pressure = 101325 * (temperature / temperature_ref)**5.259
 
-
         air_density = pressure / (temperature * 8.314/(29*10**(-3)))  # air density in kg.m-3
-
-        print(air_density)
 
         if self._rugosity == "flat":
             gamma = 0.1
@@ -76,7 +73,6 @@ class WindTurbine_Alois(NonControllableDevice):
 
         elif (wind > self._U_nom) and (wind <= self._U_cut_top):
             energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency / 1000
-
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
