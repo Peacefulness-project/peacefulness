@@ -1,5 +1,5 @@
 {
-    "Pau": {
+    "GavedePau_Pau": {
     "format": "each_hour/month",
     "reserved_flow": 0.1,
     "max_flow": 191,
@@ -19,7 +19,7 @@
 }
   },
 
-  "Paris": {
+  "Seine_Paris": {
     "format": "each_hour/month",
     "reserved_flow": 0.1,
     "max_flow": 1750,
@@ -39,7 +39,7 @@
 }
   },
 
-  "Garone": {
+  "Garonne_Bordeaux": {
     "format": "each_hour/month",
     "reserved_flow": 0.1,
     "max_flow": 3050,
@@ -59,7 +59,7 @@
 }
   },
 
-   "Loire": {
+   "Loire_Nantes": {
     "format": "each_hour/month",
      "reserved_flow": 0.1,
     "max_flow": 3780,
@@ -79,7 +79,7 @@
 }
   },
 
-  "Lyon": {
+  "Saone_Lyon": {
     "format": "each_hour/month",
     "reserved_flow": 0.1,
     "max_flow": 2840,
@@ -99,7 +99,7 @@
 }
   },
 
-    "Adour": {
+    "Adour_Pau": {
     "format": "each_hour/month",
     "reserved_flow": 0.2,
     "max_flow": 66.8,
