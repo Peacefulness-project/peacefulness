@@ -1,0 +1,18 @@
+{
+  "technical_data": {
+    "molten_salt": {
+      "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.38, "reflector_efficiency": 0.85},
+      "efficiency_variation": 0
+    },
+
+    "satured_steam": {
+      "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.30, "reflector_efficiency": 0.85},
+      "efficiency_variation": 0
+    },
+
+    "air1atm": {
+      "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.34, "reflector_efficiency": 0.85},
+      "efficiency_variation": 0
+    }
+  }
+}
