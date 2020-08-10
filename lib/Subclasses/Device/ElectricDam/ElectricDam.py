@@ -69,8 +69,8 @@ class ElectricDam(NonControllableDevice):
             energy_received = 0
 
         for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = - min(self._max_power, energy_received * efficiency) # energy produced by the device
-            energy_wanted[nature]["energy_nominal"] = - min(self._max_power, energy_received * efficiency)  # energy produced by the device
+            energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
+            energy_wanted[nature]["energy_nominal"] = 0  # energy produced by the device
             energy_wanted[nature]["energy_maximum"] = - min(self._max_power, energy_received * efficiency)  # energy produced by the device
             # the value is negative because it is produced
 
