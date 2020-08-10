@@ -86,10 +86,9 @@ world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
 
-#world.choose_exports("matplotlib")
 
 # ##############################################################################################
-# Optionnal
+# Optional
 world.complete_message("CO2", 0)
 
 

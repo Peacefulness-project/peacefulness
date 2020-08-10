@@ -1,5 +1,5 @@
-# Tutorial 3
-# Daemons
+# Tutorial 2
+# Natures
 from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_2_natures  # a specific importation
 
 # ##############################################################################################

@@ -73,6 +73,9 @@ LVE = load_low_voltage_electricity()
 
 LTH = load_low_temperature_heat()
 
+Nature("PW", "Pressurized Water")
+
+
 # ##############################################################################################
 # Daemon
 

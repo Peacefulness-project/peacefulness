@@ -49,7 +49,7 @@ def correction_1_settings():
         exit()
 
     # time step value
-    if world._catalog.get("time_step") != 2:
+    if world._catalog.get("time_step") != 1:
         print("The time step value is not the good one.")
         exit()
 
