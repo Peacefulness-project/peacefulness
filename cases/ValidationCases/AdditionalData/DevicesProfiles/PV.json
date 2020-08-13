@@ -1,7 +1,7 @@
 {
   "technical_data": {
     "dummy_usage": {
-      "usage_profile": {"nature": "LVE", "efficiency": 0.50},
+      "usage_profile": {"nature": "LVE", "surface_pan": 1, "efficiency": 0.50},
       "efficiency_variation": 0
     }
   }

@@ -414,12 +414,12 @@ class World:
             for datalogger in self._catalog.dataloggers.values():
                 datalogger.launch()
 
+            # time second_update
+            self._update_time()
+
             # daemons activation
             for daemon in self._catalog.daemons.values():
                 daemon.launch()
-
-            # time second_update
-            self._update_time()
 
             print()
 

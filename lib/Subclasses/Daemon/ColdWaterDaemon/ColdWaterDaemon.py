@@ -4,19 +4,16 @@ from datetime import datetime
 from src.common.Daemon import Daemon
 from src.tools.ReadingFunction import get_1_values_per_month
 
+
 class ColdWaterDaemon(Daemon):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, filename="lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json"):
         self._location = parameters["location"]  # the location corresponding to the data
 
         name = "cold_water_temperature_in_" + self._location
-        super().__init__(name, 1, parameters)
+        super().__init__(name, 1, parameters, filename)
 
-        # getting the data for the chosen location
-        if "datafile" in parameters:  # if the user has chosen another datafile
-            file = open(parameters["datafile"], "r")
-        else:
-            file = open("lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json", "r")
+        file = open(filename, "r")
         data = load(file)[self._location]
         file.close()
 

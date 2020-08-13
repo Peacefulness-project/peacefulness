@@ -47,7 +47,7 @@ class ValidationDaemon(Daemon):
     def _process(self):  # get the values of the catalog and compare them with the results
         file = open(adapt_path([self._catalog.get("path"), "outputs", self._filename]), "a+")  # the file resuming the results of the test
         data_to_check = {}
-        iteration = self._catalog.get("simulation_time")
+        iteration = self._catalog.get("simulation_time") - 1
 
         self._x_values["iteration"].append(self._catalog.get("simulation_time"))
         self._x_values["physical_time"].append(self._catalog.get('physical_time'))

@@ -6,14 +6,14 @@ from src.tools.ReadingFunction import get_1_day_per_month, get_each_hour_per_mon
 
 class IrradiationDaemon(Daemon):
 
-    def __init__(self, parameters, period=1):
+    def __init__(self, parameters, period=1, filename="lib/Subclasses/Daemon/IrradiationDaemon/IrradiationProfiles.json"):
         self._location = parameters["location"]
 
         name = "solar_irradiation_in_" + self._location
-        super().__init__(name, period, parameters)
+        super().__init__(name, period, parameters, filename)
 
         # getting the data for the chosen location
-        file = open("lib/Subclasses/Daemon/IrradiationDaemon/IrradiationProfiles.json", "r")
+        file = open(filename, "r")
         data = load(file)[self._location]
         file.close()
 
