@@ -3,7 +3,7 @@ from numpy.random import normal
 from json import load, dump
 
 
-def autoregressiveprofilesgenerator(standard_deviation, correlation_factor, location, daemon, key, key2 = None):
+def autoregressive_profiles_generator(standard_deviation, correlation_factor, location, daemon, key, key2 = None):
     file = open("../../lib/Subclasses/Daemon/" + str(daemon) + "Daemon/" + str(daemon) + "Profiles.json", "r")
     data = load(file)[location]
     file.close()
@@ -44,4 +44,4 @@ def autoregressiveprofilesgenerator(standard_deviation, correlation_factor, loca
         dump(generated_daemon, outfile)
 
 
-autoregressiveprofilesgenerator(2, 0.1, "Lyon", "Irradiation", "total_irradiation", "direct_normal_irradiation")
+autoregressive_profiles_generator(2, 0.1, "Lyon", "Irradiation", "total_irradiation", "direct_normal_irradiation")
