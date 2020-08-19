@@ -47,7 +47,7 @@ class SolarTower(NonControllableDevice):
         sun_height = self._catalog.get(f"{self._location}.sun_height")
 
         alpha = fabs(asin(cos(azimut * 2 * pi / 360) * cos(sun_height * 2 * pi / 360)) * 360 / (2 * pi))
-        print(alpha)
+
         optic_efficiency = (cos(alpha) + 0.000884 * alpha - 0.00005369 * alpha**2) * self._reflector_efficiency
 
         thermal_energy = self._surface * irradiation * optic_efficiency
