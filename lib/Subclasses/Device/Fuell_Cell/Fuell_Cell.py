@@ -1,13 +1,12 @@
 # device representing a fuell cell
-from src.common.DeviceMainClasses import NonControllableDevice
+from src.common.DeviceMainClasses import Converter
 
 
-class FuellCell(NonControllableDevice):
+class FuellCell(Converter):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib\Subclasses\Device\Fuell_Cell\Fuel_Cell.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
+    def __init__(self, name, contracts, agent, upstream_aggregator, downstream_aggregator, profiles, filename="lib\Subclasses\Device\Fuell_Cell\Fuel_Cell.json"):
+        super().__init__(name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profiles)
 
-        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -16,17 +15,15 @@ class FuellCell(NonControllableDevice):
     def _read_data_profiles(self, profiles):
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
+        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"]}
+
         self._technical_profile = dict()
 
         # usage profile
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
-        # power
-        self._power = data_device["usage_profile"]["power"]
-
         # efficiency
-        self._electric_efficiency = data_device["usage_profile"]["electric_efficiency"]
-        self._thermal_efficiency = data_device["usage_profile"]["thermal_efficiency"]
+        self._efficiency = {"LVE": data_device["usage_profile"]["electric_efficiency"], "LTH":data_device["usage_profile"]["thermal_efficiency"]}
 
         self._unused_nature_removal()
 
@@ -35,6 +32,7 @@ class FuellCell(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
+        # TODO: mettre à jour la fonction
         message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 

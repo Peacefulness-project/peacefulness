@@ -1,32 +1,32 @@
 {
   "technical_data": {
     "PEMFC": {
-      "usage_profile": {"nature": "LVE", "power": 0.5, "electric_efficiency": 0.37, "thermal_efficiency":  0.5},
+      "usage_profile": {"nature": "LVE", "capacity": 0.5, "electric_efficiency": 0.37, "thermal_efficiency":  0.5},
       "efficiency_variation": 0
     },
 
     "PEMFC_high": {
-      "usage_profile": {"nature": "LVE", "power": 1, "electric_efficiency": 0.34, "thermal_efficiency":  0.55},
+      "usage_profile": {"nature": "LVE", "capacity": 1, "electric_efficiency": 0.34, "thermal_efficiency":  0.55},
       "efficiency_variation": 0
     },
 
     "HT-PEMFC": {
-      "usage_profile": {"nature": "LVE", "power": 5, "electric_efficiency": 0.4, "thermal_efficiency":  0.5},
+      "usage_profile": {"nature": "LVE", "capacity": 5, "electric_efficiency": 0.4, "thermal_efficiency":  0.5},
       "efficiency_variation": 0
     },
 
     "SOFC": {
-      "usage_profile": {"nature": "LVE", "power": 1, "electric_efficiency": 0.35, "thermal_efficiency":  0.6},
+      "usage_profile": {"nature": "LVE", "capacity": 1, "electric_efficiency": 0.35, "thermal_efficiency":  0.6},
       "efficiency_variation": 0
     },
 
     "PAFC": {
-      "usage_profile": {"nature": "LVE", "power": 440, "electric_efficiency": 0.41, "thermal_efficiency":  0.49},
+      "usage_profile": {"nature": "LVE", "capacity": 440, "electric_efficiency": 0.41, "thermal_efficiency":  0.49},
       "efficiency_variation": 0
     },
 
     "MCFC": {
-      "usage_profile": {"nature": "LVE", "power": 2800, "electric_efficiency": 0.47, "thermal_efficiency":  0.43},
+      "usage_profile": {"nature": "LVE", "capacity": 2800, "electric_efficiency": 0.47, "thermal_efficiency":  0.43},
       "efficiency_variation": 0
     }
   }
