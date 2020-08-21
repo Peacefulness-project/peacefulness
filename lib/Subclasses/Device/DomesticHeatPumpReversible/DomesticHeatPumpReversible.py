@@ -182,6 +182,8 @@ class DomesticHeatPumpReversible(AdjustableDevice):
                 deltaTnom = line[2][1] - current_outdoor_temperature
                 deltaTmax = line[2][2] - current_outdoor_temperature
 
+                # TODO température Tfs
+
                 Tcs = current_indoor_temperature + 273.15
                 Tce = line[2][1] + 273.15
                 Tfs = current_outdoor_temperature + 273.15
