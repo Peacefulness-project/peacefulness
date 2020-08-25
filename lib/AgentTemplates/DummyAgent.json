@@ -6,13 +6,17 @@
 
     "Charger": [{"name": "Charger", "data_profiles": {"user": "default", "device": "laptop_charger"}, "quantity": [1,4], "contract": "LVE_BAU"}],
     "Cooling": [{"name": "Cooling", "data_profiles": {"user": "residential", "device": "house_elec"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "CylindroParabolicCSP": [{"name": "CylindroParabolicCSP", "data_profiles": {"device": "oil"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
 
     "Dishwasher": [{"name": "Dishwasher", "data_profiles": {"user": "single", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "Dryer": [{"name": "Dryer", "data_profiles": {"user": "family", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device": "ECOS"}, "quantity": [1,1], "contract": "LTH_BAU"}],
 
-    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
+    "ElectricDam": [{"name": "ElectricDam", "data_profiles": {"device": "Pelton"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"height": 100}}],
 
+    "FresnelSolarPlant": [{"name": "FresnelSolarPlant", "data_profiles": {"device": "molten_salt"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
+
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
     "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
 
     "Light": [{"name": "Light", "data_profiles": {"user": "residential", "device": "house"}, "quantity": [1,1], "contract": "LVE_BAU"}],
@@ -26,6 +30,7 @@
                      {"name": "Freezer", "data_profiles": {"user": "refrigerator", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
 
     "SolarThermalCollector": [{"name": "SolarThermalCollector", "data_profiles": {"device": "standard"}, "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"panels": 1}}],
+    "SolarTower": [{"name": "SolarTower", "data_profiles": {"device": "molten_salt"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
 
     "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "single", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "WaterHeater": [{"name": "WaterHeater", "data_profiles": {"user": "single", "device": "coffee_maker"}, "quantity": [1,1], "contract": "LVE_BAU"}],

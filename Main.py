@@ -138,6 +138,7 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
 outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Lyon"})
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
@@ -146,10 +147,20 @@ water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperature
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation
 irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Lyon"})
 
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"})
+wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Lyon"})
+wind_daemon_2 = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+
+#SunPosition
+sun_position_daemon = subclasses_dictionary["Daemon"]["SunPositionDaemon"]({"location": "Lyon"})
+sun_position_daemon = subclasses_dictionary["Daemon"]["SunPositionDaemon"]({"location": "Pau"})
+
+# Water Flow
+water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"location": "Saone_Lyon"})
+water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"location": "GavedePau_Pau"})
 
 # Forecast
 # this daemon is supposed to create predictions about future consumption and demands
@@ -228,24 +239,28 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # they at least need a name and a nature
 # some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
 
-#wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS", {"location": "Pau"})  # creation of a wind turbine
+wind_turbine_Alois = subclasses_dictionary["Device"]["WindTurbine_Alois"]("wind_turbine_Alois", BAU_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"location": "Lyon", "rugosity": "flat"})  # creation of a wind turbine
 
 #heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
-#heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, "residential", "house_heat", {"location": "Pau"})
+heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau"})
 
-#subclasses_dictionary["Device"]["SolarThermalCollector"]("Jacky", BAU_heat, solar_owner, aggregator_heat, "ECOS_field", {"location": "Pau", "surface": 12})
+Jack = subclasses_dictionary["Device"]["SolarThermalCollector"]("Jack", BAU_heat, solar_owner, aggregator_heat, {"device": "standard"}, {"location": "Lyon", "panels": 6})
 
-Michel = subclasses_dictionary["Device"]["PVAdvanced"]("Michel", BAU_elec, solar_owner, aggregator_elec, "standard_field", {"location": "Pau", "surface": 12})
+Michel = subclasses_dictionary["Device"]["PV_Alois"]("Michel", BAU_elec, solar_owner, aggregator_elec, {"device": "standard_field"}, {"location": "Lyon", "panels": 6})
 
 #subclasses_dictionary["Device"]["WindTurbine"]("Toto", BAU_elec, solar_owner, aggregator_elec, "ECOS", {"location": "Lyon"})
+
+Dam = subclasses_dictionary["Device"]["ElectricDam"]("Dam", BAU_elec, DHN_producer, aggregator_elec, {"device": "Kaplan"}, {"height": 10, "location": "Saone_Lyon"})
+
+Tour = subclasses_dictionary["Device"]["SolarTower"]("Tour", BAU_elec, solar_owner, aggregator_elec, {"device": "molten_salt"}, {"location": "Lyon", "surface": 100})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
-world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
+#world.agent_generation(1, "lib/AgentTemplates/EgoistSingle.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+#world.agent_generation(1, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat})
+#world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
