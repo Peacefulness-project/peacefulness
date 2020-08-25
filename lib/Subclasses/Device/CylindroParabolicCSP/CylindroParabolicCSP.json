@@ -1,0 +1,13 @@
+{
+  "technical_data": {
+    "oil": {
+      "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.375, "reflector_efficiency": 0.85},
+      "efficiency_variation": 0
+    },
+
+    "superheated_steam": {
+      "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.26, "reflector_efficiency": 0.85},
+      "efficiency_variation": 0
+    },
+  }
+}

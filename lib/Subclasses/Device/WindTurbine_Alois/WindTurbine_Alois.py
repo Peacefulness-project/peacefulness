@@ -4,8 +4,8 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class WindTurbine_Alois(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib\Subclasses\Device\WindTurbine_Alois\WindTurbine_Alois.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, None, technical_profile, parameters)
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib\Subclasses\Device\WindTurbine_Alois\WindTurbine_Alois.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
 
@@ -15,8 +15,8 @@ class WindTurbine_Alois(NonControllableDevice):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, user_profile, technical_profile):
-        data_device = self._read_technical_data(technical_profile)  # parsing the data
+    def _read_data_profiles(self, profiles):
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._technical_profile = dict()
         self._efficiency = None
@@ -56,10 +56,7 @@ class WindTurbine_Alois(NonControllableDevice):
 
         pressure = 101325 * (temperature / temperature_ref)**5.259
 
-
         air_density = pressure / (temperature * 8.314/(29*10**(-3)))  # air density in kg.m-3
-
-        print(air_density)
 
         if self._rugosity == "flat":
             gamma = 0.1
@@ -76,7 +73,6 @@ class WindTurbine_Alois(NonControllableDevice):
 
         elif (wind > self._U_nom) and (wind <= self._U_cut_top):
             energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency / 1000
-
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
