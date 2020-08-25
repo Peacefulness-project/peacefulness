@@ -10,8 +10,8 @@ class SolarThermalCollector(NonControllableDevice):
         self._catalog.add(f"{self.name}_exergy_in", 0)
         self._catalog.add(f"{self.name}_exergy_out", 0)
 
-        self._surface = parameters["surface"]
-        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
+        self._location = parameters["irradiation_daemon"].location  # the location of the device, in relation with the meteorological data
+        self._panels = parameters["panels"]
 
     # ##########################################################################################
     # Initialization
@@ -21,6 +21,9 @@ class SolarThermalCollector(NonControllableDevice):
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._technical_profile = dict()
+
+        # panels surface
+        self._surface_pan = data_device["usage_profile"]["surface_pan"]
 
         # usage profile
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
@@ -39,12 +42,12 @@ class SolarThermalCollector(NonControllableDevice):
         message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
-        irradiation = self._catalog.get(f"{self._location}.irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
+        irradiation = self._catalog.get(f"{self._location}.direct_normal_irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
         temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
 
         efficiency = max(self._a0 * irradiation - self._a1 / (self._fluid_temperature - temperature) - self._a2 / (self._fluid_temperature - temperature) ** 2, 0)  # the efficiency cannot be negative
 
-        energy_received = self._surface * irradiation
+        energy_received = self._panels * self._surface_pan * irradiation
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = - energy_received * efficiency  # energy needed for all natures used by the device

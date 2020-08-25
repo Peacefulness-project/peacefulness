@@ -76,14 +76,14 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+    subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
     subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
 
     # Wind
-    subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+    subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"})
 
     # ##############################################################################################
     # Strategies

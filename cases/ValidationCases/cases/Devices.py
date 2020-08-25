@@ -4,7 +4,6 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
@@ -73,7 +72,6 @@ price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("pric
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 
-
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
 indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
@@ -84,7 +82,7 @@ outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperature
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau", "datafile": "cases/ValidationCases/AdditionalData/Meteo/ColdWaterTemperatureProfiles.json"})
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"}, "cases/ValidationCases/AdditionalData/Meteo/ColdWaterTemperatureProfiles.json")
 
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation
@@ -92,7 +90,7 @@ irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"loca
 
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau", "datafile": "cases/ValidationCases/AdditionalData/Meteo/WindProfiles.json"})
+wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"}, "cases/ValidationCases/AdditionalData/Meteo/WindProfiles.json")
 
 
 # ##############################################################################################
@@ -134,7 +132,6 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"location": "Pau"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
 subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
-subclasses_dictionary["Device"]["PV"]("PV", BAU_contract_elec, PV_owner, aggregator_elec, {"device": "dummy_usage"}, {"location": "Pau", "surface": 1}, "cases/ValidationCases/AdditionalData/DevicesProfiles/PV.json")
 subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_turbine_owner, aggregator_elec, {"device": "dummy_usage"}, {"location": "Pau"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/WT.json")
 
@@ -146,11 +143,11 @@ description = "This script checks that devices are working well."
 filename = "devices_validation"
 
 reference_values = {"background_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 14.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 0, 0, 0, 0],
+                    "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.5, 15.6, 15.8, 15.2, 14.7, 14.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 3.6, 0, 0, 0, 0],
                     "dishwasher_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "PV_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00185, 0.17665, 0.2805, 0.39845, 0.4373, 0.4681, 0.4173, 0.2925, 0.20285, 0, 0, 0, 0, 0, 0, 0],
+                    "PV_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0.00185, 0.17665, 0.2805, 0.39845, 0.4373, 0.4681, 0.4173, 0.2925, 0.20285, 0, 0, 0, 0, 0, 0, 0, 0],
                     "hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "wind_turbine_owner.LVE.energy_sold": [0.00014625, 0.00014625, 0.00117, 0.003948749999999999, 0.00936, 0.01828125, 0.03158999999999999, 0.05016375, 0.07488, 0.10661625, 0.14625, 0.19465875, 0.25271999999999994, 0.32131125, 0.40131, 0.49359374999999994, 0.59904, 0.71852625, 0.85293, 1.00312875, 1.17, 1.35442125, 1.55727, 1.7794237499999999]
+                    "wind_turbine_owner.LVE.energy_sold": [0, 0.00014625, 0.00117, 0.003948749999999999, 0.00936, 0.01828125, 0.03158999999999999, 0.05016375, 0.07488, 0.10661625, 0.14625, 0.19465875, 0.25271999999999994, 0.32131125, 0.40131, 0.49359374999999994, 0.59904, 0.71852625, 0.85293, 1.00312875, 1.17, 1.35442125, 1.55727, 1.7794237499999999]
                     }
 
 name = "LVE_background_bought"

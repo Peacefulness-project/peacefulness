@@ -2,16 +2,16 @@
   "template name": "1_people_curtailment",
 
   "composition": {
-    "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_curtailment"]],
-    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_curtailment"]],
+    "Background": [{"name":"Background", "data_profiles": {"user": "ECOS", "device": "ECOS_1"}, "quantity": [1,1], "contract":"LVE_curtailment"}],
+    "WashingMachine": [{"name":"WashingMachine", "data_profiles": {"user": "ECOS_1", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
 
-    "Heating": [["Heating", "residential", "apartment_heat", [1,1], "heat_curtailment", {"location": "Pau"}]],
-    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_heat", [1,1], "heat_curtailment"]]
+    "Heating": [{"name":"Heating", "data_profiles": {"user": "residential", "device": "apartment_heat"}, "quantity": [1,1], "contract": "heat_curtailment"}],
+    "HotWaterTank": [{"name":"HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_heat"}, "quantity": [1,1], "contract": "heat_curtailment"}]
   },
 
   "contracts": {
-    "LVE_curtailment":  ["LVE", "CurtailmentContract"],
-    "heat_curtailment":  ["LTH", "CurtailmentContract"]
+    "LVE_curtailment":  {"nature_name":"LVE", "contract_subclass": "CurtailmentContract"},
+    "heat_curtailment":  {"nature_name":"LTH", "contract_subclass": "CurtailmentContract"}
   }
 
 }

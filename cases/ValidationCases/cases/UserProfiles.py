@@ -75,7 +75,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau", "datafile": "cases/ValidationCases/AdditionalData/Meteo/ColdWaterTemperatureProfiles.json"})
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"}, "cases/ValidationCases/AdditionalData/Meteo/ColdWaterTemperatureProfiles.json")
 
 # Indoor temperature
 # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -150,9 +150,9 @@ reference_values = {"early_hot_water_tank_owner.LVE.energy_bought": [418/3.6/100
                     "short_period_hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0],
                     "two_usages_hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000/2, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000/2, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000/2, 0, 0, 0, 0, 0, 0, 0],
 
-                    "early_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 15.3, 15.4, 15.5, 15.6, 15.8, 15.2, 5.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 0, 0, 0, 0, 0],
-                    "hot_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 17.4, 17.5, 17.6, 17.8, 17.2, 16.7, 7.2, 5.9, 4.7, 3.4, 3.3, 3.1, 2.9, 3.8, 4.7, 0, 0, 0, 0],
-                    "short_usage_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 5.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 0, 0, 0, 0, 0]
+                    "early_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 15.4, 15.5, 15.6, 15.8, 15.2, 14.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 0, 0, 0, 0, 0],
+                    "hot_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 17.5, 17.6, 17.8, 17.2, 16.7, 16.2, 5.9, 4.7, 3.4, 3.3, 3.1, 2.9, 3.8, 4.7, 5.6, 0, 0, 0, 0],
+                    "short_usage_heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.5, 15.6, 15.8, 15.2, 14.7, 5.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 0, 0, 0, 0, 0]
                     }
 
 name = "DHW_early_balances"

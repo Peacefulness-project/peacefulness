@@ -90,11 +90,11 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterDaemon"]({"location": "Pau"})
+    subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
 
     # ##############################################################################################
     # Strategies
@@ -159,9 +159,9 @@ def simulation(strategy, DSM_proportion, sizing):
         sizing_coeff_elec = 54000/18000
         sizing_coeff_heat = 23550/9350
 
-    subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"surface": 18000 * sizing_coeff_elec, "location": "Pau"})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"surface": 18000 * sizing_coeff_elec, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
 
-    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"surface": 9350 * sizing_coeff_heat, "location": "Pau"})  # creation of a solar thermal collector
+    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"surface": 9350 * sizing_coeff_heat, "irradiation_daemon": irradiation_daemon})  # creation of a solar thermal collector
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == "high_DSM":

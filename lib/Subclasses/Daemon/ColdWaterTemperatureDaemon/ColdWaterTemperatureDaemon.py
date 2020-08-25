@@ -2,21 +2,18 @@
 from json import load
 from datetime import datetime
 from src.common.Daemon import Daemon
+from src.tools.ReadingFunction import get_1_values_per_month
 
 
-class ColdWaterDaemon(Daemon):
+class ColdWaterTemperatureDaemon(Daemon):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters, filename="lib/Subclasses/Daemon/ColdWaterTemperatureDaemon/TemperatureProfiles.json"):
         self._location = parameters["location"]  # the location corresponding to the data
 
         name = "cold_water_temperature_in_" + self._location
-        super().__init__(name, 1, parameters)
+        super().__init__(name, 1, parameters, filename)
 
-        # getting the data for the chosen location
-        if "datafile" in parameters:  # if the user has chosen another datafile
-            file = open(parameters["datafile"], "r")
-        else:
-            file = open("lib/Subclasses/Daemon/ColdWaterDaemon/TemperatureProfiles.json", "r")
+        file = open(filename, "r")
         data = load(file)[self._location]
         file.close()
 
@@ -24,26 +21,25 @@ class ColdWaterDaemon(Daemon):
         self._format = data["format"]
 
         # getting back the appropriate way of reading the data
-        self._files_formats = {"1/month": self._get_1_temperature_per_month}  # 1 representative temperature for each month
+        self._files_formats = {"1/month": get_1_values_per_month}  # 1 representative temperature for each month
         self._get_water_temperature = self._files_formats[self._format]
 
         # initialization of the value
-        self._catalog.add(f"{self._location}.cold_water_temperature", self._get_water_temperature())
+        self._catalog.add(f"{self._location}.cold_water_temperature", self._get_water_temperature(self._temperatures, self._catalog))
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.cold_water_temperature", self._get_water_temperature())
+        self._catalog.set(f"{self._location}.cold_water_temperature", self._get_water_temperature(self._temperatures, self._catalog))
 
     # ##########################################################################################
-    # Reading functions
+    # Utilities
     # ##########################################################################################
 
-    def _get_1_temperature_per_month(self):  # this methods is here to get the temperature when the format is 1 day/month
-        month = self._catalog.get("physical_time").month  # the month corresponding to the temperature
-        water_temperature = self._temperatures[str(month)]
+    @property
+    def location(self):
+        return self._location
 
-        return water_temperature
 

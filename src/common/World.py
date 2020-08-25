@@ -249,7 +249,7 @@ class World:
     # Automated generation of agents
     # ##########################################################################################
 
-    def agent_generation(self, quantity, filename, aggregators, price_manager_daemon):  # this method creates several agents, each with a predefinite set of devices
+    def agent_generation(self, quantity, filename, aggregators, price_manager_daemon, data_daemons={}):  # this method creates several agents, each with a predefinite set of devices
         # loading the data in the file
         file = open(filename, "r")
         data = load(file)
@@ -287,15 +287,20 @@ class World:
                         device_name = f"{agent_name}_{profile['name']}_{j}"  # name of the device, "Profile X"_5_Light_0
                         device_class = self._subclasses_dictionary["Device"][device_data]
 
+                        # management of contracts
                         contracts = []
                         for contract_type in contract_dict:
                             if profile["contract"] == contract_type:
                                 contracts.append(contract_dict[contract_type])
 
+                        # management of devices needing data
                         if "parameters" in profile:
-                            device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], profile["parameters"])  # creation of the device
+                            parameters = profile["parameters"]
+                            parameters.update(data_daemons)
                         else:
-                            device_class(device_name, contracts, agent, aggregators, profile["data_profiles"])  # creation of the device
+                            parameters = data_daemons
+
+                        device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters)  # creation of the device
 
     # ##########################################################################################
     # Initialization
@@ -414,12 +419,12 @@ class World:
             for datalogger in self._catalog.dataloggers.values():
                 datalogger.launch()
 
+            # time update
+            self._update_time()
+
             # daemons activation
             for daemon in self._catalog.daemons.values():
                 daemon.launch()
-
-            # time second_update
-            self._update_time()
 
             print()
 

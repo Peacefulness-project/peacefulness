@@ -10,7 +10,7 @@ class Cooling(AdjustableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/Cooling/Cooling.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
-        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
+        self._location = parameters["outdoor_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization

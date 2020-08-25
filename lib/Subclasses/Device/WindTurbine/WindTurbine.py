@@ -7,7 +7,7 @@ class WindTurbine(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/WindTurbine/WindTurbine.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
-        self._location = parameters["location"]  # the location of the device, in relation with the meteorological data
+        self._location = parameters["wind_speed_daemon"].location  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization

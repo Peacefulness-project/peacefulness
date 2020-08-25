@@ -3,8 +3,8 @@ from src.common.DeviceMainClasses import NonControllableDevice
 
 class DummyCO2Device(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, filename="lib/Subclasses/Device/DummyCO2Device/DummyCO2Device.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, profiles)
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/DummyCO2Device/DummyCO2Device.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
     # Initialization

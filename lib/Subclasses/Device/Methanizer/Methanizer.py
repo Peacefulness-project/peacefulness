@@ -3,8 +3,8 @@ from src.common.DeviceMainClasses import AdjustableDevice
 
 class Methanizer(AdjustableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, filename="lib/Subclasses/Device/Methanizer/Methanizer.json"):
-        super().__init__(name, contracts, agent, aggregators, filename, profiles)
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Methanizer/Methanizer.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
     # Initialization

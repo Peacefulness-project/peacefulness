@@ -5,7 +5,7 @@ from src.tools.GlobalWorld import get_world
 
 class Daemon:
 
-    def __init__(self, name, period=0, parameters=None):
+    def __init__(self, name, period=0, parameters=None, filename=None):
         if name is None:
             raise DaemonException("Daemon needs a name")
 
@@ -14,6 +14,8 @@ class Daemon:
         self._period = period  # number of rounds between 2 activations
 
         self._next_time = 0  # next iteration at which the daemon will be activated
+
+        self._filename = filename
 
         # parameters is the list of different parameters necessary for user-defined daemons subclasses
         # putting them into a list is necessary for the save/load system

@@ -4,8 +4,10 @@ from src.common.Device import Device
 
 class HotWaterTank(ChargerDevice, Device):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles)
+
+        self._location = parameters["cold_water_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -169,8 +171,8 @@ class HotWaterTank(ChargerDevice, Device):
                 energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
 
-                effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
-                self.agent.add_effort(effort, nature)  # effort increments
+                # effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
+                # self.agent.add_effort(effort, nature)  # effort increments
 
             volume_heated = energy_accorded[nature] / (rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6))
 
