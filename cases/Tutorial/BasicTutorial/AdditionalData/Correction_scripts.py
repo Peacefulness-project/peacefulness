@@ -54,7 +54,7 @@ def correction_1_settings():
         exit()
 
     # length
-    if world._catalog.get("time_limit") != 84:
+    if world._catalog.get("time_limit") != 168:
         print("The time limit is not the good one.")
         exit()
 
