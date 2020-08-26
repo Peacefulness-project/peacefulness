@@ -12,9 +12,8 @@
   },
 
   "contracts": {
-    "LVE_DLC":  ["LVE", "CooperativeContract"],
-    "heat_DLC":  ["LTH", "CooperativeContract"]
-
+    "LVE_DLC":  {"nature_name": "LVE", "contract_subclass": "CooperativeContract"},
+    "heat_DLC":  {"nature_name": "LTH", "contract_subclass": "CooperativeContract"}
   }
 
 }

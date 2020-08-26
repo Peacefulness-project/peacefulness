@@ -10,8 +10,8 @@
   },
 
   "contracts": {
-    "LVE_BAU":  ["LVE", "EgoistContract"],
-    "heat_BAU":  ["LTH", "EgoistContract"]
+    "LVE_BAU":  {"nature_name": "LVE", "contract_subclass": "EgoistContract"},
+    "heat_BAU":  {"nature_name": "LTH", "contract_subclass": "EgoistContract"}
   }
 
 }
