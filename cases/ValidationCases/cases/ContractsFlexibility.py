@@ -112,13 +112,13 @@ aggregator_elec = Aggregator("local_grid", LVE, strategy_elec, aggregators_manag
 
 # Each device is created 3 times
 # BAU contract
-subclasses_dictionary["Device"]["Dishwasher"]("BAU_dishwasher", BAU_elec_contract, BAU_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+subclasses_dictionary["Device"]["Dishwasher"]("BAU_dishwasher", BAU_elec_contract, BAU_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 
 # Cooperative contract
-subclasses_dictionary["Device"]["Dishwasher"]("cooperative_dishwasher", cooperative_elec_contract, cooperative_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+subclasses_dictionary["Device"]["Dishwasher"]("cooperative_dishwasher", cooperative_elec_contract, cooperative_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 
 # Curtailment contract
-subclasses_dictionary["Device"]["Dishwasher"]("curtailment_dishwasher", curtailment_elec_contract, curtailment_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+subclasses_dictionary["Device"]["Dishwasher"]("curtailment_dishwasher", curtailment_elec_contract, curtailment_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 
 
 # ##############################################################################################

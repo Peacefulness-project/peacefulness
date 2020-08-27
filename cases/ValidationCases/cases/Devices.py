@@ -129,11 +129,12 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 
 # ##############################################################################################
 # Manual creation of devices
-subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"location": "Pau"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
-subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_turbine_owner, aggregator_elec, {"device": "dummy_usage"}, {"location": "Pau"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/WT.json")
+subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
+subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+subclasses_dictionary["Device"]["PV"]("PV", BAU_contract_elec, PV_owner, aggregator_elec, {"device": "dummy_usage"}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "panels": 1}, "cases/ValidationCases/AdditionalData/DevicesProfiles/PV.json")
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, {"cold_water_temperature_daemon": water_temperature_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_turbine_owner, aggregator_elec, {"device": "dummy_usage"}, {"wind_speed_daemon": wind_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/WT.json")
 
 
 # ##############################################################################################

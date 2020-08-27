@@ -60,14 +60,14 @@ def simulation(strategy, DSM_proportion, sizing):
     # these daemons fix a price for a given nature of energy
 
     if sizing == "peak":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.4375, 0.3125], "selling_price": [0.245, 0.245], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.3125, 0.4375], "selling_price": [0.245, 0.245], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
         price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.9, "selling_price": 0.719})  # sets prices for the system operator
 
         price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.336, "selling_price": 0})  # price manager for the local electrical grid
 
     elif sizing == "mean":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0.112, 0.112], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.15, 0.2125], "selling_price": [0.112, 0.112], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
         price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.41, "selling_price": 0.327})  # sets prices for the system operator
 
@@ -196,8 +196,11 @@ def simulation(strategy, DSM_proportion, sizing):
     # Dataloggers
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
+
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
@@ -215,6 +218,21 @@ def simulation(strategy, DSM_proportion, sizing):
 
     producer_datalogger.add(f"simulation_time")
     producer_datalogger.add(f"physical_time")
+
+    producer_datalogger.add(f"PV_producer.LVE.energy_erased")
+    producer_datalogger.add(f"solar_thermal_producer.LTH.energy_erased")
+    producer_datalogger.add(f"PV_producer.LVE.energy_sold")
+    producer_datalogger.add(f"solar_thermal_producer.LTH.energy_sold")
+
+    producer_datalogger.add(f"PV_field_exergy_in")
+    producer_datalogger.add(f"solar_thermal_collector_field_exergy_in")
+    producer_datalogger.add(f"PV_field_exergy_out")
+    producer_datalogger.add(f"solar_thermal_collector_field_exergy_out")
+
+    # datalogger used to get back producer outputs
+    producer_datalogger = Datalogger("producer_datalogger_global", "ProducerBalances.txt", "global")
+
+    producer_datalogger.add(f"simulation_time")
 
     producer_datalogger.add(f"PV_producer.LVE.energy_erased")
     producer_datalogger.add(f"solar_thermal_producer.LTH.energy_erased")

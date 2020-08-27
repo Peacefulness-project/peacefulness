@@ -122,13 +122,13 @@ aggregator_gas = Aggregator("aggregator_gas", LPG, BAU_strategy, aggregators_man
 
 # The device is created 3 times
 # elec
-device_elec = subclasses_dictionary["Device"]["Background"]("device_elec", BAU_contract_elec, devices_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_elec = subclasses_dictionary["Device"]["Background"]("device_elec", BAU_contract_elec, devices_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # heat
-device_heat = subclasses_dictionary["Device"]["Background"]("device_heat", BAU_contract_heat, devices_owner, aggregator_heat, {"user": "dummy_user", "device": "dummy_usage_heat"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_heat = subclasses_dictionary["Device"]["Background"]("device_heat", BAU_contract_heat, devices_owner, aggregator_heat, {"user": "dummy_user", "device": "dummy_usage_heat"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 # gas
-device_gas = subclasses_dictionary["Device"]["Background"]("device_gas", BAU_contract_gas, devices_owner, aggregator_gas, {"user": "dummy_user", "device": "dummy_usage_gas"}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_gas = subclasses_dictionary["Device"]["Background"]("device_gas", BAU_contract_gas, devices_owner, aggregator_gas, {"user": "dummy_user", "device": "dummy_usage_gas"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################
