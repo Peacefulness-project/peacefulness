@@ -35,7 +35,6 @@ class Agent:
         for nature in self.natures:
             self._catalog.set(f"{self.name}.{nature.name}.energy_bought", 0)  # energy received by the agent during the current round
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", 0)  # energy delivered by the agent during the current round
-
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)  # quantity of energy wanted but not served by the supervisor
 
         for element in self._catalog.get("additional_elements"):

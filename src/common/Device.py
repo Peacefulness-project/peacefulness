@@ -238,11 +238,13 @@ class Device:
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
             energy_bought_nature = self._catalog.get(f"{nature.name}.energy_consumed")
+            energy_erased_nature = self._catalog.get(f"{nature.name}.energy_erased")
             money_spent_nature = self._catalog.get(f"{nature.name}.money_spent")
             money_earned_nature = self._catalog.get(f"{nature.name}.money_earned")
 
             self._catalog.set(f"{nature.name}.energy_produced", energy_sold_nature + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{nature.name}.energy_consumed", energy_bought_nature + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{nature.name}.energy_erased", energy_erased_nature + energy_erased[nature.name])  # report the energy consumed by the device
             self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the aggregator to buy energy during the round
             self._catalog.set(f"{nature.name}.money_earned", money_earned_nature + money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
 
@@ -253,11 +255,13 @@ class Device:
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
             energy_bought_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_bought")
+            energy_erased_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_erased")
             money_spent_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.money_spent")
             money_earned_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.money_earned")
 
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_sold", energy_sold_contract + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_bought", energy_bought_contract + energy_bought[nature.name])  # report the energy consumed by the device
+            self._catalog.set(f"{self.natures[nature]['contract'].name}.energy_erased", energy_erased_contract + energy_erased[nature.name])  # report the energy consumed by the device
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract + money_spent[nature.name])  # money spent by the contract to buy energy during the round
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract + money_earned[nature.name])  # money earned by the contract by selling energy during the round
 

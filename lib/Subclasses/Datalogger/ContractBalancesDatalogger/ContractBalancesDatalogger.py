@@ -19,6 +19,7 @@ class ContractBalancesDatalogger(Datalogger):  # a sub-class of dataloggers desi
         for contract_name in self._contracts_list:  # for each contract registered into world, all the relevant keys are added
             self.add(f"{contract_name}.energy_sold")
             self.add(f"{contract_name}.energy_bought")
+            self.add(f"{contract_name}.energy_erased")
             self.add(f"{contract_name}.money_spent")
             self.add(f"{contract_name}.money_earned")
 

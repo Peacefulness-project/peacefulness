@@ -214,7 +214,7 @@ def simulation(strategy, DSM_proportion, sizing):
     subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
     # datalogger used to get back producer outputs
-    producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+    producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances")
 
     producer_datalogger.add(f"simulation_time")
     producer_datalogger.add(f"physical_time")
@@ -230,7 +230,7 @@ def simulation(strategy, DSM_proportion, sizing):
     producer_datalogger.add(f"solar_thermal_collector_field_exergy_out")
 
     # datalogger used to get back producer outputs
-    producer_datalogger = Datalogger("producer_datalogger_global", "ProducerBalances.txt", "global")
+    producer_datalogger = Datalogger("producer_datalogger_global", "ProducerBalances_global", "global")
 
     producer_datalogger.add(f"simulation_time")
 

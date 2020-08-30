@@ -19,6 +19,7 @@ class NatureBalancesDatalogger(Datalogger):  # a sub-class of dataloggers design
         for nature_name in self._natures_list:  # for each nature registered into world, all the relevant keys are added
             self.add(f"{nature_name}.energy_consumed")
             self.add(f"{nature_name}.energy_produced")
+            self.add(f"{nature_name}.energy_erased")
             self.add(f"{nature_name}.money_spent")
             self.add(f"{nature_name}.money_earned")
 
