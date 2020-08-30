@@ -124,7 +124,7 @@ class Strategy:
                 lines_to_remove.append(i)
 
             else:  # if a min of energy is needed
-                energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
+                energy_minimum = sorted_demands[i]["quantity_min"]  # the minimum quantity of energy asked
                 sorted_demands[i]["quantity"] -= energy_minimum
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
@@ -142,7 +142,7 @@ class Strategy:
                 lines_to_remove.append(i)
 
             else:  # if a min of energy is needed
-                energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
+                energy_minimum = sorted_offers[i]["quantity_min"]   # the minimum quantity of energy asked
                 sorted_offers[i]["quantity"] -= energy_minimum
 
         lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
@@ -397,6 +397,7 @@ class Strategy:
                 message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
                 message["emergency"] = emergency
                 message["quantity"] = Emax
+                message["quantity_min"] = Emin
                 message["price"] = price
                 message["name"] = device_name
                 sorted_demands.append(message)
@@ -404,6 +405,7 @@ class Strategy:
                 message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
                 message["emergency"] = emergency
                 message["quantity"] = Emax
+                message["quantity_min"] = Emin
                 message["price"] = price
                 message["name"] = device_name
                 sorted_offers.append(message)
@@ -427,6 +429,7 @@ class Strategy:
                     message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
                     message["emergency"] = emergency
                     message["quantity"] = Emax
+                    message["quantity_min"] = Emin
                     message["price"] = price
                     message["name"] = subaggregator.name
                     sorted_demands.append(message)
@@ -434,6 +437,7 @@ class Strategy:
                     message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
                     message["emergency"] = emergency
                     message["quantity"] = Emax
+                    message["quantity_min"] = Emin
                     message["price"] = price
                     message["name"] = subaggregator.name
                     sorted_offers.append(message)
@@ -478,8 +482,8 @@ class Strategy:
                 energy_sold_inside += energy  # the absolute value of energy sold inside
 
             else:
-                energy_minimum = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
-                energy_maximum = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the minimum quantity of energy asked
+                energy_minimum = sorted_demands[i]["quantity_min"]  # the minimum quantity of energy asked
+                energy_maximum = sorted_demands[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
@@ -541,8 +545,8 @@ class Strategy:
                 energy_available_production += energy  # the difference between the max and the min is consumed
 
             else:  # if it is a device, it may asks for a min of energy too
-                energy_minimum = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
-                energy_maximum = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the minimum quantity of energy asked
+                energy_minimum = sorted_offers[i]["quantity_min"]  # the minimum quantity of energy asked
+                energy_maximum = sorted_offers[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
                     energy = - energy_available_production  # it is served partially, even if it is urgent
@@ -583,7 +587,7 @@ class Strategy:
                 price = sorted_demands[i]["price"]  # the price of energy
                 price = min(price, max_price)
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
@@ -609,7 +613,7 @@ class Strategy:
                 price = sorted_demands[i]["price"]  # the price of energy
                 price = min(price, max_price)
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
@@ -636,7 +640,7 @@ class Strategy:
                 price = sorted_offers[i]["price"]  # the price of energy
                 price = max(price, min_price)
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
@@ -662,7 +666,7 @@ class Strategy:
                 price = sorted_offers[i]["price"]  # the price of energy
                 price = max(price, min_price)
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price

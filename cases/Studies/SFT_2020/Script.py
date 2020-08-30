@@ -57,7 +57,7 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
     # Daemons
     # Price Managers
     # these daemons fix a price for a given nature of energy
-    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.12, 0.17], "selling_price": [0.11, 0.11], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
     price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.1, "selling_price": 0.08})  # sets prices for the system operator
 
     price_managing_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_grid", {"nature": LTH.name, "buying_price": 0.18, "selling_price": 0.05})  # sets prices for the system operator
