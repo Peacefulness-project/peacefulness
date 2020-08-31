@@ -140,7 +140,7 @@ outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperature
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
-cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
+cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
 
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation

@@ -36,8 +36,7 @@ def simulation(strategy, DSM_proportion, sizing):
     # ##############################################################################################
     # Time Manager
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime.now()  # a start date in the datetime format
-    start_date = start_date.replace(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
                    24 * 365)  # number of time steps simulated
@@ -90,7 +89,7 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
+    cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation

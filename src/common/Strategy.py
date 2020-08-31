@@ -341,6 +341,7 @@ class Strategy:
 
         # capacity and efficiency management
         # at this point, couples are formulated from this aggregator point of view (without the effect of capacity and of efficiency)
+        # here, capacity and efficiency are managed
         for element in quantities_and_prices:
             if element["energy_maximum"] > 0:  # if it is a demand of energy
                 element["energy_minimum"] = min(element["energy_minimum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
@@ -497,6 +498,8 @@ class Strategy:
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                     quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
                     quantities_given.append(message)
+                    sorted_demands[i]["quantity_min"] = 0
+                    sorted_demands[i]["quantity"] = energy_maximum-energy_minimum  # the need is updated
                 else:  # if it is a device
                     quantities_given = message
 
@@ -559,6 +562,8 @@ class Strategy:
                 if name in aggregator.subaggregators:  # if it is a subaggregator
                     quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
                     quantities_given.append(message)
+                    sorted_offers[i]["quantity_min"] = 0
+                    sorted_offers[i]["quantity"] = energy_maximum - energy_minimum  # the need is updated
                 else:  # if it is a device
                     quantities_given = message
 
