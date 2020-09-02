@@ -8,6 +8,14 @@
       "max_power": {"LVE": 2}
     },
 
+    "dummy_usage_devices_test": {
+      "usage_profile": {"LVE": 1000},
+      "consumption_variation": 0,
+
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 20}
+    },
+
     "dummy_usage_consuming": {
       "usage_profile": {"LVE": 2},
       "consumption_variation": 0,

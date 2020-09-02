@@ -152,11 +152,11 @@ def simulation(strategy, DSM_proportion, sizing):
     # ##############################################################################################
     # Devices
     if sizing == "mean":
-        sizing_coeff_elec = 9000
-        sizing_coeff_heat = 4675
+        sizing_coeff_elec = 9100
+        sizing_coeff_heat = 7400
     elif sizing == "peak":
-        sizing_coeff_elec = 27000
-        sizing_coeff_heat = 11775
+        sizing_coeff_elec = 24300
+        sizing_coeff_heat = 19600
 
     subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": sizing_coeff_elec, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a photovoltaic panel field
 

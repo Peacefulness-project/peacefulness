@@ -4,8 +4,13 @@
       "usage_profile": [[1, {"LVE": 0.5}, 1], [1.5, {"LVE": 0.6}, 1]],
       "consumption_variation": 0,
       "duration_variation": 0
-    }
+    },
 
+    "dummy_usage_devices_test": {
+      "usage_profile": [[1, {"LVE": 5}, 1], [1.5, {"LVE": 6}, 1]],
+      "consumption_variation": 0,
+      "duration_variation": 0
+    }
   },
 
   "user_profile":{

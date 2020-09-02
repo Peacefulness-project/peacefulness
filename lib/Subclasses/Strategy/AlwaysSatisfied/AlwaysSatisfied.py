@@ -25,7 +25,7 @@ class AlwaysSatisfied(Strategy):
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
         energy_difference = maximum_energy_consumed - maximum_energy_produced
 
-        quantities_and_prices = [self._messages["ascendant"]]  # the standard ascendant message
+        quantities_and_prices = [{element: self._messages["descendant"][element] for element in self._messages["descendant"]}]  # the standard ascendant message
         quantities_and_prices[0]["energy_minimum"] = energy_difference
         quantities_and_prices[0]["energy_nominal"] = energy_difference
         quantities_and_prices[0]["energy_maximum"] = energy_difference

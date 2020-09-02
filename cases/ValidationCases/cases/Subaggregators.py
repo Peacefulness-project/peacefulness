@@ -76,7 +76,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # ##############################################################################################
 # Creation of strategies
 # BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -88,28 +88,37 @@ devices_owner_sup = Agent("device_owner_sup")
 
 devices_owner_inf = Agent("device_owner_inf")
 
-aggregators_manager = Agent("aggregators_manager")
+aggregator_sup_manager = Agent("aggregators_sup_manager")
+
+aggregator_inf_manager = Agent("aggregators_inf_manager")
 
 
 # ##############################################################################################
 # Manual creation of contracts
 BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
 
+curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_elec", LVE, price_manager_elec)
+
 
 # ##############################################################################################
 # Creation of aggregators
-aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
+aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregator_sup_manager)
 
-aggregator_elec_sup = Aggregator("local_grid_superior", LVE, strategy_elec, aggregators_manager, aggregator_grid, BAU_elec)
+aggregator_elec_sup = Aggregator("local_grid_superior", LVE, strategy_elec, aggregator_sup_manager, aggregator_grid, BAU_elec)
 
-aggregator_elec_inf = Aggregator("local_grid_inferior", LVE, strategy_elec, aggregators_manager, aggregator_elec_sup, BAU_elec)
+aggregator_elec_inf = Aggregator("local_grid_inferior", LVE, strategy_elec, aggregator_inf_manager, aggregator_elec_sup, BAU_elec)
 
 
 # ##############################################################################################
 # Manual creation of devices
-device_sup = subclasses_dictionary["Device"]["Background"]("device_sup", BAU_elec, devices_owner_sup, aggregator_elec_sup, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-device_inf = subclasses_dictionary["Device"]["Background"]("device_inf", BAU_elec, devices_owner_inf, aggregator_elec_inf, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+# aggregator sup
+device_sup_served = subclasses_dictionary["Device"]["Background"]("device_sup_served", BAU_elec, devices_owner_sup, aggregator_elec_sup, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_sup_not_served = subclasses_dictionary["Device"]["Background"]("device_sup_not_served", curtailment_elec, devices_owner_sup, aggregator_elec_sup, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+
+# aggregator_inf
+device_inf_served = subclasses_dictionary["Device"]["Background"]("device_inf_served", BAU_elec, devices_owner_inf, aggregator_elec_inf, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_inf_not_served = subclasses_dictionary["Device"]["Background"]("device_inf_not_served", curtailment_elec, devices_owner_inf, aggregator_elec_inf, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 
 # ##############################################################################################
@@ -119,7 +128,9 @@ description = "This script check that aggregators do not make a difference betwe
 filename = "subaggregators_validation"
 
 reference_values = {"device_owner_sup.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "device_owner_inf.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+                    "device_owner_inf.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    "aggregators_sup_manager.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
+                    "aggregators_inf_manager.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                     }
 
 name = "LVE_sup_balances"
@@ -129,8 +140,8 @@ export_plot1 = {
     "options": graph_options(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
-          "graphs": [ {"catalog_name_entry": "device_owner_sup.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
-                      {"catalog_name_entry": "device_owner_sup.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          "graphs": [{"catalog_name_entry": "device_owner_sup.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "device_owner_sup.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}]
           }
 }
 
@@ -141,8 +152,8 @@ export_plot2 = {
     "options": graph_options(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
-          "graphs": [ {"catalog_name_entry": "device_owner_inf.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
-                      {"catalog_name_entry": "device_owner_inf.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."} ]
+          "graphs": [{"catalog_name_entry": "device_owner_inf.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
+                      {"catalog_name_entry": "device_owner_inf.LVE.energy_bought_simulation", "style": "lines", "legend": r"num."}]
           }
 }
 

@@ -131,9 +131,9 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 # Manual creation of devices
 subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
-subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
+subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage_devices_test"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 subclasses_dictionary["Device"]["PV"]("PV", BAU_contract_elec, PV_owner, aggregator_elec, {"device": "dummy_usage"}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "panels": 1}, "cases/ValidationCases/AdditionalData/DevicesProfiles/PV.json")
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, {"cold_water_temperature_daemon": water_temperature_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage_devices_test"}, {"cold_water_temperature_daemon": water_temperature_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_turbine_owner, aggregator_elec, {"device": "dummy_usage"}, {"wind_speed_daemon": wind_daemon}, "cases/ValidationCases/AdditionalData/DevicesProfiles/WT.json")
 
 
@@ -145,10 +145,10 @@ filename = "devices_validation"
 
 reference_values = {"background_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "heating_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 15.5, 15.6, 15.8, 15.2, 14.7, 14.2, 3.9, 2.7, 1.4, 1.3, 1.1, 0.9, 1.8, 2.7, 3.6, 0, 0, 0, 0],
-                    "dishwasher_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "PV_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0.00185, 0.17665, 0.2805, 0.39845, 0.4373, 0.4681, 0.4173, 0.2925, 0.20285, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "hot_water_tank_owner.LVE.energy_bought": [418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 418/3.6/10000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "wind_turbine_owner.LVE.energy_sold": [0, 0.00014625, 0.00117, 0.003948749999999999, 0.00936, 0.01828125, 0.03158999999999999, 0.05016375, 0.07488, 0.10661625, 0.14625, 0.19465875, 0.25271999999999994, 0.32131125, 0.40131, 0.49359374999999994, 0.59904, 0.71852625, 0.85293, 1.00312875, 1.17, 1.35442125, 1.55727, 1.7794237499999999]
+                    "dishwasher_owner.LVE.energy_bought": [0, 0, 0, 0, 0, 0, 0, 0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "PV_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0.0925, 8.8325, 14.025, 19.9225, 21.865, 23.405, 20.865, 14.625, 10.1425, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "hot_water_tank_owner.LVE.energy_bought": [418/36, 0, 0, 0, 0, 0, 0, 0, 418/36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "wind_turbine_owner.LVE.energy_sold": [0, 0.0014625, 0.0117, 0.03948749999999999, 0.0936, 0.1828125, 0.3158999999999999, 0.5016375, 0.7488, 1.0661625, 1.4625, 1.9465875, 2.5271999999999994, 3.2131125, 4.0131, 4.9359374999999994, 5.9904, 7.1852625, 8.5293, 10.0312875, 11.7, 13.5442125, 15.5727, 17.794237499999999]
                     }
 
 name = "LVE_background_bought"

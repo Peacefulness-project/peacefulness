@@ -184,15 +184,15 @@ class Heating(AdjustableDevice):
 
                 for nature in energy_wanted:
                     # min power calculation:
-                    energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia * self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_minimum"] = time_step / self._thermal_inertia * self._G * (deltaTmin - deltaT0 * exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_minimum"] = min(energy_wanted[nature]["energy_minimum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_minimum"] = max(0, energy_wanted[nature]["energy_minimum"])
                     # nominal power calculation:
-                    energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia * self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_nominal"] = time_step / self._thermal_inertia * self._G * (deltaTnom - deltaT0 * exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_nominal"] = min(energy_wanted[nature]["energy_nominal"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_nominal"] = max(0, energy_wanted[nature]["energy_nominal"])
                     # max power calculation:
-                    energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))  # / (1 - exp(-time_step/self._thermal_inertia))
+                    energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_maximum"] = max(0, energy_wanted[nature]["energy_maximum"])
 

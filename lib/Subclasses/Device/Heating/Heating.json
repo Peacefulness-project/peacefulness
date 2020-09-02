@@ -8,7 +8,7 @@
 
     "house_heat": {
       "usage_profile": [{"LTH": 1}, 1.5, 18000],
-      "consumption_variation": 0.25,
+      "consumption_variation": 0,
       "max_power": {"LTH": 5}
     },
 
@@ -19,8 +19,8 @@
     },
 
     "apartment_heat": {
-      "usage_profile": [{"LTH": 1}, 0.7, 7200],
-      "consumption_variation": 0.25,
+      "usage_profile": [{"LTH": 1}, 0.3, 7200],
+      "consumption_variation": 0,
       "max_power": {"LTH": 2}
     },
 
@@ -50,8 +50,8 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 1.5,
-      "temperature_variation": 1,
+      "start_time_variation": 0,
+      "temperature_variation": 0,
       "duration_variation": 0
     },
 

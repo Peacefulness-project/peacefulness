@@ -55,7 +55,6 @@ class SubaggregatorHeatEmergency(Strategy):
         # publication of the needs to its superior
 
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
-        # print(quantities_and_prices)
 
         return quantities_and_prices
 
@@ -87,7 +86,6 @@ class SubaggregatorHeatEmergency(Strategy):
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
-        # print(energy_bought_outside)
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
