@@ -59,18 +59,18 @@ def simulation(strategy, DSM_proportion, sizing):
     # these daemons fix a price for a given nature of energy
 
     if sizing == "peak":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.3125, 0.4375], "selling_price": [0.245, 0.245], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.281, 0.393], "selling_price": [0.223, 0.223], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
-        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.9, "selling_price": 0.719*0.9})  # sets prices for the system operator
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.313, "selling_price": 0.993*0.9})  # sets prices for the system operator
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.283/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the devices
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.107/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the devices
 
     elif sizing == "mean":
-        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.15, 0.2125], "selling_price": [0.112, 0.112], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+        price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.137, 0.192], "selling_price": [0.109, 0.109], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
-        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.41, "selling_price": 0.327*0.9})  # sets prices for the system operator
+        price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.213, "selling_price": 0.483*0.9})  # sets prices for the system operator
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.234/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the DHN
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.104/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the DHN
 
     price_managing_daemon_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_grid", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0.1})  # price manager for the local electrical grid
 
@@ -147,16 +147,16 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # here we create another aggregator dedicated to heat
     aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 3.6, 3344)  # creation of a aggregator
+    aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 3.6, 3800)  # creation of a aggregator
 
     # ##############################################################################################
     # Devices
     if sizing == "mean":
         sizing_coeff_elec = 9100
-        sizing_coeff_heat = 7400
+        sizing_coeff_heat = 4250
     elif sizing == "peak":
         sizing_coeff_elec = 24300
-        sizing_coeff_heat = 19600
+        sizing_coeff_heat = 11500
 
     subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": sizing_coeff_elec, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a photovoltaic panel field
 
@@ -227,6 +227,12 @@ def simulation(strategy, DSM_proportion, sizing):
     producer_datalogger.add(f"solar_thermal_collector_field_exergy_in")
     producer_datalogger.add(f"PV_field_exergy_out")
     producer_datalogger.add(f"solar_thermal_collector_field_exergy_out")
+
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating")
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", "global")
+
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
     # datalogger used to get back producer outputs
     producer_datalogger = Datalogger("producer_datalogger_global", "ProducerBalances_global", "global")

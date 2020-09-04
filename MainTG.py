@@ -319,6 +319,11 @@ producer_datalogger.add("physical_time", graph_status="X")
 # test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
 # test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating")
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", "global")
+
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization

@@ -77,7 +77,6 @@ class Datalogger:
         else:
             pass
 
-
     def add_all(self):  # add all keys from the catalog to the datalogger
         for name in self._catalog.keys:
             self.add(name)

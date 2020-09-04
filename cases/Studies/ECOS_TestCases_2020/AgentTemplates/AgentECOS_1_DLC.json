@@ -1,16 +1,16 @@
 {
-  "template name": "1_people_DLC",
+  "template name": "1_people_cooperative",
 
   "composition": {
-    "Background": [["Background", "ECOS", "ECOS_1", [1,1], "LVE_DLC"]],
-    "WashingMachine": [["WashingMachine", "ECOS_1", "ECOS", [1,1], "LVE_DLC"]],
+    "Background": [{"name": "Background", "data_profiles": {"user": "ECOS", "device": "ECOS_1"}, "quantity": [1,1], "contract": "LVE_cooperative"}],
+    "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_1", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_cooperative"}],
 
-    "Heating": [["Heating", "residential", "apartment_elec", [1,1], "LVE_DLC", {"location": "Pau"}]],
-    "HotWaterTank": [["HotWaterTank", "ECOS_1", "1_people_elec", [1,1], "LVE_DLC"]]
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "apartment_elec"}, "quantity": [1,1], "contract": "LVE_cooperative"}],
+    "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_elec"}, "quantity": [1,1], "contract": "LVE_cooperative"}]
   },
 
   "contracts": {
-    "LVE_DLC":  ["LVE", "CooperativeContract"]
+    "LVE_cooperative":  {"nature_name": "LVE", "contract_subclass": "CooperativeContract"}
   }
 
 }

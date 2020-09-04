@@ -250,13 +250,13 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
     def _randomize_start_variation(self, data):
-        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"]) % self._period  # creation of a displacement in the user_profile
         for line in data["profile"]:
             line[0] += start_time_variation
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
-        duration_variation = max(0, duration_variation)  # to avoid negative durations
+        duration_variation = max(duration_variation/10, duration_variation)  # to avoid negative durations
         for line in data["usage_profile"]:  # modification of the basic user_profile according to the results of random generation
             line[0] *= duration_variation
 

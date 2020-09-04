@@ -19,6 +19,8 @@ from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
+from time import process_time
+
 
 def simulation(season):
 
@@ -42,7 +44,7 @@ def simulation(season):
 
     # ##############################################################################################
     # Definition of the path to the files
-    world.set_directory("cases/Studies/PresentationArticleCases/LittleScaleResults/"+season)  # here, you have to put the path to your results directory
+    world.set_directory("cases/Studies/PresentationArticleCases/Results/LittleScaleCase/"+season+"/")  # here, you have to put the path to your results directory
 
     # ##############################################################################################
     # Definition of the random seed
@@ -55,11 +57,11 @@ def simulation(season):
     if season == "winter":
         start_date = datetime(year=1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
     elif season == "spring":
-        start_date = datetime(year=1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
+        start_date = datetime(year=1, month=4, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
     elif season == "summer":
-        start_date = datetime(year=1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
+        start_date = datetime(year=1, month=7, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
     elif season == "autumn":
-        start_date = datetime(year=1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
+        start_date = datetime(year=1, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
 
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
@@ -139,7 +141,17 @@ def simulation(season):
 
     # ##############################################################################################
     # Simulation start
+
+    # Performance measurement
+    CPU_time = process_time()
+
     world.start()
 
+    # CPU time measurement
+    CPU_time = process_time() - CPU_time  # time taken by the initialization
+    filename = world._catalog.get("path") + "outputs/CPU_time.txt"  # adapting the path to the OS
+    file = open(filename, "a")  # creation of the file
+    file.write(f"time taken by the calculation phase: {CPU_time}\n")
+    file.close()
 
 

@@ -354,6 +354,10 @@ class Device:
     def agent(self):  # shortcut for read-only
         return self._agent
 
+    @property
+    def subclass(self):
+        return "toto"
+
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
 

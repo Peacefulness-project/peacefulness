@@ -240,7 +240,13 @@ class Heating(AdjustableDevice):
         current_indoor_temperature += power / self._G * self._thermal_inertia
         self._catalog.set(f"{self.agent.name}.current_indoor_temperature", current_indoor_temperature)
 
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
 
+    @property
+    def subclass(self):
+        return "Heating"
 
 
 

@@ -182,4 +182,11 @@ class HotWaterTank(ChargerDevice, Device):
 
             self._demand[nature.name] += - remaining_demand   # the energy in excess or in default
 
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def subclass(self):
+        return "HotWaterTank"
 
