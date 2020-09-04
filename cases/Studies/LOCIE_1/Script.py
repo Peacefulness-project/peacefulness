@@ -63,14 +63,14 @@ def simulation(strategy, DSM_proportion, sizing):
 
         price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.313, "selling_price": 0.993*0.9})  # sets prices for the system operator
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.107/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the devices
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": (0.107+0.223/3.6)/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the devices
 
     elif sizing == "mean":
         price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": [0.137, 0.192], "selling_price": [0.109, 0.109], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
         price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.213, "selling_price": 0.483*0.9})  # sets prices for the system operator
 
-        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": 0.104/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the DHN
+        price_managing_daemon_DHN = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_DHN", {"nature": LTH.name, "buying_price": (0.104+0.109/3.6)/0.9, "selling_price": 0})  # price manager for the local electrical grid regarding the DHN
 
     price_managing_daemon_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_grid", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0.1})  # price manager for the local electrical grid
 
