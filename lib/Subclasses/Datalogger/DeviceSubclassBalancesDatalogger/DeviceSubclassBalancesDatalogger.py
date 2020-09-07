@@ -28,7 +28,7 @@ class DeviceSubclassBalancesDatalogger(Datalogger):  # a sub-class of datalogger
                     price = self._catalog.get(f"{device_name}.{nature_name}.energy_accorded")["price"]
                     money += energy*price
 
-                return money
+            return money
 
         for device_name in self._catalog.get("dictionaries")['devices'].keys():
             if self._catalog.get("dictionaries")['devices'][device_name].subclass == subclass:

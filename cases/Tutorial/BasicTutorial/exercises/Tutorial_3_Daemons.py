@@ -106,11 +106,11 @@ Nature("PW", "Pressurized Water")
 # TODO: In the followings, several daemons are required to handle meteorological conditions at a specific location, which in the present case is "Pau"
 # TODO: create a daemon whose role is to manage the outdoor temperature
 
-# TODO: create a daemon whose role is to manage the cold water temperature of the water grid
-
 # TODO: create a daemon whose role is to manage the irradiation
 
 # TODO: create a daemon whose role is to manage the wind
+
+# TODO: create a daemon whose role is to manage the cold water temperature of the water grid, located in "France"
 
 
 # ##############################################################################################

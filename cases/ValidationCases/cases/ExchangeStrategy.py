@@ -144,8 +144,8 @@ filename = "exchange_strategy_validation"
 reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
                     "light_autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
 
-                    "autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
                     "always_satisfied_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
                     "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
@@ -212,15 +212,15 @@ export_plot4 = {
     "options": graph_options(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
-          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"lgt autark."},
-                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"autark."},
-                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_reference", "style": "points", "legend": r"alws satis."}
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"light autarky ref."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"autarky ref."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_reference", "style": "points", "legend": r"always satisfied ref."}
                       ]
           },
     "Y2": {"label": r"$\mathcal{P}_{num.} \, [\si{\watt}]$",
-          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
-                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""},
-                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r""}
+          "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"light autarky num."},
+                      {"catalog_name_entry": "autarky_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"autarky num."},
+                      {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_simulation", "style": "lines", "legend": r"always satisfied num."}
                       ]
           }
 }

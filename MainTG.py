@@ -285,15 +285,15 @@ subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
 
 # datalogger used to get back producer outputs
-producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances")
+export_graph_options_1 = graph_options("LaTeX")
+
+producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", graph_options=export_graph_options_1, graph_labels={"xlabel": "time", "ylabel": "producer"})
 producer_datalogger.add("physical_time", graph_status="X")
 
-# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_erased")
-# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_sold")
-# producer_datalogger.add(f"{heat_pump_owner.name}.LVE.energy_bought")
-# producer_datalogger.add(f"{heat_pump_owner.name}.LTH.energy_sold")
+producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
+producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
+producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_erased")
+producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_sold")
 
 # producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
 # producer_datalogger.add(f"{solar_thermal_collector_producer.name}.LTH.energy_erased")

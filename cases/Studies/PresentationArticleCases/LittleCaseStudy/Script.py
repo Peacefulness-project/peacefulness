@@ -16,6 +16,7 @@ from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import graph_options
 
 from src.tools.SubclassesDictionary import get_subclasses
 
@@ -65,7 +66,7 @@ def simulation(season):
 
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
-                   24 * 7)  # number of time steps simulated
+                   7)  # number of time steps simulated
 
     # ##############################################################################################
     # Model
@@ -134,10 +135,16 @@ def simulation(season):
 
     subclasses_dictionary["Device"]["Dryer"]("dryer", cooperative_elec_contract, house_owner, local_grid, {"user": "family", "device": "medium_consumption"})
 
-    subclasses_dictionary["Device"]["PV"]("PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard_field"}, {"panels": 5, "irradiation_daemon": irradiation_daemon})
+    subclasses_dictionary["Device"]["PVAdvanced"]("rooftop_PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard"}, {"panels": 5, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})
 
     # ##############################################################################################
     # Creation of dataloggers
+
+    export_graph_options_1 = graph_options("LaTeX")
+
+    subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_balances", "DeviceBalances", ["heating", "background", "hot_water_tank", "dishwasher", "washing_machine", "dryer", "rooftop_PV"], 1, export_graph_options_1)
+
+    subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]()
 
     # ##############################################################################################
     # Simulation start
@@ -149,7 +156,7 @@ def simulation(season):
 
     # CPU time measurement
     CPU_time = process_time() - CPU_time  # time taken by the initialization
-    filename = world._catalog.get("path") + "outputs/CPU_time.txt"  # adapting the path to the OS
+    filename = world._catalog.get("path") + "/outputs/CPU_time.txt"  # adapting the path to the OS
     file = open(filename, "a")  # creation of the file
     file.write(f"time taken by the calculation phase: {CPU_time}\n")
     file.close()

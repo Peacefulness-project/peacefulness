@@ -9,7 +9,7 @@ class SunPositionDaemon(Daemon):
     def __init__(self, parameters, period=1, filename="lib/Subclasses/Daemon/SunPositionDaemon/SunPositionProfiles.json"):
         self._location = parameters["location"]  # the location corresponding to the data
 
-        name = "water_flow_in_" + self._location
+        name = "sun_position_in_" + self._location
         super().__init__(name, period, parameters)
 
         # getting the data for the chosen location

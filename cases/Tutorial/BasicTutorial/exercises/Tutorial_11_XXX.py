@@ -95,11 +95,15 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 
 outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
 
-water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
+water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
 
 irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
 
 wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"})
+
+sun_position_daemon = subclasses_dictionary["Daemon"]["SunPositionDaemon"]({"location": "Pau"})
+
+water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"location": "GavedePau_Pau"})
 
 
 # ##############################################################################################
@@ -160,7 +164,7 @@ subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer
 # ##############################################################################################
 # Automated generation of agents
 
-world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_flat_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon})
+world.agent_generation(5, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_flat_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon, "water_flow_daemon": water_flow_daemon})
 
 
 # ##############################################################################################
@@ -182,7 +186,7 @@ export_graph_options_1 = graph_options("csv")
 #       1/ exporting data to the file "ConsumerData1"
 #       2/ period of export is every 2 rounds
 #       3/ its exports will be only in "csv", and based on the graph_options structure defined above
-consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1)
+consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
 # TODO: add to the datalogger "consumer_datalogger_1" the key "simulation_time" to be used as the "X" axis
 consumer_datalogger_1.add("simulation_time", graph_status="X")
@@ -192,14 +196,14 @@ consumer_datalogger_1.add("consumer.LVE.energy_bought", graph_status="Y")
 
 # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
 # TODO: configure the export, which will be of "csv and "LaTeX" type, and used to plot series without any legend as "single_series"
-export_graph_options_2 = graph_options(["csv", "LaTeX"], "single_series")
+export_graph_options_2 = graph_options(["csv", "LaTeX"], "multiple_series")
 
 # TODO: create a datalogger called "consumer_datalogger_2"
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData2"
 #       2/ period of export is every 2 rounds
 #       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the graph_options structure defined above
-consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2)
+consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
 # TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" to be used as the "X" axis
 consumer_datalogger_2.add("simulation_time", graph_status="X")
@@ -255,7 +259,6 @@ consumer_datalogger_4.add("simulation_time", graph_status="X")
 consumer_datalogger_4.add("consumer.LVE.energy_bought", graph_status="Y", graph_legend=r"$P_1$", graph_style="lines")
 consumer_datalogger_4.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$P_2$", graph_style="lines")
 consumer_datalogger_4.add("consumer.money_spent", graph_status="Y2", graph_legend=r"$\mathcal{C}$", graph_style="points")
-
 
 # ##############################################################################################
 # Correction

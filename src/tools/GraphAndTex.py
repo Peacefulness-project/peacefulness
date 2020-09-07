@@ -14,23 +14,26 @@ from time import process_time
 # Specific imports
 from src.tools.FilesExtensions import __pdf_extension__, __csv_extension__, __tex_extension__, __matplotlib_extension__
 
-from src.tools.Utilities import adapt_path
+from src.tools.Utilities import into_list
+
 
 # ##############################################################################################
-
 class graph_options():
     def __init__(self, formats, graph_type="single_series"):
         self.formats = formats
         self.graph_type = graph_type
+
 
 __default_graph_options__ = graph_options([], "single_series")
 
 # ##############################################################################################
 # Basic export functions
 
+
 def write_and_print(message, file):  # write in the chosen file and print the message
     file.write(message + "\n")
     print(message)
+
 
 # ##############################################################################################
 # Export functions for numerical data
@@ -45,6 +48,8 @@ def export(options, filename, x, y, labels):
     none_formats = False
     if options.formats == []:
         none_formats = True
+
+    options.formats = into_list(options.formats)
 
     if not none_formats:
         if "csv" not in options.formats:
@@ -106,7 +111,7 @@ def export_latex(options, filename, x, y, labels):
 
     is_multiple = (options.graph_type == "multiple_series")
 
-    # Build the script
+    # Beginning of the .tex
     text += r"\documentclass{standalone}" + "\n"
     text += "%" + "\n"
     text += "%" + "\n"
@@ -131,6 +136,10 @@ def export_latex(options, filename, x, y, labels):
     text += r"\pgfplotstableread[col sep=semicolon]{" + absolute_filename + __csv_extension__ + "}{\\data}" + "\n"
     text += "\n"
     text += r"\begin{tikzpicture}" + "\n"
+
+    # First Y axis
+
+    # axis
     text += r"\begin{axis}[" + "\n"
     xmin = +inf
     xmax = -inf
@@ -163,6 +172,8 @@ def export_latex(options, filename, x, y, labels):
         text += "\t" + r"legend columns={1}," + "\n"
         text += "\t" + r"legend image post style={scale=1}," + "\n"
     text += "\t" + r"]" + "\n"
+
+    # legend
     for key in y:
         if y[key]["label"] == 1:
             if y[key]["style"] == "lines":
@@ -178,10 +189,16 @@ def export_latex(options, filename, x, y, labels):
         buffer = []
         for key in y:
             if y[key]["label"] == 1:
+                # Todo: mettre un échappement devant tous les caractères interprétés
+                y[key]["legend"] = y[key]["legend"].replace("_", "\_")
                 buffer.append(y[key]["legend"])
         text += ', '.join(buffer)
         text += "}" + "\n"
     text += r"\end{axis}" + "\n"
+
+    # Optional second Y axis
+
+    # axis
     if 'y2label' in labels:                                     # todo: check correspondance Y2 et y2label...
         text += r"\begin{axis}[" + "\n"
         text += "\t" + r"hide x axis," + "\n"
@@ -213,6 +230,8 @@ def export_latex(options, filename, x, y, labels):
             text += "\t" + r"legend columns={1}," + "\n"
             text += "\t" + r"legend image post style={scale=1}," + "\n"
         text += "\t" + r"]" + "\n"
+
+        # legend
         for key in y:
             if y[key]["label"] == 2:
                 if y[key]["style"] == "lines":
@@ -228,12 +247,16 @@ def export_latex(options, filename, x, y, labels):
             for key in y:
                 if y[key]["label"] == 2:
                     if(y[key]["legend"] != ""):
+                        # Todo: mettre un échappement devant tous les caractères interprétés
+                        y[key]["legend"] = y[key]["legend"].replace("_", "\_")
                         buffer.append(y[key]["legend"])
             if len(buffer) != 0:
                 text += "\t" + r"\legend{ "
                 text += ', '.join(buffer)
                 text += "}" + "\n"
         text += r"\end{axis}" + "\n"
+
+    #  end of the .tex
     text += r"\end{tikzpicture}"
     text += "\n"
     text += "\n"

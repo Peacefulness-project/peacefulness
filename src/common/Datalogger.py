@@ -12,7 +12,7 @@ from src.tools.GlobalWorld import get_world
 
 class Datalogger:
 
-    def __init__(self, name, filename, period=0, sum_over_time=False, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y", "y2label": "Y2"}):
+    def __init__(self, name, filename, period=0, sum_over_time=False, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y"}):
         self._name = name
 
         self._sum = sum_over_time  # enables integration of a data between 2 periods
@@ -140,7 +140,7 @@ class Datalogger:
             file.write(f"{value}\t")
 
             if (type(value) == float) and (self._period > 1):
-                processed_data = self._data_processing(value)  # returns the mean, the min and the max over the period for a key
+                processed_data = self._data_processing(key)  # returns the mean, the min and the max over the period for a key
                 file.write(f"{processed_data['mean']}\t"  # saves the mean
                            f"{processed_data['min']}\t"  # saves the min
                            f"{processed_data['max']}\t"  # saves the max

@@ -160,7 +160,7 @@ world.start()
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
-filename = world._catalog.get("path") + "outputs/CPU_time.txt"  # adapting the path to the OS
+filename = world._catalog.get("path") + "/outputs/CPU_time.txt"  # adapting the path to the OS
 file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the calculation phase: {CPU_time}\n")
 file.close()

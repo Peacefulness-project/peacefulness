@@ -42,7 +42,7 @@ class AutarkyEmergency(Strategy):
         # ##########################################################################################
         # distribution of energy
 
-        if maximum_energy_produced <= minimum_energy_consumed or maximum_energy_consumed <= minimum_energy_produced:  # if there is no possibility to balance the grid
+        if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid
             # we consider that the gird falls
             # updates the balances
             self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": 0, "outside": 0})
