@@ -25,7 +25,7 @@ def simulation(strategy, DSM_proportion, sizing, panels_and_LCOE):
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/LOCIE_1/Iteration_1/Results/" + strategy + "_" + DSM_proportion + "_" + sizing  # directory where results are written
+    pathExport = "cases/Studies/LOCIE_1/Iteration_2/Results/" + strategy + "_" + DSM_proportion + "_" + sizing  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
