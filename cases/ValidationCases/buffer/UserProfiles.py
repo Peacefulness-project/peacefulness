@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -159,7 +159,7 @@ name = "DHW_early_balances"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -171,7 +171,7 @@ name = "DHW_monthly_balances"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "month_dependency_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -183,7 +183,7 @@ name = "DHW_short_period_balances"
 export_plot3= {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "short_period_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -195,7 +195,7 @@ name = "DHW_two_usages_balances"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "two_usages_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -207,7 +207,7 @@ name = "DHW_Alltogether_balances"
 export_plot5 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "early_hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},
@@ -229,7 +229,7 @@ name = "Heating_early_balances"
 export_plot6 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "early_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -241,7 +241,7 @@ name = "Heating_monthly_balances"
 export_plot7 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "hot_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -253,7 +253,7 @@ name = "Heating_short_period_balances"
 export_plot8= {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "short_usage_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -266,7 +266,7 @@ name = "Heating_Alltogether_balances"
 export_plot9 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "early_heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},

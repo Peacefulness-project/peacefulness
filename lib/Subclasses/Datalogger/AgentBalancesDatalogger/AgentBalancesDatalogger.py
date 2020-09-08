@@ -8,9 +8,9 @@ class AgentBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designe
 
     def __init__(self, period=1, graph_options=__default_graph_options__):
         if period == "global":
-            super().__init__("agent_balances_global", "AgentsBalances_global", period, graph_options=graph_options)
+            super().__init__("agent_balances_global", "AgentsBalances_global", period)
         else:
-            super().__init__(f"agent_balances_frequency_{period}", f"AgentsBalances_frequency_{period}", period, graph_options=graph_options)
+            super().__init__(f"agent_balances_frequency_{period}", f"AgentsBalances_frequency_{period}", period, graph_options=graph_options, graph_labels={"xlabel": "time", "ylabel": f"agents energy", "y2label": f"agents money"})
 
         agents_list = self._catalog.get("dictionaries")['agents'].values()  # get all the agents
 
@@ -27,11 +27,11 @@ class AgentBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designe
                 self.add(f"physical_time", graph_status=None)
 
             for nature in agent.natures:
-                self.add(f"{agent.name}.{nature.name}.energy_bought")
-                self.add(f"{agent.name}.{nature.name}.energy_sold")
-                self.add(f"{agent.name}.{nature.name}.energy_erased")
-                self.add(f"{agent.name}.{nature.name}.energy_imbalance", create_imbalance_function(agent.name, nature.name))
+                self.add(f"{agent.name}.{nature.name}.energy_bought", graph_status="Y")
+                self.add(f"{agent.name}.{nature.name}.energy_sold", graph_status="Y")
+                self.add(f"{agent.name}.{nature.name}.energy_erased", graph_status="Y")
+                self.add(f"{agent.name}.{nature.name}.energy_imbalance", create_imbalance_function(agent.name, nature.name), graph_status="Y")
 
-            self.add(f"{agent.name}.money_spent")
-            self.add(f"{agent.name}.money_earned")
+            self.add(f"{agent.name}.money_spent", graph_status="Y2")
+            self.add(f"{agent.name}.money_earned", graph_status="Y2")
 

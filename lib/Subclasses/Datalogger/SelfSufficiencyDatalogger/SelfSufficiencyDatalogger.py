@@ -1,15 +1,15 @@
 # this datalogger exports the data considered as results for ECOS proceedings
 from src.common.Datalogger import Datalogger
-from src.tools.Utilities import adapt_path
+from src.tools.GraphAndTex import __default_graph_options__
 
 
 class SelfSufficiencyDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=1):
+    def __init__(self, period=1, graph_options=__default_graph_options__):
         if period == "global":
             super().__init__("self_sufficiency_global", "SelfSufficiency_global", period)
         else:
-            super().__init__(f"self_sufficiency_frequency_{period}", f"SelfSufficiency_frequency_{period}", period)
+            super().__init__(f"self_sufficiency_frequency_{period}", f"SelfSufficiency_frequency_{period}", period, graph_options=graph_options)
 
         if not self._global:
             self.add(f"simulation_time", graph_status="X")
@@ -48,5 +48,5 @@ class SelfSufficiencyDatalogger(Datalogger):  # a sub-class of dataloggers desig
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
-            self.add(f"{aggregator_name}_self_consumption", create_self_consumption_function(aggregator_name))
-            self.add(f"{aggregator_name}_coverage_rate", create_coverage_rate_function(aggregator_name))
+            self.add(f"{aggregator_name}_self_consumption", create_self_consumption_function(aggregator_name), graph_status="Y")
+            self.add(f"{aggregator_name}_coverage_rate", create_coverage_rate_function(aggregator_name), graph_status="Y")

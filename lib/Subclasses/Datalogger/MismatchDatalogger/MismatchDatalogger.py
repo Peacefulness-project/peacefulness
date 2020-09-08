@@ -1,15 +1,15 @@
 # this datalogger exports the data considered as results for ECOS proceedings
 from src.common.Datalogger import Datalogger
-from src.tools.FilesExtensions import __text_extension__
+from src.tools.GraphAndTex import __default_graph_options__
 
 
 class MismatchDatalogger(Datalogger):  # a sub-class of dataloggers designed to export values concerning the whole run
 
-    def __init__(self, period=1):
+    def __init__(self, period=1, graph_options=__default_graph_options__):
         if period == "global":
             super().__init__("mismatch_global", "Mismatch_global", period)
         else:
-            super().__init__(f"mismatch_frequency_{period}", f"Mismatch_frequency_{period}", period)
+            super().__init__(f"mismatch_frequency_{period}", f"Mismatch_frequency_{period}", period, graph_options=graph_options, graph_labels={"xlabel": "time", "ylabel": f"mismatch"})
 
         if not self._global:
             self.add(f"simulation_time", graph_status="X")

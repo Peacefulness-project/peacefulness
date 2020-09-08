@@ -18,13 +18,13 @@ from src.tools.Utilities import into_list
 
 
 # ##############################################################################################
-class graph_options():
+class GraphOptions():
     def __init__(self, formats, graph_type="single_series"):
         self.formats = formats
         self.graph_type = graph_type
 
 
-__default_graph_options__ = graph_options([], "single_series")
+__default_graph_options__ = GraphOptions([], "single_series")
 
 # ##############################################################################################
 # Basic export functions

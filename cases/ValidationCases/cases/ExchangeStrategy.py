@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -155,7 +155,7 @@ name = "LVE_light_autarky"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -173,7 +173,7 @@ name = "LVE_autarky"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -191,7 +191,7 @@ name = "LVE_always_satisfied"
 export_plot3 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{\textrm{bought}} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "always_satisfied_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -209,7 +209,7 @@ name = "Bought_Energy_Alltogether"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_bought_reference", "style": "points", "legend": r"light autarky ref."},
@@ -229,7 +229,7 @@ name = "Sold_Energy_Alltogether"
 export_plot5 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "light_autarky_owner.LVE.energy_sold_reference", "style": "points", "legend": r"lgt autark."},

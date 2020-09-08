@@ -19,7 +19,7 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 
 # ##############################################################################################
 # Rerooting
@@ -181,7 +181,7 @@ world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_el
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData1"
 #       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv", and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv", and based on the GraphOptions structure defined above
 
 # TODO: add to the datalogger "consumer_datalogger_1" the key "simulation_time" to be used as the "X" axis
 
@@ -194,7 +194,7 @@ world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_el
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData2"
 #       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the GraphOptions structure defined above
 
 # TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" to be used as the "X" axis
 
@@ -209,7 +209,7 @@ world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_el
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData3"
 #       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
 #       4/ the graph labels will be "X-axis" for the key 'xlabel' and the "Y-axis" for the key 'ylabel'
 
 # TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" to be used as the "X" axis
@@ -225,7 +225,7 @@ world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_el
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData4"
 #       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
 #       4/ the graph labels will be "$t \, [\si{\hour}]$" for the key 'xlabel' and the "$\mathcal{P}_{ref.} \, [\si{\watt}]$" for the key 'ylabel'
 
 # TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" to be used as the "X" axis

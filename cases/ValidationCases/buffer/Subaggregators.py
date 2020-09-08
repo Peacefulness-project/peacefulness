@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -137,7 +137,7 @@ name = "LVE_sup_balances"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [{"catalog_name_entry": "device_owner_sup.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -149,7 +149,7 @@ name = "LVE_inf_balances"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [{"catalog_name_entry": "device_owner_inf.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},

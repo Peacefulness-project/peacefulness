@@ -13,7 +13,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -155,7 +155,7 @@ name = "LVE_background_bought"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "background_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -167,7 +167,7 @@ name = "LVE_heating_bought"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "heating_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -179,7 +179,7 @@ name = "LVE_dishwasher_bought"
 export_plot3 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "dishwasher_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -191,7 +191,7 @@ name = "LVE_PV_sold"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\textrm{B} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "PV_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
@@ -203,7 +203,7 @@ name = "LVE_DHW_bought"
 export_plot5 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "hot_water_tank_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -215,7 +215,7 @@ name = "LVE_WT_sold"
 export_plot6 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\textrm{B} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "wind_turbine_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
@@ -227,7 +227,7 @@ name = "LVE_total_energy_sold"
 export_plot7 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\textrm{B}_{\textrm{PV}} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "PV_owner.LVE.energy_sold_reference", "style": "points", "legend": r"ref."},
@@ -243,7 +243,7 @@ name = "LVE_total_energy_bought"
 export_plot8 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "background_owner.LVE.energy_bought_reference", "style": "points", "legend": r"bkg"},

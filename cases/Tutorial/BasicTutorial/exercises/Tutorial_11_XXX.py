@@ -19,7 +19,7 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 
 # ##############################################################################################
 # Rerooting
@@ -179,13 +179,13 @@ subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]("global")
 
 # First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
 # TODO: configure the export, which will be of "csv" type
-export_graph_options_1 = graph_options("csv")
+export_graph_options_1 = GraphOptions("csv")
 
 # TODO: create a datalogger called "consumer_datalogger_1"
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData1"
 #       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv", and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv", and based on the GraphOptions structure defined above
 consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
 # TODO: add to the datalogger "consumer_datalogger_1" the key "simulation_time" to be used as the "X" axis
@@ -196,13 +196,13 @@ consumer_datalogger_1.add("consumer.LVE.energy_bought", graph_status="Y")
 
 # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
 # TODO: configure the export, which will be of "csv and "LaTeX" type, and used to plot series without any legend as "single_series"
-export_graph_options_2 = graph_options(["csv", "LaTeX"], "multiple_series")
+export_graph_options_2 = GraphOptions(["csv", "LaTeX"], "multiple_series")
 
 # TODO: create a datalogger called "consumer_datalogger_2"
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData2"
 #       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the GraphOptions structure defined above
 consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
 # TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" to be used as the "X" axis
@@ -216,13 +216,13 @@ consumer_datalogger_2.add("consumer.LTH.energy_bought", graph_status="Y")
 
 # Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
 # TODO: configure the export, which will be of "csv and "LaTeX" type, and used to plot series without some legend as "multiple_series"
-export_graph_options_3 = graph_options(["csv", "LaTeX"], "multiple_series")
+export_graph_options_3 = GraphOptions(["csv", "LaTeX"], "multiple_series")
 
 # TODO: create a datalogger called "consumer_datalogger_3"
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData3"
 #       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
 #       4/ the graph labels will be "X-axis" for the key 'xlabel' and the "Y-axis" for the key 'ylabel'
 axis_labels = {"xlabel": "X-axis", "ylabel": "Y-axis"}
 consumer_datalogger_3 = Datalogger("consumer_datalogger_3", "ConsumerData3", 4, graph_options=export_graph_options_3, graph_labels=axis_labels)
@@ -238,13 +238,13 @@ consumer_datalogger_3.add("consumer.LTH.energy_bought", graph_status="Y", graph_
 
 # Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
 # TODO: configure the export, which will be of "csv and "LaTeX" and "matplotlib" type, and used to plot series without some legend as "multiple_series"
-export_graph_options_4 = graph_options(["csv", "LaTeX", "matplotlib"], "multiple_series")
+export_graph_options_4 = GraphOptions(["csv", "LaTeX", "matplotlib"], "multiple_series")
 
 # TODO: create a datalogger called "consumer_datalogger_4"
 #       Its characteristics are:
 #       1/ exporting data to the file "ConsumerData4"
 #       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the graph_options structure defined above
+#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
 #       4/ the graph labels will be "$t \, [\si{\hour}]$" for the key 'xlabel' and the "$\mathcal{P}_{ref.} \, [\si{\watt}]$" for the key 'ylabel'
 axis_labels = {"xlabel": "$t \, [\si{\hour}]$", "ylabel": "$\mathcal{P}_{ref.} \, [\si{\watt}]$"}
 consumer_datalogger_4 = Datalogger("consumer_datalogger_4", "ConsumerData4", 4, graph_options=export_graph_options_4, graph_labels=axis_labels)

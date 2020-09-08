@@ -1,14 +1,15 @@
 # These dataloggers exports the balances for aggregators
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import __default_graph_options__
 
 
 class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=1):
+    def __init__(self, period=1, graph_options=__default_graph_options__):
         if period == "global":
             super().__init__("aggregator_balances_global", "AggregatorsBalances_global", period)
         else:
-            super().__init__(f"aggregator_balances_frequency_{period}", f"AggregatorsBalances_frequency_{period}", period)
+            super().__init__(f"aggregator_balances_frequency_{period}", f"AggregatorsBalances_frequency_{period}", period, graph_options=graph_options, graph_labels={"xlabel": "time", "ylabel": f"aggregators energy", "y2label": f"aggregators money"})
 
         def create_get_energy_function(aggregator_name, bought_or_sold, inside_or_outside):  # this function returns a function calculating the unbalance value of the agent for the considered
 
@@ -31,15 +32,15 @@ class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers de
             self.add(f"physical_time", graph_status=None)
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
-            self.add(f"{aggregator_name}.energy_sold_inside", create_get_energy_function(aggregator_name, "sold", "inside"))
-            self.add(f"{aggregator_name}.energy_sold_outside", create_get_energy_function(aggregator_name, "sold", "outside"))
+            self.add(f"{aggregator_name}.energy_sold_inside", create_get_energy_function(aggregator_name, "sold", "inside"), graph_status="Y")
+            self.add(f"{aggregator_name}.energy_sold_outside", create_get_energy_function(aggregator_name, "sold", "outside"), graph_status="Y")
 
-            self.add(f"{aggregator_name}.energy_bought_inside", create_get_energy_function(aggregator_name, "bought", "inside"))
-            self.add(f"{aggregator_name}.energy_bought_outside", create_get_energy_function(aggregator_name, "bought", "outside"))
+            self.add(f"{aggregator_name}.energy_bought_inside", create_get_energy_function(aggregator_name, "bought", "inside"), graph_status="Y")
+            self.add(f"{aggregator_name}.energy_bought_outside", create_get_energy_function(aggregator_name, "bought", "outside"), graph_status="Y")
 
-            self.add(f"{aggregator_name}.money_spent_inside", create_get_money_function(aggregator_name, "spent", "inside"))
-            self.add(f"{aggregator_name}.money_spent_outside", create_get_money_function(aggregator_name, "spent", "outside"))
+            self.add(f"{aggregator_name}.money_spent_inside", create_get_money_function(aggregator_name, "spent", "inside"), graph_status="Y2")
+            self.add(f"{aggregator_name}.money_spent_outside", create_get_money_function(aggregator_name, "spent", "outside"), graph_status="Y2")
 
-            self.add(f"{aggregator_name}.money_earned_inside", create_get_money_function(aggregator_name, "earned", "inside"))
-            self.add(f"{aggregator_name}.money_earned_outside", create_get_money_function(aggregator_name, "earned", "outside"))
+            self.add(f"{aggregator_name}.money_earned_inside", create_get_money_function(aggregator_name, "earned", "inside"), graph_status="Y2")
+            self.add(f"{aggregator_name}.money_earned_outside", create_get_money_function(aggregator_name, "earned", "outside"), graph_status="Y2")
 

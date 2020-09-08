@@ -16,7 +16,7 @@ from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.SubclassesDictionary import get_subclasses
 
@@ -140,7 +140,7 @@ def simulation(season):
     # ##############################################################################################
     # Creation of dataloggers
 
-    export_graph_options_1 = graph_options("LaTeX")
+    export_graph_options_1 = GraphOptions("LaTeX")
 
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_balances", "DeviceBalances", ["heating", "background", "hot_water_tank", "dishwasher", "washing_machine", "dryer", "rooftop_PV"], 1, export_graph_options_1)
 

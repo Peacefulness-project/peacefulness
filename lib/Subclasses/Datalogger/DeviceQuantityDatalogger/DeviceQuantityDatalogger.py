@@ -11,7 +11,7 @@ class DeviceQuantityDatalogger(Datalogger):  # a sub-class of dataloggers design
         self._devices_list = {}
         devices_list = into_list(devices_list)
 
-        super().__init__(name, filename, period, graph_options=graph_options)
+        super().__init__(name, filename, period, graph_options=graph_options, graph_labels={"xlabel": "time", "ylabel": f"devices energy", "y2label": f"devices money"})
             
         def create_get_quantity_function(device_name, nature_name):
 
@@ -41,8 +41,8 @@ class DeviceQuantityDatalogger(Datalogger):  # a sub-class of dataloggers design
 
         for device_name in self._devices_list.keys():  # for each nature registered into world, all the relevant keys are added
             for nature_name in self._devices_list[device_name]:
-                    self.add(f"{device_name}.energy", create_get_quantity_function(device_name, nature_name))
-                    self.add(f"{device_name}.money", create_get_price_function(device_name, nature_name))
+                    self.add(f"{device_name}.energy", create_get_quantity_function(device_name, nature_name), graph_status="Y")
+                    self.add(f"{device_name}.money", create_get_price_function(device_name, nature_name), graph_status="Y2")
 
 
 

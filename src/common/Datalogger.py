@@ -12,10 +12,8 @@ from src.tools.GlobalWorld import get_world
 
 class Datalogger:
 
-    def __init__(self, name, filename, period=0, sum_over_time=False, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y"}):
+    def __init__(self, name, filename, period=0, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y"}):
         self._name = name
-
-        self._sum = sum_over_time  # enables integration of a data between 2 periods
 
         self._list = dict()  # list of catalog keys which has to be written
 
@@ -91,9 +89,8 @@ class Datalogger:
                 if name in self._buffer:
                     file.write(f"mean_{name}\t"
                                f"min_{name}\t"
-                               f"max_{name}\t")
-                    if self._sum:  # if sum is enabled, add it to the file
-                        file.write(f"sum_{name}\t")
+                               f"max_{name}\t"
+                               f"sum_{name}\t")
             file.write("\n")
             file.close()
 
@@ -106,10 +103,8 @@ class Datalogger:
         processed_data["mean"] = (mean(self._buffer[key]))  # mean
         processed_data["min"] = (min(self._buffer[key]))  # min
         processed_data["max"] = (max(self._buffer[key]))  # max
+        processed_data["sum"] = (sum(self._buffer[key]))  # sum
         return processed_data
-
-    def _data_sum(self, name):  # if enabled, return the sum of the value over the time
-        return sum(self._buffer[name])
 
     # ##########################################################################################
     # Writing in the file
@@ -120,7 +115,7 @@ class Datalogger:
 
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
-                self._buffer[key].append(self._catalog.get(key))  # value is saved in the buffer
+                self._buffer[key].append(self._list[key](key))  # value is saved in the buffer
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the defined period
 
             self._process()  # writes the data in the file
@@ -132,6 +127,7 @@ class Datalogger:
         for key in self._list:
             value = self._list[key](key)
 
+            # values saving for the figures
             if key in self._x_values:
                 self._x_values[key]["values"].append(value)
             if key in self._y_values:
@@ -144,9 +140,8 @@ class Datalogger:
                 file.write(f"{processed_data['mean']}\t"  # saves the mean
                            f"{processed_data['min']}\t"  # saves the min
                            f"{processed_data['max']}\t"  # saves the max
+                           f"{processed_data['sum']}\t"
                            )
-                if self._sum:  # if sum is enabled, write the sum of the data over the time
-                    file.write(f"{self._data_sum(value)}\t")
 
             self._buffer[key] = []  # Reinitialization of the buffer
 

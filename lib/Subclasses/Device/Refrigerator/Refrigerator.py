@@ -10,6 +10,38 @@ class Refrigerator(AdjustableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Refrigerator/Refrigerator.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
+        self._location = parameters["outdoor_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
+
+        # management of the location
+        try:
+            self._catalog.add("locations", [])
+        except:
+            pass
+
+        location = self._catalog.get("locations")
+        if self._location not in location:  # if the location of the device is not already in the list of locations
+            location.append(self._location)  # add the location of the device to the list of locations
+
+        # managing the temperature at the level of the agent
+        try:  # there can be only one temperature in the catalog for each agent
+            # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
+            outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
+            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", outdoor_temperature)
+            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", outdoor_temperature)
+
+            try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
+                # later, a daemon in charge of updating temperatures saves the list and removes this entry
+                self._catalog.add("agents_with_temperature_devices", {})
+            except:
+                pass
+
+            agent_list = self._catalog.get("agents_with_temperature_devices")
+            agent_list[self.agent.name] = [self._thermal_inertia, self._G]
+            self._catalog.set("agents_with_temperature_devices", agent_list)
+
+        except:
+            pass
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -32,9 +64,6 @@ class Refrigerator(AdjustableDevice):
         # parameters
         # max power
         self._max_power = {element: time_step * data_device["max_power"][element] for element in data_device["max_power"]}  # the maximum power is registered for each nature
-
-        # location
-        self._location = data_user["location"]
 
         # repartition of consumption between the different natures of energy
         self._repartition = data_device["usage_profile"][0]  # this dictionary contains the repartition of energy between the different energies used by the device
@@ -105,34 +134,6 @@ class Refrigerator(AdjustableDevice):
             self._natures.pop(nature)
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
-
-        # management of the location
-        try:
-            self._catalog.add("locations", [])
-        except:
-            pass
-        location = self._catalog.get("locations")
-        if self._location not in location:  # if the location of the device is not already in the list of locations
-            location.append(self._location)  # add the location of the device to the list of locations
-
-        # managing the temperature at the level of the agent
-        try:  # there can be only one temperature in the catalog for each agent
-            # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
-            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", 17)
-            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", 17)
-
-            try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
-                # later, a daemon in charge of updating temperatures saves the list and removes this entry
-                self._catalog.add("agents_with_temperature_devices", {})
-            except:
-                pass
-
-            agent_list = self._catalog.get("agents_with_temperature_devices")
-            agent_list[self.agent.name] = [self._thermal_inertia, self._G]
-            self._catalog.set("agents_with_temperature_devices", agent_list)
-
-        except:
-            pass
 
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile

@@ -2,7 +2,7 @@
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
 
-from src.tools.GraphAndTex import graph_options, write_and_print, export
+from src.tools.GraphAndTex import GraphOptions, write_and_print, export
 from src.tools.Utilities import adapt_path
 
 from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import set_problem

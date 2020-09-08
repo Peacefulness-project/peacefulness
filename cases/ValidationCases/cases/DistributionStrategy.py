@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 # ##############################################################################################
@@ -187,7 +187,7 @@ name = "LVE_emergency_energy_bought"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},
@@ -207,7 +207,7 @@ name = "LVE_price_energy_bought"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathsf{P}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "early_price_owner.LVE.energy_bought_reference", "style": "points", "legend": r"early"},
@@ -227,7 +227,7 @@ name = "LVE_early_emergency_energy_bought"
 export_plot3 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "early_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
@@ -249,7 +249,7 @@ name = "LVE_expensive_emergency_energy_bought"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "expensive_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},
@@ -271,7 +271,7 @@ name = "LVE_consuming_emergency_energy_bought"
 export_plot5 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "consuming_emergency_owner.LVE.energy_bought_reference", "style": "points", "legend": r"emerg."},

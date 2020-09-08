@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 from src.common.Nature import Nature
 from src.common.World import World
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -138,7 +138,7 @@ name = "Spent_Money_FLAT"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "flat_owner.money_spent_reference", "style": "points", "legend": r"ref."},
@@ -150,7 +150,7 @@ name = "Spent_Money_TOU"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "TOU_owner.money_spent_reference", "style": "points", "legend": r"ref."},
@@ -162,7 +162,7 @@ name = "Spent_Money_RTP"
 export_plot3 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "RTP_owner.money_spent_reference", "style": "points", "legend": r"ref."},
@@ -175,7 +175,7 @@ name = "Spent_Money_Alltogether"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": graph_options(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{C}_{ref.} \, [$\euro{}$]$",
           "graphs": [ {"catalog_name_entry": "flat_owner.money_spent_reference", "style": "points", "legend": r"flat"},

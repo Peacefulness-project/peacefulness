@@ -51,7 +51,7 @@ class WindTurbineAdvanced(NonControllableDevice):
 
         height_ref = self._catalog.get(f"{self._wind_speed_location}.height_ref")
 
-        temperature_ref = self._catalog.get(f"{self._wind_speed_location}.current_outdoor_temperature") + 273.15
+        temperature_ref = self._catalog.get(f"{self._outdoor_temperature_location}.current_outdoor_temperature") + 273.15
 
         temperature = temperature_ref - 0.0065 * self._height
 

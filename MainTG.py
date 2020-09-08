@@ -38,7 +38,7 @@ from src.common.Datalogger import Datalogger
 
 from src.tools.SubclassesDictionary import get_subclasses
 
-from src.tools.GraphAndTex import graph_options
+from src.tools.GraphAndTex import GraphOptions
 
 
 # ##############################################################################################
@@ -81,7 +81,7 @@ world.set_random_seed("tournesol")
 # ##############################################################################################
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = datetime(year=2020, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24)  # number of time steps simulated
@@ -136,7 +136,7 @@ indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDa
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Zaragoza"})
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
@@ -246,8 +246,8 @@ subclasses_dictionary["Device"]["PVAdvanced"]("PV_advanced_field", BAU_elec, WT_
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation(2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation(2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 world.agent_generation(2, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
@@ -285,7 +285,7 @@ subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
 
 # datalogger used to get back producer outputs
-export_graph_options_1 = graph_options("LaTeX")
+export_graph_options_1 = GraphOptions("LaTeX")
 
 producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", graph_options=export_graph_options_1, graph_labels={"xlabel": "time", "ylabel": "producer"})
 producer_datalogger.add("physical_time", graph_status="X")
@@ -324,6 +324,11 @@ subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating
 
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
+
+# figures
+export_graph_options_3 = GraphOptions("LaTeX", "multiple_series")
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", 24, export_graph_options_3)
+
 
 # CPU time measurement
 CPU_time = process_time() - CPU_time  # time taken by the initialization
