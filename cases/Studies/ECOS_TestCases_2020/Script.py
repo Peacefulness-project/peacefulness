@@ -95,7 +95,7 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
 
     # ##############################################################################################
     # Agents
-    PV_producer = Agent("PV_producer")  # the owner of the PV panels
+    PV_producer = Agent("PV_producer")  # the owner of the Photovoltaics panels
 
     WT_producer = Agent("WT_producer")  # creation of an agent
 
@@ -105,7 +105,7 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
 
     # ##############################################################################################
     # Contracts
-    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_daemon_grid)  # contract for the PV field
+    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_daemon_grid)  # contract for the Photovoltaics field
 
     cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
 
@@ -124,11 +124,11 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     # ##############################################################################################
     # Devices
     if renewable_proportion == "low_renewable":
-        subclasses_dictionary["Device"]["PV"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 6700, "location": "Pau"})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 6700, "location": "Pau"})  # creation of a photovoltaic panel field
         subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS_low", {"location": "Pau"})  # creation of a wind turbine
 
     elif renewable_proportion == "high_renewable":
-        subclasses_dictionary["Device"]["PV"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 20100, "location": "Pau"})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 20100, "location": "Pau"})  # creation of a photovoltaic panel field
         subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS_high", {"location": "Pau"})  # creation of a wind turbine
 
     elif renewable_proportion == "no_renewable":

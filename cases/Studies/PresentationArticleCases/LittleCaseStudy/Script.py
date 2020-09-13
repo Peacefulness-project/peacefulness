@@ -135,7 +135,7 @@ def simulation(season):
 
     subclasses_dictionary["Device"]["Dryer"]("dryer", cooperative_elec_contract, house_owner, local_grid, {"user": "family", "device": "medium_consumption"})
 
-    subclasses_dictionary["Device"]["PVAdvanced"]("rooftop_PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard"}, {"panels": 5, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})
+    subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("rooftop_PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard"}, {"panels": 5, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})
 
     # ##############################################################################################
     # Creation of dataloggers

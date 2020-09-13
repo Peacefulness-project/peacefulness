@@ -147,7 +147,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 # ##############################################################################################
 # Device
 
-# TODO: create a device of 'PV' type, called "PV_field"
+# TODO: create a device of 'Photovoltaics' type, called "PV_field"
 #       Its characteristics are:
 #       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "producer"

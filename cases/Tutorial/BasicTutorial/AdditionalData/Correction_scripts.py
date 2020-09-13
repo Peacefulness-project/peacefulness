@@ -409,39 +409,39 @@ def correction_8_devices():
     LVE = world.catalog.natures["LVE"]
     LTH = world.catalog.natures["LTH"]
 
-    # creation of the PV field
+    # creation of the Photovoltaics field
     if "PV_field" not in world.catalog.devices:
         print("The device called PV_field has not been created successfully or does not bear the correct name.")
         exit()
 
-    # contract of the PV field
+    # contract of the Photovoltaics field
     if world.catalog.devices["PV_field"].natures[LVE]["contract"].name != "elec_contract_egoist":
-        print("The contract of the PV device is not the correct one.")
+        print("The contract of the Photovoltaics device is not the correct one.")
         exit()
 
-    # agent of the PV field
+    # agent of the Photovoltaics field
     if world.catalog.devices["PV_field"].agent.name != "producer":
-        print("The agent of the PV device is not the correct one.")
+        print("The agent of the Photovoltaics device is not the correct one.")
         exit()
 
-    # aggregator of the PV field
+    # aggregator of the Photovoltaics field
     if world.catalog.devices["PV_field"].natures[LVE]["aggregator"].name != "aggregator_elec":
-        print("The aggregator of the PV device is not the correct one.")
+        print("The aggregator of the Photovoltaics device is not the correct one.")
         exit()
 
-    # technical data of the PV field
+    # technical data of the Photovoltaics field
     if world.catalog.devices["PV_field"]._efficiency != 0.15:
-        print("The technical data profile of the PV device is not the correct one.")
+        print("The technical data profile of the Photovoltaics device is not the correct one.")
         exit()
 
-    # surface of the PV field
+    # surface of the Photovoltaics field
     if world.catalog.devices["PV_field"]._surface != 1000:
-        print("The surface of the PV device is not the correct one.")
+        print("The surface of the Photovoltaics device is not the correct one.")
         exit()
 
-    # location of the PV field
+    # location of the Photovoltaics field
     if world.catalog.devices["PV_field"]._location != "Pau":
-        print("The location of the PV device is not the correct one.")
+        print("The location of the Photovoltaics device is not the correct one.")
         exit()
 
     # creation of the wind turbine

@@ -105,7 +105,7 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # ##############################################################################################
     # Agents
-    PV_producer = Agent("PV_producer")  # the owner of the PV panels
+    PV_producer = Agent("PV_producer")  # the owner of the Photovoltaics panels
 
     WT_producer = Agent("WT_producer")  # creation of an agent
 
@@ -119,7 +119,7 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # ##############################################################################################
     # Contracts
-    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)  # contract for the PV field
+    BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)  # contract for the Photovoltaics field
     cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_managing_elec)  # contract for the wind turbine
 
     contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("BAU_heat", LTH, price_managing_heat)  # contract for the biomass unit
@@ -144,7 +144,7 @@ def simulation(exchange_strategy, distribution_strategy, DSM_proportion):
 
     # ##############################################################################################
     # Devices
-    subclasses_dictionary["Device"]["PV"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 2500, "location": "Pau"})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 2500, "location": "Pau"})  # creation of a photovoltaic panel field
     subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, "ECOS", "ECOS_low", {"location": "Pau"})  # creation of a wind turbine
     subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 

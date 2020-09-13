@@ -110,13 +110,13 @@ def simulation(strategy, DSM_proportion, sizing):
 
     # ##############################################################################################
     # Agents
-    PV_producer = Agent("PV_producer")  # the owner of the PV panels
+    PV_producer = Agent("PV_producer")  # the owner of the Photovoltaics panels
 
     solar_thermal_producer = Agent("solar_thermal_producer")  # the owner of the solar thermal collectors
 
     national_grid = Agent("national_grid")
 
-    local_electrical_grid_manager = Agent("local_electrical_grid_producer")  # the owner of the PV panels
+    local_electrical_grid_manager = Agent("local_electrical_grid_producer")  # the owner of the Photovoltaics panels
 
     DHN_manager = Agent("DHN_producer")  # the owner of the district heating network
 
@@ -153,7 +153,7 @@ def simulation(strategy, DSM_proportion, sizing):
         sizing_coeff_elec = 54000/18000
         sizing_coeff_heat = 23550/9350
 
-    subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 18000 * sizing_coeff_elec, "location": "Pau"})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, PV_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 18000 * sizing_coeff_elec, "location": "Pau"})  # creation of a photovoltaic panel field
 
     subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, "ECOS", "ECOS_field", {"surface": 9350 * sizing_coeff_heat, "location": "Pau"})  # creation of a solar thermal collector
 

@@ -151,8 +151,8 @@ irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"loca
 
 # Wind
 # this daemon is responsible for updating the value of raw solar Wind
-wind_daemon = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Lyon"})
-wind_daemon_2 = subclasses_dictionary["Daemon"]["WindDaemon"]({"location": "Pau"})
+wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Lyon"})
+wind_daemon_2 = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"})
 
 #SunPosition
 sun_position_daemon = subclasses_dictionary["Daemon"]["SunPositionDaemon"]({"location": "Lyon"})
@@ -237,23 +237,23 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # Device
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
-# some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
+# some devices are pre-defined (such as Photovoltaics) but user can add some by creating new classes in lib
 
-wind_turbine_Alois = subclasses_dictionary["Device"]["WindTurbine_Alois"]("wind_turbine_Alois", BAU_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"location": "Lyon", "rugosity": "flat"})  # creation of a wind turbine
+wind_turbine_Alois = subclasses_dictionary["Device"]["WindTurbineAdvanced"]("wind_turbine_Alois", BAU_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon":wind_daemon_2, "outdoor_temperature_daemon":outdoor_temperature_daemon, "rugosity": "flat"})  # creation of a wind turbine
 
 #heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 
-heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau"})
+heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"location": "Pau", "outdoor_temperature_daemon":outdoor_temperature_daemon})
 
-Jack = subclasses_dictionary["Device"]["SolarThermalCollector"]("Jack", BAU_heat, solar_owner, aggregator_heat, {"device": "standard"}, {"location": "Lyon", "panels": 6})
+Jack = subclasses_dictionary["Device"]["SolarThermalCollector"]("Jack", BAU_heat, solar_owner, aggregator_heat, {"device": "standard"}, {"irradiation_daemon":irradiation_daemon, "panels": 6, "outdoor_temperature_daemon":outdoor_temperature_daemon})
 
-Michel = subclasses_dictionary["Device"]["PV_Alois"]("Michel", BAU_elec, solar_owner, aggregator_elec, {"device": "standard_field"}, {"location": "Lyon", "panels": 6})
+Kenneth = subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("Kenneth", BAU_elec, solar_owner, aggregator_elec, {"device": "standard_field"}, {"irradiation_daemon":irradiation_daemon, "panels": 6, "outdoor_temperature_daemon":outdoor_temperature_daemon})
 
 #subclasses_dictionary["Device"]["WindTurbine"]("Toto", BAU_elec, solar_owner, aggregator_elec, "ECOS", {"location": "Lyon"})
 
-Dam = subclasses_dictionary["Device"]["ElectricDam"]("Dam", BAU_elec, DHN_producer, aggregator_elec, {"device": "Kaplan"}, {"height": 10, "location": "Saone_Lyon"})
+Dam = subclasses_dictionary["Device"]["ElectricDam"]("Dam", BAU_elec, DHN_producer, aggregator_elec, {"device": "Kaplan"}, {"height": 10, "water_flow_daemon": water_flow_daemon})
 
-Tour = subclasses_dictionary["Device"]["SolarTower"]("Tour", BAU_elec, solar_owner, aggregator_elec, {"device": "molten_salt"}, {"location": "Lyon", "surface": 100})
+Tour = subclasses_dictionary["Device"]["SolarTower"]("Tour", BAU_elec, solar_owner, aggregator_elec, {"device": "molten_salt"}, {"irradiation_daemon":irradiation_daemon, "sun_position_daemon": sun_position_daemon, "surface": 100})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()

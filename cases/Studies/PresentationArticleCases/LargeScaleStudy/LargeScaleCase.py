@@ -158,7 +158,7 @@ wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", co
 
 heat_production = subclasses_dictionary["Device"]["DummyProducer"]("methanizer", cooperative_heat_contract, heat_producer, district_heating_network, {"device": "ECOS"})  # creation of a heat production unit
 
-subclasses_dictionary["Device"]["PVAdvanced"]("PV_advanced_field", egoist_elec_contract, PV_producer, local_electrical_grid, {"device": "standard_field"}, {"panels": 1225, "outdoor_temperature_daemon": outdoor_temperature_daemon, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
+subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", egoist_elec_contract, PV_producer, local_electrical_grid, {"device": "standard_field"}, {"panels": 1225, "outdoor_temperature_daemon": outdoor_temperature_daemon, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
 
 
 # ##############################################################################################
