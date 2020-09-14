@@ -147,7 +147,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 # ##############################################################################################
 # Device
 
-subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon})
+subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon})
 
 subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon})
 

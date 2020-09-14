@@ -97,7 +97,7 @@ def simulation(chosen_strategy, renewable_capacity):
     # Agents
     national_grid = Agent("national_grid")
 
-    local_electrical_grid_producer = Agent("local_electrical_grid_producer")  # the owner of the PV panels
+    local_electrical_grid_producer = Agent("local_electrical_grid_producer")  # the owner of the Photovoltaics panels
 
     DHN_producer = Agent("DHN_producer")  # the owner of the district heating network
 
@@ -128,9 +128,9 @@ def simulation(chosen_strategy, renewable_capacity):
     # Devices
 
     if renewable_capacity == "little":
-        subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, local_electrical_grid_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 1000, "location": "Pau"})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, local_electrical_grid_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 1000, "location": "Pau"})  # creation of a photovoltaic panel field
     elif renewable_capacity == "a_lot":
-        subclasses_dictionary["Device"]["PV"]("PV_field", contract_elec, local_electrical_grid_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 3000, "location": "Pau"})  # creation of a photovoltaic panel field
+        subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, local_electrical_grid_producer, aggregator_elec, "ECOS", "ECOS_field", {"surface": 3000, "location": "Pau"})  # creation of a photovoltaic panel field
 
     subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_heat, DHN_producer, aggregator_heat, "ECOS", "ECOS")  # creation of a heat production unit
 

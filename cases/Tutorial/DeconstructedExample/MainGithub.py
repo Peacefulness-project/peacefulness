@@ -183,7 +183,7 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, DHN_manager, a
 # ##############################################################################################
 # Manual creation of devices
 
-PV_field = subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 1250, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
+PV_field = subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 1250, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
 
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon})  # creation of a wind turbine
 

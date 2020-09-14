@@ -232,7 +232,7 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # Device
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
-# some devices are pre-defined (such as PV) but user can add some by creating new classes in lib
+# some devices are pre-defined (such as Photovoltaics) but user can add some by creating new classes in lib
 
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon})  # creation of a wind turbine
 
@@ -240,8 +240,8 @@ heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_product
 
 heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon})
 
-subclasses_dictionary["Device"]["PV"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
-subclasses_dictionary["Device"]["PVAdvanced"]("PV_advanced_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "outdoor_temperature_daemon": outdoor_temperature_daemon, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
+subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
+subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "outdoor_temperature_daemon": outdoor_temperature_daemon, "irradiation_daemon": irradiation_daemon})  # creation of a photovoltaic panel field
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
