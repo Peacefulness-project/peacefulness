@@ -1,4 +1,4 @@
-# this daemon is designed to manage the flow of a given river
+# this daemon is designed to atualize the value of the sun position in the sky.
 from json import load
 from src.common.Daemon import Daemon
 from src.tools.ReadingFunction import get_1_day_per_month

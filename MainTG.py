@@ -326,7 +326,7 @@ subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWate
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
 # figures
-export_graph_options_3 = GraphOptions("LaTeX", "multiple_series")
+export_graph_options_3 = GraphOptions(["LaTeX", "matplotlib"], "multiple_series")
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", 24, export_graph_options_3)
 
 

@@ -253,7 +253,7 @@ Michel = subclasses_dictionary["Device"]["PV_Alois"]("Michel", BAU_elec, solar_o
 
 Dam = subclasses_dictionary["Device"]["ElectricDam"]("Dam", BAU_elec, DHN_producer, aggregator_elec, {"device": "Kaplan"}, {"height": 10, "location": "Saone_Lyon"})
 
-Tour = subclasses_dictionary["Device"]["SolarTower"]("Tour", BAU_elec, solar_owner, aggregator_elec, {"device": "molten_salt"}, {"location": "Lyon", "surface": 100})
+Tour = subclasses_dictionary["Device"]["ConcentratedSolarPowerPlantTower"]("Tour", BAU_elec, solar_owner, aggregator_elec, {"device": "molten_salt"}, {"location": "Lyon", "surface": 100})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()

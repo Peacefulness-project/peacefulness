@@ -18,7 +18,7 @@
       "max_power": {"LVE": 3}
     },
 
-    "apartment_cold_consumption": {
+    "apartment_cold": {
       "usage_profile": [{"HTC": 1}, 0.7, 7200],
       "consumption_variation": 0.25,
       "max_power": {"HTC": 2}

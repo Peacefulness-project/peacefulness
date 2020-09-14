@@ -80,9 +80,9 @@ Nature("PW", "Pressurized Water")
 # Daemon
 
 # price managers
-price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
+price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 23]]})
 
-price_manager_flat_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 
 # limit prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.20, "limit_selling_price": 0.10})
@@ -141,7 +141,7 @@ Agent("consumer")
 # TODO: create a contract of 'CooperativeContract' type, called "heat_contract_cooperative"
 #       Its characteristics are:
 #       1/ associated with the low temperature heat nature (see above, LTH)
-#       2/ associated with the price manager daemon managing the TOU tariff of the low temperature heat nature (see above, price_manager_flat_heat)
+#       2/ associated with the price manager daemon managing the TOU tariff of the low temperature heat nature (see above, price_manager_heat)
 
 
 # ##############################################################################################

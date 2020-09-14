@@ -3,9 +3,9 @@ from src.common.DeviceMainClasses import NonControllableDevice
 from math import cos, asin, pi, fabs
 
 
-class SolarTower(NonControllableDevice):
+class ConcentratedSolarPowerPlantFresnel(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/SolarTower/SolarTower.json"):
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/ConcentratedSolarPowerPlantFresnel/ConcentratedSolarPowerPlantFresnel.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._catalog.add(f"{self.name}_exergy_in", 0)

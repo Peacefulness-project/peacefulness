@@ -1,3 +1,4 @@
+
 # Tutorial 4
 # Strategies
 from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_4_strategies  # a specific importation
@@ -80,7 +81,7 @@ Nature("PW", "Pressurized Water")
 # Daemon
 
 # price managers
-price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
+price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 23]]})
 
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 

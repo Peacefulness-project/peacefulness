@@ -7,7 +7,6 @@ class FuellCell(Converter):
     def __init__(self, name, contracts, agent, upstream_aggregator, downstream_aggregator, profiles, filename="lib\Subclasses\Device\Fuell_Cell\Fuel_Cell.json"):
         super().__init__(name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profiles)
 
-
     # ##########################################################################################
     # Initialization
     # ##########################################################################################

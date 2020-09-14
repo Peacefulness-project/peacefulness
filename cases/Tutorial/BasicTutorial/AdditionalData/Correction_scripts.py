@@ -202,6 +202,48 @@ def correction_3_daemons():
         print("The wind manager is not placed in the correct location.")
         exit()
 
+    # creation of sun position manager
+    exist = False
+    for daemon_name in world.catalog.daemons:
+        if daemon_name.startswith("sun_position_in_"):  # the string is the beginning of the name of all sun position manager
+            exist = True
+    if not exist:  # if no sun position manager is found
+        print("The sun position manager has not been created successfully.")
+        exit()
+
+    # location of sun position manager
+    if "sun_position_in_Pau" not in world.catalog.daemons:
+        print("The sun position manager is not placed in the correct location.")
+        exit()
+
+    # creation of water flow manager
+    exist = False
+    for daemon_name in world.catalog.daemons:
+        if daemon_name.startswith("water_flow_in_"):  # the string is the beginning of the name of all water flow manager
+            exist = True
+    if not exist:  # if no water flow manager is found
+        print("The water flow manager has not been created successfully.")
+        exit()
+
+    # location of water flow manager
+    if "water_flow_in_GavedePau_Pau" not in world.catalog.daemons:
+        print("The water flow manager is not placed in the correct location.")
+        exit()
+
+    # creation of cold water temperature manager
+    exist = False
+    for daemon_name in world.catalog.daemons:
+        if daemon_name.startswith("cold_water_temperature_in_"):  # the string is the beginning of the name of all cold water temperature manager
+            exist = True
+    if not exist:  # if no cold water temperature manager is found
+        print("The cold water temperature manager has not been created successfully.")
+        exit()
+
+    # location of cold water temperature manager
+    if "cold_water_temperature_in_France" not in world.catalog.daemons:
+        print("The cold water temperature manager is not placed in the correct location.")
+        exit()
+
     print("Congratulations, everything is working well.")
 
 
@@ -606,7 +648,7 @@ def correction_9_automatic_generation():
     LTH = world.catalog.natures["LTH"]
 
     # number of agents
-    if len(world.catalog.agents) != 503:
+    if len(world.catalog.agents) != 50:
         print("The quantity of agents is not the correct one.")
         exit()
 
@@ -660,30 +702,9 @@ def correction_10_dataloggers():
     if world.catalog.dataloggers["nature_balances_global"]._period != 1 and world.catalog.dataloggers["nature_balances_global"]._global != True:
         print("The period of the datalogger of the subclass NatureBalancesDatalogger is not the correct one.")
         exit()
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
+
+    # ##############################################################################################
+    # 1st complex datalogger
 
     # creation of the datalogger called "consumer_datalogger_1"
     if "consumer_datalogger_1" not in world.catalog.dataloggers:
@@ -735,7 +756,8 @@ def correction_10_dataloggers():
         print("The graph style for the key consumer.LVE.energy_bought is not correct for the output of the datalogger called consumer_datalogger_1.")
         exit()
 
-    #
+    # ##############################################################################################
+    # 2nd complex datalogger
 
     # creation of the datalogger called "consumer_datalogger_2"
     if "consumer_datalogger_2" not in world.catalog.dataloggers:
@@ -817,7 +839,8 @@ def correction_10_dataloggers():
         print("The graph style for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_2.")
         exit()
 
-    #
+    # ##############################################################################################
+    # 3rd complex datalogger
 
     # creation of the datalogger called "consumer_datalogger_3"
     if "consumer_datalogger_3" not in world.catalog.dataloggers:
@@ -927,7 +950,8 @@ def correction_10_dataloggers():
         print("The graph style for the key consumer.LTH.energy_bought is not correct for the output of the datalogger called consumer_datalogger_3.")
         exit()
 
-    #
+    # ##############################################################################################
+    # 4th complex datalogger
 
     # creation of the datalogger called "consumer_datalogger_4"
     if "consumer_datalogger_4" not in world.catalog.dataloggers:
@@ -1065,3 +1089,21 @@ def correction_10_dataloggers():
         exit()
 
     print("Congratulations, everything is working well.")
+
+
+def correction_11_start_the_simulation():
+    world = get_world()
+
+    # verifying that the simulation has started
+    if world.catalog.get("simulation_time") == 0:
+        print("The function world.start has not been called")
+        exit()
+
+    print("Congratulations, everything is working well.")
+
+
+
+
+
+
+

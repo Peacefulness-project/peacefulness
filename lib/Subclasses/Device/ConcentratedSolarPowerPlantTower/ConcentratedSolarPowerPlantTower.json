@@ -5,7 +5,7 @@
       "efficiency_variation": 0
     },
 
-    "satured_steam": {
+    "saturated_steam": {
       "usage_profile": {"nature": "LVE", "cycle_efficiency": 0.30, "reflector_efficiency": 0.85},
       "efficiency_variation": 0
     },

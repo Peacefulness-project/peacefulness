@@ -80,9 +80,9 @@ Nature("PW", "Pressurized Water")
 # Daemon
 
 # price managers
-price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 22]]})
+price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("elec_prices", {"nature": LVE.name, "buying_price": [0.17, 0.12], "selling_price": [0.15, 0.15], "on-peak_hours": [[6, 12], [13, 23]]})
 
-price_manager_flat_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_prices", {"nature": LTH.name, "buying_price": 0.12, "selling_price": 0.10})
 
 # limit prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.20, "limit_selling_price": 0.10})
@@ -132,7 +132,7 @@ BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("elec_contract_eg
 
 curtailment_elec = subclasses_dictionary["Contract"]["CurtailmentContract"]("elec_contract_curtailment", LVE, price_manager_TOU_elec)
 
-cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_flat_heat)
+cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("heat_contract_cooperative", LTH, price_manager_heat)
 
 
 # ##############################################################################################
@@ -163,7 +163,7 @@ subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer
 # ##############################################################################################
 # Automated generation of agents
 
-world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_flat_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon})
+world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon})
 
 
 # ##############################################################################################
@@ -175,65 +175,48 @@ world.agent_generation(500, "lib/AgentTemplates/DummyAgent.json", [aggregator_el
 # TODO: create a datalogger of the subclass "NatureBalancesDatalogger" with a period "global"
 
 # First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
-# TODO: configure the export, which will be of "csv" type
+# TODO: create a graph_option object exporting in "csv" format
 
-# TODO: create a datalogger called "consumer_datalogger_1"
-#       Its characteristics are:
-#       1/ exporting data to the file "ConsumerData1"
-#       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv", and based on the GraphOptions structure defined above
+# TODO: create a datalogger called "consumer_datalogger_1", exporting data to the file "ConsumerData1", with a period of 2 rounds and creating a graph in csv
 
 # TODO: add to the datalogger "consumer_datalogger_1" the key "simulation_time" to be used as the "X" axis
 
 # TODO: add to the datalogger "consumer_datalogger_1" the key "consumer.LVE.energy_bought" to be used as the "Y" axis
 
 # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
-# TODO: configure the export, which will be of "csv and "LaTeX" type, and used to plot series without any legend as "single_series"
+# TODO: create a graph_option object exporting in "csv" and in "LaTeX" formats, with a "single_series" graph type
 
-# TODO: create a datalogger called "consumer_datalogger_2"
-#       Its characteristics are:
-#       1/ exporting data to the file "ConsumerData2"
-#       2/ period of export is every 2 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" in a legendless format, and based on the GraphOptions structure defined above
+# TODO: create a datalogger called "consumer_datalogger_2", exporting data to the file "ConsumerData2", with a period of 2 rounds and creating a graph in csv and in LaTeX
 
-# TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" to be used as the "X" axis
+# TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" as the "X" axis
 
-# TODO: add to the datalogger "consumer_datalogger_2" the following keys to be used as the "Y" series
-#       1/ "consumer.LVE.energy_bought"
-#       2/ "consumer.LTH.energy_bought"
+# TODO: add to the datalogger "consumer_datalogger_2" the key "consumer.LVE.energy_bought" as a "Y" series
+
+# TODO: add to the datalogger "consumer_datalogger_2" the key "consumer.LTH.energy_bought" as a "Y" series
 
 # Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
-# TODO: configure the export, which will be of "csv and "LaTeX" type, and used to plot series without some legend as "multiple_series"
+# TODO: create a graph_option object exporting in "csv" and in "LaTeX" formats, with a "multiple_series" graph_type
 
-# TODO: create a datalogger called "consumer_datalogger_3"
-#       Its characteristics are:
-#       1/ exporting data to the file "ConsumerData3"
-#       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
-#       4/ the graph labels will be "X-axis" for the key 'xlabel' and the "Y-axis" for the key 'ylabel'
+# TODO: create a datalogger called "consumer_datalogger_3", exporting data to the file "ConsumerData3", with a period of 4 rounds and creating a graph in csv and in LaTeX
 
-# TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" to be used as the "X" axis
+# TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" as the "X" axis
 
-# TODO: add to the datalogger "consumer_datalogger_3" the following keys to be used as the "Y" series
-#       1/ "consumer.LVE.energy_bought", whose legend will be "$\alpha$" and that will be drawn with lines
-#       2/ "consumer.LTH.energy_bought", whose legend will be "$\beta$" and that will be drawn with points
+# TODO: add to the datalogger "consumer_datalogger_3" the key "consumer.LVE.energy_bought" as a "Y" series, with "$\alpha$" as a legend and with a graph style "lines"
+
+# TODO: add to the datalogger "consumer_datalogger_3" the key "consumer.LTH.energy_bought" as a "Y" series, with "$\beta$" as a legend and with a graph style "points"
 
 # Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
-# TODO: configure the export, which will be of "csv and "LaTeX" and "matplotlib" type, and used to plot series without some legend as "multiple_series"
+# TODO: create a graph_option object exporting in "csv", in "LaTeX" and in "matplotlib" formats, with a "multiple_series" graph_type
 
-# TODO: create a datalogger called "consumer_datalogger_4"
-#       Its characteristics are:
-#       1/ exporting data to the file "ConsumerData4"
-#       2/ period of export is every 4 rounds
-#       3/ its exports will be only in "csv" and "LaTeX" with specific legends, and based on the GraphOptions structure defined above
-#       4/ the graph labels will be "$t \, [\si{\hour}]$" for the key 'xlabel' and the "$\mathcal{P}_{ref.} \, [\si{\watt}]$" for the key 'ylabel'
+# TODO: create a datalogger called "consumer_datalogger_4", exporting data to the file "ConsumerData4", with a period of 4 rounds and creating a graph in csv, in LaTeX and in matplotlib, with a "multiple_series" graph type.
 
-# TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" to be used as the "X" axis
+# TODO: add to the datalogger "consumer_datalogger_4" the key "simulation_time" to be used as the "X" axis
 
-# TODO: add to the datalogger "consumer_datalogger_3" the following keys to be used as the "Y" series
-#       1/ "consumer.LVE.energy_bought", whose legend will be "$P_1$"
-#       2/ "consumer.LTH.energy_bought", whose legend will be "$P_2$"
-#       3/ "consumer.money_spent", which will be on plotted on second Y2-axis and whose legend will be "$P_2$" and that will be drawn with points
+# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LVE.energy_bought" as a "Y" series and with "$P_1$" as a legend
+
+# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LTH.energy_bought" as a "Y" series, and with "$P_2$" as a legend
+
+# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LTH.energy_bought" as a "Y2" series, with "$\mathcal{C}$" as a legend and with a graph style "points"
 
 
 # ##############################################################################################

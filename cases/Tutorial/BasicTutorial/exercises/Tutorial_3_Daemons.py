@@ -108,10 +108,13 @@ Nature("PW", "Pressurized Water")
 
 # TODO: create a daemon whose role is to manage the irradiation
 
-# TODO: create a daemon whose role is to manage the wind
+# TODO: create a daemon whose role is to manage the wind speed
+
+# TODO: create a daemon whose role is to manage the sun position.
+
+# TODO: create a daemon whose role is to manage the flow of water for the GavedePau_Pau.
 
 # TODO: create a daemon whose role is to manage the cold water temperature of the water grid, located in "France"
-
 
 # ##############################################################################################
 # Correction
