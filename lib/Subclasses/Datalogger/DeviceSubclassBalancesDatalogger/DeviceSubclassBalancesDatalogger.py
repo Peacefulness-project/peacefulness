@@ -1,11 +1,11 @@
 # These dataloggers exports the balances for one subclass of device
 from src.common.Datalogger import Datalogger
-from src.tools.GraphAndTex import __default_graph_options__
+# from src.tools.GraphAndTex import __default_graph_options__
 
 
 class DeviceSubclassBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, subclass, period=1, graph_options=__default_graph_options__):
+    def __init__(self, subclass, period=1, graph_options="default"):
         self._devices_list = {}
 
         if period == "global":

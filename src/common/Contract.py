@@ -67,3 +67,10 @@ class Contract:
     def nature(self):  # shortcut for read-only
         return self._nature
 
+    @property
+    def buying_price(self):  # shortcut for read-only
+        return self._catalog.get(f"{self._daemon_name}.buying_price")
+
+    @property
+    def selling_price(self):  # shortcut for read-only
+        return self._catalog.get(f"{self._daemon_name}.selling_price")

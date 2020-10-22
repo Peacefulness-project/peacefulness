@@ -1,7 +1,9 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
 from json import load
+from numpy import mean
+
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_each_hour_per_month, get_1_day_per_month
+from src.tools.ReadingFunctions import get_each_hour_per_month, get_1_day_per_month
 
 
 class WindSpeedDaemon(Daemon):
@@ -36,7 +38,15 @@ class WindSpeedDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.wind_value", self._get_wind_speed(self._wind_values, self._catalog))
+        time_step = self._catalog.get("time_step")
+
+        if time_step <= 1:
+            self._catalog.set(f"{self._location}.wind_value", self._get_wind_speed(self._wind_values, self._catalog))
+        elif time_step > 1:
+            values_to_be_averaged = []
+            for j in range(int(time_step)):
+                values_to_be_averaged.append(self._get_wind_speed(self._wind_values, self._catalog, -j))
+            self._catalog.set(f"{self._location}.wind_value", mean(values_to_be_averaged))
 
     # ##########################################################################################
     # Utilities

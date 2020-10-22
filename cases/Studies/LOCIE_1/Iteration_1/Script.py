@@ -158,9 +158,9 @@ def simulation(strategy, DSM_proportion, sizing):
         panels_elec = 24300
         panels_heat = 11500
 
-    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": panels_elec, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": panels_elec, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})  # creation of a photovoltaic panel field
 
-    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"panels": panels_heat, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a solar thermal collector
+    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"panels": panels_heat, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})  # creation of a solar thermal collector
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == "high_DSM":

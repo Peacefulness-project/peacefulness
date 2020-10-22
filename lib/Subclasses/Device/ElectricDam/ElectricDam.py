@@ -8,7 +8,9 @@ class ElectricDam(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._height = parameters["height"]
-        self._location = parameters["water_flow_daemon"].location  # the location of the device, in relation with the meteorological data
+
+        water_flow_daemon = self._catalog.daemons[parameters["water_flow_daemon"]]
+        self._location = water_flow_daemon.location  # the location of the device, in relation with the meteorological data
 
         # creation of keys for exergy
         self._catalog.add(f"{self.name}_exergy_in", 0)
@@ -30,7 +32,8 @@ class ElectricDam(NonControllableDevice):
         self._max_efficiency = data_device["usage_profile"]["max_efficiency"]
 
         # max power
-        self._max_power = data_device["usage_profile"]["max_power"]
+        time_step = self._catalog.get("time_step")
+        self._max_power = data_device["usage_profile"]["max_power"] * time_step
 
         # relative flow
         self._relative_flow = data_device["usage_profile"]["efficiency"]["relative_flow"]
@@ -64,13 +67,13 @@ class ElectricDam(NonControllableDevice):
         efficiency = self._max_efficiency * coeff_efficiency
 
         if flow > self._relative_min_flow * max_flow:
-            energy_received = water_density * 9.81 * flow * self._height / 1000  # as irradiation is in W, it is transformed in kW
+            energy_received = water_density * 9.81 * flow * self._height / 1000  # conversion of water flow, in m3.s-1, to kWh
         else:
             energy_received = 0
 
         for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = - min(self._max_power, energy_received * efficiency) # energy produced by the device
-            energy_wanted[nature]["energy_nominal"] = - min(self._max_power, energy_received * efficiency)  # energy produced by the device
+            energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
+            energy_wanted[nature]["energy_nominal"] = 0  # energy produced by the device
             energy_wanted[nature]["energy_maximum"] = - min(self._max_power, energy_received * efficiency)  # energy produced by the device
             # the value is negative because it is produced
 

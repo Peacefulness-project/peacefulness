@@ -241,13 +241,13 @@ class Strategy:
                 quantities_exchanged = maximum_energy_consumed  # there is no available energy to make intern exchanges, quantity exchanged internally is set to the maximum energy consumed
 
             message["energy_minimum"] = energy_minimum
-            message["energy_nominal"] = energy_nominal
-            message["energy_maximum"] = energy_maximum
+            message["energy_nominal"] = energy_minimum
+            message["energy_maximum"] = energy_minimum
             quantities_and_prices.append(message)
 
         else:  # if the grid can satisfy its urgent needs
             # first it organizes profitable interns exchanges
-            [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed form the corresponding lists
+            [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
 
             i = 0  # iteration on consumption
             j = 0  # iteration on production
@@ -296,9 +296,12 @@ class Strategy:
         else:
             price_remaining_demand = 0
 
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
-        message["energy_maximum"] = quantity_remaining_demand
-        quantities_and_prices.append(message)
+        contract_buying_price = aggregator.contract.buying_price
+
+        if price_remaining_demand > contract_buying_price:
+            message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+            message["energy_maximum"] = quantity_remaining_demand
+            quantities_and_prices.append(message)
 
         # offer
         if sorted_offers:  # if there is an offer
@@ -306,9 +309,12 @@ class Strategy:
         else:
             price_remaining_offer = 0
 
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
-        message["energy_maximum"] = - quantity_remaining_offer
-        quantities_and_prices.append(message)
+        contract_selling_price = aggregator.contract.selling_price
+
+        if price_remaining_offer < contract_selling_price:
+            message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+            message["energy_maximum"] = - quantity_remaining_offer
+            quantities_and_prices.append(message)
 
         return [quantities_exchanged, quantities_and_prices]
 

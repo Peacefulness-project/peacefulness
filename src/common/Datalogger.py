@@ -6,13 +6,13 @@ from math import inf
 
 from src.tools.FilesExtensions import __text_extension__
 
-from src.tools.GraphAndTex import __default_graph_options__, export
+from src.tools.GraphAndTex import GraphOptions, export
 from src.tools.GlobalWorld import get_world
 
 
 class Datalogger:
 
-    def __init__(self, name, filename, period=0, graph_options=__default_graph_options__, graph_labels={"xlabel": "X", "ylabel": "Y"}):
+    def __init__(self, name, filename, period=0, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
         self._name = name
 
         self._list = dict()  # list of catalog keys which has to be written
@@ -42,7 +42,10 @@ class Datalogger:
         self._x_values = {}
         self._y_values = {}
 
-        self._graph_options = graph_options
+        if graph_options == "default":
+            self._graph_options = GraphOptions(f"graph_options_{self.name}", [], "single_series")
+        else:
+            self._graph_options = graph_options
         self._graph_labels = graph_labels
 
     # ##########################################################################################

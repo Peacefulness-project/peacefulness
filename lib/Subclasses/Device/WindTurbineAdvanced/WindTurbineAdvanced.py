@@ -7,8 +7,11 @@ class WindTurbineAdvanced(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, technical_profile, parameters, filename="lib/Subclasses/Device/WindTurbineAdvanced/WindTurbineAdvanced.json"):
         super().__init__(name, contracts, agent, aggregators, filename, technical_profile, parameters)
 
-        self._wind_speed_location = parameters["wind_speed_daemon"].location  # the location of the device, in relation with the meteorological data
-        self._outdoor_temperature_location = parameters["outdoor_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
+        wind_speed_daemon = self._catalog.daemons[parameters["wind_speed_daemon"]]
+        self._wind_speed_location = wind_speed_daemon.location  # the location of the device, in relation with the meteorological data
+
+        outdoor_temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
+        self._outdoor_temperature_location = outdoor_temperature_daemon.location  # the location of the device, in relation with the meteorological data
 
         self._rugosity = parameters["rugosity"]  # the resistance of the type of field
 
@@ -23,10 +26,11 @@ class WindTurbineAdvanced(NonControllableDevice):
         self._efficiency = None
 
         # usage profile
+        time_step = self._catalog.get("time_step")
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
         self._efficiency = data_device["usage_profile"]["efficiency"]  # efficiency
-        self._max_power = data_device["usage_profile"]["max_power"]  # max power
+        self._max_power = data_device["usage_profile"]["max_power"] * time_step  # max power
         self._surface = data_device["usage_profile"]["surface"]
 
         self._U_cut_bot = data_device["usage_profile"]["U_cut_bot"]

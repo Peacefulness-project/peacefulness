@@ -186,6 +186,14 @@ class Aggregator:
         return self._name
 
     @property
+    def strategy(self):  # shortcut for read-only
+        return self._strategy
+
+    @property
+    def contract(self):  # shortcut for read-only
+        return self._contract
+
+    @property
     def agent(self):  # shortcut for read-only
         return self._agent
 

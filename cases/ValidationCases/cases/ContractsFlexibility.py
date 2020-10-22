@@ -136,7 +136,7 @@ name = "Bought_Energy_BAU"
 export_plot1 = {
     "name": name,
     "filename": "export_"+name,
-    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(f"{name}_graph_options", ["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "BAU_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -148,7 +148,7 @@ name = "Bought_Energy_CooperativeContract"
 export_plot2 = {
     "name": name,
     "filename": "export_"+name,
-    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(f"{name}_graph_options", ["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "cooperative_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -160,7 +160,7 @@ name = "Bought_Energy_CurtailmentContract"
 export_plot3 = {
     "name": name,
     "filename": "export_"+name,
-    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(f"{name}_graph_options", ["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "curtailment_owner.LVE.energy_bought_reference", "style": "points", "legend": r"ref."},
@@ -173,7 +173,7 @@ name = "Bought_Energy_Alltogether"
 export_plot4 = {
     "name": name,
     "filename": "export_"+name,
-    "options": GraphOptions(["csv", "LaTeX"], "multiple_series"),
+    "options": GraphOptions(f"{name}_graph_options", ["csv", "LaTeX"], "multiple_series"),
     "X": {"catalog_name_entry": "physical_time", "label": r"$t \, [\si{\hour}]$"},
     "Y": {"label": r"$\mathcal{P}_{ref.} \, [\si{\watt}]$",
           "graphs": [ {"catalog_name_entry": "BAU_owner.LVE.energy_bought_reference", "style": "points", "legend": r"BAU"},

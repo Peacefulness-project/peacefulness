@@ -7,7 +7,8 @@ class WindTurbine(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/WindTurbine/WindTurbine.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
-        self._location = parameters["wind_speed_daemon"].location  # the location of the device, in relation with the meteorological data
+        wind_speed_daemon = self._catalog.daemons[parameters["wind_speed_daemon"]]
+        self._location = wind_speed_daemon.location  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization
@@ -20,10 +21,11 @@ class WindTurbine(NonControllableDevice):
         self._efficiency = None
 
         # usage profile
+        time_step = self._catalog.get("time_step")
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
         self._efficiency = data_device["usage_profile"]["efficiency"]  # efficiency
-        self._max_power = data_device["usage_profile"]["max_power"]  # max power
+        self._max_power = data_device["usage_profile"]["max_power"] * time_step  # max power
         self._surface = data_device["usage_profile"]["surface"]
 
         self._unused_nature_removal()

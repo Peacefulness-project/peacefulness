@@ -1,7 +1,9 @@
 # this daemon is designed to atualize the value of the sun position in the sky.
 from json import load
+from numpy import mean
+
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_1_day_per_month
+from src.tools.ReadingFunctions import get_1_day_per_month
 
 
 class SunPositionDaemon(Daemon):
@@ -35,8 +37,19 @@ class SunPositionDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.azimut", self._get_sun_position(self._azimut, self._catalog))
-        self._catalog.set(f"{self._location}.sun_height", self._get_sun_position(self._sun_height, self._catalog))
+        time_step = self._catalog.get("time_step")
+
+        if time_step <= 1:
+            self._catalog.set(f"{self._location}.azimut", self._get_sun_position(self._azimut, self._catalog))
+            self._catalog.set(f"{self._location}.sun_height", self._get_sun_position(self._sun_height, self._catalog))
+        elif time_step > 1:
+            values_to_be_averaged_azimut = []
+            values_to_be_averaged_sun_height = []
+            for j in range(int(time_step)):
+                values_to_be_averaged_azimut.append(self._get_sun_position(self._azimut, self._catalog, -j))
+                values_to_be_averaged_sun_height.append(self._get_sun_position(self._sun_height, self._catalog, -j))
+            self._catalog.set(f"{self._location}.azimut", mean(values_to_be_averaged_azimut))
+            self._catalog.set(f"{self._location}.sun_height", mean(values_to_be_averaged_sun_height))
 
     # ##########################################################################################
     # Utilities

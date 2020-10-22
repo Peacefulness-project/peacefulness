@@ -10,7 +10,8 @@ class Refrigerator(AdjustableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Refrigerator/Refrigerator.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
-        self._location = parameters["outdoor_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
+        outdoor_temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
+        self._location = outdoor_temperature_daemon.location  # the location of the device, in relation with the meteorological data
 
         # management of the location
         try:

@@ -1,11 +1,11 @@
 # These dataloggers exports the balances for aggregators
 from src.common.Datalogger import Datalogger
-from src.tools.GraphAndTex import __default_graph_options__
+# from src.tools.GraphAndTex import __default_graph_options__
 
 
 class AggregatorBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=1, graph_options=__default_graph_options__):
+    def __init__(self, period=1, graph_options="default"):
         if period == "global":
             super().__init__("aggregator_balances_global", "AggregatorsBalances_global", period)
         else:

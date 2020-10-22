@@ -477,7 +477,7 @@ def correction_8_devices():
         exit()
 
     # surface of the Photovoltaics field
-    if world.catalog.devices["PV_field"]._surface != 1000:
+    if world.catalog.devices["PV_field"]._panels != 500:
         print("The surface of the Photovoltaics device is not the correct one.")
         exit()
 
@@ -641,6 +641,8 @@ def correction_8_devices():
         print("The location of the heating is not the correct one.")
         exit()
 
+    print("Congratulations, everything is working well.")
+
 
 def correction_9_automatic_generation():
     world = get_world()
@@ -721,6 +723,11 @@ def correction_10_dataloggers():
         print("The period of the datalogger called consumer_datalogger_1 is not the correct one.")
         exit()
 
+    # name of the graph options of the datalogger called "consumer_datalogger_1"
+    if world.catalog.dataloggers["consumer_datalogger_1"]._graph_options.name != "first_graph_option":
+        print("The name of the GraphOptions for the output of the datalogger called consumer_datalogger_1 is not the correct one.")
+        exit()
+
     # type of export of the datalogger called "consumer_datalogger_1"
     if world.catalog.dataloggers["consumer_datalogger_1"]._graph_options.formats != "csv":
         print("The type of export for the output of the datalogger called consumer_datalogger_1 is not the correct one.")
@@ -770,9 +777,13 @@ def correction_10_dataloggers():
         exit()
 
     # period of the datalogger called "consumer_datalogger_2"
-    if world.catalog.dataloggers["consumer_datalogger_2"]._period != 2 and world.catalog.dataloggers[
-        "consumer_datalogger_2"]._global != False:
+    if world.catalog.dataloggers["consumer_datalogger_2"]._period != 2 and world.catalog.dataloggers["consumer_datalogger_2"]._global != False:
         print("The period of the datalogger called consumer_datalogger_2 is not the correct one.")
+        exit()
+
+    # name of the graph options of the datalogger called "consumer_datalogger_2"
+    if world.catalog.dataloggers["consumer_datalogger_2"]._graph_options.name != "second_graph_option":
+        print("The name of the GraphOptions for the output of the datalogger called consumer_datalogger_2 is not the correct one.")
         exit()
 
     # type of export of the datalogger called "consumer_datalogger_2"
@@ -853,9 +864,13 @@ def correction_10_dataloggers():
         exit()
 
     # period of the datalogger called "consumer_datalogger_3"
-    if world.catalog.dataloggers["consumer_datalogger_3"]._period != 4 and world.catalog.dataloggers[
-        "consumer_datalogger_3"]._global != False:
+    if world.catalog.dataloggers["consumer_datalogger_3"]._period != 4 and world.catalog.dataloggers["consumer_datalogger_3"]._global != False:
         print("The period of the datalogger called consumer_datalogger_3 is not the correct one.")
+        exit()
+
+    # name of the graph options of the datalogger called "consumer_datalogger_3"
+    if world.catalog.dataloggers["consumer_datalogger_3"]._graph_options.name != "third_graph_option":
+        print("The name of the GraphOptions for the output of the datalogger called consumer_datalogger_3 is not the correct one.")
         exit()
 
     # type of export of the datalogger called "consumer_datalogger_3"
@@ -966,6 +981,11 @@ def correction_10_dataloggers():
     # period of the datalogger called "consumer_datalogger_4"
     if world.catalog.dataloggers["consumer_datalogger_4"]._period != 4 and world.catalog.dataloggers["consumer_datalogger_4"]._global != False:
         print("The period of the datalogger called consumer_datalogger_4 is not the correct one.")
+        exit()
+
+    # name of the graph options of the datalogger called "consumer_datalogger_4"
+    if world.catalog.dataloggers["consumer_datalogger_4"]._graph_options.name != "fourth_graph_option":
+        print("The name of the GraphOptions for the output of the datalogger called consumer_datalogger_4 is not the correct one.")
         exit()
 
     # type of export of the datalogger called "consumer_datalogger_4"

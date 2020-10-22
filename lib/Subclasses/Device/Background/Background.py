@@ -33,6 +33,44 @@ class Background(NonControllableDevice):
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
         time_step = self._catalog.get("time_step")
+        for nature in data_device["usage_profile"]:
+            if time_step < 1:
+                # weekday
+                temp_list = list()
+                for value in data_device["usage_profile"][nature]["weekday"]:
+                    element = [value * time_step] * int(1 / time_step)
+                    temp_list += element
+                data_device["usage_profile"][nature]["weekday"] = temp_list
+
+                # weekend
+                temp_list = list()
+                for value in data_device["usage_profile"][nature]["weekend"]:
+                    element = [value * time_step] * int(1 / time_step)
+                    temp_list += element
+                data_device["usage_profile"][nature]["weekend"] = temp_list
+
+            elif time_step > 1:
+                # weekday
+                temp_list = list()
+                i = 0
+                while i <= len(data_device["usage_profile"][nature]["weekday"]) - int(time_step):
+                    value = 0
+                    for j in range(int(time_step)):
+                        value += data_device["usage_profile"][nature]["weekday"][i+j]
+                    temp_list.append(value)
+                    i += j + 1
+                data_device["usage_profile"][nature]["weekday"] = temp_list
+
+                # weekend
+                temp_list = list()
+                i = 0
+                while i <= len(data_device["usage_profile"][nature]["weekend"]) - int(time_step):
+                    value = 0
+                    for j in range(int(time_step)):
+                        value += data_device["usage_profile"][nature]["weekend"][i+j]
+                    temp_list.append(value)
+                    i += j + 1
+                data_device["usage_profile"][nature]["weekend"] = temp_list
 
         # usage profile
         self._technical_profile = []  # creation of an empty usage_profile with all cases ready
@@ -54,6 +92,8 @@ class Background(NonControllableDevice):
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for nature in energy_wanted:
+            # print(self._moment)
+            # print(len(self._technical_profile[nature]))
             energy_wanted[nature]["energy_minimum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
             energy_wanted[nature]["energy_nominal"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
             energy_wanted[nature]["energy_maximum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device

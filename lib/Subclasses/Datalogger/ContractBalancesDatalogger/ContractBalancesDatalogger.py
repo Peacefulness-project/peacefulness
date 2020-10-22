@@ -1,11 +1,11 @@
 # These dataloggers exports the balances for contracts
 from src.common.Datalogger import Datalogger
-from src.tools.GraphAndTex import __default_graph_options__
+# from src.tools.GraphAndTex import __default_graph_options__
 
 
 class ContractBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=1, graph_options=__default_graph_options__):
+    def __init__(self, period=1, graph_options="default"):
         if period == "global":
             super().__init__("contract_balances_global", "ContractsBalances_global", period)
         else:

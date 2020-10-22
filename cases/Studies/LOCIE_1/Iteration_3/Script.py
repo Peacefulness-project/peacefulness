@@ -61,7 +61,12 @@ def simulation(strategy, DSM_proportion, sizing, panels_and_LCOE):
 
     prices = calculate_prices(panels_and_LCOE)  # return the prices to apply in this case
 
-    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [prices["elec"]["consumption"]["off-peak"], prices["elec"]["consumption"]["on-peak"]], "selling_price": [prices["elec"]["production"], prices["elec"]["production"]], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
+    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name,
+                                                                                                       "buying_price": [prices["elec"]["consumption"]["off-peak"],
+                                                                                                                        prices["elec"]["consumption"]["on-peak"]],
+                                                                                                       "selling_price": [prices["elec"]["production"],
+                                                                                                                         prices["elec"]["production"]],
+                                                                                                       "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 
     price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": prices["heat"]["consumption"], "selling_price": prices["heat"]["consumption"]})  # sets prices for the system operator
 
@@ -149,9 +154,9 @@ def simulation(strategy, DSM_proportion, sizing, panels_and_LCOE):
     panels_elec = panels_and_LCOE["heat"]["panels"]
     panels_heat = panels_and_LCOE["elec"]["panels"]
 
-    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": panels_elec, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": panels_elec, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})  # creation of a photovoltaic panel field
 
-    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"panels": panels_heat, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})  # creation of a solar thermal collector
+    subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_heat, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"panels": panels_heat, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})  # creation of a solar thermal collector
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == "high_DSM":

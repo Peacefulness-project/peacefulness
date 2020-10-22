@@ -1,7 +1,7 @@
 # this daemon is designed to manage the price of a given energy for sellers or buyers
 from json import load
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_1_day_per_month, get_each_hour_per_month
+from src.tools.ReadingFunctions import *
 
 
 class IrradiationDaemon(Daemon):
@@ -28,7 +28,6 @@ class IrradiationDaemon(Daemon):
         self._get_irradiation = self._files_formats[self._format]
 
         # setting initial values
-
         self._catalog.add(f"{self._location}.total_irradiation_value", self._get_irradiation(self._total_irradiation_values, self._catalog))  # setting the initial value of previous irradiation
         self._catalog.add(f"{self._location}.direct_normal_irradiation_value", self._get_irradiation(self._direct_normal_irradiation_values, self._catalog))
 
@@ -37,9 +36,27 @@ class IrradiationDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
+        time_step = self._catalog.get("time_step")
 
-        self._catalog.set(f"{self._location}.total_irradiation_value", self._get_irradiation(self._total_irradiation_values, self._catalog))  # setting the initial value of previous irradiation
-        self._catalog.set(f"{self._location}.direct_normal_irradiation_value", self._get_irradiation(self._total_irradiation_values, self._catalog))
+        if time_step == 1:  # if the time step !=1, it is necessary to adapt the value
+            self._catalog.set(f"{self._location}.total_irradiation_value", self._get_irradiation(self._total_irradiation_values, self._catalog))  # setting the initial value of previous irradiation
+            self._catalog.set(f"{self._location}.direct_normal_irradiation_value", self._get_irradiation(self._direct_normal_irradiation_values, self._catalog))
+        elif time_step < 1:  # if the time step is > 1 hour, values are divided
+            total_irradiation_value = self._get_irradiation(self._total_irradiation_values, self._catalog) * time_step
+            direct_normal_irradiation_value = self._get_irradiation(self._direct_normal_irradiation_values, self._catalog) * time_step
+
+            self._catalog.set(f"{self._location}.total_irradiation_value", total_irradiation_value)
+            self._catalog.set(f"{self._location}.direct_normal_irradiation_value", direct_normal_irradiation_value)
+
+        elif time_step > 1:  # if the time step is > 1 hour, values are summed
+            total_irradiation_value = 0
+            direct_normal_irradiation_value = 0
+            for j in range(int(time_step)):
+                total_irradiation_value += self._get_irradiation(self._total_irradiation_values, self._catalog, -j)
+                direct_normal_irradiation_value += self._get_irradiation(self._direct_normal_irradiation_values, self._catalog, -j)
+
+            self._catalog.set(f"{self._location}.total_irradiation_value", total_irradiation_value)
+            self._catalog.set(f"{self._location}.direct_normal_irradiation_value", direct_normal_irradiation_value)
 
     # ##########################################################################################
     # Utilities

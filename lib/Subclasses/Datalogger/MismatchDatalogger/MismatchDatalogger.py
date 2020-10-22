@@ -1,11 +1,11 @@
 # this datalogger exports the data considered as results for ECOS proceedings
 from src.common.Datalogger import Datalogger
-from src.tools.GraphAndTex import __default_graph_options__
+# from src.tools.GraphAndTex import __default_graph_options__
 
 
 class MismatchDatalogger(Datalogger):  # a sub-class of dataloggers designed to export values concerning the whole run
 
-    def __init__(self, period=1, graph_options=__default_graph_options__):
+    def __init__(self, period=1, graph_options="default"):
         if period == "global":
             super().__init__("mismatch_global", "Mismatch_global", period)
         else:

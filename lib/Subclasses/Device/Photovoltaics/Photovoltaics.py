@@ -8,7 +8,9 @@ class Photovoltaics(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._panels = parameters["panels"]
-        self._location = parameters["irradiation_daemon"].location  # the location of the device, in relation with the meteorological data
+
+        irradiation_daemon = self._catalog.daemons[parameters["irradiation_daemon"]]
+        self._location = irradiation_daemon.location  # the location of the device, in relation with the meteorological data
 
         # creation of keys for exergy
         self._catalog.add(f"{self.name}_exergy_in", 0)

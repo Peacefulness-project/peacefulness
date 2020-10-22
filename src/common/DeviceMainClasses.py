@@ -48,7 +48,7 @@ class NonControllableDevice(Device):
 
             # final time step
             current_moment += 1
-            ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 7h45 with an hourly time step, it will be 0.75)
+            ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
             self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
         # usage profile
@@ -598,9 +598,10 @@ class Converter(Device):
     # ##########################################################################################
 
     def _read_data_profiles(self, profiles):
+        time_step = self._catalog.get("time_step")
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
-        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"]}
+        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"] * time_step}
         self._efficiency = data_device["efficiency"]  # the efficiency of the converter
 
     # ##########################################################################################

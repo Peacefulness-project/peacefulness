@@ -16,9 +16,9 @@ sizing = "peak"
 panels_and_LCOE = {"elec": {"panels": 24725,
                             "LCOE": 0.234},
                    "heat": {"panels": 9174,
-                            "LCOE": {"ST": 1.039,
-                                     "HP": 0.150,
-                                     "average": 0.314},
+                            "LCOE": {"ST": 0.852,
+                                     "HP": 0.213,
+                                     "average": 0.43},
                             }
                    }
 

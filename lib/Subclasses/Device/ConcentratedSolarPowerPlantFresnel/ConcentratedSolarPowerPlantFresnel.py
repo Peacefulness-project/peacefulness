@@ -11,8 +11,12 @@ class ConcentratedSolarPowerPlantFresnel(NonControllableDevice):
         self._catalog.add(f"{self.name}_exergy_in", 0)
         self._catalog.add(f"{self.name}_exergy_out", 0)
 
-        self._irradiation_location = parameters["irradiation_daemon"].location  # the location of the device, in relation with the meteorological data
-        self._sun_position_location = parameters["sun_position_daemon"].location  # the location of the device, in relation with the meteorological data
+        irradiation_daemon = self._catalog.daemons[parameters["irradiation_daemon"]]  # the irradiation daemon
+        self._irradiation_location = irradiation_daemon.location  # the location of the device, in relation with the meteorological data
+
+        sun_position_daemon = self._catalog.daemons[parameters["sun_position_daemon"]]  # the sun position daemon
+        self._sun_position_location = sun_position_daemon.location  # the location of the device, in relation with the meteorological data
+
         self._surface = parameters["surface"]
 
     # ##########################################################################################

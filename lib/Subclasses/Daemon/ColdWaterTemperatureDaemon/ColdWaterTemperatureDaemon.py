@@ -2,7 +2,7 @@
 from json import load
 from datetime import datetime
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_1_values_per_month
+from src.tools.ReadingFunctions import get_1_values_per_month
 
 
 class ColdWaterTemperatureDaemon(Daemon):

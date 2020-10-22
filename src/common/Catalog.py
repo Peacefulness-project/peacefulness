@@ -64,7 +64,7 @@ class Catalog:
 
     @property
     def strategies(self):  # for read only
-        return self._data["dictionaries"]["strategys"]
+        return self._data["dictionaries"]["strategies"]
 
     @property
     def agents(self):  # for read only
@@ -85,6 +85,10 @@ class Catalog:
     @property
     def dataloggers(self):  # for read only
         return self._data["dictionaries"]["dataloggers"]
+
+    @property
+    def graph_options(self):  # for read only
+        return self._data["dictionaries"]["graph_options"]
 
 
 # Exception

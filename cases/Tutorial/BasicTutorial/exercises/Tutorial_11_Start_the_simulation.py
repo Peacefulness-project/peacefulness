@@ -149,17 +149,17 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 # ##############################################################################################
 # Device
 
-subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon})
+subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon.name})
 
-subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon})
+subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})
 
 subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "family"})
 
 subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "medium_consumption"})
 
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, {"user": "family", "device": "family_heat"}, {"cold_water_temperature_daemon": water_temperature_daemon})
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, {"user": "family", "device": "family_heat"}, {"cold_water_temperature_daemon": water_temperature_daemon.name})
 
-subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon})
+subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
 # ##############################################################################################
 # Automated generation of agents
@@ -176,7 +176,7 @@ subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](1)
 subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]("global")
 
 # First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
-export_graph_options_1 = GraphOptions("csv")
+export_graph_options_1 = GraphOptions("first_graph_option", "csv")
 
 consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
@@ -185,7 +185,7 @@ consumer_datalogger_1.add("simulation_time", graph_status="X")
 consumer_datalogger_1.add("consumer.LVE.energy_bought", graph_status="Y")
 
 # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
-export_graph_options_2 = GraphOptions(["csv", "LaTeX"], "multiple_series")
+export_graph_options_2 = GraphOptions("second_graph_option", ["csv", "LaTeX"], "single_series")
 
 consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2, graph_labels={"xlabel": "X", "ylabel": "Y"})
 
@@ -195,7 +195,7 @@ consumer_datalogger_2.add("consumer.LVE.energy_bought", graph_status="Y")
 consumer_datalogger_2.add("consumer.LTH.energy_bought", graph_status="Y")
 
 # Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
-export_graph_options_3 = GraphOptions(["csv", "LaTeX"], "multiple_series")
+export_graph_options_3 = GraphOptions("third_graph_option", ["csv", "LaTeX"], "multiple_series")
 
 axis_labels = {"xlabel": "X-axis", "ylabel": "Y-axis"}
 consumer_datalogger_3 = Datalogger("consumer_datalogger_3", "ConsumerData3", 4, graph_options=export_graph_options_3, graph_labels=axis_labels)
@@ -206,7 +206,7 @@ consumer_datalogger_3.add("consumer.LVE.energy_bought", graph_status="Y", graph_
 consumer_datalogger_3.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$\beta$", graph_style="points")
 
 # Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
-export_graph_options_4 = GraphOptions(["csv", "LaTeX", "matplotlib"], "multiple_series")
+export_graph_options_4 = GraphOptions("fourth_graph_option", ["csv", "LaTeX", "matplotlib"], "multiple_series")
 
 axis_labels = {"xlabel": "$t \, [\si{\hour}]$", "ylabel": "$\mathcal{P}_{ref.} \, [\si{\watt}]$"}
 consumer_datalogger_4 = Datalogger("consumer_datalogger_4", "ConsumerData4", 4, graph_options=export_graph_options_4, graph_labels=axis_labels)

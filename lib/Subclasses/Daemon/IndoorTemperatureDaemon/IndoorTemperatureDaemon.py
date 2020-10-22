@@ -9,6 +9,7 @@ class IndoorTemperatureDaemon(Daemon):
     def __init__(self):
         name = "indoor_temperature_manager"
         super().__init__(name, 1)  # the period is set to 1
+        self._catalog.add("locations", [])
 
     # ##########################################################################################
     # Dynamic behavior

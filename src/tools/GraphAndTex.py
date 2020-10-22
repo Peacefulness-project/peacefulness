@@ -16,15 +16,25 @@ from src.tools.FilesExtensions import __pdf_extension__, __csv_extension__, __te
 
 from src.tools.Utilities import into_list
 
+from src.tools.GlobalWorld import get_world
+
 
 # ##############################################################################################
-class GraphOptions():
-    def __init__(self, formats, graph_type="single_series"):
+class GraphOptions:
+    def __init__(self, name, formats, graph_type="single_series"):
+        self._name = name
         self.formats = formats
         self.graph_type = graph_type
 
+        world = get_world()  # get automatically the world defined for this case
+        world.register_graph_option(self)  # register this device into world dedicated dictionary
 
-__default_graph_options__ = GraphOptions([], "single_series")
+    @property
+    def name(self):  # shortcut for read-only
+        return self._name
+
+
+# __default_graph_options__ = GraphOptions("default_graph_options", [], "single_series")
 
 # ##############################################################################################
 # Basic export functions

@@ -13,12 +13,12 @@ from cases.Studies.LOCIE_1.Iteration_2.Script import simulation
 chosen_strategy = "Profitable"
 DSM_proportion = "high_DSM"
 sizing = "mean"
-panels_and_LCOE = {"elec": {"panels": 8622,
-                            "LCOE": 0.108},
-                   "heat": {"panels": 4028,
-                            "LCOE": {"ST": 0.530,
-                                     "HP": 0.106,
-                                     "average": 0.173},
+panels_and_LCOE = {"elec": {"panels": 6623,
+                            "LCOE": 0.095},
+                   "heat": {"panels": 2627,
+                            "LCOE": {"ST": 0.316,
+                                     "HP": 0.15,
+                                     "average": 0.193},
                             }
                    }
 

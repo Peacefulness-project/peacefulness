@@ -1,12 +1,12 @@
 # These dataloggers exports the balances for agents
 from src.common.Datalogger import Datalogger
 
-from src.tools.GraphAndTex import __default_graph_options__
+# from src.tools.GraphAndTex import __default_graph_options__
 
 
 class AgentBalancesDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, period=1, graph_options=__default_graph_options__):
+    def __init__(self, period=1, graph_options="default"):
         if period == "global":
             super().__init__("agent_balances_global", "AgentsBalances_global", period)
         else:

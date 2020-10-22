@@ -14,8 +14,10 @@ class Agent:
 
         world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
-        
-        self._superior = superior  # the potential owner this agent has. It is another agent
+
+        self._superior_name = None
+        if superior:  # if there is a superior
+            self._superior_name = superior.name  # register the name of the superior
         self._owned_agents_name = []  # a list containing all the agents owned by this one
 
         # Creation of specific entries in the catalog
@@ -44,27 +46,27 @@ class Agent:
         for agent in self._owned_agents_name:
             agent.report()
 
-        if self._superior:  # if the agent has a superior, it increments its balances
+        if self._superior_name:  # if the agent has a superior, it increments its balances
             for nature in self.natures:  # balance on energy nature
                 energy_sold_herself = self._catalog.get(f"{self.name}.{nature.name}.energy_sold")
-                energy_sold_superior = self._catalog.get(f"{self._superior.name}.{nature.name}.energy_sold")
-                self._catalog.set(f"{self._superior.name}.{nature.name}.energy_sold", energy_sold_herself + energy_sold_superior)
+                energy_sold_superior = self._catalog.get(f"{self._superior_name}.{nature.name}.energy_sold")
+                self._catalog.set(f"{self._superior_name}.{nature.name}.energy_sold", energy_sold_herself + energy_sold_superior)
 
                 energy_bought_herself = self._catalog.get(f"{self.name}.{nature.name}.energy_bought")
-                energy_bought_superior = self._catalog.get(f"{self._superior.name}.{nature.name}.energy_bought")
-                self._catalog.set(f"{self._superior.name}.{nature.name}.energy_bought", energy_bought_herself + energy_bought_superior)
+                energy_bought_superior = self._catalog.get(f"{self._superior_name}.{nature.name}.energy_bought")
+                self._catalog.set(f"{self._superior_name}.{nature.name}.energy_bought", energy_bought_herself + energy_bought_superior)
 
                 energy_erased_herself = self._catalog.get(f"{self.name}.{nature.name}.energy_erased")
-                energy_erased_superior = self._catalog.get(f"{self._superior.name}.{nature.name}.energy_erased")
-                self._catalog.set(f"{self._superior.name}.{nature.name}.energy_erased", energy_erased_herself + energy_erased_superior)
+                energy_erased_superior = self._catalog.get(f"{self._superior_name}.{nature.name}.energy_erased")
+                self._catalog.set(f"{self._superior_name}.{nature.name}.energy_erased", energy_erased_herself + energy_erased_superior)
 
             money_spent_herself = self._catalog.get(f"{self.name}.money_spent")
-            money_spent_superior = self._catalog.get(f"{self._superior.name}.money_spent")
-            self._catalog.set(f"{self._superior.name}.money_spent", money_spent_herself + money_spent_superior)
+            money_spent_superior = self._catalog.get(f"{self._superior_name}.money_spent")
+            self._catalog.set(f"{self._superior_name}.money_spent", money_spent_herself + money_spent_superior)
 
             money_earned_herself = self._catalog.get(f"{self.name}.money_earned")
-            money_earned_superior = self._catalog.get(f"{self._superior.name}.money_earned")
-            self._catalog.set(f"{self._superior.name}.money_earned", money_earned_herself + money_earned_superior)
+            money_earned_superior = self._catalog.get(f"{self._superior_name}.money_earned")
+            self._catalog.set(f"{self._superior_name}.money_earned", money_earned_herself + money_earned_superior)
         
     # ##########################################################################################
     # Utilities
@@ -84,7 +86,7 @@ class Agent:
 
     @property
     def superior(self):  # shortcut for read-only
-        return self._superior
+        return self._superior_name
 
 
 

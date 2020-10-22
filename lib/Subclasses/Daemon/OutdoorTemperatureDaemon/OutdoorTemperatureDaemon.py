@@ -2,8 +2,10 @@
 # Here, it is very basic as it supposes that temperature is uniform and constant
 from json import load
 from datetime import datetime
+from numpy import mean
+
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_1_day_per_month, get_365_days
+from src.tools.ReadingFunctions import get_1_day_per_month, get_365_days
 
 
 class OutdoorTemperatureDaemon(Daemon):
@@ -42,10 +44,16 @@ class OutdoorTemperatureDaemon(Daemon):
     def _process(self):
         current_outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
         self._catalog.set(f"{self._location}.previous_outdoor_temperature", current_outdoor_temperature)  # updating the previous temperature
-
-        self._catalog.set(f"{self._location}.current_outdoor_temperature", self._get_outdoor_temperature(self._temperatures,self._catalog))
-
         self._catalog.set(f"{self._location}.reference_temperature", self._get_exergy_reference_temperature())  # reference temperature used for the calculation of exergy
+        time_step = self._catalog.get("time_step")
+
+        if time_step <= 1:
+            self._catalog.set(f"{self._location}.current_outdoor_temperature", self._get_outdoor_temperature(self._temperatures, self._catalog))
+        elif time_step > 1:
+            values_to_be_averaged = []
+            for j in range(int(time_step)):
+                values_to_be_averaged.append(self._get_outdoor_temperature(self._temperatures, self._catalog, -j))
+            self._catalog.set(f"{self._location}.current_outdoor_temperature", mean(values_to_be_averaged))
 
     # ##########################################################################################
     # Reading functions

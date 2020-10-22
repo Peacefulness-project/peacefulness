@@ -148,22 +148,22 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 # ##############################################################################################
 # Device
 
-subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon})
+subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 500, "irradiation_daemon": irradiation_daemon.name})
 
-subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon})
+subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", curtailment_elec, producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})
 
 subclasses_dictionary["Device"]["Background"]("background", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "family"})
 
 subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_elec, consumer, aggregator_elec, {"user": "family", "device": "medium_consumption"})
 
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, {"user": "family", "device": "family_heat"}, {"cold_water_temperature_daemon": water_temperature_daemon})
+subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_heat, consumer, aggregator_heat, {"user": "family", "device": "family_heat"}, {"cold_water_temperature_daemon": water_temperature_daemon.name})
 
-subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon})
+subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
 # ##############################################################################################
 # Automated generation of agents
 
-world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon})
+world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon, "water_flow_daemon": water_flow_daemon})
 
 
 # ##############################################################################################
@@ -175,7 +175,7 @@ world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_ele
 # TODO: create a datalogger of the subclass "NatureBalancesDatalogger" with a period "global"
 
 # First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
-# TODO: create a graph_option object exporting in "csv" format
+# TODO: create a graph_option object, named "first_graph_option", exporting in "csv" format
 
 # TODO: create a datalogger called "consumer_datalogger_1", exporting data to the file "ConsumerData1", with a period of 2 rounds and creating a graph in csv
 
@@ -184,7 +184,7 @@ world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_ele
 # TODO: add to the datalogger "consumer_datalogger_1" the key "consumer.LVE.energy_bought" to be used as the "Y" axis
 
 # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
-# TODO: create a graph_option object exporting in "csv" and in "LaTeX" formats, with a "single_series" graph type
+# TODO: create a graph_option object, named "second_graph_option", exporting in "csv" and in "LaTeX" formats, with a "single_series" graph type
 
 # TODO: create a datalogger called "consumer_datalogger_2", exporting data to the file "ConsumerData2", with a period of 2 rounds and creating a graph in csv and in LaTeX
 
@@ -195,7 +195,7 @@ world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_ele
 # TODO: add to the datalogger "consumer_datalogger_2" the key "consumer.LTH.energy_bought" as a "Y" series
 
 # Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
-# TODO: create a graph_option object exporting in "csv" and in "LaTeX" formats, with a "multiple_series" graph_type
+# TODO: create a graph_option object, named "third_graph_option", exporting in "csv" and in "LaTeX" formats, with a "multiple_series" graph_type
 
 # TODO: create a datalogger called "consumer_datalogger_3", exporting data to the file "ConsumerData3", with a period of 4 rounds and creating a graph in csv and in LaTeX
 
@@ -206,7 +206,7 @@ world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_ele
 # TODO: add to the datalogger "consumer_datalogger_3" the key "consumer.LTH.energy_bought" as a "Y" series, with "$\beta$" as a legend and with a graph style "points"
 
 # Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
-# TODO: create a graph_option object exporting in "csv", in "LaTeX" and in "matplotlib" formats, with a "multiple_series" graph_type
+# TODO: create a graph_option object, named "fourth_graph_option", exporting in "csv", in "LaTeX" and in "matplotlib" formats, with a "multiple_series" graph_type
 
 # TODO: create a datalogger called "consumer_datalogger_4", exporting data to the file "ConsumerData4", with a period of 4 rounds and creating a graph in csv, in LaTeX and in matplotlib, with a "multiple_series" graph type.
 

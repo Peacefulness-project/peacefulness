@@ -7,6 +7,7 @@ from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
 from pickle import dump as pickle_dump, load as pickle_load
+from math import inf
 # Current packages
 from src.common.Catalog import Catalog
 from src.common.Strategy import Strategy
@@ -17,6 +18,7 @@ from src.common.Agent import Agent
 from src.common.Device import Device
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.Utilities import big_separation, adapt_path, into_list
 from src.tools.SubclassesDictionary import get_subclasses
@@ -51,17 +53,18 @@ class World:
 
         # dictionaries contained by world
         self._subclasses_dictionary = get_subclasses()  # this dictionary contains all the classes defined by the user
-        # it serves to re-instantiate daemons, devices and Supervisors
+        # it serves to re-instantiate daemons, devices, dataloggers, contracts and strategies
         dictionaries = dict()
 
         dictionaries["natures"] = dict()  # types of energy presents in world
         dictionaries["daemons"] = dict()  # dict containing the daemons
-        dictionaries["strategys"] = dict()  # objects which perform the calculus
+        dictionaries["strategies"] = dict()  # objects which perform the calculus
         dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
         dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
         dictionaries["contracts"] = dict()  # dict containing the different contracts
         dictionaries["devices"] = dict()  # dict containing the devices
         dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
+        dictionaries["graph_options"] = dict()  # dict containing the graph options
 
         self._catalog.add("dictionaries", dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
@@ -109,12 +112,20 @@ class World:
         self._catalog.add("int", rand_int)
         self._catalog.add("gaussian", rand_gauss)
 
-    def set_time(self, start_date, timestep_value, time_limit):  # definition of a time manager
+    def set_time(self, start_date, time_step_value, time_limit):  # definition of a time manager
+        # verifications
+        if not isinstance(start_date, type(datetime.now())):
+            raise WorldException(f"The start_date argument must be givenin the datetime format.")
+        if time_step_value <= 0:
+            raise WorldException(f"The time_step_value argument must be a strictly positive number.")
+        if time_limit <= 0 and not isinstance(time_limit, int):
+            raise WorldException(f"The time_limit argument must be a strictly positive integer.")
+
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
-        self._catalog.add("time_step", timestep_value)  # value of a time step, used to adapt hourly-defined profiles
-        self._timestep_value = timedelta(hours=timestep_value)
+        self._catalog.add("time_step", time_step_value)  # value of a time step, used to adapt hourly-defined profiles
+        self._timestep_value = timedelta(hours=time_step_value)
         self._time_limit = time_limit  # the number of the last iteration
         self._catalog.add("time_limit", time_limit)
 
@@ -178,7 +189,7 @@ class World:
             self._catalog.add(f"{agent.name}.{element}", self._catalog.get("additional_elements")[element])
 
         if agent.superior:  # if the agent has a superior
-            agent.superior._owned_agents_name.append(agent)
+            self._catalog.agents[agent.superior]._owned_agents_name.append(agent)
 
         self._catalog.agents[agent.name] = agent  # registering the agent in the dedicated dictionary
         self._used_names.append(agent.name)  # adding the name to the list of used names
@@ -245,6 +256,17 @@ class World:
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
+    def register_graph_option(self, graph_option):  # link a GraphOptions with a world (and its catalog)
+        if graph_option.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{graph_option.name} already in use")
+
+        if isinstance(graph_option, GraphOptions) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        self._catalog.graph_options[graph_option.name] = graph_option  # registering the GraphOptions in the dedicated dictionary
+        self._used_names.append(graph_option.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
     # ##########################################################################################
     # Automated generation of agents
     # ##########################################################################################
@@ -270,6 +292,9 @@ class World:
                 contract = contract_class(contract_name, nature, identifier, parameters)
 
             contract_dict[contract_type] = contract
+
+        # process of data daemon dictionary
+        data_daemons = {key: data_daemons[key].name for key in data_daemons}  # transform the daemons objects into strings
 
         for i in range(quantity):
 
@@ -475,84 +500,112 @@ class World:
         file.write(dumps(world_dict, indent=2))
         file.close()
 
-        # pour le(s) superviseur(s), on verra plus tard
-
-        # personalized classes file
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
-        file = open(filename, "wb")
-        pickle_dump(self._subclasses_dictionary, file)  # the dictionary containing the classes is exported entirely
-        file.close()
+        # # personalized classes file
+        #
+        # filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
+        # file = open(filename, "wb")
+        # pickle_dump(self._subclasses_dictionary, file)  # the dictionary containing the classes is exported entirely
+        # file.close()
 
         # natures file
-        natures_list = {nature.name: nature.description for nature in self._natures.values()}
+        natures_list = {nature.name: nature.description for nature in self.catalog.natures.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Natures.json"])
         file = open(filename, "w")
         file.write(dumps(natures_list, indent=2))
         file.close()
 
-        # aggregators file
-        aggregators_list = {aggregator.name: [aggregator.nature.name,
-                                        aggregator.devices
-                                        ]for aggregator in self._aggregators.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
-        file = open(filename, "w")
-        file.write(dumps(aggregators_list, indent=2))
-        file.close()
-
-        # contracts file
-        contracts_list = {contract.name: [f"{type(contract).__name__}",
-                                          contract.nature.name,
-                                          contract._parameters
-                                          ] for contract in self._contracts.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Contract.json"])
-        file = open(filename, "w")
-        file.write(dumps(contracts_list, indent=2))
-        file.close()
-
-        # agents file
-        agents_list = {agent.name: {nature.name: [nature.name, agent._contracts[nature].name] for nature in agent._contracts} for agent in self._agents.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
-        file = open(filename, "w")
-        file.write(dumps(agents_list, indent=2))
-        file.close()
-
-        # devices file
-        devices_list = {device.name: [f"{type(device).__name__}", device._agent.name,
-                                      [aggregator[0].name for aggregator in device._natures.values()],  # aggregators
-                                      [contract[1].name for contract in device._natures.values()],  # contracts
-                                      device._period,  # the period of the device
-                                      device._user_profile, device._usage_profile,  # the data of the profiles
-                                      device.user_profile, device.usage_profile,  # the name of the profiles
-                                      device._moment,  # the current moment in the period
-                                      device._parameters  # the optional parameters used by the device
-                                      ] for device in self.devices.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Device.json"])
-        file = open(filename, "w")
-        file.write(dumps(devices_list, indent=2))
-        file.close()
-
-        # dataloggers file
-        dataloggers_list = {datalogger.name: [datalogger._filename, datalogger._period, datalogger._sum, datalogger._list] for datalogger in self.dataloggers.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Datalogger.json"])
-        file = open(filename, "w")
-        file.write(dumps(dataloggers_list, indent=2))
-        file.close()
-
         # daemons file
-        daemons_list = {daemon.name: [f"{type(daemon).__name__}", daemon._period, daemon._parameters] for daemon in self.daemons.values()}
+        daemons_list = {daemon.name: [f"{type(daemon).__name__}",
+                                      daemon._period,
+                                      daemon._parameters
+                                      ] for daemon in self.catalog.daemons.values()}
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Daemon.json"])
         file = open(filename, "w")
         file.write(dumps(daemons_list, indent=2))
         file.close()
 
+        # strategies file
+        strategies_list = {strategy.name: [f"{type(strategy).__name__}"] for strategy in self.catalog.strategies.values()}
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"strategy.json"])
+        file = open(filename, "w")
+        file.write(dumps(strategies_list, indent=2))
+        file.close()
+
+        # agents file
+        agents_list = {agent.name: agent._superior_name for agent in self.catalog.agents.values()}
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
+        file = open(filename, "w")
+        file.write(dumps(agents_list, indent=2))
+        file.close()
+
+        # contracts file
+        contracts_list = {contract.name: [f"{type(contract).__name__}",
+                                          contract.nature.name,
+                                          contract._daemon_name,
+                                          contract._parameters
+                                          ] for contract in self.catalog.contracts.values()}
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Contract.json"])
+        file = open(filename, "w")
+        file.write(dumps(contracts_list, indent=2))
+        file.close()
+
+        # aggregators file
+        aggregators_list = {}
+
+        for aggregator in self.catalog.aggregators.values():
+            aggregators_list[aggregator.name] = [aggregator.nature.name, aggregator.strategy.name, aggregator.agent.name]
+            if aggregator.superior:
+                aggregators_list[aggregator.name].append(aggregator.superior.name)
+                aggregators_list[aggregator.name].append(aggregator.contract.name)
+            else:
+                aggregators_list[aggregator.name].append(None)
+                aggregators_list[aggregator.name].append(None)
+
+            aggregators_list[aggregator.name].append(aggregator.efficiency)
+            if aggregator.capacity == inf:
+                aggregators_list[aggregator.name].append("inf")
+            else:
+                aggregators_list[aggregator.name].append(aggregator.capacity)
+            # rajouter forecaster plus tard
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
+        file = open(filename, "w")
+        file.write(dumps(aggregators_list, indent=2))
+        file.close()
+
+        # devices file
+        devices_list = {device.name: [f"{type(device).__name__}",
+                                      [element["contract"].name for element in device._natures.values()],  # contracts
+                                      device.agent.name,  # agent
+                                      [element["aggregator"].name for element in device._natures.values()],  # aggregators
+                                      device._filename,  # where data profiles are found
+                                      device._parameters  # the optional parameters used by the device
+                                      ] for device in self.catalog.devices.values()}
+
+        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Device.json"])
+        file = open(filename, "w")
+        file.write(dumps(devices_list, indent=2))
+        file.close()
+
+        # # dataloggers file
+        # dataloggers_list = {datalogger.name: [datalogger._filename,
+        #                                       datalogger._period,
+        #                                       datalogger._graph_options.name,
+        #                                       datalogger._graph_labels,
+        #                                       datalogger._list
+        #                                       ] for datalogger in self.catalog.dataloggers.values()}
+        #
+        # filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Datalogger.json"])
+        # file = open(filename, "w")
+        # file.write(dumps(dataloggers_list, indent=2))
+        # file.close()
+
+        # creation of the archive
         make_archive(filepath, "tar", filepath)  # packing the archive
         rmtree(filepath)  # deleting the directory with all the now useless files
 
@@ -574,16 +627,16 @@ class World:
         file.close()
         remove("World.json")  # deleting the useless world file
 
-        # personalized classes file
-        file = open("Classes.pickle", "rb")
-
-        data = pickle_load(file)
-
-        for user_class in data:
-            self._subclasses_dictionary[user_class] = data[user_class]
-
-        file.close()
-        remove("Classes.pickle")  # deleting the useless file
+        # # personalized classes file
+        # file = open("Classes.pickle", "rb")
+        #
+        # data = pickle_load(file)
+        #
+        # for user_class in data:
+        #     self._subclasses_dictionary[user_class] = data[user_class]
+        #
+        # file.close()
+        # remove("Classes.pickle")  # deleting the useless file
 
         # Natures file
         file = open("Natures.json", "r")
@@ -591,37 +644,35 @@ class World:
 
         for nature_name in data:
             nature = Nature(nature_name, data[nature_name])  # creation of a nature
-            self.register_nature(nature)  # registration
 
         file.close()
         remove("Natures.json")  # deleting the useless file
 
-        # Clusters file
-        file = open("Clusters.json", "r")
+        # Daemon file
+        file = open("Daemon.json", "r")
         data = load(file)
 
-        for aggregator_name in data:
-            aggregator_nature = self._natures[data[aggregator_name]]
-            aggregator = Aggregator(aggregator_name, aggregator_nature)  # creation of a aggregator
-            self.register_aggregator(aggregator)  # registration
+        for daemon_name in data:
+            daemon_period = data[daemon_name][1]
+            daemon_parameters = data[daemon_name][2]
+            daemon_class = self._subclasses_dictionary["Daemon"][data[daemon_name][0]]
+            daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
 
         file.close()
-        remove("Clusters.json")  # deleting the useless file
-
-        # Contract file
-        file = open("Contract.json", "r")
+        remove("Daemon.json")  # deleting the useless file
+        
+        # strategy file
+        file = open("strategy.json", "r")
         data = load(file)
 
-        for contract_name in data:
-            contract_class = self._subclasses_dictionary[data[contract_name][0]]
-            contract_nature = self._natures[data[contract_name][1]]
-            contract_parameters = data[contract_name][2]
-
-            contract = contract_class(contract_name, contract_nature, contract_parameters)
-            self.register_contract(contract)           
+        for strategy_name in data:
+            strategy_period = data[strategy_name][1]
+            strategy_parameters = data[strategy_name][2]
+            strategy_class = self._subclasses_dictionary["Strategy"][data[strategy_name][0]]
+            strategy = strategy_class(strategy_name, strategy_period, strategy_parameters)
 
         file.close()
-        remove("Contract.json")  # deleting the useless file
+        remove("strategy.json")  # deleting the useless file
 
         # Agents file
         file = open("Agents.json", "r")
@@ -629,10 +680,34 @@ class World:
 
         for agent_name in data:
             agent = Agent(agent_name)  # creation of an agent
-            self.register_agent(agent)  # registration
 
         file.close()
         remove("Agents.json")  # deleting the useless file
+
+        # Contract file
+        file = open("Contract.json", "r")
+        data = load(file)
+
+        for contract_name in data:
+            contract_class = self._subclasses_dictionary["Contract"][data[contract_name][0]]
+            contract_nature = self._natures[data[contract_name][1]]
+            contract_parameters = data[contract_name][2]
+
+            contract = contract_class(contract_name, contract_nature, contract_parameters)
+
+        file.close()
+        remove("Contract.json")  # deleting the useless file
+
+        # Aggregator file
+        file = open("Clusters.json", "r")
+        data = load(file)
+
+        for aggregator_name in data:
+            aggregator_nature = self._natures[data[aggregator_name]]
+            aggregator = Aggregator(aggregator_name, aggregator_nature)  # creation of a aggregator
+
+        file.close()
+        remove("Clusters.json")  # deleting the useless file
 
         # Device file
         file = open("Device.json", "r")
@@ -650,7 +725,7 @@ class World:
             device_parameters = data[device_name][10]
 
             # creation of the device
-            device = device_class(device_name, contracts, agent, aggregators, user_profile_name, usage_profile_name, device_parameters, "loaded device")
+            device = device_class["Device"](device_name, contracts, agent, aggregators, user_profile_name, usage_profile_name, device_parameters, "loaded device")
 
             # loading the real hour
             device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
@@ -661,41 +736,25 @@ class World:
             device._user_profile = data[device_name][5]  # loading the user profile
             device._usage_profile = data[device_name][6]  # loading the usage profile
 
-            self.register_device(device)
 
         file.close()
         remove("Device.json")  # deleting the useless file
 
-        # Datalogger file
-        file = open("Datalogger.json", "r")
-        data = load(file)
-
-        for datalogger_name in data:
-            filename = data[datalogger_name][0]
-            period = data[datalogger_name][1]
-            sum_over_time = data[datalogger_name][2]
-            logger = Datalogger(self, datalogger_name, filename, period, sum_over_time)  # creation
-            self.register_datalogger(logger)  # registration
-
-            for entry in data[datalogger_name][3]:
-                logger.add(entry)  # this datalogger exports all the data available in the catalog
-
-        file.close()
-        remove("Datalogger.json")  # deleting the useless file
-
-        # Daemon file
-        file = open("Daemon.json", "r")
-        data = load(file)
-
-        for daemon_name in data:
-            daemon_period = data[daemon_name][1]
-            daemon_parameters = data[daemon_name][2]
-            daemon_class = self._subclasses_dictionary[data[daemon_name][0]]
-            daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
-            self.register_daemon(daemon)
-
-        file.close()
-        remove("Daemon.json")  # deleting the useless file
+        # # Datalogger file
+        # file = open("Datalogger.json", "r")
+        # data = load(file)
+        #
+        # for datalogger_name in data:
+        #     filename = data[datalogger_name][0]
+        #     period = data[datalogger_name][1]
+        #     sum_over_time = data[datalogger_name][2]
+        #     logger = Datalogger(self, datalogger_name, filename, period, sum_over_time)  # creation
+        #
+        #     for entry in data[datalogger_name][3]:
+        #         logger.add(entry)  # this datalogger exports all the data available in the catalog
+        #
+        # file.close()
+        # remove("Datalogger.json")  # deleting the useless file
 
         file.close()
 

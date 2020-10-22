@@ -7,7 +7,8 @@ class HotWaterTank(ChargerDevice, Device):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/HotWaterTank/HotWaterTank.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles)
 
-        self._location = parameters["cold_water_temperature_daemon"].location  # the location of the device, in relation with the meteorological data
+        cold_water_temperature_daemon = self._catalog.daemons[parameters["cold_water_temperature_daemon"]]
+        self._location = cold_water_temperature_daemon.location  # the location of the device, in relation with the meteorological data
 
     # ##########################################################################################
     # Initialization

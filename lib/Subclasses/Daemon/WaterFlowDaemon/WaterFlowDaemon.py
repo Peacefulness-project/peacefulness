@@ -1,7 +1,7 @@
-# this daemon is designed to manage the flow of a given river
+# this daemon is designed to manage the flow of a given river, in m3.s-1
 from json import load
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunction import get_each_hour_per_month
+from src.tools.ReadingFunctions import get_each_hour_per_month
 
 
 class WaterFlowDaemon(Daemon):
@@ -37,7 +37,21 @@ class WaterFlowDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
-        self._catalog.set(f"{self._location}.flow_value", self._get_water_flow(self._flow_values, self._catalog))
+        time_step = self._catalog.get("time_step")
+
+        if time_step == 1:  # if the time step !=1, it is necessary to adapt the value
+            self._catalog.set(f"{self._location}.flow_value", self._get_water_flow(self._flow_values, self._catalog))
+        elif time_step < 1:  # if the time step is > 1 hour, values are divided
+            water_flow_value = self._get_water_flow(self._flow_values, self._catalog) * time_step
+
+            self._catalog.set(f"{self._location}.flow_value", water_flow_value)
+
+        elif time_step > 1:  # if the time step is > 1 hour, values are summed
+            water_flow_value = 0
+            for j in range(int(time_step)):
+                water_flow_value += self._get_water_flow(self._flow_values, self._catalog, -j)
+
+            self._catalog.set(f"{self._location}.flow_value", water_flow_value)
 
     # ##########################################################################################
     # Utilities

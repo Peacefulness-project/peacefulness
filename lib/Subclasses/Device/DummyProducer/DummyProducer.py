@@ -20,7 +20,8 @@ class DummyProducer(NonControllableDevice):
         # usage profile
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
-        self._max_power = data_device["usage_profile"]["max_power"]  # max power
+        time_step = self._catalog.get("time_step")
+        self._max_power = data_device["usage_profile"]["max_power"] * time_step  # max power
 
         self._unused_nature_removal()
 
