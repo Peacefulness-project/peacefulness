@@ -4,6 +4,8 @@
 from src.common.Device import Device, DeviceException
 from json import load
 
+from src.tools.Utilities import into_list
+
 
 # ##############################################################################################
 class NonControllableDevice(Device):
@@ -63,7 +65,7 @@ class NonControllableDevice(Device):
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
-            line[0] += start_time_variation
+            line[0] += start_time_variation % self._period
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
@@ -252,7 +254,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"]) % self._period  # creation of a displacement in the user_profile
         for line in data["profile"]:
-            line[0] += start_time_variation
+            line[0] += start_time_variation % self._period
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
@@ -587,11 +589,14 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
 class Converter(Device):
 
-    def __init__(self, name, contracts, agent, filename, upstream_aggregator, downstream_aggregator, profiles, parameters=None):
-        super().__init__(name, contracts, agent, [upstream_aggregator, downstream_aggregator], filename, profiles, parameters)
+    def __init__(self, name, contracts, agent, filename, upstream_aggregators_list, downstream_aggregators_list, profiles, parameters=None):
+        upstream_aggregators_list = into_list(upstream_aggregators_list)
+        downstream_aggregators_list = into_list(downstream_aggregators_list)
+        super().__init__(name, contracts, agent, upstream_aggregators_list + downstream_aggregators_list, filename, profiles, parameters)
 
-        self._upstream_aggregator = {"name": upstream_aggregator.name, "nature": upstream_aggregator.nature.name, "contract": contracts}  # the aggregator who has to adapt
-        self._downstream_aggregator = {"name": downstream_aggregator.name, "nature": downstream_aggregator.nature.name, "contract": contracts}   # the aggregator who has the last word
+        contracts = {contract.nature.name: contract for contract in contracts}
+        self._upstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in upstream_aggregators_list]  # list of aggregators involved in the production of energy. The order is not important.
+        self._downstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in downstream_aggregators_list]  # list of aggregators involved in the consumption of energy. The order is important: the first aggregator defines the final quantity of energy
 
     # ##########################################################################################
     # Initialization
@@ -602,7 +607,7 @@ class Converter(Device):
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"] * time_step}
-        self._efficiency = data_device["efficiency"]  # the efficiency of the converter
+        self._efficiency = data_device["efficiency"]  # the efficiency of the converter for each nature of energy
 
     # ##########################################################################################
     # Dynamic behavior
@@ -612,33 +617,47 @@ class Converter(Device):
         energy_wanted = {nature.name: {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]} for nature in self.natures}  # consumption which will be asked eventually
 
         # downstream side
-        nature_name = self._downstream_aggregator["nature"]
-        energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
-        energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"]  # the physical minimum of energy this converter has to consume
-        energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"]  # the physical maximum of energy this converter can consume
+        for aggregator in self ._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
 
         # upstream side
-        nature_name = self._upstream_aggregator["nature"]
-        energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self._efficiency  # the physical minimum of energy this converter has to consume
-        energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency  # the physical minimum of energy this converter has to consume
-        energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency  # the physical maximum of energy this converter can consume
+        for aggregator in self._upstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):
         # determination of the energy consumed/produced
-        energy_wanted_downstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"]  # the energy asked by the downstream aggregator
-        energy_available_upstream = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency  # the energy accorded by the upstream aggregator
-        energy_furnished_downstream = min(-energy_available_upstream, energy_wanted_downstream)
-        energy_consumed_upstream = - energy_furnished_downstream / self._efficiency
+        energy_wanted_downstream = []
+        energy_available_upstream = []
+        for aggregator in self._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            energy_wanted_downstream.append(-self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency[nature_name])  # the energy asked by the downstream aggregator
+        for aggregator in self._upstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            energy_available_upstream.append(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] * self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
+
+        limit_energy_upstream = min(energy_available_upstream)
+        limit_energy_downstream = energy_wanted_downstream[0]
+        raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
 
         # downstream side
-        price = self._catalog.get(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded")["price"]
-        self._catalog.set(f"{self.name}.{self._downstream_aggregator['nature']}.energy_accorded", {"quantity": energy_furnished_downstream, "price": price})  # the quantity of energy furnished to the downstream aggregator
+        for aggregator in self._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            price = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
+            self._catalog.set(f"{self.name}.{aggregator['nature']}.energy_accorded", {"quantity": - raw_energy_transformed * self._efficiency[nature_name], "price": price})  # the quantity of energy furnished to the downstream aggregator
 
         # upstream side
-        price = self._catalog.get(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded")["price"]
-        self._catalog.set(f"{self.name}.{self._upstream_aggregator['nature']}.energy_accorded", {"quantity": energy_consumed_upstream, "price": price})  # the quantity of energy consumed from the upstream aggregator
+        for aggregator in self._upstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            price = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
+            self._catalog.set(f"{self.name}.{aggregator['nature']}.energy_accorded", {"quantity": raw_energy_transformed * self._efficiency[nature_name], "price": price})  # the quantity of energy consumed from the upstream aggregator
 
     # ##########################################################################################
     # Utility

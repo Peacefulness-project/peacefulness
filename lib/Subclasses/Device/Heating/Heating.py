@@ -27,8 +27,8 @@ class Heating(AdjustableDevice):
         try:  # there can be only one temperature in the catalog for each agent
             # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
             outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
-            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", outdoor_temperature)
-            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", outdoor_temperature)
+            self._catalog.add(f"{self.agent.name}.current_indoor_temperature", 21)
+            self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", 21)
 
             try:  # if it is the first temperature-based device, it creates an entry repertoring all agents with a temperature in the catalog
                 # later, a daemon in charge of updating temperatures saves the list and removes this entry
@@ -148,13 +148,13 @@ class Heating(AdjustableDevice):
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
-        duration_variation = max(0, duration_variation)  # to avoid negative durations
+        duration_variation = max(0.1, duration_variation)  # to avoid negative durations
         for line in data["profile"]:
             line[0][1] *= duration_variation  # modification of the ending hour of activity for an usage of the device
 
     def _randomize_consumption(self, data):
         consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption
-        consumption_variation = max(0, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
+        consumption_variation = max(0.1, consumption_variation)  # to avoid to shift from consumption to production and vice-versa
         data["usage_profile"][1] *= consumption_variation
 
     # ##########################################################################################

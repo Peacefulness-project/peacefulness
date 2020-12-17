@@ -20,8 +20,6 @@ class Background(NonControllableDevice):
         data_user = self._read_consumer_data(profiles["user"])  # parsing the data
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
-        self._data_user_creation(data_user)  # creation of an empty user profile
-
         # we randomize a bit in order to represent reality better
         consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
         for nature in data_device["usage_profile"]:
@@ -29,6 +27,10 @@ class Background(NonControllableDevice):
                 data_device["usage_profile"][nature]["weekday"][i] *= consumption_variation
             for i in range(len(data_device["usage_profile"][nature]["weekend"])):
                 data_device["usage_profile"][nature]["weekend"][i] *= consumption_variation
+
+        self._data_user_creation(data_user)  # creation of an empty user profile
+
+        self._randomize_start_variation(data_user)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
@@ -82,6 +84,10 @@ class Background(NonControllableDevice):
                                               2 * data_device["usage_profile"][nature]["weekend"]
 
         self._unused_nature_removal()  # remove unused natures
+
+    def _randomize_start_variation(self, data):
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
+        self._moment = int((self._moment + start_time_variation) // self._catalog.get("time_step") % self._period)
 
     # ##########################################################################################
     # Dynamic behavior

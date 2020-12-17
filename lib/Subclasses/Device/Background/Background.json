@@ -51,7 +51,10 @@
       "profile": [0],
 
       "period": 168,
-      "offset": "Week"
+      "offset": "Week",
+
+      "start_time_variation": 3,
+      "duration_variation": 0.5
     },
 
     "single": {

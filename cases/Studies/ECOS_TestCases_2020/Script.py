@@ -151,7 +151,7 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     # BAU contracts
     world.agent_generation(BAU, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_1_BAU.json", [aggregator_elec], {"LVE": price_managing_elec})
     world.agent_generation(BAU * 2, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_2_BAU.json", [aggregator_elec], {"LVE": price_managing_elec})
-    world.agent_generation(BAU, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_5_BAU.json", [aggregator_elec], {"LVE": price_managing_elec})
+    world.agent_generation(BAU, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/Agent_5_p_BAU_no_PV.json", [aggregator_elec], {"LVE": price_managing_elec})
 
     # DLC contracts
     world.agent_generation(DLC, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_1_DLC.json", [aggregator_elec], {"LVE": price_managing_elec})
@@ -161,7 +161,7 @@ def simulation(exchange_strategy, distribution_strategy, renewable_proportion, D
     # Curtailment contracts
     world.agent_generation(curtailment, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_1_curtailment.json", [aggregator_elec], {"LVE": price_managing_elec})
     world.agent_generation(curtailment * 2, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_2_curtailment.json", [aggregator_elec], {"LVE": price_managing_elec})
-    world.agent_generation(curtailment, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/AgentECOS_5_curtailment.json", [aggregator_elec], {"LVE": price_managing_elec})
+    world.agent_generation(curtailment, "cases/Studies/ECOS_TestCases_2020/AgentTemplates/Agent_5_curtailment_no_PV.json", [aggregator_elec], {"LVE": price_managing_elec})
 
     # ##############################################################################################
     # Dataloggers

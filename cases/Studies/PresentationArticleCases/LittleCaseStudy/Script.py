@@ -50,7 +50,7 @@ def simulation(season):
     # ##############################################################################################
     # Definition of the random seed
     # The default seed is the current time (the value returned by datetime.now())
-    world.set_random_seed("sunflower")
+    world.set_random_seed("gitan")
 
     # ##############################################################################################
     # Time parameters
@@ -66,7 +66,7 @@ def simulation(season):
 
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
-                   7)  # number of time steps simulated
+                   24 * 7)  # number of time steps simulated
 
     # ##############################################################################################
     # Model
@@ -89,7 +89,7 @@ def simulation(season):
     indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
 
     # Outdoor temperature
-    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Marseille_not_averaged"})
 
     # Water temperature
     cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
@@ -123,11 +123,11 @@ def simulation(season):
 
     # ##############################################################################################
     # Manual creation of devices
-    subclasses_dictionary["Device"]["Heating"]("heating", cooperative_elec_contract, house_owner, local_grid, {"user": "residential", "device": "house_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon})
+    subclasses_dictionary["Device"]["Heating"]("heating", cooperative_elec_contract, house_owner, local_grid, {"user": "residential", "device": "house_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
     subclasses_dictionary["Device"]["Background"]("background", cooperative_elec_contract, house_owner, local_grid, {"user": "family", "device": "single"})
 
-    subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_elec_contract, house_owner, local_grid, {"user": "ECOS_5", "device": "5_people_elec"}, {"cold_water_temperature_daemon": cold_water_temperature_daemon})
+    subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_elec_contract, house_owner, local_grid, {"user": "ECOS_5", "device": "5_people_elec"}, {"cold_water_temperature_daemon": cold_water_temperature_daemon.name})
 
     subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", cooperative_elec_contract, house_owner, local_grid, {"user": "family", "device": "medium_consumption"})
 
@@ -135,16 +135,16 @@ def simulation(season):
 
     subclasses_dictionary["Device"]["Dryer"]("dryer", cooperative_elec_contract, house_owner, local_grid, {"user": "family", "device": "medium_consumption"})
 
-    subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("rooftop_PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard"}, {"panels": 5, "irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon})
+    subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("rooftop_PV", egoist_elec_contract, house_owner, local_grid, {"device": "standard"}, {"panels": 5, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
     # ##############################################################################################
     # Creation of dataloggers
 
-    export_graph_options_1 = GraphOptions("LaTeX")
+    export_graph_options_1 = GraphOptions("toto", "LaTeX")
 
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_balances", "DeviceBalances", ["heating", "background", "hot_water_tank", "dishwasher", "washing_machine", "dryer", "rooftop_PV"], 1, export_graph_options_1)
 
-    subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]("global", graph_options=export_graph_options_1)
 
     # ##############################################################################################
     # Simulation start

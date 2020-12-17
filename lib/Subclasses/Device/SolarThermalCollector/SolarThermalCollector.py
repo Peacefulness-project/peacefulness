@@ -61,6 +61,7 @@ class SolarThermalCollector(NonControllableDevice):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
+        # exergy calculation
         reference_temperature = self._catalog.get(f"{self._outdoor_temperature_location}.reference_temperature")
 
         exergy_in = list()

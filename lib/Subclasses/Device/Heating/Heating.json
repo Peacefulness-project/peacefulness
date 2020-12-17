@@ -30,6 +30,12 @@
       "max_power": {"LTH": 3}
     },
 
+    "grand_apartment_elec": {
+      "usage_profile": [{"LVE": 1}, 1, 10800],
+      "consumption_variation": 0.25,
+      "max_power": {"LVE": 3}
+    },
+
     "apartment_heat_instant_consumption": {
       "usage_profile": [{"LTH": 1}, 0.7, 7200],
       "consumption_variation": 0.25,

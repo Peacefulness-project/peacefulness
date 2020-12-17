@@ -245,6 +245,8 @@ heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_cont
 subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 
+# subclasses_dictionary["Device"]["CombinedHeatAndPower"]("CHP_unit", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
+
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
@@ -267,35 +269,38 @@ file.close()
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  aggregator
-subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
-
-subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
-
-subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
-
-subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
-
-subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
+# subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
+#
+# subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
+#
+# subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
+#
+# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
+#
+# subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
-subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
-# datalogger used to get back producer outputs
-export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
+# subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
 
-producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", graph_options=export_graph_options_1, graph_labels={"xlabel": "time", "ylabel": "producer"})
-producer_datalogger.add("physical_time", graph_status="X")
-
-producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
-producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
-producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_erased")
-producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_sold")
+# # datalogger used to get back producer outputs
+# export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
+#
+# producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", graph_options=export_graph_options_1, graph_labels={"xlabel": "time", "ylabel": "producer"})
+# producer_datalogger.add("physical_time", graph_status="X")
+#
+# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
+# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
+# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_erased")
+# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_sold")
 
 # producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
 # producer_datalogger.add(f"{solar_thermal_collector_producer.name}.LTH.energy_erased")
