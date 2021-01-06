@@ -21,7 +21,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LTH": 0},
-      "max_power": {"LTH": 42}
+      "max_power": {"LTH": 2}
     },
 
     "2_people_heat": {
@@ -29,7 +29,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LTH": 0},
-      "max_power": {"LTH": 42}
+      "max_power": {"LTH": 2}
     },
 
     "1_people_heat": {
@@ -37,7 +37,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LTH": 0},
-      "max_power": {"LTH": 42}
+      "max_power": {"LTH": 2}
     },
 
     "5_people_elec": {
@@ -45,7 +45,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LVE": 0},
-      "max_power": {"LVE": 42}
+      "max_power": {"LVE": 2}
     },
 
     "2_people_elec": {
@@ -53,7 +53,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LVE": 0},
-      "max_power": {"LVE": 42}
+      "max_power": {"LVE": 2}
     },
 
     "1_people_elec": {
@@ -61,7 +61,7 @@
       "consumption_variation": 0.2,
 
       "min_power": {"LVE": 0},
-      "max_power": {"LVE": 42}
+      "max_power": {"LVE": 2}
     },
 
     "single": {
@@ -92,7 +92,7 @@
       "period": 24,
       "offset": 0,
 
-      "start_time_variation": 2,
+      "start_time_variation": 2.5,
       "month_dependency": [1.07, 1.06, 1.07, 1.01, 1.01, 0.97, 0.86, 0.78, 0.96, 1.03, 1.08, 1.1]
     },
 

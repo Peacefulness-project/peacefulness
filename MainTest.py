@@ -307,10 +307,10 @@ subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=
 # producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
 # producer_datalogger.add(f"{solar_thermal_collector_producer.name}.LTH.energy_sold")
 #
-# producer_datalogger.add(f"{PV_field.name}_exergy_in")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_in")
-# producer_datalogger.add(f"{PV_field.name}_exergy_out")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}_exergy_out")
+# producer_datalogger.add(f"{PV_field.name}.exergy_in")
+# producer_datalogger.add(f"{solar_thermal_collector_field.name}.exergy_in")
+# producer_datalogger.add(f"{PV_field.name}.exergy_out")
+# producer_datalogger.add(f"{solar_thermal_collector_field.name}.exergy_out")
 # producer_datalogger.add("Pau.reference_temperature")
 # producer_datalogger.add("Pau.irradiation_value")
 #

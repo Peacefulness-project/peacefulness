@@ -59,7 +59,7 @@ world.set_random_seed("sunflower")
 # ##############################################################################################
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = datetime(year=2019, month=9, day=1, hour=0, minute=0, second=0, microsecond=0)
+start_date = datetime(year=2019, month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
                24 * 7)  # number of time steps simulated
@@ -140,7 +140,7 @@ national_grid = Aggregator("national_grid", LVE, strategy_grid, aggregator_owner
 
 local_electrical_grid = Aggregator("local_electrical_grid", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
 
-district_heating_network = Aggregator("district_heating_network", LTH, strategy_light_autarky, aggregator_owner, local_electrical_grid, district_heating_network_contract, 3.6, 2000)
+district_heating_network = Aggregator("district_heating_network", LTH, strategy_light_autarky, aggregator_owner, local_electrical_grid, district_heating_network_contract)
 
 
 # ##############################################################################################

@@ -7,8 +7,8 @@ class SolarThermalCollector(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/SolarThermalCollector/SolarThermalCollector.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
-        self._catalog.add(f"{self.name}_exergy_in", 0)
-        self._catalog.add(f"{self.name}_exergy_out", 0)
+        self._catalog.add(f"{self.name}.exergy_in", 0)
+        self._catalog.add(f"{self.name}.exergy_out", 0)
 
         irradiation_daemon = self._catalog.daemons[parameters["irradiation_daemon"]]
         self._irradiation_location = irradiation_daemon.location  # the location of the device, in relation with the meteorological data
@@ -71,7 +71,7 @@ class SolarThermalCollector(NonControllableDevice):
 
         exergy_out = exergy_in * efficiency
 
-        self._catalog.set(f"{self.name}_exergy_in", exergy_in)
-        self._catalog.set(f"{self.name}_exergy_out", exergy_out)
+        self._catalog.set(f"{self.name}.exergy_in", exergy_in)
+        self._catalog.set(f"{self.name}.exergy_out", exergy_out)
 
 

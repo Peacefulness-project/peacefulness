@@ -56,9 +56,20 @@
       "period": 24,
       "offset": 12,
 
-      "start_time_variation": 1.5,
+      "start_time_variation": 3,
       "temperature_variation": 1,
-      "duration_variation": 0
+      "duration_variation": 0.2
+    },
+
+    "residential_overheat": {
+      "profile": [[[0, 5], [0, 0, 21]], [[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 3,
+      "temperature_variation": 1,
+      "duration_variation": 0.2
     },
 
     "base_profile_Marseille_weather_France_habits_France_set_point": {
@@ -69,7 +80,7 @@
 
       "start_time_variation": 1.5,
       "temperature_variation": 1,
-      "duration_variation": 0
+      "duration_variation": 0.1
     },
 
 

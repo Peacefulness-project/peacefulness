@@ -1,0 +1,17 @@
+{
+  "template name": "1_people_demand",
+
+  "composition": {
+    "Background": [{"name": "Background", "user_profile": "ECOS", "technical_data": "ECOS_1", "quantity": [1,1], "contract": "LVE_BAU"}],
+    "WashingMachine": [{"name": "WashingMachine", "user_profile": "ECOS_1", "technical_data": "ECOS", "quantity": [1,1], "contract": "LVE_BAU"}],
+
+    "Heating": [{"name": "Heating", "user_profile": "residential", "technical_data": "apartment_heat", "quantity": [1,1], "contract": "heat_BAU", "parameters": {"location":  "Pau"}}],
+    "InstantHotWaterTank": [{"name": "InstantHotWaterTank", "user_profile": "ECOS_1", "technical_data": "1_people_heat", "quantity": [1,1], "contract": "heat_BAU"}]
+  },
+
+  "contracts": {
+    "LVE_BAU": {"nature_name": "LVE", "contract_subclass": "EgoistContract"},
+    "heat_BAU": {"nature_name": "LTH", "contract_subclass": "EgoistContract"}
+  }
+
+}

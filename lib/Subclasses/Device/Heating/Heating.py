@@ -56,6 +56,7 @@ class Heating(AdjustableDevice):
         # we randomize a bit in order to represent reality better
         self._randomize_start_variation(data_user)
         self._randomize_consumption(data_device)
+        self._randomize_temperature(data_user)
         self._randomize_duration(data_user)
 
         # adaptation of the data to the time step
@@ -94,7 +95,7 @@ class Heating(AdjustableDevice):
             if ratio <= 0:  # in case beginning - start is negative
                 ratio += 1
             for nature_name in self._repartition:  # affecting a coefficient of energy to each nature used inb the process
-                    repartition[nature_name] = ratio * self._repartition[nature_name]
+                repartition[nature_name] = ratio * self._repartition[nature_name]
 
             self._user_profile.append([current_moment, {nature: repartition[nature] for nature in repartition}, temperature_range])  # adding the first time step when it will be turned on
 
@@ -140,6 +141,7 @@ class Heating(AdjustableDevice):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data["profile"]:
             line[0][0] += start_time_variation  # modification of the starting hour of activity for an usage of the device
+            line[0][0] = line[0][0] % self._period
 
     def _randomize_temperature(self, data):
         temperature_variation = self._catalog.get("gaussian")(0, data["temperature_variation"])  # modification of the temperature
@@ -151,6 +153,7 @@ class Heating(AdjustableDevice):
         duration_variation = max(0.1, duration_variation)  # to avoid negative durations
         for line in data["profile"]:
             line[0][1] *= duration_variation  # modification of the ending hour of activity for an usage of the device
+            line[0][1] = min(line[0][1], self._period)
 
     def _randomize_consumption(self, data):
         consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption

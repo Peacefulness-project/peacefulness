@@ -85,6 +85,7 @@ class HotWaterTank(ChargerDevice, Device):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data["profile"]:
             line[0] += start_time_variation
+            line[0] = line[0] % self._period
 
     def _randomize_consumption(self, data):
         consumption_variation = self._catalog.get("gaussian")(1, data["consumption_variation"])  # modification of the consumption

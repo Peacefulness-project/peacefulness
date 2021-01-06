@@ -86,8 +86,15 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
         if self._global:
 
             for aggregator_name in self._aggregators_list:
-                mean_energy_bought = self._buffer[f"{aggregator_name}.energy_bought"]["sum"] / (self._buffer[f"{aggregator_name}_self_consumption"]["active_rounds"] - 1)
-                mean_energy_sold = self._buffer[f"{aggregator_name}.energy_sold"]["sum"] / (self._buffer[f"{aggregator_name}_coverage_rate"]["active_rounds"] - 1)
+                if self._buffer[f"{aggregator_name}.energy_bought"]["sum"] != 0:
+                    mean_energy_bought = self._buffer[f"{aggregator_name}.energy_bought"]["sum"] / (self._buffer[f"{aggregator_name}_self_consumption"]["active_rounds"] - 1)
+                else:
+                    mean_energy_bought = 1
+
+                if self._buffer[f"{aggregator_name}.energy_sold"]["sum"] != 0:
+                    mean_energy_sold = self._buffer[f"{aggregator_name}.energy_sold"]["sum"] / (self._buffer[f"{aggregator_name}_coverage_rate"]["active_rounds"] - 1)
+                else:
+                    mean_energy_sold = 1
 
                 for key in self._buffer[f"{aggregator_name}.energy_bought"]:
                     self._buffer[f"{aggregator_name}_self_consumption"][key] = self._buffer[f"{aggregator_name}_self_consumption"][key] / mean_energy_bought

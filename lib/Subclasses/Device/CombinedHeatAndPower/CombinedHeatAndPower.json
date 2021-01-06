@@ -1,8 +1,7 @@
 {
   "technical_data": {
-    "dummy_heat_pump": {
-      "efficiency": 3.5,
-      "capacity": 2000
+    "standard": {
+      "efficiency": {"LVE": 0.3, "LTH": 0.3}
     }
   }
 }
