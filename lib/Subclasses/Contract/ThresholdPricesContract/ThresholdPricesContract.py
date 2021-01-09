@@ -7,7 +7,7 @@ class ThresholdPricesContract(Contract):
     def __init__(self, name, nature, daemon_name, parameters):
         super().__init__(name, nature, daemon_name, parameters)
 
-        self.description = "A contract where energy is asked only if the price of electricity is above or below a given value."
+        self.description = "A contract where energy is asked only if the price is above or below a given value."
 
         self._buying_threshold = parameters["buying_threshold"]
         self._selling_threshold = parameters["selling_threshold"]

@@ -271,7 +271,7 @@ class World:
     # Automated generation of agents
     # ##########################################################################################
 
-    def agent_generation(self, quantity, filename, aggregators, price_manager_daemon, data_daemons={}):  # this method creates several agents, each with a predefinite set of devices
+    def agent_generation(self, name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}):  # this method creates several agents, each with a predefinite set of devices
         # loading the data in the file
         file = open(filename, "r")
         data = load(file)
@@ -280,7 +280,7 @@ class World:
         # creation of contracts
         contract_dict = {}
         for contract_type in data["contracts"]:  # for each contract
-            contract_name = f"{data['template name']}_{contract_type}"
+            contract_name = f"{name}_{data['template name']}_{contract_type}"
             nature = self._catalog.natures[data["contracts"][contract_type]["nature_name"]]
             identifier = price_manager_daemon[nature.name]
             contract_class = self._subclasses_dictionary["Contract"][data["contracts"][contract_type]["contract_subclass"]]
@@ -299,7 +299,7 @@ class World:
         for i in range(quantity):
 
             # creation of an agent
-            agent_name = f"{data['template name']}_{str(i)}"
+            agent_name = f"{name}_{data['template name']}_{str(i)}"
             agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_"number"
 
             # creation of devices

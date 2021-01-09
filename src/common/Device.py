@@ -357,7 +357,7 @@ class Device:
 
     @property
     def subclass(self):
-        return "toto"
+        return self.__class__.__name__
 
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"

@@ -16,6 +16,7 @@ from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.SubclassesDictionary import get_subclasses
 

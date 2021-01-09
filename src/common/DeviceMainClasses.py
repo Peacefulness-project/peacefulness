@@ -668,5 +668,89 @@ class Converter(Device):
         return "converter"
 
 
+class Storage(Device):
+
+    def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters=None):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
+
+    # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def _read_data_profiles(self, profiles):
+        time_step = self._catalog.get("time_step")
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
+
+        self._randomize_efficiency(data_device)
+        self._randomize_power(data_device)
+        self._randomize_capacity(data_device)
+
+        self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}
+        self._max_power = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
+        self._charge = {"current": data_device["capacity"] / 2, "max": data_device["capacity"]}
+        self._discharge_nature = data_device["discharge"]["nature"]
+        self._charge_nature = data_device["charge"]["nature"]
+
+    def _randomize_efficiency(self, data):
+        efficiency_variation = self._catalog.get("gaussian")(1, data["efficiency_variation"])  # modification of the efficency
+        efficiency_variation = max(0, efficiency_variation)  # to avoid negative values
+        data["charge"]["efficiency"] *= efficiency_variation
+        data["discharge"]["efficiency"] *= efficiency_variation
+
+    def _randomize_power(self, data):
+        power_variation = self._catalog.get("gaussian")(1, data["power_variation"])  # modification of the power
+        power_variation = max(0, power_variation)  # to avoid negative values
+        data["charge"]["power"] *= power_variation
+        data["discharge"]["power"] *= power_variation
+
+    def _randomize_capacity(self, data):
+        capacity_variation = self._catalog.get("gaussian")(1, data["capacity_variation"])  # modification of the capacity
+        capacity_variation = max(0, capacity_variation)  # to avoid negative values
+        data["capacity"] *= capacity_variation
+
+    # ##########################################################################################
+    # Dynamic behavior
+    # ##########################################################################################
+
+    def update(self):  # method updating needs of the devices before the supervision
+        energy_wanted = {nature.name: {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
+
+        for nature in energy_wanted:
+            energy_wanted[nature]["energy_minimum"] = 0
+            energy_wanted[nature]["energy_nominal"] = 0  # storage devices have no nominal
+            energy_wanted[nature]["energy_maximum"] = 0
+
+        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_power["discharge"], self._charge["current"] / self._efficiency["discharge"])  # the discharge mode, where energy is "produced"
+        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_power["charge"], self._charge["max"] - self._charge["current"])  # the charge mode, where energy is "consumed"
+
+        self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
+
+    def react(self):
+        for nature in self.natures:
+            energy_accorded = self.get_energy_accorded(nature)
+            energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
+            self.set_energy_accorded(nature, energy_accorded)
+
+            if energy_accorded["quantity"] < 0:  # if the device unloads energy
+                self._charge["current"] += energy_accorded["quantity"] / self._efficiency["discharge"]
+            else:  # if the device loads energy
+                self._charge["current"] += energy_accorded["quantity"] * self._efficiency["charge"]
+
+        self._degradation_of_energy_stored()  # reduction of the energy stored
+
+    def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
+        pass
+
+    # ##########################################################################################
+    # Utility
+    # ##########################################################################################
+
+    @property
+    def type(self):
+        return "storage"
+
+
+
+
 
 

@@ -16,6 +16,7 @@ from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.SubclassesDictionary import get_subclasses
 
@@ -189,11 +190,14 @@ file.close()
 
 # ##############################################################################################
 # Creation of dataloggers
-subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1)
+graph_options = GraphOptions("graph_options_1", "LaTeX", "single_series")
+
+
+subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1, graph_options=graph_options)
 subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
-subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1, graph_options=graph_options)
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
 

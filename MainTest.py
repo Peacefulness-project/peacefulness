@@ -83,7 +83,7 @@ world.set_random_seed("tournesol")
 # it needs a start date, the value of an iteration in hours and the total number of iterations
 start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
-               0.25,  # value of a time step (in hours)
+               1,  # value of a time step (in hours)
                24)  # number of time steps simulated
 
 
@@ -121,7 +121,7 @@ LTH = load_low_temperature_heat()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-price_manager_cooperative_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_elec", {"location": "France"})  # sets prices for flat rate
+price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_elec", {"location": "France"})  # sets prices for flat rate
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.2125, 0.15], "selling_price": [0, 0], "on-peak_hours": [[6, 12], [14, 23]]})  # sets prices for TOU rate
 price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France"})  # sets prices for flat rate
@@ -192,6 +192,7 @@ CO2_producer = Agent("CO2_producer")
 
 dummy_agent = Agent("dummy", CO2_producer)
 
+storer_owner = Agent("storer_owner")
 
 # ##############################################################################################
 # Contract
@@ -205,11 +206,14 @@ BAU_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, 
 
 cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
-cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_cooperative_elec)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_RTP_elec)
 
 contract_owned_by_aggregator = subclasses_dictionary["Contract"]["CooperativeContract"]("owned_by_aggregator_contract", LVE, price_manager_owned_by_the_aggregator)
 
 contract_converter_heat = subclasses_dictionary["Contract"]["ThresholdPricesContract"]("contract_converter_heat", LTH, price_manager_RTP_heat, {"buying_threshold": 0, "selling_threshold": 0.2})
+
+contract_storage_elec = subclasses_dictionary["Contract"]["StorageThresholdPricesContract"]("contract_storage_elec", LVE, price_manager_RTP_elec, {"buying_threshold": 0.15, "selling_threshold": 0.2})
+contract_storage_heat = subclasses_dictionary["Contract"]["StorageThresholdPricesContract"]("contract_storage_heat", LTH, price_manager_RTP_elec, {"buying_threshold": 0.15, "selling_threshold": 0.2})
 
 # ##############################################################################################
 # Aggregator
@@ -227,7 +231,7 @@ aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_man
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_manager, aggregator_elec, BAU_elec)  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_elec, BAU_elec)  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -236,23 +240,14 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_man
 # they at least need a name and a nature
 # some devices are pre-defined (such as Photovoltaics) but user can add some by creating new classes in lib
 
-wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
-
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_production", cooperative_contract_heat, DHN_producer, aggregator_heat, {"device": "ECOS"})  # creation of a heat production unit
-
-heating = subclasses_dictionary["Device"]["Heating"]("heating", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
-
-subclasses_dictionary["Device"]["Photovoltaics"]("PV_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
-subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", BAU_elec, WT_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 18, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
-
-# subclasses_dictionary["Device"]["CombinedHeatAndPower"]("CHP_unit", cooperative_contract_heat, DHN_producer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery", [contract_storage_elec, contract_storage_heat], storer_owner, [aggregator_elec, aggregator_heat], {"device": "domestic_battery"})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation(2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
+# world.agent_generation(2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation(2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation(1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_cooperative_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

@@ -166,10 +166,10 @@ def export_latex(options, filename, x, y, labels):
     text += "\t" + r"ymin = " + str(ymin) + ", ymax = " + str(ymax) + ", " + "\n"
     text += "\t" + r"xlabel = {" + labels["xlabel"] + "}," + "\n"
     text += "\t" + r"ylabel = {" + labels["ylabel"] + "}," + "\n"
-    text += "\t" + r"xlabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
-    text += "\t" + r"ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
-    text += "\t" + r"xticklabel style = {rotate=" + str(xticklabel_angle) + r", anchor=near xticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
-    text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"xlabel style = {xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"ylabel style = {xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"xticklabel style = {rotate=" + str(xticklabel_angle) + r", anchor=near xticklabel, xshift=0.0cm, yshift=0.0cm}," + "\n"
+    text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm}," + "\n"
     if is_date:
         text += "\t" + "%" + "\n"
         text += "\t" + r"date coordinates in = x," + "\n"
@@ -177,7 +177,7 @@ def export_latex(options, filename, x, y, labels):
     if is_multiple:
         text += "\t" + "%" + "\n"
         text += "\t" + r"legend pos = north west," + "\n"
-        text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
+        text += "\t" + r"legend style = {draw=none, fill=none}," + "\n"
         text += "\t" + r"legend cell align = left," + "\n"
         text += "\t" + r"legend columns={1}," + "\n"
         text += "\t" + r"legend image post style={scale=1}," + "\n"
@@ -227,7 +227,7 @@ def export_latex(options, filename, x, y, labels):
         text += "\t" + r"ylabel = {" + labels["y2label"] + "}," + "\n"
         text += "\t" + r"ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm}," + "\n"
         text += "\t" + r"ylabel near ticks," + "\n"
-        text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, font=\tiny, xshift=0.0cm, yshift=0.0cm}," + "\n"
+        text += "\t" + r"yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm}," + "\n"
         if is_date:
             text += "\t" + "%" + "\n"
             text += "\t" + r"date coordinates in = x," + "\n"
@@ -235,7 +235,7 @@ def export_latex(options, filename, x, y, labels):
         if is_multiple:
             text += "\t" + "%" + "\n"
             text += "\t" + r"legend pos = north east," + "\n"
-            text += "\t" + r"legend style = {draw=none, fill=none, font=\tiny}," + "\n"
+            text += "\t" + r"legend style = {draw=none, fill=none}," + "\n"
             text += "\t" + r"legend cell align = left," + "\n"
             text += "\t" + r"legend columns={1}," + "\n"
             text += "\t" + r"legend image post style={scale=1}," + "\n"

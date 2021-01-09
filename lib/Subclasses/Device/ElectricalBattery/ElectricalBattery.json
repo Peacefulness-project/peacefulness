@@ -1,0 +1,14 @@
+{
+  "technical_data": {
+    "domestic_battery": {
+      "charge": {"nature": "LVE", "power": 0.2, "efficiency":  0.5},
+      "discharge": {"nature": "LTH", "power": 0.3, "efficiency":  0.5},
+      "capacity": 2,
+      "degradation_rate": 0.1,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "capacity_variation": 0
+    }
+  }
+}
