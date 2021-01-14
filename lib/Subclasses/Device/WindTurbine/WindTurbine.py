@@ -35,7 +35,7 @@ class WindTurbine(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         wind = self._catalog.get(f"{self._location}.wind_value")  # wind speed in m.s-1

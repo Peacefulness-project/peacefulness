@@ -11,9 +11,9 @@ class MismatchDatalogger(Datalogger):  # a sub-class of dataloggers designed to 
         else:
             super().__init__(f"mismatch_frequency_{period}", f"Mismatch_frequency_{period}", period, graph_options=graph_options, graph_labels={"xlabel": "time", "ylabel": f"mismatch"})
 
-        if not self._global:
+        if self._type != "global":
             self.add(f"simulation_time", graph_status="X")
-            self.add(f"physical_time", graph_status=None)
+            self.add(f"physical_time", graph_status="")
 
         natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 

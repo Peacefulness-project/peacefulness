@@ -23,7 +23,7 @@ class ElectricalBattery(Storage):
     # ##########################################################################################
 
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
-        self._charge["current"] = self._charge["current"] * self._degradation_rate
+        self._energy_stored = self._energy_stored * self._degradation_rate
 
 
 

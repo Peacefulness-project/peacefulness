@@ -162,7 +162,7 @@ class Refrigerator(AdjustableDevice):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for line in self._user_profile:

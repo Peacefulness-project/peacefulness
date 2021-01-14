@@ -15,7 +15,7 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
         self._agents_list = self._catalog.get("dictionaries")['agents'].keys()  # get all the names
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
-        if self._global:
+        if self._type == "global":
             def create_get_inside_value(aggregator_name):
                 def get_inside_value(name):
                     if "sold" in name:
@@ -29,11 +29,11 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
                 self.add(f"{aggregator_name}.energy_bought", create_get_inside_value(aggregator_name))
         else:
             self.add(f"simulation_time", graph_status="X")
-            self.add(f"physical_time", graph_status=None)
+            self.add(f"physical_time", graph_status="")
 
         def create_self_consumption_function(aggregator_name):  # this function returns a function calculating the unbalance value of the agent for the considered
 
-            if self._global:  # in the global case,
+            if self._type == "global":  # in the global case,
 
                 def get_self_consumption(name):
                     energy_sold_inside = self._catalog.get(f"{aggregator_name}.energy_sold")["inside"]
@@ -83,7 +83,7 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
 
     def final_process(self):  # final process is modified
 
-        if self._global:
+        if self._type == "global":
 
             for aggregator_name in self._aggregators_list:
                 if self._buffer[f"{aggregator_name}.energy_bought"]["sum"] != 0:

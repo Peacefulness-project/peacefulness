@@ -35,9 +35,9 @@ class DeviceQuantityDatalogger(Datalogger):  # a sub-class of dataloggers design
             if self._catalog.get("dictionaries")['devices'][device_name].name in devices_list:
                 self._devices_list[device_name] = [nature.name for nature in self._catalog.get("dictionaries")['devices'][device_name].natures]  # get all the names
 
-        if not self._global:
+        if self._type != "global":
             self.add(f"simulation_time", graph_status="X")
-            self.add(f"physical_time", graph_status=None)
+            self.add(f"physical_time", graph_status="")
 
         for device_name in self._devices_list.keys():  # for each nature registered into world, all the relevant keys are added
             for nature_name in self._devices_list[device_name]:

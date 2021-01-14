@@ -35,9 +35,9 @@ class DeviceSubclassBalancesDatalogger(Datalogger):  # a sub-class of datalogger
             if self._catalog.get("dictionaries")['devices'][device_name].subclass == subclass:
                 self._devices_list[device_name] = [nature.name for nature in self._catalog.get("dictionaries")['devices'][device_name].natures]  # get all the names
 
-        if not self._global:
+        if self._type != "global":
             self.add(f"simulation_time", graph_status="X")
-            self.add(f"physical_time", graph_status=None)
+            self.add(f"physical_time", graph_status="")
 
         self.add(f"{subclass}.energy", get_quantity, graph_status="Y")
         self.add(f"{subclass}.money", get_money, graph_status="Y2")

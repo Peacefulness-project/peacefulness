@@ -426,7 +426,7 @@ class World:
             # End of the turn
             # ###########################
 
-            # devices and converters update their state according to the quantity of energy received/given
+            # devices update their state according to the quantity of energy received/given
             for device in self._catalog.devices.values():
                 device.react()
                 device.make_balances()

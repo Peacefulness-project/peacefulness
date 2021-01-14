@@ -45,7 +45,7 @@ def check_zero_one(list_or_array):
 
 
 def into_list(object):  # if the object is not a list, this function will return a list containing only the object
-    if not isinstance(object, list):
+    if not (isinstance(object, list) or isinstance(object, dict)):
         object = [object]
 
     return object

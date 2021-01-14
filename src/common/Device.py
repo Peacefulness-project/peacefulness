@@ -29,8 +29,8 @@ class Device:
         # 1 key <=> 1 energy nature
         self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
 
-        self._messages = {"ascendant": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-                         "descendant": {"quantity": 0, "price": 0}}
+        self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
+                         "top-down": {"quantity": 0, "price": 0}}
         self._additional_elements = {}
 
         aggregators = into_list(aggregators)  # make it iterable
@@ -69,8 +69,8 @@ class Device:
             if nature not in self.agent.natures:  # complete the list of natures of the agent
                 self.agent._contracts[nature] = None
 
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self._messages["ascendant"])  # the energy asked or proposed by the device and the price associated
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self._messages["descendant"])  # the energy delivered or accepted by the strategy
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self._messages["bottom-up"])  # the energy asked or proposed by the device and the price associated
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self._messages["top-down"])  # the energy delivered or accepted by the strategy
 
             try:  # creates an entry for effort in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressed by the agent
@@ -180,17 +180,42 @@ class Device:
             energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name])  # the contract may modify the offer
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
 
+    def _randomize_addition(self, value, variation):  # function randomizing by addition, especially used for start time
+        variation = self._catalog.get("gaussian")(0, variation)
+        value = into_list(value)
+        for element in value:
+            element += variation % self._period
+
+    def _randomize_multiplication_list(self, value, variation):  # function randomizing by multiplication
+        variation = self._catalog.get("gaussian")(1, variation)  # modification of the duration
+        variation = max(0, variation)  # to avoid negative durations
+        value = into_list(value)  # to avoid to create another function
+        for element in value:  # modification of the basic user_profile according to the results of random generation
+            element *= variation
+
+    def _randomize_multiplication_dict(self, value, variation):  # function randomizing by multiplication
+        variation = self._catalog.get("gaussian")(1, variation)  # modification of the duration
+        variation = max(0, variation)  # to avoid negative durations
+        value = into_list(value)  # to avoid to create another function
+        for element in value:  # modification of the basic user_profile according to the results of random generation
+            value[element] *= variation
+
+    def _randomize_multiplication(self, value, variation):  # function randomizing by multiplication
+        variation = self._catalog.get("gaussian")(1, variation)  # modification of the duration
+        variation = max(0, variation)  # to avoid negative durations
+        value *= variation
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the balances
-        messages = {"ascendant": {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]},
-                    "descendant": {element: self._messages["descendant"][element] for element in self._messages["descendant"]}}
+        messages = {"bottom-up": {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]},
+                    "top-down": {element: self._messages["top-down"][element] for element in self._messages["top-down"]}}
 
         for nature in self.natures:
-            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", messages["descendant"])
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", messages["ascendant"])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", messages["top-down"])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", messages["bottom-up"])
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", 0)
 
     def update(self):  # method updating needs of the devices before the supervision
@@ -205,7 +230,7 @@ class Device:
         if self._moment is not None:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
-    def make_balances(self):
+    def make_balances(self):  # devices compute the balances for the other objects: contracts, aggregator, agent and nature
         energy_sold = dict()
         energy_bought = dict()
         energy_erased = dict()

@@ -32,7 +32,7 @@ class FuellCell(Converter):
 
     def update(self):
         # TODO: mettre à jour la fonction
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for nature in energy_wanted:

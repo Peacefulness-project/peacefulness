@@ -17,15 +17,6 @@ class Datalogger:
 
         self._list = dict()  # list of catalog keys which has to be written
 
-        if period != "global":  # when data must be recorded regularly
-            self._period = period  # number of rounds between 2 activations
-            self._global = False
-            self._process = self._regular_process
-        else:  # when only a final view on the data is wanted
-            self._period = 1
-            self._global = True
-            self._process = self._global_process
-
         self._buffer = dict()  # dict which stores data between each period of registering
         # allows to report info such as mean, min and max between two periods
 
@@ -38,6 +29,20 @@ class Datalogger:
         self._filename = filename
 
         world.register_datalogger(self)  # register this datalogger into world dedicated dictionary
+
+        if period == "global":  # when only a final view on the data is wanted
+            self._period = 1
+            self._type = "global"  #
+            self._process = self._global_process
+        elif period == "month":  # if a monthly record is required
+            self._period = 1
+            self._type = "month"
+            self._month = self._catalog.get("physical_time").month  # the number of the ongoing month
+            self._process = self._month_process
+        else:  # when data must be recorded regularly
+            self._period = period  # number of rounds between 2 activations
+            self._type = "regular"
+            self._process = self._regular_process
 
         self._x_values = {}
         self._y_values = {}
@@ -53,22 +58,21 @@ class Datalogger:
     # ##########################################################################################
 
     def add(self, name, function="default", graph_status="Y", graph_style="lines", graph_legend=False):  # add 1 key of the catalog to the datalogger
-        if function == "default":
+        if function == "default":  # the function parameter allows to export the result of a calculation directly during the simulation
             self._list[name] = self._catalog.get  # creates an entry in the buffer if needed
         else:
             self._list[name] = function  # creates an entry in the buffer if needed
 
-        if self._global:
-            self._buffer[name] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
-        elif type(self._list[name](name) == float) and (self._period > 1):  # numeric keys are added to a buffer
+        if "Y" in graph_status and (self._type != "regular" or self._period > 1):  # numeric keys are added to a buffer when it is not
             # it allows to return the mean, the min and the max
-            self._buffer[name] = []  # creates an entry in the buffer
+            self._buffer[name] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}  # creates an entry in the buffer
 
         # todo: pas de graph_legend ni graph_type pour graph_status="X"... on les ignore ou on pète une erreur ?
         # todo: graph_status="X" ne doit apparaitre qu'une fois
 
         if not graph_legend:
             graph_legend = name
+
         if graph_status == "X":
             self._x_values[name] = {"values": []}
         elif graph_status == "Y":
@@ -83,17 +87,19 @@ class Datalogger:
             self.add(name)
 
     def initial_operations(self):  # create the headers of the column
-        if not self._global:
+        if self._type != "global":
             file = open(self._path+self._filename+__text_extension__, 'a+')
 
             for name in self._list:
-                file.write(f"{name}\t")
 
                 if name in self._buffer:
                     file.write(f"mean_{name}\t"
                                f"min_{name}\t"
                                f"max_{name}\t"
                                f"sum_{name}\t")
+                else:
+                    file.write(f"{name}\t")
+
             file.write("\n")
             file.close()
 
@@ -102,12 +108,18 @@ class Datalogger:
     # ##########################################################################################
 
     def _data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
-        processed_data = dict()
-        processed_data["mean"] = (mean(self._buffer[key]))  # mean
-        processed_data["min"] = (min(self._buffer[key]))  # min
-        processed_data["max"] = (max(self._buffer[key]))  # max
-        processed_data["sum"] = (sum(self._buffer[key]))  # sum
-        return processed_data
+        current_value = self._list[key](key)  # the current value of the key
+
+        if current_value is not None:  # if the value is relevant during this turn
+            the_mean = (self._buffer[key]["mean"] * (self._buffer[key]["active_rounds"] - 1) / self._buffer[key]["active_rounds"]) \
+                       + (current_value / self._buffer[key]["active_rounds"])
+            active_rounds = self._buffer[key]["active_rounds"] + 1
+
+            minimum = min(self._buffer[key]["min"], current_value)
+            maximum = max(self._buffer[key]["max"], current_value)
+            the_sum = self._buffer[key]["sum"] + current_value
+
+            self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
 
     # ##########################################################################################
     # Writing in the file
@@ -118,7 +130,7 @@ class Datalogger:
 
         if self._period > 1:
             for key in self._buffer:  # for all relevant keys
-                self._buffer[key].append(self._list[key](key))  # value is saved in the buffer
+                self._data_processing(key)
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the defined period
 
             self._process()  # writes the data in the file
@@ -136,20 +148,51 @@ class Datalogger:
             if key in self._y_values:
                 self._y_values[key]["values"].append(value)
 
-            file.write(f"{value}\t")
-
-            if (type(value) == float) and (self._period > 1):
-                processed_data = self._data_processing(key)  # returns the mean, the min and the max over the period for a key
-                file.write(f"{processed_data['mean']}\t"  # saves the mean
-                           f"{processed_data['min']}\t"  # saves the min
-                           f"{processed_data['max']}\t"  # saves the max
-                           f"{processed_data['sum']}\t"
+            if key in self._buffer:
+                file.write(f"{self._buffer[key]['mean']}\t"  # saves the mean
+                           f"{self._buffer[key]['min']}\t"  # saves the min
+                           f"{self._buffer[key]['max']}\t"  # saves the max
+                           f"{self._buffer[key]['sum']}\t"  # saves the sum
                            )
 
-            self._buffer[key] = []  # Reinitialization of the buffer
+                self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
+
+            else:
+                file.write(f"{value}\t")
 
         file.write("\n")
         file.close()
+
+    def _month_process(self):  # seeks the min, the mean, the average, the max and the sum of the chosen key at the end of the simulation
+        for key in self._buffer:
+            self._data_processing(key)
+
+        if self._month != self._catalog.get("physical_time").month:  # if it is a new month
+            file = open(self._path + self._filename + __text_extension__, "a+")
+            self._month += 1
+            for key in self._list:
+
+                value = self._list[key](key)
+
+                # values saving for the figures
+                if key in self._x_values:
+                    self._x_values[key]["values"].append(value)
+                if key in self._y_values:
+                    self._y_values[key]["values"].append(value)
+
+                if key in self._buffer:
+                    file.write(f"{self._buffer[key]['mean']}\t"  # saves the mean
+                               f"{self._buffer[key]['min']}\t"  # saves the min
+                               f"{self._buffer[key]['max']}\t"  # saves the max
+                               f"{self._buffer[key]['sum']}\t"
+                               )
+
+                    self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
+                else:
+                    file.write(f"{value}\t")
+
+            file.write("\n")
+            file.close()
 
     def _global_process(self):  # seeks the min, the mean, the average, the max and the sum of the chosen key at the end of the simulation
         for key in self._list:
@@ -171,7 +214,7 @@ class Datalogger:
     # ##########################################################################################
 
     def final_process(self):
-        if self._global:  # if global values are wanted
+        if self._type == "global":  # if global values are wanted
             file = open(self._path+self._filename+__text_extension__, "a+")
 
             for key in self._buffer:
@@ -183,6 +226,29 @@ class Datalogger:
                 file.write("\n")
 
             file.close()
+
+        elif self._type == "month":
+            file = open(self._path + self._filename + __text_extension__, "a+")
+            for key in self._list:
+
+                value = self._list[key](key)
+
+                # values saving for the figures
+                if key in self._x_values:
+                    self._x_values[key]["values"].append(value)
+                if key in self._y_values:
+                    self._y_values[key]["values"].append(value)
+
+                if key in self._buffer:
+                    file.write(f"{self._buffer[key]['mean']}\t"  # saves the mean
+                               f"{self._buffer[key]['min']}\t"  # saves the min
+                               f"{self._buffer[key]['max']}\t"  # saves the max
+                               f"{self._buffer[key]['sum']}\t"
+                               )
+
+                    self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
+                else:
+                    file.write(f"{value}\t")
 
     def final_export(self):  # call the relevant export functions
         export(self._graph_options, self._path + self._filename, self._x_values, self._y_values, self._graph_labels)

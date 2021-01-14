@@ -21,8 +21,11 @@ class NonControllableDevice(Device):
         self._data_user_creation(data_user)  # creation of an empty user profile
 
         # we randomize a bit in order to represent reality better
+
         self._randomize_start_variation(data_user)
-        self._randomize_consumption(data_device)
+
+        self._randomize_multiplication_dict(data_device["usage_profile"], data_device["consumption_variation"])
+
         self._randomize_duration(data_user)
 
         # adaptation of the data to the time step
@@ -84,7 +87,7 @@ class NonControllableDevice(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         for line in self._user_profile:
@@ -258,7 +261,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
-        duration_variation = max(duration_variation/10, duration_variation)  # to avoid negative durations
+        duration_variation = max(duration_variation/10, duration_variation)  # to avoid negative and null durations
         for line in data["usage_profile"]:  # modification of the basic user_profile according to the results of random generation
             line[0] *= duration_variation
 
@@ -278,7 +281,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
 
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile who is taken into account
@@ -440,7 +443,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
@@ -540,7 +543,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
         if self._remaining_time == 0:  # checking if the device has to start
@@ -614,7 +617,7 @@ class Converter(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature.name: {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]} for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # consumption which will be asked eventually
 
         # downstream side
         for aggregator in self ._downstream_aggregators_list:
@@ -681,47 +684,37 @@ class Storage(Device):
         time_step = self._catalog.get("time_step")
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
-        self._randomize_efficiency(data_device)
-        self._randomize_power(data_device)
-        self._randomize_capacity(data_device)
+        # randomization
+        self._randomize_multiplication(data_device["charge"]["efficiency"], data_device["efficiency_variation"])
+        self._randomize_multiplication(data_device["discharge"]["efficiency"], data_device["efficiency_variation"])
+        self._randomize_multiplication(data_device["charge"]["power"], data_device["power_variation"])
+        self._randomize_multiplication(data_device["discharge"]["power"], data_device["power_variation"])
+        self._randomize_multiplication(data_device["capacity"], data_device["capacity_variation"])
 
-        self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}
-        self._max_power = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
-        self._charge = {"current": data_device["capacity"] / 2, "max": data_device["capacity"]}
-        self._discharge_nature = data_device["discharge"]["nature"]
+        minimum_energy_variation = self._catalog.get("gaussian")(1, data_device["capacity_variation"])  # modification of the minimum_energy
+        minimum_energy_variation = min(max(0, minimum_energy_variation), data_device["capacity"])  # to avoid negative values and values beyond the maximum minimum_energy
+        data_device["minimum_energy"] *= minimum_energy_variation
+
+        # setting
+        self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
+        self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
+
+        self._capacity = data_device["capacity"]  # max energy storable in the device
+        self._energy_stored = data_device["capacity"] * 0.5  # the energy stored at a given time
+        self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
+
         self._charge_nature = data_device["charge"]["nature"]
-
-    def _randomize_efficiency(self, data):
-        efficiency_variation = self._catalog.get("gaussian")(1, data["efficiency_variation"])  # modification of the efficency
-        efficiency_variation = max(0, efficiency_variation)  # to avoid negative values
-        data["charge"]["efficiency"] *= efficiency_variation
-        data["discharge"]["efficiency"] *= efficiency_variation
-
-    def _randomize_power(self, data):
-        power_variation = self._catalog.get("gaussian")(1, data["power_variation"])  # modification of the power
-        power_variation = max(0, power_variation)  # to avoid negative values
-        data["charge"]["power"] *= power_variation
-        data["discharge"]["power"] *= power_variation
-
-    def _randomize_capacity(self, data):
-        capacity_variation = self._catalog.get("gaussian")(1, data["capacity_variation"])  # modification of the capacity
-        capacity_variation = max(0, capacity_variation)  # to avoid negative values
-        data["capacity"] *= capacity_variation
+        self._discharge_nature = data_device["discharge"]["nature"]
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature.name: {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
+        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
 
-        for nature in energy_wanted:
-            energy_wanted[nature]["energy_minimum"] = 0
-            energy_wanted[nature]["energy_nominal"] = 0  # storage devices have no nominal
-            energy_wanted[nature]["energy_maximum"] = 0
-
-        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_power["discharge"], self._charge["current"] / self._efficiency["discharge"])  # the discharge mode, where energy is "produced"
-        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_power["charge"], self._charge["max"] - self._charge["current"])  # the charge mode, where energy is "consumed"
+        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"], (self._energy_stored - self._min_energy) / self._efficiency["discharge"])  # the discharge mode, where energy is "produced"
+        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"], self._capacity - self._energy_stored)  # the charge mode, where energy is "consumed"
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -732,9 +725,9 @@ class Storage(Device):
             self.set_energy_accorded(nature, energy_accorded)
 
             if energy_accorded["quantity"] < 0:  # if the device unloads energy
-                self._charge["current"] += energy_accorded["quantity"] / self._efficiency["discharge"]
+                self._energy_stored += energy_accorded["quantity"] / self._efficiency["discharge"]
             else:  # if the device loads energy
-                self._charge["current"] += energy_accorded["quantity"] * self._efficiency["charge"]
+                self._energy_stored += energy_accorded["quantity"] * self._efficiency["charge"]
 
         self._degradation_of_energy_stored()  # reduction of the energy stored
 

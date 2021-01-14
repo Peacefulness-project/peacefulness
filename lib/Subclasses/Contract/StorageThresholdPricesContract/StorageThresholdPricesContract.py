@@ -7,7 +7,7 @@ class StorageThresholdPricesContract(Contract):
     def __init__(self, name, nature, daemon_name, parameters):
         super().__init__(name, nature, daemon_name, parameters)
 
-        self.description = "A contract dedicated to storage devices where loading or unloading mode is defined through "
+        self.description = "A contract dedicated to storage devices where loading or unloading mode is defined according to price of energy"
 
         self._buying_threshold = parameters["buying_threshold"]
         self._selling_threshold = parameters["selling_threshold"]
