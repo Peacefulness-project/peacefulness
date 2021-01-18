@@ -7,6 +7,9 @@ class DummyProducer(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/DummyProducer/DummyProducer.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
+        time_step = self._catalog.get("time_step")
+        self._max_power = parameters["max_power"] * time_step   # the maximum power this device can produce
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -20,8 +23,8 @@ class DummyProducer(NonControllableDevice):
         # usage profile
         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 
-        time_step = self._catalog.get("time_step")
-        self._max_power = data_device["usage_profile"]["max_power"] * time_step  # max power
+        # time_step = self._catalog.get("time_step")
+        # self._max_power = data_device["usage_profile"]["max_power"] * time_step  # max power
 
         self._unused_nature_removal()
 

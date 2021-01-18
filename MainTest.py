@@ -277,11 +277,14 @@ file.close()
 # subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
 #
 # subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
-subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="month")
-subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
+# subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="month")
+# subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
-subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
-subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
+# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
+# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
 
 # subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
@@ -321,11 +324,11 @@ subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=
 # test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
 # test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
 
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating")
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", "global")
-
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
+# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating")
+# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", "global")
+#
+# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
+# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
 # figures
 export_graph_options_3 = GraphOptions("toto", ["LaTeX", "matplotlib"], "multiple_series")

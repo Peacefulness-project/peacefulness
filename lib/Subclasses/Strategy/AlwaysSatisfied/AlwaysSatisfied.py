@@ -151,12 +151,7 @@ class AlwaysSatisfied(Strategy):
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
             raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
 
-        # updates the balances
-        self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
-        self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
-
-        self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
-        self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, 0, 0)
 
 
 

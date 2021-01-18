@@ -36,6 +36,8 @@ class Aggregator:
         self._catalog.add(f"{self.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the aggregator to buy energy during the round
         self._catalog.add(f"{self.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the aggregator by selling energy during the round
 
+        self._catalog.add(f"{self.name}.energy_erased", {"production": 0, "consumption": 0})  # accounts for the money earned by the aggregator by selling energy during the round
+
         if self.superior:
             self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_wanted", [])  # couples price/quantities sent by the aggregator to its superior
             self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_accorded", [])  # couple price/quantities accorded by the aggregator superior

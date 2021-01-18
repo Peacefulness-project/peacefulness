@@ -12,7 +12,7 @@
 
     "Dishwasher": [{"name": "Dishwasher", "data_profiles": {"user": "single", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "Dryer": [{"name": "Dryer", "data_profiles": {"user": "family", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
-    "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device": "ECOS"}, "quantity": [1,1], "contract": "LTH_BAU"}],
+    "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device": "ECOS"}, "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"max_power": 100}}],
 
     "ElectricDam": [{"name": "ElectricDam", "data_profiles": {"device": "Pelton"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"height": 100}}],
 

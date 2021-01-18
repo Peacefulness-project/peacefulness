@@ -166,16 +166,16 @@ CPU_time_generation_of_device = process_time()
 # 50% 2 people and 50% 5 people
 
 # Egoist contracts
-world.agent_generation(2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 # Cooperative contracts
-world.agent_generation(1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 # Curtailment contracts
-world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_house_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_PV.json", [full_elec_renewable_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 
 # Second eco-quartier, 10 000 dwellings
@@ -183,16 +183,16 @@ world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalD
 # 50% 2 people and 50% 5 people
 
 # Egoist contracts
-world.agent_generation(2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 2500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 # Cooperative contracts
-world.agent_generation(1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 # Curtailment contracts
-world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
-world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_house_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_no_PV.json", [DHN, DHN_bound_renewable_district], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "irradiation_daemon": irradiation_daemon})
 
 
 # flat, 30 000 dwellings
@@ -200,19 +200,19 @@ world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalD
 # 40% 1 people, 30% 2 people and 30% 5 people
 
 # Egoist contracts
-world.agent_generation(6000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(4500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(4500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 6000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 4500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 4500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # Cooperative contracts
-world.agent_generation(3600, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(2700, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(2700, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 3600, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 2700, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 2700, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # Curtailment contracts
-world.agent_generation(2400, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(1800, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation(1800, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 2400, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 1800, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 1800, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_apartment.json", [old_district], {"LVE": price_manager_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 
 # CPU time measurement
@@ -239,11 +239,15 @@ subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=24)
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
 
+
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", 24)
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", "global")
 
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("SolarThermalCollector", 24)
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("SolarThermalCollector", "global")
+
+subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=24)
+subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
 
 # ##############################################################################################
 # Simulation start

@@ -145,6 +145,9 @@ def simulation(season):
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_balances", "DeviceBalances", ["heating", "background", "hot_water_tank", "dishwasher", "washing_machine", "dryer", "rooftop_PV"], 1, export_graph_options_1)
 
     subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]("global", graph_options=export_graph_options_1)
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Dishwasher")
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("WashingMachine")
+    subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Dryer")
 
     # ##############################################################################################
     # Simulation start

@@ -97,7 +97,7 @@ class LightAutarkyPartial(Strategy):
 
         # ##########################################################################################
         # updates the balances
-        self._update_balances(aggregator, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0)
+        self._update_balances(aggregator, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0, maximum_energy_consumed, maximum_energy_produced)
 
 
 

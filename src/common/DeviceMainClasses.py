@@ -255,9 +255,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
     def _randomize_start_variation(self, data):
-        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"]) % self._period  # creation of a displacement in the user_profile
+        start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         for line in data["profile"]:
-            line[0] += start_time_variation % self._period
+            line[0] = (line[0] + start_time_variation) % self._period
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
@@ -590,6 +590,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         return "charger"
 
 
+# ##############################################################################################
 class Converter(Device):
 
     def __init__(self, name, contracts, agent, filename, upstream_aggregators_list, downstream_aggregators_list, profiles, parameters=None):
@@ -671,6 +672,7 @@ class Converter(Device):
         return "converter"
 
 
+# ##############################################################################################
 class Storage(Device):
 
     def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters=None):
