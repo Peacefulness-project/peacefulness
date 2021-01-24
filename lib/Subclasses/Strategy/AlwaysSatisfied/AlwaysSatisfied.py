@@ -15,7 +15,7 @@ class AlwaysSatisfied(Strategy):
     # Dynamic behavior
     # ##########################################################################################
 
-    def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
+    def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
@@ -25,7 +25,7 @@ class AlwaysSatisfied(Strategy):
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
         energy_difference = maximum_energy_consumed - maximum_energy_produced
 
-        quantities_and_prices = [{element: self._messages["descendant"][element] for element in self._messages["descendant"]}]  # the standard ascendant message
+        quantities_and_prices = [{element: self._messages["top-down"][element] for element in self._messages["top-down"]}]  # the standard bottom-up message
         quantities_and_prices[0]["energy_minimum"] = energy_difference
         quantities_and_prices[0]["energy_nominal"] = energy_difference
         quantities_and_prices[0]["energy_maximum"] = energy_difference
@@ -34,7 +34,7 @@ class AlwaysSatisfied(Strategy):
 
         return quantities_and_prices
 
-    def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator distributes the energy among its devices and aggregators
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator distributes the energy among its devices and aggregators
         quantities_asked = {"bought": 0, "sold": 0}
         quantities_given = {"bought": 0, "sold": 0}
 
@@ -83,7 +83,7 @@ class AlwaysSatisfied(Strategy):
 
             # quantities concerning devices
             for name in aggregator.devices:
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 energy = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
                 price = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
 
@@ -121,7 +121,7 @@ class AlwaysSatisfied(Strategy):
 
                 # balances
                 for element in quantities_and_prices:  # for each couple energy/price
-                    message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                     message["quantity"] = element["energy_maximum"]
                     message["price"] = element["price"]
 
@@ -149,9 +149,9 @@ class AlwaysSatisfied(Strategy):
 
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
-            raise SupervisorException("An always satisfied supervision supposes the access to an infinite provider/consumer")
+            raise SupervisorException("An always satisfied strategy supposes the access to an infinite provider/consumer")
 
-        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, 0, 0)
+        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, energy_sold_inside, energy_bought_inside)
 
 
 

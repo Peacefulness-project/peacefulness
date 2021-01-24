@@ -10,8 +10,8 @@ class Strategy:
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
-        self._messages = {"ascendant": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-                          "descendant": {"quantity": 0, "price": 0},
+        self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
+                          "top-down": {"quantity": 0, "price": 0},
                           "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": ""}}
 
         world = get_world()  # get the object world
@@ -35,12 +35,36 @@ class Strategy:
     def reinitialize(self):
         pass
 
-    def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
+    def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         pass
 
-    def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator ditribute the energy among the devices and the subaggregators it has to manage
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator ditribute the energy among the devices and the subaggregators it has to manage
         pass
+
+    def check(self, aggregator):  # verification that decisions taken by supervisors are compatible for multi-energy devices
+
+        [demands, offers] = self.make_energy_balances(aggregator)
+
+        demands_total = 0
+        offers_total = 0
+        for element in demands:
+            demands_total += element["quantity"]
+        for element in offers:
+            offers_total += element["quantity"]
+
+        energy_bought_outside = 0  # the absolute value of energy bought outside
+        energy_sold_outside = 0  # the absolute value of energy sold outside
+        money_earned_outside = 0  # the absolute value of money earned outside
+        money_spent_outside = 0  # the absolute value of money spent outside
+
+        [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+        demands_total += energy_sold_outside
+        offers_total -= energy_bought_outside
+
+        if abs(demands_total + offers_total) >= 1e-6:  # if balances do not match, a second round of distribution is performed
+            self._catalog.set("incompatibility", True)
+            self._reinitialise_decisions(aggregator)
 
     # ##########################################################################################
     # Strategy blocks
@@ -106,12 +130,65 @@ class Strategy:
     # forecast
     # ##########################################################################################
 
-    def call_to_converters(self, aggregator):
+    def call_to_forecast(self, aggregator):
         aggregator.forecaster.get_predictions()
 
     # ##########################################################################################
-    # ascendant phase functions
+    # bottom-up phase functions
     # ##########################################################################################
+
+    def make_energy_balances(self, aggregator):
+        demands = []  # a list where the demands of energy are sorted by emergency
+        offers = []  # a list where the offers of energy are sorted by emergency
+
+        for device_name in aggregator.devices:  # if there is missing energy
+            energy = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_accorded")["quantity"]
+            price = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_accorded")["price"]
+
+            if energy > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+                data = dict()
+                data["quantity"] = energy
+                data["price"] = price
+                data["name"] = device_name
+                demands.append(data)
+            elif energy < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+                data = dict()
+                data["quantity"] = energy
+                data["price"] = price
+                data["name"] = device_name
+                offers.append(data)
+            # if the energy = 0, then there is no need to add it to one of the list
+
+        for subaggregator in aggregator.subaggregators:
+            quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded")
+
+            for element in quantities_and_prices:
+                energy = element["quantity"]  # the minimum quantity of energy asked
+                price = element["price"]
+
+                if energy > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+                    data = dict()
+                    data["quantity"] = energy
+                    data["price"] = price
+                    data["name"] = subaggregator.name
+                    demands.append(data)
+                elif energy < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+                    data = dict()
+                    data["quantity"] = energy
+                    data["price"] = price
+                    data["name"] = subaggregator.name
+                    offers.append(data)
+
+        return [demands, offers]
+
+    def _reinitialise_decisions(self, aggregator):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
+        message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+
+        for device_name in aggregator.devices:  # if there is missing energy
+            self._catalog.set(f"{device_name}.{aggregator.nature.name}.energy_accorded", message)
+
+        for subaggregator in aggregator.subaggregators:
+            self._catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", [])
 
     def _remove_emergencies(self, aggregator, sorted_demands, sorted_offers):  # remove all the demands and offers who are urgent
         lines_to_remove = []  # a list containing the number of lines having to be removed
@@ -170,7 +247,7 @@ class Strategy:
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
     def _prepare_quantitites_subaggregator(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # this function prepare the quantities and prices asked or proposed to the grid
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
             energy_difference = max(minimum_energy_consumed - maximum_energy_produced, 0)
@@ -217,7 +294,7 @@ class Strategy:
         return [buying_price, selling_price, final_price]
 
     def _prepare_quantities_when_profitable(self, aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price):
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
             if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
@@ -299,7 +376,7 @@ class Strategy:
         contract_buying_price = aggregator.contract.buying_price
 
         if price_remaining_demand > contract_buying_price:
-            message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+            message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
             message["energy_maximum"] = quantity_remaining_demand
             quantities_and_prices.append(message)
 
@@ -312,14 +389,14 @@ class Strategy:
         contract_selling_price = aggregator.contract.selling_price
 
         if price_remaining_offer < contract_selling_price:
-            message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+            message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
             message["energy_maximum"] = - quantity_remaining_offer
             quantities_and_prices.append(message)
 
         return [quantities_exchanged, quantities_and_prices]
 
     def _prepare_quantities_emergency_only(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
-        message = {element: self._messages["ascendant"][element] for element in self._messages["ascendant"]}
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
             if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
@@ -386,8 +463,6 @@ class Strategy:
     def _sort_quantities(self, aggregator, sort_function):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are sorted by emergency
         sorted_offers = []  # a list where the offers of energy are sorted by emergency
-
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         for device_name in aggregator.devices:  # if there is missing energy
             Emin = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
@@ -472,7 +547,7 @@ class Strategy:
                 if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
 
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = energy
                 message["price"] = price
 
@@ -497,7 +572,7 @@ class Strategy:
                 else:
                     energy = energy_minimum
 
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = energy
                 message["price"] = price
 
@@ -537,11 +612,11 @@ class Strategy:
             if sorted_offers[i]["emergency"] == 1:  # if it is urgent
                 lines_to_remove.append(i)
 
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = energy
                 message["price"] = price
 
-                if name in aggregator.subaggregators:  # if it is a subaggregator
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                     quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
                     quantities_given.append(message)
                 else:  # if it is a device
@@ -553,7 +628,7 @@ class Strategy:
                 energy_bought_inside -= energy  # the absolute value of energy bought inside
                 energy_available_production += energy  # the difference between the max and the min is consumed
 
-            else:  # if it is a device, it may asks for a min of energy too
+            else:  # if there is a demand for a min of energy too
                 energy_minimum = sorted_offers[i]["quantity_min"]  # the minimum quantity of energy asked
                 energy_maximum = sorted_offers[i]["quantity"]  # the maximum quantity of energy asked
 
@@ -562,10 +637,10 @@ class Strategy:
                 else:
                     energy = energy_minimum
 
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = energy
                 message["price"] = price
-                if name in aggregator.subaggregators:  # if it is a subaggregator
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                     quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
                     quantities_given.append(message)
                     sorted_offers[i]["quantity_min"] = 0
@@ -599,7 +674,7 @@ class Strategy:
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -625,7 +700,7 @@ class Strategy:
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -652,7 +727,7 @@ class Strategy:
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -678,7 +753,7 @@ class Strategy:
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -713,7 +788,7 @@ class Strategy:
                 energy *= energy_ratio
 
                 Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -749,7 +824,7 @@ class Strategy:
                 energy *= energy_ratio
 
                 Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["descendant"][element] for element in self._messages["descendant"]}
+                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -777,7 +852,7 @@ class Strategy:
         self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
         self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
 
-        self._catalog.set(f"{aggregator.name}.energy_erased", {"production": maximum_energy_produced, "consumption": maximum_energy_consumed})
+        self._catalog.set(f"{aggregator.name}.energy_erased", {"production": maximum_energy_produced - energy_bought_inside, "consumption": maximum_energy_consumed - energy_sold_inside})
 
     # ##########################################################################################
     # Utility

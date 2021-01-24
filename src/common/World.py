@@ -75,6 +75,8 @@ class World:
 
         set_world(self)  # set world as a global variable used later to instantiate objects
 
+        self._catalog.add("incompatibility", False)  # a flag indicating if a second round is needed
+
     # ##########################################################################################
     # Construction
     # methods are arranged in the order they are supposed to be used
@@ -408,6 +410,8 @@ class World:
                 device.reinitialize()
                 device.update()  # devices publish the quantities they are interested in (both in demand and in offer)
 
+            self._catalog.set("incompatibility", False)
+
             # ###########################
             # Calculus phase
             # ###########################
@@ -421,6 +425,24 @@ class World:
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
                 aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
+
+            # multi-energy devices management
+            # as multi-energy devices state depends on different aggreators, a second round of distribution is performed in case of an incompability
+
+            # multi-energy devices update their balances first and correct potential incompabilities
+            for device in self._catalog.devices.values():
+                device.second_update()
+
+            # aggregators then check if everything is fine and correct potential problems
+            for aggregator in independent_aggregators_list:
+                aggregator.check()
+                # the method is recursive
+
+            if self._catalog.get("incompatibility"):  # if a second round is needed
+                for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
+                    aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
+                    aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
 
             # ###########################
             # End of the turn

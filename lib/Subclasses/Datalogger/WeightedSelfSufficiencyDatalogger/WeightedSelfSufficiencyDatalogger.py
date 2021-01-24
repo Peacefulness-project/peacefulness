@@ -32,8 +32,7 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
             self.add(f"physical_time", graph_status="")
 
         def create_self_consumption_function(aggregator_name):  # this function returns a function calculating the unbalance value of the agent for the considered
-
-            if self._type == "global":  # in the global case,
+            if self._type == "global":
 
                 def get_self_consumption(name):
                     energy_sold_inside = self._catalog.get(f"{aggregator_name}.energy_sold")["inside"]
@@ -60,16 +59,29 @@ class WeightedSelfSufficiencyDatalogger(Datalogger):  # a sub-class of datalogge
             return get_self_consumption
 
         def create_coverage_rate_function(aggregator_name):  # this function returns a function calculating the unbalance value of the agent for the considered
+            if self._type == "global":
 
-            def get_coverage_rate(name):
-                energy_sold_inside = self._catalog.get(f"{aggregator_name}.energy_sold")["inside"]
-                energy_bought_inside = self._catalog.get(f"{aggregator_name}.energy_bought")["inside"]
-                if energy_sold_inside != 0:  # if some energy is consumed locally
-                    coverage_rate = min(energy_bought_inside / energy_sold_inside, 1)  # the ratio of the energy consumed locally being produced locally
-                else:
-                    coverage_rate = None
+                def get_coverage_rate(name):
+                    energy_sold_inside = self._catalog.get(f"{aggregator_name}.energy_sold")["inside"]
+                    energy_bought_inside = self._catalog.get(f"{aggregator_name}.energy_bought")["inside"]
+                    if energy_sold_inside != 0:  # if some energy is consumed locally
+                        coverage_rate = min(energy_bought_inside / energy_sold_inside, 1) * energy_sold_inside  # the ratio of the energy consumed locally being produced locally
+                    else:
+                        coverage_rate = None
 
-                return coverage_rate
+                    return coverage_rate
+
+            else:
+
+                def get_coverage_rate(name):
+                    energy_sold_inside = self._catalog.get(f"{aggregator_name}.energy_sold")["inside"]
+                    energy_bought_inside = self._catalog.get(f"{aggregator_name}.energy_bought")["inside"]
+                    if energy_sold_inside != 0:  # if some energy is consumed locally
+                        coverage_rate = min(energy_bought_inside / energy_sold_inside, 1)  # the ratio of the energy consumed locally being produced locally
+                    else:
+                        coverage_rate = None
+
+                    return coverage_rate
 
             return get_coverage_rate
 

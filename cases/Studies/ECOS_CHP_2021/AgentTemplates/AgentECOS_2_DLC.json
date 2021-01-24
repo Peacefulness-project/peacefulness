@@ -4,7 +4,7 @@
   "composition": {
     "Background": [{"name": "Background", "data_profiles": {"user": "ECOS", "device": "ECOS_2"}, "quantity": [1,1], "contract": "LVE_DLC"}],
     "Dishwasher": [{"name": "Dishwasher", "data_profiles": {"user": "ECOS_2", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_DLC"}],
-    "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_2"}, "device": "ECOS", "quantity": [1,1], "contract": "LVE_DLC"}],
+    "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_2", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_DLC"}],
     "Dryer": [{"name": "Dryer", "data_profiles": {"user": "ECOS_2", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_DLC"}],
 
     "Heating": [{"name": "Heating", "data_profiles": {"user": "residential_overheat", "device": "apartment_heat"}, "quantity": [1,1], "contract": "heat_DLC", "parameters": {"location":  "Pau"}}],

@@ -1,8 +1,7 @@
 {
   "technical_data": {
     "dummy_heat_pump": {
-      "efficiency": {"LVE": 1, "LTH":  2},
-      "capacity": 11
+      "efficiency": {"LVE": 1, "LTH":  2}
     }
   }
 }

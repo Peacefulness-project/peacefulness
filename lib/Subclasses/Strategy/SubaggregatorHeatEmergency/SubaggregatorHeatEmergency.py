@@ -12,7 +12,7 @@ class SubaggregatorHeatEmergency(Strategy):
     # Dynamic behavior
     # ##########################################################################################
 
-    def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
+    def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
@@ -58,7 +58,7 @@ class SubaggregatorHeatEmergency(Strategy):
 
         return quantities_and_prices
 
-    def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
         energy_bought_outside = 0  # the absolute value of energy bought outside
         energy_sold_outside = 0  # the absolute value of energy sold outside
         energy_bought_inside = 0  # the absolute value of energy bought inside

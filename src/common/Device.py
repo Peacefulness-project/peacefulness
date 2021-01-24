@@ -221,6 +221,9 @@ class Device:
     def update(self):  # method updating needs of the devices before the supervision
         pass
 
+    def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
+        pass
+
     def react(self):  # method updating the device according to the decisions taken by the strategy
         for nature in self.natures:
             energy_accorded = self.get_energy_accorded(nature)

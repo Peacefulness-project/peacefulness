@@ -93,7 +93,7 @@ class Aggregator:
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.ask()
 
-        quantities_and_prices = self._strategy.ascendant_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
+        quantities_and_prices = self._strategy.bottom_up_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
 
         if quantities_and_prices and self._contract:
             quantities_and_prices = [self._contract.contract_modification(element) for element in quantities_and_prices]
@@ -101,10 +101,16 @@ class Aggregator:
             # the nature of the energy wanted is that of the superior
 
     def distribute(self):  # aggregators distribute the energy they exchanged with outside
-        self._strategy.distribute_remote_energy(self)  # distribute the energy acquired from or sold to the exterior
+        self._strategy.top_down_phase(self)  # distribute the energy acquired from or sold to the exterior
 
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.distribute()
+
+    def check(self):
+        self._strategy.check(self)  # distribute the energy acquired from or sold to the exterior
+
+        for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
+            managed_aggregator.check()
 
     def make_balances(self):
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators

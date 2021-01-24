@@ -118,7 +118,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, autarky_strategy, aggregato
 # ##############################################################################################
 # Manual creation of devices
 subclasses_dictionary["Device"]["Background"]("background", curtailment_contract_heat, background_owner, aggregator_heat, {"user": "dummy_user", "device": "dummy_usage_heat"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_contract_elec, threshold_contract_heat], converter_owner, aggregator_elec, aggregator_heat, {"device": "dummy_heat_pump"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/HeatPump.json")
+subclasses_dictionary["Device"]["HeatPump"]("converter", [BAU_contract_elec, threshold_contract_heat], converter_owner, aggregator_elec, aggregator_heat, {"device": "dummy_heat_pump"}, {"max_power": 11}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/HeatPump.json")
 
 
 # ##############################################################################################

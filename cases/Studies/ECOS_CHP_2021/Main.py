@@ -1,8 +1,10 @@
+# /!\ this main is made to be run from the console
+
 # execute all files in the sub-directory "ECOS_collab_2020"
 from os import listdir, chdir
 
 
-chdir("../../../")  # set the relative path to the project root
+# chdir("../../../")  # set the relative path to the project root
 
 root_path = "cases/Studies/ECOS_CHP_2021/cases/"  # the path to the cases
 

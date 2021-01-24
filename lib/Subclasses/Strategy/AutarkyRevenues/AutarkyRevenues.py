@@ -12,12 +12,12 @@ class AutarkyRevenues(Strategy):
     # Dynamic behavior
     # ##########################################################################################
 
-    def ascendant_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        quantities_and_prices = [self._messages["ascendant"]]  # always refuses to exchange with outside
+    def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
+        quantities_and_prices = [self._messages["bottom-up"]]  # always refuses to exchange with outside
 
         return quantities_and_prices
 
-    def distribute_remote_energy(self, aggregator):  # after having exchanged with the exterior, the aggregator
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
         energy_bought_inside = 0  # the absolute value of energy bought inside
         energy_sold_inside = 0  # the absolute value of energy sold inside
 

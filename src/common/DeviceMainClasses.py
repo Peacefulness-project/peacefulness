@@ -602,15 +602,16 @@ class Converter(Device):
         self._upstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in upstream_aggregators_list]  # list of aggregators involved in the production of energy. The order is not important.
         self._downstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in downstream_aggregators_list]  # list of aggregators involved in the consumption of energy. The order is important: the first aggregator defines the final quantity of energy
 
+        time_step = self._catalog.get("time_step")
+        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": parameters["max_power"] * time_step}
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _read_data_profiles(self, profiles):
-        time_step = self._catalog.get("time_step")
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
-        self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": data_device["capacity"] * time_step}
         self._efficiency = data_device["efficiency"]  # the efficiency of the converter for each nature of energy
 
     # ##########################################################################################
@@ -636,7 +637,9 @@ class Converter(Device):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def react(self):
+    def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
+        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # consumption which will be asked eventually
+
         # determination of the energy consumed/produced
         energy_wanted_downstream = []
         energy_available_upstream = []
@@ -654,14 +657,37 @@ class Converter(Device):
         # downstream side
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
-            price = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
-            self._catalog.set(f"{self.name}.{aggregator['nature']}.energy_accorded", {"quantity": - raw_energy_transformed * self._efficiency[nature_name], "price": price})  # the quantity of energy furnished to the downstream aggregator
+
+            # resetting the demand
+            energy_wanted[nature_name]["energy_minimum"] = - raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = - raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = - raw_energy_transformed * self._efficiency[nature_name] # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
+            self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
+
+            # forcing the energy accorded
+            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            energy_accorded["quantity"] = - raw_energy_transformed * self._efficiency[nature_name]
+            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
 
         # upstream side
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
-            price = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
-            self._catalog.set(f"{self.name}.{aggregator['nature']}.energy_accorded", {"quantity": raw_energy_transformed * self._efficiency[nature_name], "price": price})  # the quantity of energy consumed from the upstream aggregator
+
+            # resetting the demand
+            energy_wanted[nature_name]["energy_minimum"] = raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = raw_energy_transformed * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
+            self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
+
+            # forcing the energy accorded
+            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            energy_accorded["quantity"] = raw_energy_transformed * self._efficiency[nature_name]
+            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
+
+    def react(self):
+        super().react()  # actions needed for all the devices
 
     # ##########################################################################################
     # Utility
@@ -721,6 +747,8 @@ class Storage(Device):
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):
+        super().react()  # actions needed for all the devices
+
         for nature in self.natures:
             energy_accorded = self.get_energy_accorded(nature)
             energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer

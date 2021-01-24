@@ -167,7 +167,7 @@ forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dumm
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 # the heat strategy
 strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
@@ -231,7 +231,7 @@ aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_man
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_elec, BAU_elec)  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, aggregator_manager, aggregator_elec, BAU_elec)  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -240,13 +240,13 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_man
 # they at least need a name and a nature
 # some devices are pre-defined (such as Photovoltaics) but user can add some by creating new classes in lib
 
-subclasses_dictionary["Device"]["ElectricalBattery"]("battery", [contract_storage_elec, contract_storage_heat], storer_owner, [aggregator_elec, aggregator_heat], {"device": "domestic_battery"})
+# subclasses_dictionary["Device"]["ElectricalBattery"]("battery", [contract_storage_elec, contract_storage_heat], storer_owner, [aggregator_elec, aggregator_heat], {"device": "domestic_battery"})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-# world.agent_generation("single", 2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-# world.agent_generation("family", 2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("single", 2, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("family", 2, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 world.agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
@@ -267,24 +267,27 @@ file.close()
 # subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
 #
-# subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
-#
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
+
 # subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
 #
-# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
-#
+subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
+
 # subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 # subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="month")
 # subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
 
-# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="global")
 
 # subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
