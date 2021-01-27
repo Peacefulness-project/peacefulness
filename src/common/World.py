@@ -274,6 +274,8 @@ class World:
     # ##########################################################################################
 
     def agent_generation(self, name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}):  # this method creates several agents, each with a predefinite set of devices
+        print(f"generation of the {quantity} agents from the {filename} template.")
+
         # loading the data in the file
         file = open(filename, "r")
         data = load(file)
@@ -329,6 +331,8 @@ class World:
 
                         device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters)  # creation of the device
 
+        print("Done\n")
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -371,6 +375,8 @@ class World:
 
     def start(self):
         self._check()  # check if everything is fine in world definition
+
+        print(f"Start of the run named {self.name}.\n")
 
         independent_aggregators_list = self._identify_independent_aggregators()
 

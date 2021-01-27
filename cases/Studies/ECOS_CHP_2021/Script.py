@@ -20,7 +20,7 @@ def simulation(DSM_proportion, CHP_coverage_rate):
     # Creation of the world
     # a world <=> a case, it contains all the model
     # a world needs just a name
-    name_world = "ECOS_CHP_2021"
+    name_world = "ECOS_CHP_2021_" + DSM_proportion + "_" + str(CHP_coverage_rate)
     world = World(name_world)  # creation
 
     # ##############################################################################################
@@ -80,8 +80,7 @@ def simulation(DSM_proportion, CHP_coverage_rate):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"](
-        {"location": "France"})
+    cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
 
     # ##############################################################################################
     # Strategies
@@ -136,13 +135,13 @@ def simulation(DSM_proportion, CHP_coverage_rate):
     aggregator_elec = Aggregator(aggregator_name, LVE, supervisor_elec, local_electrical_grid_manager, aggregator_grid, contract_grid)  # creation of a aggregator
 
     # DHN aggregator
-    HP_power = (1 - CHP_coverage_rate) * 6350
+    HP_power = (1 - CHP_coverage_rate) * 6350 * 10 / 3
     aggregator_name = "Local_DHN"
     aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 3.5, HP_power)  # creation of a aggregator
 
     # ##############################################################################################
     # Devices
-    CHP_max_power = CHP_coverage_rate * 6350
+    CHP_max_power = CHP_coverage_rate * 6350 * 10 / 3
 
     subclasses_dictionary["Device"]["CombinedHeatAndPower"]("heat_plant", [contract_CHP_elec, contract_CHP_gas, contract_CHP_heat], CHP_producer, aggregator_gas, [aggregator_heat, aggregator_elec], {"device": "standard"}, {"max_power": CHP_max_power})
 
