@@ -9,9 +9,10 @@ from cases.Studies.PresentationArticleCases.LittleCaseStudy.Script import simula
 
 # parameter
 season = "winter"
+kind = "study"
 
 # simulation
-world = simulation(season)
+world = simulation(season, kind)
 
 
 

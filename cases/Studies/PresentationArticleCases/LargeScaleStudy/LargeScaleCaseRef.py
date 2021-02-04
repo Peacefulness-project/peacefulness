@@ -110,7 +110,7 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "M
 # Creation of strategies
 strategy_grid = subclasses_dictionary["Strategy"]["Grid"]()
 
-strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_light_autarky = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 
 # ##############################################################################################
@@ -205,9 +205,6 @@ subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("DummyPr
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", period="month")
 
 subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
-
-subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="month")
-subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
 
 
 # ##############################################################################################

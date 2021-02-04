@@ -23,7 +23,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 from time import process_time
 
 
-def simulation(season):
+def simulation(season, kind):
 
     # ##############################################################################################
     # Minimum
@@ -45,7 +45,7 @@ def simulation(season):
 
     # ##############################################################################################
     # Definition of the path to the files
-    world.set_directory("cases/Studies/PresentationArticleCases/Results/LittleScaleCase/"+season+"/")  # here, you have to put the path to your results directory
+    world.set_directory("cases/Studies/PresentationArticleCases/Results/LittleScaleCase/"+season+"_"+kind+"/")  # here, you have to put the path to your results directory
 
     # ##############################################################################################
     # Definition of the random seed
@@ -111,7 +111,11 @@ def simulation(season):
 
     # ##############################################################################################
     # Manual creation of contracts
-    cooperative_elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
+
+    if kind == "study":
+        cooperative_elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
+    elif kind == "ref":
+        cooperative_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("cooperative_contract_elec", LVE, price_manager_elec)
 
     egoist_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("egoist_contract_elec", LVE, price_manager_elec)
 
@@ -148,6 +152,11 @@ def simulation(season):
     subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Dishwasher")
     subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("WashingMachine")
     subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Dryer")
+
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
+
+    subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 
     # ##############################################################################################
     # Simulation start

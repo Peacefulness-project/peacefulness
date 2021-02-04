@@ -82,7 +82,7 @@ LTH = load_low_temperature_heat()
 # Price Managers
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.10})  # sets prices for flat rate
 
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0.1})  # sets prices for flat rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
 
 # Limit Prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
@@ -239,6 +239,9 @@ subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=24)
 subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
 
+subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=24)
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=24)
+subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", 24)
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", "global")
@@ -247,7 +250,14 @@ subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("SolarTh
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("SolarThermalCollector", "global")
 
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=24)
-subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
+subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period=24)
+subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=24)
+subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
+
 
 # ##############################################################################################
 # Simulation start

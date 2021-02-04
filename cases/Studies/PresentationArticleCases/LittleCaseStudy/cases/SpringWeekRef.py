@@ -9,7 +9,7 @@ from cases.Studies.PresentationArticleCases.LittleCaseStudy.Script import simula
 
 # parameter
 season = "spring"
-kind = "study"
+kind = "ref"
 
 # simulation
 world = simulation(season, kind)

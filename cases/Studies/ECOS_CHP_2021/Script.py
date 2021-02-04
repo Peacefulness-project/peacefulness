@@ -135,13 +135,13 @@ def simulation(DSM_proportion, CHP_coverage_rate):
     aggregator_elec = Aggregator(aggregator_name, LVE, supervisor_elec, local_electrical_grid_manager, aggregator_grid, contract_grid)  # creation of a aggregator
 
     # DHN aggregator
-    HP_power = (1 - CHP_coverage_rate) * 6350 * 10 / 3
+    HP_power = (1 - CHP_coverage_rate) * 2950 * 10 / 3
     aggregator_name = "Local_DHN"
     aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 3.5, HP_power)  # creation of a aggregator
 
     # ##############################################################################################
     # Devices
-    CHP_max_power = CHP_coverage_rate * 6350 * 10 / 3
+    CHP_max_power = CHP_coverage_rate * 2950 * 10 / 3
 
     subclasses_dictionary["Device"]["CombinedHeatAndPower"]("heat_plant", [contract_CHP_elec, contract_CHP_gas, contract_CHP_heat], CHP_producer, aggregator_gas, [aggregator_heat, aggregator_elec], {"device": "standard"}, {"max_power": CHP_max_power})
 
