@@ -270,6 +270,9 @@ file.close()
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
+subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period="global")
+
 # subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
 #
