@@ -89,7 +89,7 @@ def simulation(DSM_proportion, CHP_coverage_rate):
     supervisor_elec = subclasses_dictionary["Strategy"][f"LightAutarkyEmergency"]()
 
     # the DHN strategy
-    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
+    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorAutarkyHeatEmergency"]()
 
     # the national grid strategy
     grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
