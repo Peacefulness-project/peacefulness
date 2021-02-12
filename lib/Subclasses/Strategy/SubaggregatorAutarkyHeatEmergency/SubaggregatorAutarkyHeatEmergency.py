@@ -3,10 +3,10 @@
 from src.common.Strategy import Strategy
 
 
-class SubaggregatorHeatPartial(Strategy):
+class SubaggregatorAutarkyHeatEmergency(Strategy):
 
     def __init__(self):
-        super().__init__("subaggregator_heat_partial_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves the same ratio of energy to everybody.")
+        super().__init__("subaggregator_heat_emergency_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves by decreasing emergency.")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -38,7 +38,7 @@ class SubaggregatorHeatPartial(Strategy):
 
         # calculate the quantities needed to fulfill its needs
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
+        quantities_and_prices = self._prepare_quantities_emergency_only(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
@@ -94,7 +94,7 @@ class SubaggregatorHeatPartial(Strategy):
         # balance of energy available
 
         energy_available_consumption = maximum_energy_produced + energy_bought_outside - energy_sold_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside # the total energy available for productions
+        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution
@@ -106,12 +106,12 @@ class SubaggregatorHeatPartial(Strategy):
         # offer side
         [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
-        # then we distribute the remaining quantities equally to all demands and offers
+        # then we distribute the remaining quantities according to our sort
         # distribution among consumptions
-        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
         # distribution among productions
-        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
+        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
         # ##########################################################################################
         # updates the balances

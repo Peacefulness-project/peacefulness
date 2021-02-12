@@ -3,7 +3,7 @@
 from src.common.Strategy import Strategy
 
 
-class SubaggregatorHeatPartial(Strategy):
+class SubaggregatorAutarkyHeatPartial(Strategy):
 
     def __init__(self):
         super().__init__("subaggregator_heat_partial_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves the same ratio of energy to everybody.")
@@ -38,7 +38,7 @@ class SubaggregatorHeatPartial(Strategy):
 
         # calculate the quantities needed to fulfill its needs
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
+        quantities_and_prices = self._prepare_quantities_emergency_only(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()

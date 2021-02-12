@@ -19,12 +19,12 @@ class SubaggregatorHeatEmergency(Strategy):
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
         energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
+        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        quantities_and_prices = []  # a list containing couples energy/prices
+
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         sort_function = self.get_emergency  # we choose a sort criteria
-
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
-        quantities_and_prices = []  # a list containing couples energy/prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -54,7 +54,7 @@ class SubaggregatorHeatEmergency(Strategy):
         # ##########################################################################################
         # publication of the needs to its superior
 
-        quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+        self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
         return quantities_and_prices
 

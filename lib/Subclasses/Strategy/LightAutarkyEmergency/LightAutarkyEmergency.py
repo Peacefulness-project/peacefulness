@@ -24,7 +24,7 @@ class LightAutarkyEmergency(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price  # we choose a sort criteria
+        sort_function = self.get_emergency  # we choose a sort criteria
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
