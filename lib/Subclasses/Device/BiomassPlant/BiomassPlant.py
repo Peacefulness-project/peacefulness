@@ -5,10 +5,10 @@ from src.common.DeviceMainClasses import NonControllableDevice
 class BiomassPlant(NonControllableDevice):
 
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/BiomassPlant/BiomassPlant.json"):
+        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
+
         time_step = self._catalog.get("time_step")
         self._max_power = parameters["max_power"] * time_step  # max power
-
-        super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._catalog.add(f"{self.name}.exergy_in", 0)
         self._catalog.add(f"{self.name}.exergy_out", 0)
