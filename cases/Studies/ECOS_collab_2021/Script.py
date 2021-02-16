@@ -25,7 +25,7 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ECOS_collab_2021/Results/" + name # directory where results are written
+    pathExport = "cases/Studies/ECOS_collab_2021/Results/" + name  # directory where results are written
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -121,7 +121,7 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
 
     # old aggregator dedicated to heat
     aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_grid, contract_grid, 1.86, 2420)  # creation of a aggregator
+    aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_grid, contract_grid, 1.86*0.9, 2420)  # creation of a aggregator
 
     # ##############################################################################################
     # Devices
@@ -131,8 +131,8 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
     DLC = 150
     curtailment = 100
 
-    ST_surface = solar_sizing
-    biomass_capacity = biomass_sizing
+    ST_surface = solar_sizing * 0.9
+    biomass_capacity = biomass_sizing * 0.9
 
     subclasses_dictionary["Device"]["SolarThermalCollector"]("solar_thermal_collector_field", contract_solar, solar_thermal_producer, aggregator_heat, {"device": "standard_field"}, {"panels": ST_surface, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a solar thermal collector
 
@@ -158,7 +158,7 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
     # BAU contracts
     world.agent_generation("new_DHN_BAU_1", int(BAU*0.3), "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_1_BAU.json", aggregator_heat, {"LTH": price_managing_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
     world.agent_generation("new_DHN_BAU_2", int(BAU*0.3)*2, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_2_BAU.json", aggregator_heat, {"LTH": price_managing_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-    world.agent_generation("new_DHN_BAU_5", int(BAU*0.3) , "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_5_BAU.json", aggregator_heat, {"LTH": price_managing_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+    world.agent_generation("new_DHN_BAU_5", int(BAU*0.3), "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_5_BAU.json", aggregator_heat, {"LTH": price_managing_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
     # DLC contracts
     world.agent_generation("new_DHN_DLC_1", int(DLC*0.3), "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_1_DLC.json", aggregator_heat, {"LTH": price_managing_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
