@@ -3,11 +3,11 @@
 # As an example, it can represent a house with a solar panel, the electrical grid of a neighbourhood or a district heating network
 from math import inf
 from src.tools.GlobalWorld import get_world
-
+default_capacity = {"buying": inf, "selling": inf}
 
 class Aggregator:
 
-    def __init__(self, name, nature, strategy, agent, superior=None, contract=None, efficiency=1, capacity=inf, forecaster=None):
+    def __init__(self, name, nature, strategy, agent, superior=None, contract=None, efficiency=1, capacity=default_capacity, forecaster=None):
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
 
@@ -18,8 +18,13 @@ class Aggregator:
         self.superior = superior  # the other aggregator this one is obeying to
         # it can be None
 
-        self.forecaster = forecaster  # the forecast data
-        # it can be None
+        if forecaster:  # if a forecaster is chosen
+            self.forecaster = forecaster  # the forecast data
+        else:  # a dummy forecaster is created, returning nothing
+            # todo: faire un truc propre ?
+            class dummy_forecaster():
+                def get_predicitions(self):
+                    return {"demand": {"value": 0, "uncertainty": 1}, "production": {"value": 0, "uncertainty": 1}}
 
         self._devices = list()  # a list of the devices managed by the aggregator
         self._subaggregators = list()  # a list of the aggregators managed by the aggregator
@@ -96,7 +101,7 @@ class Aggregator:
         quantities_and_prices = self._strategy.bottom_up_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
 
         if quantities_and_prices and self._contract:
-            quantities_and_prices = [self._contract.contract_modification(element) for element in quantities_and_prices]
+            quantities_and_prices = [self._contract.contract_modification(element, self.name) for element in quantities_and_prices]
             self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_wanted", quantities_and_prices)  # publish its needs
             # the nature of the energy wanted is that of the superior
 

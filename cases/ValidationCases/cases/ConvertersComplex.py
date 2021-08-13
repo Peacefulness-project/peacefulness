@@ -191,7 +191,7 @@ export_plot4 = {
 
 parameters = {"description": description, "filename": filename, "reference_values": reference_values, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4]}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("devices_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("complex_converter_test", parameters)
 
 
 # ##############################################################################################

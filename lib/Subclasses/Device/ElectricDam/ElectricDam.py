@@ -8,6 +8,8 @@ class ElectricDam(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         self._height = parameters["height"]
+        time_step = self._catalog.get("time_step")
+        self._max_power = parameters["max_power"] * time_step  # max power
 
         water_flow_daemon = self._catalog.daemons[parameters["water_flow_daemon"]]
         self._location = water_flow_daemon.location  # the location of the device, in relation with the meteorological data
@@ -31,10 +33,6 @@ class ElectricDam(NonControllableDevice):
         # efficiency
         self._max_efficiency = data_device["usage_profile"]["max_efficiency"]
 
-        # max power
-        time_step = self._catalog.get("time_step")
-        self._max_power = data_device["usage_profile"]["max_power"] * time_step
-
         # relative flow
         self._relative_flow = data_device["usage_profile"]["efficiency"]["relative_flow"]
 
@@ -50,20 +48,24 @@ class ElectricDam(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
-
+        water_density = 1000
         reserved_flow = self._catalog.get(f"{self._location}.reserved_flow")
         flow = self._catalog.get(f"{self._location}.flow_value") * (1 - reserved_flow)
         max_flow = self._catalog.get(f"{self._location}.max_flow") * (1 - reserved_flow)
 
-        coeff_efficiency = 0
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
-        for i in range(len(self._relative_flow)):
-            if (flow / max_flow > self._relative_flow[i]) and (flow / max_flow < self._relative_flow[i+1]):
-                coeff_efficiency = self._relative_efficiency(i)
+        # finding the adapted efficiency
+        power_available = flow * water_density * self._height * 9.81 / 1000
+        if power_available > self._max_power:
+            coeff_efficiency = 1
+        else:
+            i = 0
+            while power_available / self._max_power > self._relative_flow[i]/100:
+                i += 1
+            coeff_efficiency = self._relative_efficiency[i]
 
-        water_density = 1000
         efficiency = self._max_efficiency * coeff_efficiency
 
         if flow > self._relative_min_flow * max_flow:

@@ -292,7 +292,7 @@ class World:
             if len(data["contracts"][contract_type]) == 2:  # if there are no parameters
                 contract = contract_class(contract_name, nature, identifier)
             else:  # if there are parameters
-                parameters = data["contracts"][contract_type]["contract_subclass"]
+                parameters = data["contracts"][contract_type]["parameters"]
                 contract = contract_class(contract_name, nature, identifier, parameters)
 
             contract_dict[contract_type] = contract
@@ -432,10 +432,12 @@ class World:
                 aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
 
+            # LDP = Pdsm, les gamblers se taisent lors de la première boucle et se prononcent lors de la deuxième, en fonction d'un prix local = Pdsm
+
             # multi-energy devices management
             # as multi-energy devices state depends on different aggreators, a second round of distribution is performed in case of an incompability
 
-            # multi-energy devices update their balances first and correct potential incompabilities
+            # multi-energy devices update their balances first and correct potential incompatibilities
             for device in self._catalog.devices.values():
                 device.second_update()
 

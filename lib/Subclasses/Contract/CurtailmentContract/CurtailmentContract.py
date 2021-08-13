@@ -14,7 +14,7 @@ class CurtailmentContract(Contract):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def contract_modification(self, quantity):
+    def contract_modification(self, quantity, name):
         # billing
         if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
             quantity["price"] = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.8  # getting the price per kW.h

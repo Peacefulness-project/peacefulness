@@ -1,7 +1,12 @@
 {
   "technical_data": {
-    "ECOS": {
-      "usage_profile": {"nature": "LTH", "max_power": 3000},
+    "heat": {
+      "usage_profile": {"nature": "LTH"},
+      "efficiency_variation": 0
+    },
+
+    "elec": {
+      "usage_profile": {"nature": "LVE"},
       "efficiency_variation": 0
     }
   }

@@ -1,0 +1,17 @@
+{
+  "template name": "1_people_curtailment_mixed",
+
+  "composition": {
+    "Background": [{"name": "Background", "data_profiles": {"user": "ECOS", "device": "ECOS_1"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+    "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_1", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential_overheat", "device": "apartment_heat"}, "quantity": [1,1], "contract": "heat_curtailment"}],
+    "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_heat"}, "quantity": [1,1], "contract": "heat_curtailment"}]
+  },
+
+  "contracts": {
+    "LVE_curtailment": {"nature_name": "LVE", "contract_subclass": "CurtailmentRampContract", "parameters": {"bonus": 0.0002, "depreciation_time": 720, "depreciation_residual": 0.01}},
+    "heat_curtailment": {"nature_name": "LTH", "contract_subclass": "CurtailmentRampContract", "parameters": {"bonus": 0.0001, "depreciation_time": 720, "depreciation_residual": 0.01}}
+  }
+
+}

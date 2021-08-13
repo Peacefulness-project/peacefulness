@@ -1,0 +1,44 @@
+{
+  "technical_data": {
+    "residential_water_tank": {
+      "charge": {"nature": "LTH", "power": 0.2, "efficiency": 1},
+      "discharge": {"nature": "LTH", "power": 0.3, "efficiency": 1},
+
+      "minimum_temperature": 40,
+      "maximum_temperature": 60,
+
+      "thermal_conductivity": 0.00006,
+      "thickness": 0.1,
+      "volume": 0.1,
+      "surface": 1.1,
+
+      "density": 1000,
+      "thermal_capacity": 0.0011625,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "volume_variation": 0
+    },
+
+    "industrial_water_tank": {
+      "charge": {"nature": "LTH", "power": 200, "efficiency": 1},
+      "discharge": {"nature": "LTH", "power": 300, "efficiency": 1},
+
+      "minimum_temperature": 60,
+      "maximum_temperature": 90,
+
+      "thermal_conductivity": 0.00006,
+      "thickness": 1,
+      "volume": 1000,
+      "surface": 550,
+
+      "density": 1000,
+      "thermal_capacity": 0.0011625,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "volume_variation": 0
+    }
+
+  }
+}

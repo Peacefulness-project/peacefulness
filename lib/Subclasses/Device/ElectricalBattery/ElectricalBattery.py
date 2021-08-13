@@ -11,10 +11,10 @@ class ElectricalBattery(Storage):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, profiles):
-        super()._read_data_profiles(profiles)
+    def _read_data_profiles(self, profile):
+        super()._read_data_profiles(profile)
         time_step = self._catalog.get("time_step")
-        data_device = self._read_technical_data(profiles["device"])  # parsing the data
+        data_device = self._read_technical_data(profile["device"])  # parsing the data
 
         self._degradation_rate = (1 - data_device["degradation_rate"]) ** time_step
 
@@ -23,7 +23,9 @@ class ElectricalBattery(Storage):
     # ##########################################################################################
 
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
-        self._energy_stored = self._energy_stored * self._degradation_rate
+        energy_stored = self._catalog.get(f"{self.name}.energy_stored")
+        energy_stored = energy_stored * self._degradation_rate
 
+        return energy_stored
 
 

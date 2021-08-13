@@ -70,7 +70,7 @@ def simulation(DSM_proportion, storage_sizing):
 
     # Outdoor temperature
     # this daemon is responsible for the value of outdoor temperature in the catalog
-    subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
+    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Pau"})
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -78,26 +78,19 @@ def simulation(DSM_proportion, storage_sizing):
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
-    subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "Pau"})
+    cold_water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperatureDaemon"]({"location": "France"})
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Pau"})
+
+    # Wind
+    # this daemon is responsible for updating the value of raw solar Wind
+    wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Pau"})
 
     # ##############################################################################################
     # Strategies
-    if strategy == "BAU":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
-    elif strategy == "Profitable":
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitableEmergency"]()
-    else:
-        # the local electrical grid strategy
-        supervisor_elec = subclasses_dictionary["Strategy"][f"{strategy}Emergency"]()
-
-    # the DHN strategy
-    supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
+    supervisor_elec = subclasses_dictionary["Strategy"][f"LightAutarkyEmergency"]()
 
     # the national grid strategy
     grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
@@ -106,23 +99,19 @@ def simulation(DSM_proportion, storage_sizing):
     # Agents
     PV_producer = Agent("PV_producer")  # the owner of the Photovoltaics panels
 
-    solar_thermal_producer = Agent("solar_thermal_producer")  # the owner of the solar thermal collectors
+    wind_turbine_producer = Agent("wind_turbine_producer")  # the owner of the solar thermal collectors
 
     national_grid = Agent("national_grid")
 
     local_electrical_grid_manager = Agent("local_electrical_grid_producer")  # the owner of the Photovoltaics panels
 
-    DHN_manager = Agent("DHN_producer")  # the owner of the district heating network
-
     # ##############################################################################################
     # Contracts
     contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid", LVE, price_managing_daemon_grid)
 
-    contract_DHN = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_grid", LTH, price_managing_daemon_DHN)
-
     contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)
 
-    contract_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_managing_heat)
+    contract_ = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_managing_elec)
 
     # ##############################################################################################
     # Aggregators
@@ -134,26 +123,26 @@ def simulation(DSM_proportion, storage_sizing):
     aggregator_name = "general_aggregator"
     aggregator_elec = Aggregator(aggregator_name, LVE, supervisor_elec, local_electrical_grid_manager, aggregator_grid, contract_grid)  # creation of a aggregator
 
-    # here we create another aggregator dedicated to heat
-    aggregator_name = "Local_DHN"
-    aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 3.6, 3344)  # creation of a aggregator
-
     # ##############################################################################################
     # Devices
+    BAU = int((1 - DSM_proportion) * )
+    DSM = int(DSM_proportion * )
 
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": , "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 
-    subclasses_dictionary["Device"]["WindTurbine"]("PV_field", contract_elec, PV_producer, aggregator_elec, {"device": "standard"}, {"rugosity": "flat", "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["WindTurbine"]("", contract_elec, wind_turbine_producer, aggregator_elec, {"device": "standard"}, {"rugosity": "flat", "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+
+    subclasses_dictionary["Device"][""]("energy_storage", contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": , "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of the batteries
 
     # BAU contracts
-    world.agent_generation(, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation( * 2, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/Agent_5_p_BAU_no_PV.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_1_BAU", , "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_1_BAU.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_2_BAU",  * 2, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_2_BAU.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_5_BAU", , "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/Agent_5_p_BAU_no_PV.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
 
     # Curtailment contracts
-    world.agent_generation(, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation( * 2, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
-    world.agent_generation(, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/Agent_5_curtailment_no_PV.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_1_curtailment", , "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_1_curtailment.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_2_curtailment", * 2, "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/AgentECOS_2_curtailment.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
+    world.agent_generation("AgentECOS_5_curtailment", , "cases/Studies/CISBAT_storage_and_DSM_2021/AgentTemplates/Agent_5_curtailment_no_PV.json", aggregator_elec, {"LVE": price_managing_elec, "LTH": price_managing_heat})
 
     # ##############################################################################################
     # Dataloggers

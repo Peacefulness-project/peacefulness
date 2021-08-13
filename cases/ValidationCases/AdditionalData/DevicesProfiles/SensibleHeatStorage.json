@@ -1,0 +1,43 @@
+{
+  "technical_data": {
+    "water_tank_no_degradation": {
+      "charge": {"nature": "LTH", "power": 2, "efficiency": 1},
+      "discharge": {"nature": "LTH", "power": 3, "efficiency": 1},
+
+      "minimum_temperature": 40,
+      "maximum_temperature": 60,
+
+      "thermal_conductivity": 1,
+      "thickness": 1,
+      "volume": 1,
+      "surface": 0,
+
+      "density": 1,
+      "thermal_capacity": 1,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "volume_variation": 0
+    },
+
+    "water_tank_degradation": {
+      "charge": {"nature": "LTH", "power": 4, "efficiency": 1},
+      "discharge": {"nature": "LTH", "power": 2, "efficiency": 1},
+
+      "minimum_temperature": 40,
+      "maximum_temperature": 60,
+
+      "thermal_conductivity": 0.05,
+      "thickness": 1,
+      "volume": 1,
+      "surface": 1,
+
+      "density": 1,
+      "thermal_capacity": 1,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "volume_variation": 0
+    }
+  }
+}

@@ -16,32 +16,32 @@ class StorageThresholdPricesContract(Contract):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def contract_modification(self, quantity):
+    def contract_modification(self, quantity, name):
         # billing
         buying_price = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price of energy per kWh
         selling_price = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price of energy per kWh
 
+        # billing
+        buying_price = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price of energy per kW.h
+        selling_price = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price of energy per kW.h
+
         if buying_price <= self._buying_threshold:  # if the value of energy is below a given value
-            quantity["price"] = buying_price  # setting the price of energy per kwh
-
-            # the device buys energy
-            quantity["energy_minimum"] = 0
+            quantity["price"] = buying_price  # setting the price of energy per Kwh
             quantity["energy_nominal"] = 0
-
+            quantity["energy_minimum"] = 0
         elif selling_price >= self._selling_threshold:  # if the value of energy is above a given value
-            quantity["price"] = selling_price  # setting the price of energy per kwh
-
-            # the device sells energy
+            quantity["price"] = selling_price  # setting the price of energy per Kwh
             quantity["energy_maximum"] = quantity["energy_minimum"]
             quantity["energy_nominal"] = 0
             quantity["energy_minimum"] = 0
-
-        else:
-            quantity["price"] = selling_price  # setting the price of energy per kwh
+        else:  # if the value of energy is below the limit value
+            quantity["price"] = 0  # setting the price of energy per Kwh
+            # and the quantity is set to 0
             quantity["energy_minimum"] = 0
             quantity["energy_nominal"] = 0
             quantity["energy_maximum"] = 0
 
         return quantity
+
 
 

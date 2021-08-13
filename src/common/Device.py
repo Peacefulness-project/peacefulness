@@ -31,7 +31,7 @@ class Device:
 
         self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
                          "top-down": {"quantity": 0, "price": 0}}
-        self._additional_elements = {}
+        self._additional_elements = {}  # additional elements are elements added by users in the message
 
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
@@ -48,6 +48,7 @@ class Device:
             else:
                 try:  # "try" allows to test if self._natures[nature of the contract] was created in the aggregator definition step
                     self._natures[contract.nature]["contract"] = contract  # add the contract
+                    contract.initialization(self.name)
                 except:
                     raise DeviceException(f"an aggregator is missing for nature {contract.nature}")
 
@@ -69,15 +70,23 @@ class Device:
             if nature not in self.agent.natures:  # complete the list of natures of the agent
                 self.agent._contracts[nature] = None
 
+            # messages exchanged
             self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self._messages["bottom-up"])  # the energy asked or proposed by the device and the price associated
             self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self._messages["top-down"])  # the energy delivered or accepted by the strategy
+
+            # results
+            self._catalog.add(f"{self.name}.{nature.name}.energy_erased", 0)
+            self._catalog.add(f"{self.name}.{nature.name}.energy_bought", 0)
+            self._catalog.add(f"{self.name}.{nature.name}.energy_sold", 0)
+            self._catalog.add(f"{self.name}.{nature.name}.money_earned", 0)
+            self._catalog.add(f"{self.name}.{nature.name}.money_spent", 0)
 
             try:  # creates an entry for effort in agent if there is not
                 self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressed by the agent
             except:
                 pass
 
-            try:  # creates an entry for energy erased in agent if there is not
+            try:  # creates an entry useful for results
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_erased", 0)
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_bought", 0)
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_sold", 0)
@@ -175,11 +184,6 @@ class Device:
             self._catalog.remove(f"{self.name}.{nature.name}.energy_accorded")
             self._catalog.remove(f"{self.name}.{nature.name}.energy_wanted")
 
-    def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
-        for nature in self.natures:  # publication of the consumption in the catalog
-            energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name])  # the contract may modify the offer
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
-
     def _randomize_addition(self, value, variation):  # function randomizing by addition, especially used for start time
         variation = self._catalog.get("gaussian")(0, variation)
         value = into_list(value)
@@ -214,9 +218,16 @@ class Device:
                     "top-down": {element: self._messages["top-down"][element] for element in self._messages["top-down"]}}
 
         for nature in self.natures:
+            # message exchanged
             self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", messages["top-down"])
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", messages["bottom-up"])
-            self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", 0)
+
+            # results
+            self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)
+            self._catalog.set(f"{self.name}.{nature.name}.energy_bought", 0)
+            self._catalog.set(f"{self.name}.{nature.name}.energy_sold", 0)
+            self._catalog.set(f"{self.name}.{nature.name}.money_earned", 0)
+            self._catalog.set(f"{self.name}.{nature.name}.money_spent", 0)
 
     def update(self):  # method updating needs of the devices before the supervision
         pass
@@ -224,11 +235,24 @@ class Device:
     def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
         pass
 
+    def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
+        for nature in self.natures:  # publication of the consumption in the catalog
+            energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name], self.name)  # the contract may modify the offer
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
+
     def react(self):  # method updating the device according to the decisions taken by the strategy
         for nature in self.natures:
+            energy_wanted = self.get_energy_wanted(nature)
             energy_accorded = self.get_energy_accorded(nature)
-            energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
+            [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent] = self.natures[nature]["contract"].billing(energy_wanted, energy_accorded, self.name)  # the contract may adjust things
             self.set_energy_accorded(nature, energy_accorded)
+
+            # update of the data at the level of the device
+            self._catalog.set(f"{self.name}.{nature.name}.energy_erased", energy_erased)
+            self._catalog.set(f"{self.name}.{nature.name}.energy_bought", energy_bought)
+            self._catalog.set(f"{self.name}.{nature.name}.energy_sold", energy_sold)
+            self._catalog.set(f"{self.name}.{nature.name}.money_earned", money_earned)
+            self._catalog.set(f"{self.name}.{nature.name}.money_spent", money_spent)
 
         if self._moment is not None:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
@@ -243,23 +267,11 @@ class Device:
         additional_elements_value = {element: {} for element in self._additional_elements}  # a summary of all values linked to additionnal elements
 
         for nature in self.natures:
-            energy_amount = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
-            energy_wanted = self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_maximum"]
-            price = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["price"]
-
-            if energy_amount < 0:  # if the device consumes energy
-                energy_sold[nature.name] = - energy_amount
-                energy_bought[nature.name] = 0
-                money_earned[nature.name] = - price * energy_amount
-                money_spent[nature.name] = 0
-
-            else:  # if the device delivers energy
-                energy_bought[nature.name] = energy_amount
-                energy_sold[nature.name] = 0
-                money_earned[nature.name] = 0
-                money_spent[nature.name] = price * energy_amount
-
-            energy_erased[nature.name] = abs(energy_amount - energy_wanted)  # energy refused to the device by the strategy
+            energy_erased[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_erased")
+            energy_bought[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_bought")
+            energy_sold[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_sold")
+            money_earned[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_earned")
+            money_spent[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_spent")
 
             for element in self._additional_elements:
                 additional_elements_value[element][nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")[element]
@@ -281,6 +293,27 @@ class Device:
                 old_value = self._catalog.get(f"{nature.name}.{element}")
                 self._catalog.set(f"{nature.name}.{element}", old_value + additional_elements_value[element][nature.name])
 
+            # balance at the aggregator level
+            aggregator = self._natures[nature]["aggregator"]
+
+            energy_bought_inside = self._catalog.get(f"{aggregator.name}.energy_bought")["inside"]  # the device updates the values regarding the inside situation
+            energy_bought_outside = self._catalog.get(f"{aggregator.name}.energy_bought")["outside"]  # outside values are left unchanged
+
+            energy_sold_inside = self._catalog.get(f"{aggregator.name}.energy_sold")["inside"]  # the device updates the values regarding the inside situation
+            energy_sold_outside = self._catalog.get(f"{aggregator.name}.energy_sold")["outside"]  # outside values are left unchanged
+
+            money_spent_inside = self._catalog.get(f"{aggregator.name}.money_spent")["inside"]  # the device updates the values regarding the inside situation
+            money_spent_outside = self._catalog.get(f"{aggregator.name}.money_spent")["outside"]  # outside values are left unchanged
+
+            money_earned_inside = self._catalog.get(f"{aggregator.name}.money_earned")["inside"]  # the device updates the values regarding the inside situation
+            money_earned_outside = self._catalog.get(f"{aggregator.name}.money_earned")["outside"]  # outside values are left unchanged
+
+            self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside + energy_bought[nature.name], "outside": energy_bought_outside})
+            self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside + energy_sold[nature.name], "outside": energy_sold_outside})
+
+            self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside + money_spent[nature.name], "outside": money_spent_outside})
+            self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside + money_earned[nature.name], "outside": money_earned_outside})
+
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
             energy_bought_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_bought")
@@ -298,8 +331,7 @@ class Device:
                 old_value = self._catalog.get(f"{self.natures[nature]['contract'].name}.{element}")
                 self._catalog.set(f"{self.natures[nature]['contract'].name}.{element}", old_value + additional_elements_value[element][nature.name])
 
-        # balance at the agent level
-        for nature in self.natures:
+            # balance at the agent level
             energy_erased_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_erased")
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_erased", energy_erased_agent + energy_erased[nature.name])  # report the energy consumed by the device
 
@@ -308,22 +340,21 @@ class Device:
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_sold", energy_sold_agent + energy_sold[nature.name])  # report the energy delivered by the device
             self._catalog.set(f"{self.agent.name}.{nature.name}.energy_bought", energy_bought_agent + energy_bought[nature.name])  # report the energy consumed by the device
 
-        money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
-        money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
+            money_spent_agent = self._catalog.get(f"{self.agent.name}.money_spent")
+            money_earned_agent = self._catalog.get(f"{self.agent.name}.money_earned")
+            self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
+            self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent + sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
 
-        self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
-        self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent + sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
-
-        for element in self._additional_elements:
-            old_value = self._catalog.get(f"{self.agent.name}.{element}")
-            self._catalog.set(f"{self.agent.name}.{element}", old_value + sum(additional_elements_value[element].values()))
+            for element in self._additional_elements:
+                old_value = self._catalog.get(f"{self.agent.name}.{element}")
+                self._catalog.set(f"{self.agent.name}.{element}", old_value + sum(additional_elements_value[element].values()))
 
     # ##########################################################################################
     # Utility
     # ##########################################################################################
 
     # getter/setter for the accorded energy
-    def get_energy_accorded(self, nature):
+    def get_energy_accorded(self, nature):  # return the full message of energy accorded by the device during the round
         return self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")
 
     def set_energy_accorded(self, nature, value):  # set the quantity of energy accorded to the device during the round
@@ -347,6 +378,9 @@ class Device:
         self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", energy_accorded)
 
     # getter/setter for the wanted energy
+    def get_energy_wanted(self, nature):  # return the full message of energy wanted by the device during the round
+        return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")
+
     def get_energy_wanted_min(self, nature):  # return the minimum quantity of energy wanted by the device during the round
         return self._catalog.get(f"{self.name}.{nature.name}.energy_wanted")["energy_minimum"]
 

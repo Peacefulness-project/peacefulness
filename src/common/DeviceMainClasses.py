@@ -708,9 +708,9 @@ class Storage(Device):
     # Initialization
     # ##########################################################################################
 
-    def _read_data_profiles(self, profiles):
+    def _read_data_profiles(self, profile):
         time_step = self._catalog.get("time_step")
-        data_device = self._read_technical_data(profiles["device"])  # parsing the data
+        data_device = self._read_technical_data(profile["device"])  # parsing the data
 
         # randomization
         self._randomize_multiplication(data_device["charge"]["efficiency"], data_device["efficiency_variation"])
@@ -728,7 +728,7 @@ class Storage(Device):
         self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
 
         self._capacity = data_device["capacity"]  # max energy storable in the device
-        self._energy_stored = data_device["capacity"] * 0.5  # the energy stored at a given time
+        self._catalog.add(f"{self.name}.energy_stored", data_device["capacity"] * 0.5)  # the energy stored at a given time, considered as half charged at the beginning
         self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
 
         self._charge_nature = data_device["charge"]["nature"]
@@ -740,26 +740,28 @@ class Storage(Device):
 
     def update(self):  # method updating needs of the devices before the supervision
         energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
+        energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
-        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"], (self._energy_stored - self._min_energy) / self._efficiency["discharge"])  # the discharge mode, where energy is "produced"
-        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"], self._capacity - self._energy_stored)  # the charge mode, where energy is "consumed"
+        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"], max((energy_stored - self._min_energy) * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
+        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"], (self._capacity - energy_stored) / self._efficiency["charge"])  # the charge mode, where energy is "consumed"
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):
         super().react()  # actions needed for all the devices
+        energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
         for nature in self.natures:
             energy_accorded = self.get_energy_accorded(nature)
-            energy_accorded = self.natures[nature]["contract"].billing(energy_accorded)  # the contract may modify the offer
-            self.set_energy_accorded(nature, energy_accorded)
 
             if energy_accorded["quantity"] < 0:  # if the device unloads energy
-                self._energy_stored += energy_accorded["quantity"] / self._efficiency["discharge"]
+                energy_stored += energy_accorded["quantity"] / self._efficiency["discharge"]
             else:  # if the device loads energy
-                self._energy_stored += energy_accorded["quantity"] * self._efficiency["charge"]
+                energy_stored += energy_accorded["quantity"] * self._efficiency["charge"]
 
-        self._degradation_of_energy_stored()  # reduction of the energy stored
+        self._catalog.set(f"{self.name}.energy_stored", energy_stored)
+        energy_stored = self._degradation_of_energy_stored()  # reduction of the energy stored
+        self._catalog.set(f"{self.name}.energy_stored", energy_stored)
 
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
         pass

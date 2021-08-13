@@ -6,12 +6,13 @@ from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity, load
 from src.common.Aggregator import Aggregator
 from src.common.Agent import Agent
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
-def simulation(name, solar_sizing, biomass_sizing, LCOE):
+def simulation(name, solar_sizing, biomass_sizing, LCOE_HP, LCOE_renewable):
     # ##############################################################################################
     # Settings
     # ##############################################################################################
@@ -60,11 +61,11 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
     # these daemons fix a price for a given nature of energy
 
     # pricing
-    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_HP", {"nature": LVE.name, "buying_price": 13, "selling_price": 0})  # sets prices for TOU rate
+    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_HP", {"nature": LVE.name, "buying_price": 0.13 + LCOE_HP/1.86, "selling_price": 0})  # sets prices for TOU rate
 
-    price_managing_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": LCOE})  # sets prices for the system operator
-    price_managing_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_DLC", {"nature": LTH.name, "buying_price": 0.14/0.9, "selling_price": LCOE*0.9})  # sets prices for the system operator
-    price_managing_curtailment = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_curtailment", {"nature": LTH.name, "buying_price": 0.13/0.8, "selling_price": LCOE*0.8})  # sets prices for the system operator
+    price_managing_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": LCOE_renewable})  # sets prices for the system operator
+    price_managing_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_DLC", {"nature": LTH.name, "buying_price": 0.14/0.9, "selling_price": LCOE_renewable*0.9})  # sets prices for the system operator
+    price_managing_curtailment = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("BAU_prices_curtailment", {"nature": LTH.name, "buying_price": 0.13/0.8, "selling_price": LCOE_renewable*0.8})  # sets prices for the system operator
 
     subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
     subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
@@ -174,17 +175,35 @@ def simulation(name, solar_sizing, biomass_sizing, LCOE):
     # Dataloggers
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
+
+    graph_options = GraphOptions("graph_options_1", "LaTeX", "single_series")
+
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["MismatchDatalogger"]()
 
     subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
     # datalogger used to get back producer outputs
-    producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances.txt")
+    producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances")
+
+    producer_datalogger.add(f"biomass_plant_producer.LTH.energy_erased")
+    producer_datalogger.add(f"solar_thermal_producer.LTH.energy_erased")
+    producer_datalogger.add(f"biomass_plant_producer.LTH.energy_sold")
+    producer_datalogger.add(f"solar_thermal_producer.LTH.energy_sold")
+
+    producer_datalogger.add(f"solar_thermal_collector_field.exergy_in")
+    producer_datalogger.add(f"solar_thermal_collector_field.exergy_out")
+    producer_datalogger.add(f"biomass_plant.exergy_in")
+    producer_datalogger.add(f"biomass_plant.exergy_out")
+
+    # datalogger used to get back producer outputs
+    producer_datalogger = Datalogger("producer_datalogger_global", "ProducerBalancesGlobal", "global")
 
     producer_datalogger.add(f"biomass_plant_producer.LTH.energy_erased")
     producer_datalogger.add(f"solar_thermal_producer.LTH.energy_erased")

@@ -6,6 +6,7 @@ from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity, load
 from src.common.Aggregator import Aggregator
 from src.common.Agent import Agent
 from src.common.Datalogger import Datalogger
+from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()

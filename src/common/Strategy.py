@@ -76,7 +76,7 @@ class Strategy:
 
         return [min_price, max_price]
 
-    def _limit_quantities(self, aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters=0):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
+    def _limit_quantities(self, aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
         # quantities concerning devices
         for device_name in aggregator.devices:
             energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
@@ -124,7 +124,10 @@ class Strategy:
                         minimum_energy_produced -= energy_minimum
                     maximum_energy_produced -= energy_maximum
 
-        return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters]
+        # mismatch calculation
+        # mismatch = minimum_energy_consumed + maximum_energy_consumed - minimum_energy_produced - maximum_energy_produced
+
+        return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced]
 
     # ##########################################################################################
     # forecast
@@ -277,19 +280,20 @@ class Strategy:
         if sorted_demands:
             buying_price = min(sorted_demands[0]["price"], max_price)  # maximum price given by consumers
             final_price = buying_price
+            buying_boolean = 1
         else:
-            buying_price = None
+            buying_price = 0
+            buying_boolean = 0
 
         if sorted_offers:
             selling_price = max(sorted_offers[0]["price"], min_price)  # minimum price given by producers
             final_price = selling_price
+            selling_boolean = 1
         else:
-            selling_price = None
+            selling_price = 0
+            selling_boolean = 0
 
-        try:
-            final_price = (buying_price + selling_price) / 2  # initialization of the final price
-        except:
-            pass
+        final_price = (buying_price * buying_boolean + selling_price * selling_boolean) / 2  # initialization of the final price
 
         return [buying_price, selling_price, final_price]
 
@@ -335,12 +339,12 @@ class Strategy:
             demand = 0  # quantities wanted for consumption
             offer = 0  # quantities wanted for production
 
-            while buying_price >= selling_price and i < len(sorted_demands) - 1:  # as long the buying price is above the selling one and that there is demand
+            while buying_price >= selling_price and i < len(sorted_demands):  # as long as the buying price is above the selling one and that there is demand
                 demand += sorted_demands[i]["quantity"]  # total of demand exchanged internally
                 buying_price = sorted_demands[i]["price"]
                 final_price = buying_price
 
-                while buying_price >= selling_price and offer <= demand and j < len(sorted_offers) - 1:  # as long as there is offer
+                while buying_price >= selling_price and offer <= demand and j < len(sorted_offers):  # as long as there is offer
                     offer -= sorted_offers[j]["quantity"]  # total of offer exchanged internally
                     selling_price = sorted_offers[j]["price"]
                     final_price = selling_price
@@ -419,8 +423,8 @@ class Strategy:
         return quantities_and_prices
 
     def _publish_needs(self, aggregator, quantities_and_prices):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
-        energy_pullable = aggregator.capacity  # total energy obtainable from the superior through the connection
-        energy_pushable = aggregator.capacity  # total energy givable from the superior through the connection
+        energy_pullable = aggregator.capacity["buying"]  # total energy obtainable from the superior through the connection
+        energy_pushable = aggregator.capacity["selling"]  # total energy givable from the superior through the connection
 
         # capacity and efficiency management
         # at this point, couples are formulated from this aggregator point of view (without the effect of capacity and of efficiency)
@@ -430,7 +434,7 @@ class Strategy:
                 element["energy_minimum"] = min(element["energy_minimum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
                 element["energy_nominal"] = min(element["energy_nominal"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
                 element["energy_maximum"] = min(element["energy_maximum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
-                element = aggregator._contract.contract_modification(element)
+                element = aggregator._contract.contract_modification(element, self.name)
 
                 energy_pullable -= element["energy_maximum"] * aggregator.efficiency
 
@@ -438,7 +442,7 @@ class Strategy:
                 element["energy_minimum"] = max(element["energy_minimum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
                 element["energy_nominal"] = max(element["energy_nominal"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
                 element["energy_maximum"] = max(element["energy_maximum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
-                element = aggregator._contract.contract_modification(element)
+                element = aggregator._contract.contract_modification(element, self.name)
 
                 energy_pushable += element["energy_maximum"] * aggregator.efficiency
 
@@ -846,11 +850,11 @@ class Strategy:
     # ##########################################################################################
 
     def _update_balances(self, aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced):
-        self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside, "outside": energy_bought_outside})
-        self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside, "outside": energy_sold_outside})
+        self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": 0, "outside": energy_bought_outside})
+        self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": 0, "outside": energy_sold_outside})
 
-        self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside, "outside": money_spent_outside})
-        self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside, "outside": money_earned_outside})
+        self._catalog.set(f"{aggregator.name}.money_spent", {"inside": 0, "outside": money_spent_outside})
+        self._catalog.set(f"{aggregator.name}.money_earned", {"inside": 0, "outside": money_earned_outside})
 
         self._catalog.set(f"{aggregator.name}.energy_erased", {"production": maximum_energy_produced - energy_bought_inside, "consumption": maximum_energy_consumed - energy_sold_inside})
 

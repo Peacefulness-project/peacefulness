@@ -34,6 +34,13 @@ class Contract:
         world.register_contract(self)  # register this contract into world dedicated dictionary
 
     # ##########################################################################################
+    # Initialization
+    # ##########################################################################################
+
+    def initialization(self, device_name):  # a method allowing the contract to do something when a dice suscribe to it
+        pass
+
+    # ##########################################################################################
     # Dynamic behaviour
     # ##########################################################################################
 
@@ -49,11 +56,29 @@ class Contract:
             self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
 
     # quantities management
-    def contract_modification(self, quantity):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency
+    def contract_modification(self, quantity, name):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency
         pass  # a method to determine the price must be defined in the subclasses
 
-    def billing(self, energy_accorded):  # the action of the distribution phase
-        return energy_accorded  # if the function is not modified, it does not change the initial value
+    def billing(self, energy_wanted, energy_accorded, name):  # the action of the distribution phase
+        energy_wanted = energy_wanted["energy_maximum"]
+        energy_served = energy_accorded["quantity"]
+        price = energy_accorded["price"]
+
+        if energy_served < 0:  # if the device delivers energy
+            energy_sold = - energy_served
+            energy_bought = 0
+            money_earned = - price * energy_served
+            money_spent = 0
+
+        else:  # if the device consumes energy
+            energy_bought = energy_served
+            energy_sold = 0
+            money_earned = 0
+            money_spent = price * energy_served
+
+        energy_erased = abs(energy_served - energy_wanted)  # energy refused to the device by the strategy
+
+        return [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent]  # if the function is not modified, it does not change the initial value
 
     # ##########################################################################################
     # Utilities
