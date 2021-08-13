@@ -791,7 +791,7 @@ class Strategy:
                 price = min(price, max_price)
                 energy *= energy_ratio
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = demand["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
@@ -827,7 +827,7 @@ class Strategy:
                 price = max(price, min_price)
                 energy *= energy_ratio
 
-                Emin = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # we get back the minimum, which has already been served
+                Emin = offer["quantity_min"]  # we get back the minimum, which has already been served
                 message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
                 message["quantity"] = Emin + energy
                 message["price"] = price
