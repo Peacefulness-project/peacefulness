@@ -158,7 +158,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # contracts for the production units
     contract_flexible_production_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_heat", LTH, price_managing_heat_flexible_producer)
 
-    contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("contract_production_elec", LVE, price_managing_elec)
+    contract_not_flexible_production_elec = subclasses_dictionary["Contract"]["EgoistContract"]("contract_production_elec", LVE, price_managing_elec)
     contract_flexible_production_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_elec", LVE, price_managing_elec_flexible_producer)
 
     # ##############################################################################################
@@ -183,15 +183,16 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # Devices
 
     # Production
-    subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field", contract_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 10000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
-    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_1", contract_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
-    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_2", contract_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
-    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_3", contract_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
-    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_4", contract_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "standard_field"}, {"panels": 12500, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
+    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_1", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_2", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_3", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_4", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
+    subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_5", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
     if grid == "mixed":
         subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_flexible_production_heat, producer, aggregator_heat, {"device": "heat"}, {"max_power": 2000})  # creation of a heat production unit
     elif grid == "elec":
-        subclasses_dictionary["Device"]["ElectricDam"]("electric_dam", contract_elec, producer, aggregator_elec, {"device": "Pelton"}, {"height": 5, "max_power": 3000, "water_flow_daemon": water_flow_daemon.name})  # creation of an electric dam
+        subclasses_dictionary["Device"]["ElectricDam"]("electric_dam", contract_flexible_production_elec, producer, aggregator_elec, {"device": "Pelton"}, {"height": 5, "max_power": 3000, "water_flow_daemon": water_flow_daemon.name})  # creation of an electric dam
 
     # repartition of contracts according to the chosen proportion
     if DSM_proportion == 80:
