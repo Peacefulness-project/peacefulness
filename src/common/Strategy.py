@@ -327,6 +327,7 @@ class Strategy:
             quantities_and_prices.append(message)
 
         else:  # if the grid can satisfy its urgent needs
+            # TODO: remplacer tout ça par un système qui attribue progressivement la consommation tant qu'une prod mmoins chère est dispo
             # first it organizes profitable interns exchanges
             [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
 

@@ -257,7 +257,7 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_man
 
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 # subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
-# subclasses_dictionary["Device"]["DummyProducer"]("production", contract_owned_by_aggregator, heat_pump_owner, aggregator_elec, {"device": "elec"}, {"max_power": 1})
+subclasses_dictionary["Device"]["DummyProducer"]("production", contract_owned_by_aggregator, heat_pump_owner, aggregator_elec, {"device": "elec"}, {"max_power": 1})
 subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field", cooperative_contract_elec, PV_producer, aggregator_elec, {"device": "standard_field"}, {"panels": 20000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", cooperative_contract_elec, WT_producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
 subclasses_dictionary["Device"]["ElectricDam"]("electric_dam", cooperative_contract_elec, dam_producer, aggregator_elec, {"device": "Pelton"}, {"height": 5, "max_power": 3000, "water_flow_daemon": water_flow_daemon.name})  # creation of an electric dam

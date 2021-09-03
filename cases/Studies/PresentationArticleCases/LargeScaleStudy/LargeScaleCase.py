@@ -31,7 +31,7 @@ from time import process_time
 
 # ##############################################################################################
 # Rerooting
-chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
+# chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
 
 
 # ##############################################################################################
@@ -148,14 +148,14 @@ national_grid = Aggregator("national_grid", LVE, strategy_grid, aggregator_owner
 
 local_electrical_grid = Aggregator("local_electrical_grid", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
 
-district_heating_network = Aggregator("district_heating_network", LTH, strategy_light_autarky, aggregator_owner, local_electrical_grid, district_heating_network_contract, 3.6, 2000)
+district_heating_network = Aggregator("district_heating_network", LTH, strategy_light_autarky, aggregator_owner, local_electrical_grid, district_heating_network_contract, 3.6, {"buying": 2000, "selling": 0})
 
 
 # ##############################################################################################
 # Manual creation of devices
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", egoist_elec_contract, WT_producer, local_electrical_grid, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("methanizer", cooperative_heat_contract, heat_producer, district_heating_network, {"device": "ECOS"}, {"max_power": 700})  # creation of a heat production unit
+heat_production = subclasses_dictionary["Device"]["DummyProducer"]("methanizer", cooperative_heat_contract, heat_producer, district_heating_network, {"device": "heat"}, {"max_power": 700})  # creation of a heat production unit
 
 subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", egoist_elec_contract, PV_producer, local_electrical_grid, {"device": "standard_field"}, {"panels": 2000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 

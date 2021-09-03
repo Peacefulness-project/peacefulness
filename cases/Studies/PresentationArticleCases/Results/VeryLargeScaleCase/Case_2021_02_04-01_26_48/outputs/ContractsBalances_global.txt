@@ -1,0 +1,1050 @@
+for the key local_electrical_grid_contract.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key local_electrical_grid_contract.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key local_electrical_grid_contract.energy_erased:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key local_electrical_grid_contract.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key local_electrical_grid_contract.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_contract.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_contract.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_contract.energy_erased:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_contract.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_contract.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_elec.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_elec.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_elec.energy_erased:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_elec.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_elec.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_heat.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_heat.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_heat.energy_erased:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_heat.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key heat_pump_contract_heat.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_BAU_house_PV_LVE_BAU.energy_sold:
+	mean: 1892.6877138808106
+	min: 0
+	max: 6275.113541561837
+	sum: 1408159.659127322
+
+for the key _2_people_BAU_house_PV_LVE_BAU.energy_bought:
+	mean: 5896.299632151867
+	min: 1124.1717843961862
+	max: 14263.225675893631
+	sum: 4386846.926320985
+
+for the key _2_people_BAU_house_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_BAU_house_PV_LVE_BAU.money_spent:
+	mean: 884.4449448227786
+	min: 168.62576765942802
+	max: 2139.4838513839904
+	sum: 658027.038948146
+
+for the key _2_people_BAU_house_PV_LVE_BAU.money_earned:
+	mean: 189.26877138808223
+	min: 0
+	max: 627.5113541562116
+	sum: 140815.9659127333
+
+for the key _5_people_BAU_PV_LVE_BAU.energy_sold:
+	mean: 1892.6877138808106
+	min: 0
+	max: 6275.113541561837
+	sum: 1408159.659127322
+
+for the key _5_people_BAU_PV_LVE_BAU.energy_bought:
+	mean: 7114.313054755556
+	min: 2519.1952120566043
+	max: 16264.321795374148
+	sum: 5293048.912738128
+
+for the key _5_people_BAU_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_BAU_PV_LVE_BAU.money_spent:
+	mean: 1067.1469582133313
+	min: 377.8792818084918
+	max: 2439.6482693061334
+	sum: 793957.3369107194
+
+for the key _5_people_BAU_PV_LVE_BAU.money_earned:
+	mean: 189.26877138808223
+	min: 0
+	max: 627.5113541562116
+	sum: 140815.9659127333
+
+for the key _2_people_cooperative_house_PV_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_PV_LVE_cooperative.energy_bought:
+	mean: 1072.253925665263
+	min: 418.9492146797404
+	max: 3436.7868010499265
+	sum: 797756.9206949557
+
+for the key _2_people_cooperative_house_PV_LVE_cooperative.energy_erased:
+	mean: 2356.159767813776
+	min: 0.0
+	max: 5042.226977801262
+	sum: 1752982.8672534474
+
+for the key _2_people_cooperative_house_PV_LVE_cooperative.money_spent:
+	mean: 144.75427996481034
+	min: 56.558143981765035
+	max: 463.96621814174017
+	sum: 107697.18429381907
+
+for the key _2_people_cooperative_house_PV_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_PV_LVE_BAU.energy_sold:
+	mean: 1135.6126283284607
+	min: 0
+	max: 3765.068124936935
+	sum: 844895.7954763744
+
+for the key _2_people_cooperative_house_PV_LVE_BAU.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_cooperative_house_PV_LVE_BAU.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_PV_LVE_BAU.money_earned:
+	mean: 113.56126283284888
+	min: 0
+	max: 376.5068124937154
+	sum: 84489.57954763967
+
+for the key _5_people_cooperative_PV_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_PV_LVE_cooperative.energy_bought:
+	mean: 4263.42339136237
+	min: 1490.151504441008
+	max: 9769.548831060158
+	sum: 3171987.0031735986
+
+for the key _5_people_cooperative_PV_LVE_cooperative.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_cooperative_PV_LVE_cooperative.money_spent:
+	mean: 639.513508704354
+	min: 223.5227256661507
+	max: 1465.4323246590004
+	sum: 475798.0504760409
+
+for the key _5_people_cooperative_PV_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_PV_LVE_BAU.energy_sold:
+	mean: 1135.6126283284607
+	min: 0
+	max: 3765.068124936935
+	sum: 844895.7954763744
+
+for the key _5_people_cooperative_PV_LVE_BAU.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_cooperative_PV_LVE_BAU.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_PV_LVE_BAU.money_earned:
+	mean: 113.56126283284888
+	min: 0
+	max: 376.5068124937154
+	sum: 84489.57954763967
+
+for the key _2_people_curtailment_house_PV_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_PV_LVE_curtailment.energy_bought:
+	mean: 382.0458105834344
+	min: 0
+	max: 2922.592313571702
+	sum: 284242.0830740749
+
+for the key _2_people_curtailment_house_PV_LVE_curtailment.energy_erased:
+	mean: 4282.553822410275
+	min: 0.0
+	max: 7991.69680215459
+	sum: 3186220.043873235
+
+for the key _2_people_curtailment_house_PV_LVE_curtailment.money_spent:
+	mean: 45.845497270012125
+	min: 0.0
+	max: 350.71107762860504
+	sum: 34109.04996888901
+
+for the key _2_people_curtailment_house_PV_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_PV_LVE_BAU.energy_sold:
+	mean: 757.0750855523123
+	min: 0
+	max: 2510.0454166246814
+	sum: 563263.8636509206
+
+for the key _2_people_curtailment_house_PV_LVE_BAU.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_curtailment_house_PV_LVE_BAU.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_PV_LVE_BAU.money_earned:
+	mean: 75.707508555232
+	min: 0
+	max: 251.00454166246786
+	sum: 56326.386365092774
+
+for the key _5_people_curtailment_PV_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_PV_LVE_curtailment.energy_bought:
+	mean: 572.6119990671543
+	min: 0
+	max: 4297.39073207525
+	sum: 426023.32730596245
+
+for the key _5_people_curtailment_PV_LVE_curtailment.energy_erased:
+	mean: 5011.491803060124
+	min: 0.0
+	max: 8654.449868705375
+	sum: 3728549.901476736
+
+for the key _5_people_curtailment_PV_LVE_curtailment.money_spent:
+	mean: 68.71343988805866
+	min: 0.0
+	max: 515.6868878490346
+	sum: 51122.79927671563
+
+for the key _5_people_curtailment_PV_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_PV_LVE_BAU.energy_sold:
+	mean: 757.0750855523123
+	min: 0
+	max: 2510.0454166246814
+	sum: 563263.8636509206
+
+for the key _5_people_curtailment_PV_LVE_BAU.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_PV_LVE_BAU.energy_erased:
+	mean: 1.0796918914479646e-13
+	min: 0.0
+	max: 1.4450662888521038e-12
+	sum: 8.032907672372858e-11
+
+for the key _5_people_curtailment_PV_LVE_BAU.money_spent:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_PV_LVE_BAU.money_earned:
+	mean: 75.707508555232
+	min: 0
+	max: 251.00454166246786
+	sum: 56326.386365092774
+
+for the key _2_people_BAU_house_no_PV_LVE_BAU.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_BAU_house_no_PV_LVE_BAU.energy_bought:
+	mean: 948.1488885124448
+	min: 323.76467271427157
+	max: 2692.7599617889923
+	sum: 705422.77305326
+
+for the key _2_people_BAU_house_no_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_BAU_house_no_PV_LVE_BAU.money_spent:
+	mean: 142.22233327686644
+	min: 48.56470090714066
+	max: 403.91399426834886
+	sum: 105813.41595798882
+
+for the key _2_people_BAU_house_no_PV_LVE_BAU.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_BAU_house_no_PV_LTH_BAU.energy_sold:
+	mean: 960.0045907907831
+	min: 0
+	max: 4479.911829164395
+	sum: 714243.4155483407
+
+for the key _2_people_BAU_house_no_PV_LTH_BAU.energy_bought:
+	mean: 1357.6861786692343
+	min: 403.2038257610939
+	max: 2000.0000000000034
+	sum: 1010118.516929908
+
+for the key _2_people_BAU_house_no_PV_LTH_BAU.energy_erased:
+	mean: 1294.9864760106934
+	min: 0.0
+	max: 7655.727765755694
+	sum: 963469.9381519547
+
+for the key _2_people_BAU_house_no_PV_LTH_BAU.money_spent:
+	mean: 135.7686178669231
+	min: 40.3203825761094
+	max: 199.9999999999996
+	sum: 101011.85169299149
+
+for the key _2_people_BAU_house_no_PV_LTH_BAU.money_earned:
+	mean: 96.00045907908151
+	min: 0
+	max: 447.9911829164581
+	sum: 71424.34155483665
+
+for the key _5_people_BAU_no_PV_LVE_BAU.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_BAU_no_PV_LVE_BAU.energy_bought:
+	mean: 1994.385382001211
+	min: 929.2899193039642
+	max: 5063.065893031328
+	sum: 1483822.724208897
+
+for the key _5_people_BAU_no_PV_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_BAU_no_PV_LVE_BAU.money_spent:
+	mean: 299.15780730018093
+	min: 139.39348789559457
+	max: 759.4598839546982
+	sum: 222573.40863133504
+
+for the key _5_people_BAU_no_PV_LVE_BAU.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_BAU_no_PV_LTH_BAU.energy_sold:
+	mean: 359.7283935655582
+	min: 0
+	max: 4479.911829164395
+	sum: 267637.92481277563
+
+for the key _5_people_BAU_no_PV_LTH_BAU.energy_bought:
+	mean: 781.7836510873012
+	min: 0.0
+	max: 6240.279747771733
+	sum: 581647.0364089527
+
+for the key _5_people_BAU_no_PV_LTH_BAU.energy_erased:
+	mean: 6205.950276288723
+	min: 0.0
+	max: 10121.677599066492
+	sum: 4617227.005558801
+
+for the key _5_people_BAU_no_PV_LTH_BAU.money_spent:
+	mean: 78.17836510873005
+	min: 0.0
+	max: 624.0279747771766
+	sum: 58164.70364089524
+
+for the key _5_people_BAU_no_PV_LTH_BAU.money_earned:
+	mean: 35.972839356557486
+	min: 0
+	max: 447.9911829164581
+	sum: 26763.79248127874
+
+for the key _2_people_cooperative_house_no_PV_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_no_PV_LVE_cooperative.energy_bought:
+	mean: 572.4300635544665
+	min: 195.8977159104524
+	max: 1235.4474969468733
+	sum: 425887.9672845236
+
+for the key _2_people_cooperative_house_no_PV_LVE_cooperative.energy_erased:
+	mean: 401.6507166315942
+	min: 0.0
+	max: 1787.0175816007488
+	sum: 298828.1331739065
+
+for the key _2_people_cooperative_house_no_PV_LVE_cooperative.money_spent:
+	mean: 77.27805857985314
+	min: 26.44619164791108
+	max: 166.78541208782752
+	sum: 57494.875583410605
+
+for the key _2_people_cooperative_house_no_PV_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_house_no_PV_LTH_cooperative.energy_sold:
+	mean: 168.96331001848213
+	min: 0
+	max: 2687.9470974986375
+	sum: 125708.70265375059
+
+for the key _2_people_cooperative_house_no_PV_LTH_cooperative.energy_bought:
+	mean: 234.18767806865083
+	min: 0.0
+	max: 2862.4071870456014
+	sum: 174235.63248307593
+
+for the key _2_people_cooperative_house_no_PV_LTH_cooperative.energy_erased:
+	mean: 3639.769812247661
+	min: 2.3314683517128287e-15
+	max: 6073.006559439817
+	sum: 2707988.7403122555
+
+for the key _2_people_cooperative_house_no_PV_LTH_cooperative.money_spent:
+	mean: 21.07689102617863
+	min: 0.0
+	max: 257.6166468341056
+	sum: 15681.20692347689
+
+for the key _2_people_cooperative_house_no_PV_LTH_cooperative.money_earned:
+	mean: 18.773701113164496
+	min: 0
+	max: 298.66078861096
+	sum: 13967.633628194375
+
+for the key _5_people_cooperative_no_PV_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_no_PV_LVE_cooperative.energy_bought:
+	mean: 1196.0607245426806
+	min: 628.9082912009815
+	max: 2130.679536605388
+	sum: 889869.1790597542
+
+for the key _5_people_cooperative_no_PV_LVE_cooperative.energy_erased:
+	mean: 1438.5389629488227
+	min: 795.8454683672571
+	max: 1856.94916337936
+	sum: 1070272.9884339238
+
+for the key _5_people_cooperative_no_PV_LVE_cooperative.money_spent:
+	mean: 161.4681978132619
+	min: 84.90261931213263
+	max: 287.6417374417271
+	sum: 120132.33917306672
+
+for the key _5_people_cooperative_no_PV_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_no_PV_LTH_cooperative.energy_sold:
+	mean: 125.99633399102137
+	min: 0
+	max: 2389.0642270163585
+	sum: 93741.27248931993
+
+for the key _5_people_cooperative_no_PV_LTH_cooperative.energy_bought:
+	mean: 334.22677263807225
+	min: 0.0
+	max: 3908.656622455462
+	sum: 248664.71884272556
+
+for the key _5_people_cooperative_no_PV_LTH_cooperative.energy_erased:
+	mean: 4537.478934622257
+	min: 298.88287048228005
+	max: 6305.4200605717
+	sum: 3375884.327358976
+
+for the key _5_people_cooperative_no_PV_LTH_cooperative.money_spent:
+	mean: 30.08040953742667
+	min: 0.0
+	max: 351.77909602099544
+	sum: 22379.824695845444
+
+for the key _5_people_cooperative_no_PV_LTH_cooperative.money_earned:
+	mean: 13.999592665668724
+	min: 0
+	max: 265.4515807795925
+	sum: 10415.696943257544
+
+for the key _2_people_curtailment_house_no_PV_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_no_PV_LVE_curtailment.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_no_PV_LVE_curtailment.energy_erased:
+	mean: 638.1229028980266
+	min: 127.07651895319215
+	max: 1708.6789496060599
+	sum: 474763.4397561329
+
+for the key _2_people_curtailment_house_no_PV_LVE_curtailment.money_spent:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_curtailment_house_no_PV_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_house_no_PV_LTH_curtailment.energy_sold:
+	mean: 30.841089005689668
+	min: 0
+	max: 615.4713367708264
+	sum: 22945.770220233113
+
+for the key _2_people_curtailment_house_no_PV_LTH_curtailment.energy_bought:
+	mean: 181.53981643834675
+	min: 0
+	max: 2277.347374120449
+	sum: 135065.62343013025
+
+for the key _2_people_curtailment_house_no_PV_LTH_curtailment.energy_erased:
+	mean: 3127.432930876273
+	min: 710.2780156362093
+	max: 4355.4175119282045
+	sum: 2326810.1005719528
+
+for the key _2_people_curtailment_house_no_PV_LTH_curtailment.money_spent:
+	mean: 14.523185315067758
+	min: 0.0
+	max: 182.18778992963541
+	sum: 10805.249874410401
+
+for the key _2_people_curtailment_house_no_PV_LTH_curtailment.money_earned:
+	mean: 3.8551361257112085
+	min: 0
+	max: 76.9339170963533
+	sum: 2868.221277529139
+
+for the key _5_people_curtailment_no_PV_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_no_PV_LVE_curtailment.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_no_PV_LVE_curtailment.energy_erased:
+	mean: 1749.734525403797
+	min: 1352.1250364438542
+	max: 2264.6058374816307
+	sum: 1301802.4869004267
+
+for the key _5_people_curtailment_no_PV_LVE_curtailment.money_spent:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_curtailment_no_PV_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_no_PV_LTH_curtailment.energy_sold:
+	mean: 30.841089005689668
+	min: 0
+	max: 615.4713367708264
+	sum: 22945.770220233113
+
+for the key _5_people_curtailment_no_PV_LTH_curtailment.energy_bought:
+	mean: 203.6173761423755
+	min: 0
+	max: 2656.1779247429004
+	sum: 151491.3278499274
+
+for the key _5_people_curtailment_no_PV_LTH_curtailment.energy_erased:
+	mean: 3111.146793526472
+	min: 718.4466518387347
+	max: 4204.538643916949
+	sum: 2314693.2143836953
+
+for the key _5_people_curtailment_no_PV_LTH_curtailment.money_spent:
+	mean: 16.28939009138997
+	min: 0.0
+	max: 212.49423397943065
+	sum: 12119.306227994137
+
+for the key _5_people_curtailment_no_PV_LTH_curtailment.money_earned:
+	mean: 3.8551361257112085
+	min: 0
+	max: 76.9339170963533
+	sum: 2868.221277529139
+
+for the key _1_people_BAU_LVE_BAU.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _1_people_BAU_LVE_BAU.energy_bought:
+	mean: 4366.117567193395
+	min: 1677.5657289829117
+	max: 14033.04744848415
+	sum: 3248391.4699919014
+
+for the key _1_people_BAU_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _1_people_BAU_LVE_BAU.money_spent:
+	mean: 654.9176350790095
+	min: 251.63485934743684
+	max: 2104.9571172726073
+	sum: 487258.72049878293
+
+for the key _1_people_BAU_LVE_BAU.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_BAU_LVE_BAU.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_BAU_LVE_BAU.energy_bought:
+	mean: 4107.42098802591
+	min: 1305.7991779240288
+	max: 16073.56827377778
+	sum: 3055921.21509128
+
+for the key _2_people_BAU_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_BAU_LVE_BAU.money_spent:
+	mean: 616.1131482038846
+	min: 195.86987668860502
+	max: 2411.0352410666687
+	sum: 458388.1822636906
+
+for the key _2_people_BAU_LVE_BAU.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_BAU_apartment_LVE_BAU.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_BAU_apartment_LVE_BAU.energy_bought:
+	mean: 7450.83211287733
+	min: 3978.9732257302526
+	max: 21164.98605470159
+	sum: 5543419.091980738
+
+for the key _5_people_BAU_apartment_LVE_BAU.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_BAU_apartment_LVE_BAU.money_spent:
+	mean: 1117.6248169315961
+	min: 596.8459838595355
+	max: 3174.7479082053205
+	sum: 831512.8637971089
+
+for the key _5_people_BAU_apartment_LVE_BAU.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _1_people_cooperative_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _1_people_cooperative_LVE_cooperative.energy_bought:
+	mean: 1955.7364767750519
+	min: 949.5740183637533
+	max: 3240.1887625100985
+	sum: 1455067.9387206384
+
+for the key _1_people_cooperative_LVE_cooperative.energy_erased:
+	mean: 5417.494875695698
+	min: 2772.7649944050777
+	max: 8268.279998340528
+	sum: 4030616.1875175955
+
+for the key _1_people_cooperative_LVE_cooperative.money_spent:
+	mean: 264.0244243646315
+	min: 128.19249247910685
+	max: 437.4254829388659
+	sum: 196434.1717272863
+
+for the key _1_people_cooperative_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_LVE_cooperative.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_cooperative_LVE_cooperative.energy_bought:
+	mean: 1881.468985454382
+	min: 680.0235206279109
+	max: 3638.0423044328777
+	sum: 1399812.9251780615
+
+for the key _2_people_cooperative_LVE_cooperative.energy_erased:
+	mean: 5905.701933015552
+	min: 3463.4843808877235
+	max: 9139.742220859012
+	sum: 4393842.238163565
+
+for the key _2_people_cooperative_LVE_cooperative.money_spent:
+	mean: 253.99831303634096
+	min: 91.80317528476772
+	max: 491.1357110984356
+	sum: 188974.74489903793
+
+for the key _2_people_cooperative_LVE_cooperative.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_cooperative_apartment_LVE_cooperative.energy_sold:
+	mean: 0.05949484776034679
+	min: 0.004303675838457
+	max: 0.19796908856902196
+	sum: 44.264166733698104
+
+for the key _5_people_cooperative_apartment_LVE_cooperative.energy_bought:
+	mean: 4476.32947764323
+	min: 2441.8795076430315
+	max: 12730.260873644233
+	sum: 3330389.131366568
+
+for the key _5_people_cooperative_apartment_LVE_cooperative.energy_erased:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_cooperative_apartment_LVE_cooperative.money_spent:
+	mean: 671.4494216464818
+	min: 366.28192614645656
+	max: 1909.5391310465775
+	sum: 499558.36970498454
+
+for the key _5_people_cooperative_apartment_LVE_cooperative.money_earned:
+	mean: 0.005949484776034672
+	min: 0.0004303675838457
+	max: 0.019796908856902197
+	sum: 4.4264166733698085
+
+for the key _1_people_curtailment_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _1_people_curtailment_LVE_curtailment.energy_bought:
+	mean: 3.060110423720114e-11
+	min: 0
+	max: 4.4497761031436767e-10
+	sum: 2.276722155247768e-08
+
+for the key _1_people_curtailment_LVE_curtailment.energy_erased:
+	mean: 5519.221601332407
+	min: 2480.1645259516335
+	max: 7720.490385568411
+	sum: 4106300.871391312
+
+for the key _1_people_curtailment_LVE_curtailment.money_spent:
+	mean: 3.672132508464139e-12
+	min: 0.0
+	max: 5.339731323772412e-11
+	sum: 2.7320665862973224e-09
+
+for the key _1_people_curtailment_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_LVE_curtailment.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _2_people_curtailment_LVE_curtailment.energy_erased:
+	mean: 5610.005947831322
+	min: 2780.266986924998
+	max: 8446.47793152771
+	sum: 4173844.425186498
+
+for the key _2_people_curtailment_LVE_curtailment.money_spent:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _2_people_curtailment_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_apartment_LVE_curtailment.energy_sold:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_apartment_LVE_curtailment.energy_bought:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key _5_people_curtailment_apartment_LVE_curtailment.energy_erased:
+	mean: 9388.582424059576
+	min: 6578.347771880448
+	max: 11931.38936745048
+	sum: 6985105.323500325
+
+for the key _5_people_curtailment_apartment_LVE_curtailment.money_spent:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key _5_people_curtailment_apartment_LVE_curtailment.money_earned:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+

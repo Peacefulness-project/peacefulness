@@ -5,7 +5,7 @@
 from cases.Studies.EtudeDeCas2021.Script import simulation
 
 # parameters
-DSM_proportion = 20
+DSM_proportion = 80
 strategy_exchange = "autarky"
 strategy_distribution = "partial"
 grid = "elec"

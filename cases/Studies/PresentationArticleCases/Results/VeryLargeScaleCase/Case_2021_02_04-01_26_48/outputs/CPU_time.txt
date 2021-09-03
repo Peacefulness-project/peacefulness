@@ -1,0 +1,2 @@
+time taken by the device generation phase: 1961.640505446
+time taken by the calculation phase: 12169.346162009999

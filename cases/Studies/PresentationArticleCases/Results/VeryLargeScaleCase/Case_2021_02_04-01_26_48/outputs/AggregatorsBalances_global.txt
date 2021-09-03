@@ -1,0 +1,240 @@
+for the key national_grid.energy_sold_inside:
+	mean: 43331.287113985934
+	min: 14444.46937349249
+	max: 117323.90389910813
+	sum: 32238477.61280557
+
+for the key national_grid.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key national_grid.energy_bought_inside:
+	mean: 2247.457079428844
+	min: 0
+	max: 17764.256686601104
+	sum: 1672108.067095058
+
+for the key national_grid.energy_bought_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key national_grid.money_spent_inside:
+	mean: 224.74570794288428
+	min: 0
+	max: 1776.4256686601104
+	sum: 167210.8067095058
+
+for the key national_grid.money_spent_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key national_grid.money_earned_inside:
+	mean: 6499.693067097904
+	min: 2166.670406023873
+	max: 17598.585584866218
+	sum: 4835771.641920842
+
+for the key national_grid.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key full_elec_renewable_district.energy_sold_inside:
+	mean: 19300.947813585677
+	min: 7003.725353767531
+	max: 40956.8132420972
+	sum: 14359905.173307735
+
+for the key full_elec_renewable_district.energy_sold_outside:
+	mean: 2247.457079428844
+	min: 0
+	max: 17764.256686601104
+	sum: 1672108.067095058
+
+for the key full_elec_renewable_district.energy_bought_inside:
+	mean: 7570.750855522781
+	min: 0
+	max: 25100.454166242926
+	sum: 5632638.636508955
+
+for the key full_elec_renewable_district.energy_bought_outside:
+	mean: 13977.65403749175
+	min: 0
+	max: 40956.81324209722
+	sum: 10399374.60389384
+
+for the key full_elec_renewable_district.money_spent_inside:
+	mean: 757.0750855523306
+	min: 0
+	max: 2510.045416624933
+	sum: 563263.8636509344
+
+for the key full_elec_renewable_district.money_spent_outside:
+	mean: 2096.648105623759
+	min: 0
+	max: 6143.521986314582
+	sum: 1559906.1905840754
+
+for the key full_elec_renewable_district.money_earned_inside:
+	mean: 2850.41862886335
+	min: 1000.7368356991193
+	max: 6133.626232218388
+	sum: 2120711.459874337
+
+for the key full_elec_renewable_district.money_earned_outside:
+	mean: 224.74570794288428
+	min: 0
+	max: 1776.4256686601104
+	sum: 167210.8067095058
+
+for the key DHN_bound_renewable_district.energy_sold_inside:
+	mean: 5115.786963372702
+	min: 2819.3024028822465
+	max: 10072.959979739335
+	sum: 3806145.5007492877
+
+for the key DHN_bound_renewable_district.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key DHN_bound_renewable_district.energy_bought_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key DHN_bound_renewable_district.energy_bought_outside:
+	mean: 5115.786963372696
+	min: 2819.30240288226
+	max: 10072.959979739337
+	sum: 3806145.5007492905
+
+for the key DHN_bound_renewable_district.money_spent_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key DHN_bound_renewable_district.money_spent_outside:
+	mean: 767.3680445059045
+	min: 422.89536043233903
+	max: 1510.9439969609004
+	sum: 570921.8251123928
+
+for the key DHN_bound_renewable_district.money_earned_inside:
+	mean: 720.6025874463529
+	min: 381.12531891029056
+	max: 1456.1869850871162
+	sum: 536128.3250600854
+
+for the key DHN_bound_renewable_district.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_network.energy_sold_inside:
+	mean: 3093.041473043975
+	min: 1822.1296285306044
+	max: 14036.834982846747
+	sum: 2301222.855944726
+
+for the key district_heating_network.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key district_heating_network.energy_bought_inside:
+	mean: 1676.3748063773355
+	min: 0
+	max: 14036.834982846747
+	sum: 1247222.855944735
+
+for the key district_heating_network.energy_bought_outside:
+	mean: 1416.6666666666476
+	min: 0
+	max: 2000.0
+	sum: 1053999.9999999872
+
+for the key district_heating_network.money_spent_inside:
+	mean: 172.45686446590048
+	min: 0
+	max: 1460.0947352236508
+	sum: 128307.90716262968
+
+for the key district_heating_network.money_spent_outside:
+	mean: 40.47619047618996
+	min: 0
+	max: 57.142857142857146
+	sum: 30114.2857142854
+
+for the key district_heating_network.money_earned_inside:
+	mean: 295.9168589457153
+	min: 170.0102715621696
+	max: 1239.7484063933846
+	sum: 220162.14305561213
+
+for the key district_heating_network.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key old_district.energy_sold_inside:
+	mean: 24237.905607969384
+	min: 11033.870165427881
+	max: 66294.32176047983
+	sum: 18033001.772329208
+
+for the key old_district.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key old_district.energy_bought_inside:
+	mean: 0.05949484776034679
+	min: 0.004303675838457
+	max: 0.19796908856902196
+	sum: 44.264166733698104
+
+for the key old_district.energy_bought_outside:
+	mean: 24237.84611312159
+	min: 11033.68080369109
+	max: 66294.13067727158
+	sum: 18032957.50816246
+
+for the key old_district.money_spent_inside:
+	mean: 0.005949484776034672
+	min: 0.0004303675838457
+	max: 0.019796908856902197
+	sum: 4.4264166733698085
+
+for the key old_district.money_spent_outside:
+	mean: 3635.6769169682375
+	min: 1655.0521205536634
+	max: 9944.119601590735
+	sum: 2704943.626224368
+
+for the key old_district.money_earned_inside:
+	mean: 3578.127759261989
+	min: 1630.6358538124778
+	max: 9909.761377424029
+	sum: 2662127.052890925
+
+for the key old_district.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+

@@ -31,7 +31,7 @@ from time import process_time
 
 # ##############################################################################################
 # Rerooting
-chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
+# chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
 
 
 # ##############################################################################################
@@ -141,7 +141,7 @@ full_elec_renewable_district = Aggregator("full_elec_renewable_district", LVE, s
 
 DHN_bound_renewable_district = Aggregator("DHN_bound_renewable_district", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
 
-DHN = Aggregator("district_heating_network", LTH, strategy_heat, aggregator_owner, DHN_bound_renewable_district, district_heating_contract, 3.5, 2000)
+DHN = Aggregator("district_heating_network", LTH, strategy_heat, aggregator_owner, DHN_bound_renewable_district, district_heating_contract, 3.5, {"buying": 2000, "selling": 0})
 
 old_district = Aggregator("old_district", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
 
@@ -255,8 +255,6 @@ subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="glo
 
 subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=24)
 subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
-
-subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
 
 
 # ##############################################################################################
