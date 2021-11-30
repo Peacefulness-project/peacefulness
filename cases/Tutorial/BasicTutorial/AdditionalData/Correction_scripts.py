@@ -649,33 +649,43 @@ def correction_9_automatic_generation():
     LVE = world.catalog.natures["LVE"]
     LTH = world.catalog.natures["LTH"]
 
+    # name of the group of agents
+    tag = True
+    for element in world.catalog.agents:
+        if "little_district" in element:
+            tag = False
+            break
+    if tag:
+        print("The name given to the group of agents is not the correct one.")
+        exit()
+
     # number of agents
-    if len(world.catalog.agents) != 50:
+    if len(world.catalog.agents) != 53:
         print("The quantity of agents is not the correct one.")
         exit()
 
     # template of agent
-    if "complete_profile_0" not in world.catalog.agents:
+    if "little_district_complete_profile_0" not in world.catalog.agents:
         print("The template of agent is not the correct one.")
         exit()
 
     # aggregator elec
-    if world.catalog.devices["complete_profile_0_Background_0"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["little_district_complete_profile_0_Background_0"].natures[LVE]["aggregator"].name != "aggregator_elec":
         print("The aggregator for electricity is not the correct one.")
         exit()
 
     # aggregator heat
-    if world.catalog.devices["complete_profile_0_Heating_0"].natures[LTH]["aggregator"].name != "aggregator_heat":
+    if world.catalog.devices["little_district_complete_profile_0_Heating_0"].natures[LTH]["aggregator"].name != "aggregator_heat":
         print("The aggregator for heat is not the correct one.")
         exit()
 
     # price manager of egoist elec contract
-    if world.catalog.contracts["complete_profile_LVE_BAU"]._daemon_name != "elec_prices":
+    if world.catalog.contracts["little_district_complete_profile_LVE_BAU"]._daemon_name != "elec_prices":
         print("The price manager of the contract for electricity is not the correct one.")
         exit()
 
     # price manager of egoist heat contract
-    if world.catalog.contracts["complete_profile_LTH_BAU"]._daemon_name != "heat_prices":
+    if world.catalog.contracts["little_district_complete_profile_LTH_BAU"]._daemon_name != "heat_prices":
         print("The price manager of the contract for heat is not the correct one.")
         exit()
 

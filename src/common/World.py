@@ -416,7 +416,7 @@ class World:
                 device.reinitialize()
                 device.update()  # devices publish the quantities they are interested in (both in demand and in offer)
 
-            self._catalog.set("incompatibility", False)
+            self._catalog.set("incompatibility", False)  # the flag indicating if a second round of decision is needed due to multi-energy devices
 
             # ###########################
             # Calculus phase
@@ -461,9 +461,9 @@ class World:
                 device.react()
                 device.make_balances()
 
-            # balance phase, where results are
+            # balance phase at the aggregator level
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
-                aggregator.make_balances()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+                aggregator.make_balances()  # aggregators make their final balances of money anf energy
                 # the method is recursive
 
             # agent report what happened to their potential owner (i.e to another agent)

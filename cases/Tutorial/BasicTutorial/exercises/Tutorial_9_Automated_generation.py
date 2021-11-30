@@ -163,12 +163,11 @@ subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer
 # ##############################################################################################
 # Automated generation of agents
 
-# TODO: create automatically 50 agents using the template "DummyAgent.json".
+# TODO: create automatically a group of 50 agents, called "little_district", using the template "DummyAgent.json".
 #       Its characteristics are:
 #       1/ supervised by the aggregators "aggregators_elec" and "aggregators_heat"
 #       2/ management of prices done by the daemon "price_manager_TOU_elec" for the low voltage electricity, and by the daemon "price_manager_heat" for the low temperature heat
 
-world.agent_generation(50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon})
 
 # ##############################################################################################
 # Correction
