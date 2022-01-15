@@ -84,7 +84,7 @@ world.set_random_seed("tournesol")
 start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               24*365)  # number of time steps simulated
+               24)  # number of time steps simulated
 
 
 # ##############################################################################################
@@ -177,7 +177,7 @@ forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dumm
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+strategy_elec = subclasses_dictionary["Strategy"]["WhenProfitableEmergency"]()
 
 # the heat strategy
 # strategy_heat = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()

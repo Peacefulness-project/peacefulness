@@ -301,15 +301,21 @@ class Strategy:
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
+            i = 0  # iteration on consumption
+            j = 1  # iteration on production
             if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
                 energy_difference = minimum_energy_consumed - maximum_energy_produced
                 energy_minimum = energy_difference  # the minimum required to balance the grid
                 energy_nominal = energy_difference  # the nominal required to balance the grid
                 energy_maximum = energy_difference  # the maximum required to balance the grid
 
-                quantity_remaining_offer = 0  # there is not enough production to satisfy even the urgent needs
-                quantity_remaining_demand = maximum_energy_consumed - minimum_energy_consumed  # the non-urgent consumption
+                # quantity_remaining_offer = 0  # there is not enough production to satisfy even the urgent needs
+                # quantity_remaining_demand = maximum_energy_consumed - minimum_energy_consumed  # the non-urgent consumption
                 quantities_exchanged = maximum_energy_produced  # there is no available energy to make intern exchanges, quantity exchanged internally is set to the maximum energy produced
+
+                [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
+                quantity_demand = [sorted_demands[i]["quantity"] for i in range(len(sorted_demands))]
+                quantity_offer = []
 
             else:  # if there is a lack of consumption
                 energy_difference = - (minimum_energy_produced - maximum_energy_consumed)
@@ -317,9 +323,13 @@ class Strategy:
                 energy_nominal = energy_difference  # the nominal required to balance the grid
                 energy_maximum = energy_difference  # the minimum required to balance the grid
 
-                quantity_remaining_offer = maximum_energy_produced - minimum_energy_produced
-                quantity_remaining_demand = 0  # there is not enough consumption to absorb the urgent production
+                # quantity_remaining_offer = maximum_energy_produced - minimum_energy_produced
+                # quantity_remaining_demand = 0  # there is not enough consumption to absorb the urgent production
                 quantities_exchanged = maximum_energy_consumed  # there is no available energy to make intern exchanges, quantity exchanged internally is set to the maximum energy consumed
+
+                [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
+                quantity_demand = []
+                quantity_offer = [sorted_offers[i]["quantity"] for i in range(len(sorted_offers))]
 
             message["energy_minimum"] = energy_minimum
             message["energy_nominal"] = energy_minimum
@@ -327,76 +337,153 @@ class Strategy:
             quantities_and_prices.append(message)
 
         else:  # if the grid can satisfy its urgent needs
-            # TODO: remplacer tout ça par un système qui attribue progressivement la consommation tant qu'une prod mmoins chère est dispo
+            # remplacer tout ça par un système qui attribue progressivement la consommation tant qu'une prod mmoins chère est dispo
             # first it organizes profitable interns exchanges
             [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
-
+            urgent_quantity_to_cover = minimum_energy_consumed - minimum_energy_produced  # the non urgent par of production or consumption used to cover respectively the urgent part of consumption or production
             i = 0  # iteration on consumption
-            j = 0  # iteration on production
+            j = 1  # iteration on production
+
+            quantity_demand = [sorted_demands[i]["quantity"] for i in range(len(sorted_demands))]
+            quantity_offer = [sorted_offers[i]["quantity"] for i in range(len(sorted_offers))]
+            if urgent_quantity_to_cover > 0:  # if there is more consumption
+                while urgent_quantity_to_cover > 0:  # as long as there is too much consumption, production is used to cover it
+                    if - quantity_offer[-j] > urgent_quantity_to_cover:  # if the cheapest production is sufficient to fill the gap
+                        quantity_offer[-j] += urgent_quantity_to_cover  # the production available is reduced
+                        urgent_quantity_to_cover = 0
+                    else:  # if the cheapest production is not sufficient to fill the gap
+                        urgent_quantity_to_cover += quantity_offer[-j]
+                        j += 1
+            elif urgent_quantity_to_cover < 0:  # if there is more production
+                while urgent_quantity_to_cover < 0:  # as long as there is too much consumption, production is used to cover it
+                    if quantity_demand[i] > - urgent_quantity_to_cover:  # if the most expensive consumption is sufficient to fill the gap
+                        quantity_demand[i] += urgent_quantity_to_cover  # the consumption available is reduced
+                        urgent_quantity_to_cover = 0
+                    else:  # if the most expensive consumption is not sufficient to fill the gap
+                        urgent_quantity_to_cover += quantity_demand[i]
+                        i += 1
 
             quantities_exchanged = max(minimum_energy_produced, minimum_energy_consumed)  # the urgent quantities have obligatory been satisfied
-            available_energy = min(maximum_energy_produced, maximum_energy_consumed) - quantities_exchanged  # the remaining quantity available for exchanges once urgent needs have been satisfied
+            # available_energy = min(maximum_energy_produced, maximum_energy_consumed) - quantities_exchanged  # the remaining quantity available for exchanges once urgent needs have been satisfied
 
-            demand = 0  # quantities wanted for consumption
-            offer = 0  # quantities wanted for production
+            if sorted_offers and sorted_demands:
+                non_urgent_quantities_exchanged_internally = 0
+                buying_price = sorted_demands[0]["price"]
+                selling_price = sorted_offers[-1]["price"]
 
-            while buying_price >= selling_price and i < len(sorted_demands):  # as long as the buying price is above the selling one and that there is demand
-                demand += sorted_demands[i]["quantity"]  # total of demand exchanged internally
-                buying_price = sorted_demands[i]["price"]
-                final_price = buying_price
+                while buying_price >= selling_price and i < len(sorted_demands) and j-1 < len(sorted_offers):  # as long the buying price is above the selling one and that there is energy available
+                    selling_price = sorted_offers[-j]["price"]
+                    cheapest_production_available = - quantity_offer[-j]  # the cheapest quantity offered by local producers
+                    # the loop could be made on the demand, but it is expected to have less offers than demands
 
-                while buying_price >= selling_price and offer <= demand and j < len(sorted_offers):  # as long as there is offer
-                    offer -= sorted_offers[j]["quantity"]  # total of offer exchanged internally
-                    selling_price = sorted_offers[j]["price"]
-                    final_price = selling_price
+                    quantity = 0
+                    while cheapest_production_available > 0 and i < len(sorted_demands):  # as long the cheapest producer has energy available (and there is demand)
+                        buying_price = sorted_demands[i]["price"]
+                        if buying_price >= selling_price:
+                            if quantity_demand[i] > cheapest_production_available:  # if the producer can only serve partially the demand
+                                quantity += cheapest_production_available  # the part served
+                                quantity_demand[i] = quantity_demand[i] - cheapest_production_available  # the part not served
+                                cheapest_production_available = 0
+                            else:  # if the producer can serve totally
+                                quantity += quantity_demand[i]
+                                cheapest_production_available -= quantity_demand[i]
+                                quantity_offer[-j] += cheapest_production_available
+
+                                # final_price = buying_price  # all the exchanges are made at that price
+                                i += 1
+                        else:
+                            break
+
+                    non_urgent_quantities_exchanged_internally += quantity
 
                     j += 1
 
-                if offer > available_energy:  # if the offer exceeds the available energy
-                    offer = available_energy  # it is reduced to this value
-                    break  # and the loop ends
+                quantities_exchanged += non_urgent_quantities_exchanged_internally  # the quantity exchanged internally is the minimum of the current offer and demand
 
-                if demand > available_energy:  # if the demand exceeds the available energy
-                    demand = available_energy  # it is reduced to this value
-                    break  # and the loop ends
+        # the remaining quantities of energy are reported outside
+        # calculus of the remaining quantity of energy for consumption
+        quantity_remaining_demand = maximum_energy_consumed - quantities_exchanged  # the remaining quantity of energy
 
-                i += 1
-
-            quantities_exchanged += min(offer, demand)  # the quantity exchanged internally is the minimum of the current offer and demand
-
-            # the remaining quantities of energy are reported outside
-            # calculus of the remaining quantity of energy for consumption
-            quantity_remaining_demand = maximum_energy_consumed - quantities_exchanged  # the remaining quantity of energy
-
-            # calculus of the remaining quantity of energy for production
-            quantity_remaining_offer = maximum_energy_produced - quantities_exchanged  # the remaining quantity of energy
+        # calculus of the remaining quantity of energy for production
+        quantity_remaining_offer = maximum_energy_produced - quantities_exchanged  # the remaining quantity of energy
 
         # setting the call for above supervisor
+        demand_bought_externally = 0
+        offer_sold_externally = 0
+
         # demand
-        if sorted_demands:  # if there is a demand
-            price_remaining_demand = (final_price + sorted_demands[-1]["price"]) / 2  # the price used is the mean between the intern price and the lowest price
-        else:
-            price_remaining_demand = 0
+        if sorted_demands:  # if there is demand
+            if quantity_remaining_demand > 0:
+                outside_selling_price = aggregator.contract.selling_price
+                remaining_capacity = aggregator.capacity["buying"]
 
-        contract_buying_price = aggregator.contract.buying_price
+                while buying_price >= outside_selling_price and i < len(sorted_demands) and remaining_capacity:
+                    quantity = 0
+                    while remaining_capacity > 0 and i < len(sorted_demands):  # as long the cheapest producer has energy available (and there is demand)
+                        buying_price = sorted_demands[i]["price"]
+                        if buying_price >= outside_selling_price:
+                            if quantity_demand[i] > remaining_capacity:  # if the superior aggregator can only serve partially the demand
+                                quantity += remaining_capacity  # the part served
+                            else:  # if the producer can serve totally
+                                quantity += quantity_demand[i]
+                                remaining_capacity -= quantity_demand[i]
 
-        if price_remaining_demand > contract_buying_price:
-            message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-            message["energy_maximum"] = quantity_remaining_demand
-            quantities_and_prices.append(message)
+                                # final_price = buying_price  # all the exchanges are made at that price
+                                i += 1
+                        else:
+                            break
+
+                    demand_bought_externally += quantity
+
+                message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+                message["energy_maximum"] = demand_bought_externally
+                quantities_and_prices.append(message)
 
         # offer
-        if sorted_offers:  # if there is an offer
-            price_remaining_offer = (final_price + sorted_offers[-1]["price"]) / 2  # the price used is the mean between the intern price and the highest price
-        else:
-            price_remaining_offer = 0
+        if sorted_offers:  # if there is offer
+            if quantity_remaining_offer > 0:
+                outside_buying_price = aggregator.contract.buying_price
+                remaining_capacity = aggregator.capacity["selling"]
 
-        contract_selling_price = aggregator.contract.selling_price
+                while selling_price <= outside_buying_price and j-1 < len(sorted_offers) and remaining_capacity:
+                    quantity = 0
+                    while remaining_capacity > 0 and j-1 < len(sorted_offers):  # as long the cheapest producer has energy available (and there is demand)
+                        selling_price = sorted_offers[-j]["price"]
+                        if selling_price <= outside_buying_price:
+                            if - quantity_offer[-j] > remaining_capacity:  # if the superior aggregator can only absorb partially the offer
+                                quantity += remaining_capacity  # the part served
+                            else:  # if the producer can serve totally
+                                quantity -= quantity_offer[-j]
+                                remaining_capacity += quantity_offer[-j]
 
-        if price_remaining_offer < contract_selling_price:
-            message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-            message["energy_maximum"] = - quantity_remaining_offer
-            quantities_and_prices.append(message)
+                                final_price = selling_price  # all the exchanges are made at that price
+                                j += 1
+                        else:
+                            break
+
+                    offer_sold_externally += quantity
+
+                message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+                message["energy_maximum"] = -offer_sold_externally
+                quantities_and_prices.append(message)
+
+        # if price_remaining_demand > outside_selling_price:
+
+        # offer
+
+        # if sorted_offers:  # if there is an offer
+        #     price_remaining_offer = (final_price + sorted_offers[-1]["price"]) / 2  # the price used is the mean between the intern price and the highest price
+        # else:
+        #     price_remaining_offer = 0
+        #
+        # contract_selling_price = aggregator.contract.selling_price
+        #
+        # if price_remaining_offer < contract_selling_price:
+        #     message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        #     message["energy_maximum"] = - quantity_remaining_offer
+        #     quantities_and_prices.append(message)
+
+        quantities_exchanged += demand_bought_externally + offer_sold_externally
 
         return [quantities_exchanged, quantities_and_prices]
 

@@ -68,7 +68,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.14})  # price manager for the local electrical grid
     price_managing_elec_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_flexible_producer", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.14*9/10})  # price manager for the local electrical grid
 
-    price_managing_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_CHP", {"nature": LVE.name, "buying_price": 0.05, "selling_price": 0.17})  # price manager for the local electrical grid
+    price_managing_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_grid", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.11})  # price manager for the local electrical grid
 
     subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.18, "limit_selling_price": -0.09})  # sets prices for the system operator
     subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.306, "limit_selling_price": -0.153})  # sets prices for the system operator
@@ -151,9 +151,9 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # Contracts
 
     # contracts for aggregators
-    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid_contract", LVE, price_managing_elec)
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid_contract", LVE, price_managing_grid)
 
-    contract_DHN = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_contract", LVE, price_managing_elec)
+    contract_DHN = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_contract", LVE, price_managing_elec_flexible_producer)
 
     # contracts for the production units
     contract_flexible_production_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_heat", LTH, price_managing_heat_flexible_producer)
