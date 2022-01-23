@@ -41,7 +41,7 @@ class WhenProfitableRevenues(Strategy):
 
         [buying_price, selling_price, final_price] = self._calculate_prices(sorted_demands, sorted_offers, max_price, min_price)  # initialization of prices
 
-        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
+        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": quantities_exchanged, "price": final_price}  # we store this value for the descendant phase
 

@@ -321,7 +321,7 @@ class Strategy:
         j = 0
 
         # adding the buying capacity to the other aggregator as a standard offer
-        outside_selling_price = aggregator.contract.selling_price
+        outside_selling_price = aggregator.contract.buying_price
         outside_selling_capacity = - aggregator.capacity["buying"]
         outside_offer = {"emergency": 0, "quantity": outside_selling_capacity, "price": outside_selling_price, "name": "outside"}
 
@@ -329,7 +329,7 @@ class Strategy:
         sorted_offers = sorted(sorted_offers, key=self.get_price, reverse=False)
 
         # adding the selling capacity to the other aggregator as a standard demand
-        outside_buying_price = aggregator.contract.buying_price
+        outside_buying_price = aggregator.contract.selling_price
         outside_buying_capacity = aggregator.capacity["selling"]
         outside_demand = {"emergency": 0, "quantity": outside_buying_capacity, "price": outside_buying_price, "name": "outside"}
 
