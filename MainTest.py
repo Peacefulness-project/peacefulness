@@ -245,7 +245,7 @@ aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_man
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_elec, BAU_elec, 1, {"buying": 10000, "selling": 0})  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_elec, BAU_elec, 1, {"buying": 7894456, "selling": 45612})  # creation of a aggregator
 
 
 # ##############################################################################################

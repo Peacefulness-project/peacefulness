@@ -370,18 +370,20 @@ class Strategy:
 
 
         # third, the difference between urgent production and consumption is affected
+        i -= 1
+        j -= 1
         urgent_energy_with_outside = 0
 
         if urgent_quantity_to_cover > 0:  # if there is more consumption
             while urgent_quantity_to_cover > 0:  # as long as there is too much consumption, production is used to cover it
-                if j >= len(sorted_demands):
+                if j >= len(sorted_offers):
                     raise StrategyException(f"The minimum consumption cannot be served.")
-                if - sorted_offers[j]["quantities"] > urgent_quantity_to_cover:  # if the cheapest production is sufficient to fill the gap
-                    sorted_offers[j]["quantities"] += urgent_quantity_to_cover  # the production available is reduced
+                if - sorted_offers[j]["quantity"] > urgent_quantity_to_cover:  # if the cheapest production is sufficient to fill the gap
+                    sorted_offers[j]["quantity"] += urgent_quantity_to_cover  # the production available is reduced
                     urgent_quantity_to_cover = 0
                     quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, urgent_quantity_to_cover, sorted_demands[i], sorted_offers[j])
                 else:  # if the cheapest production is not sufficient to fill the gap
-                    urgent_quantity_to_cover += sorted_offers[j]["quantities"]
+                    urgent_quantity_to_cover += sorted_offers[j]["quantity"]
                     quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, sorted_offers[j]["quantity"], sorted_demands[i], sorted_offers[j])
                     j += 1
 
@@ -389,13 +391,13 @@ class Strategy:
             while urgent_quantity_to_cover < 0:  # as long as there is too much consumption, production is used to cover it
                 if i >= len(sorted_demands):
                     raise StrategyException(f"The minimum production cannot be absorbed.")
-                if sorted_demands[i]["quantities"] > - urgent_quantity_to_cover:  # if the most expensive consumption is sufficient to fill the gap
-                    sorted_demands[i]["quantities"] += urgent_quantity_to_cover  # the consumption available is reduced
+                if sorted_demands[i]["quantity"] > - urgent_quantity_to_cover:  # if the most expensive consumption is sufficient to fill the gap
+                    sorted_demands[i]["quantity"] += urgent_quantity_to_cover  # the consumption available is reduced
                     urgent_quantity_to_cover = 0
                     quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, urgent_quantity_to_cover, sorted_demands[i], sorted_offers[j])
                 else:  # if the most expensive consumption is not sufficient to fill the gap
-                    urgent_quantity_to_cover += sorted_demands[i]["quantities"]
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, sorted_demands[i]["quantities"], sorted_demands[i], sorted_offers[j])
+                    urgent_quantity_to_cover += sorted_demands[i]["quantity"]
+                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, sorted_demands[i]["quantity"], sorted_demands[i], sorted_offers[j])
                     i += 1
 
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
