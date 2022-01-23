@@ -30,11 +30,11 @@ class CompensationCooperativeContract(Contract):
         return price
 
     def _billing_buying(self):
-        price = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.9  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price per kW.h
         return price
 
     def _billing_selling(self):
-        price = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.9  # getting the price per kW.h
+        price = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price per kW.h
         return price
 
     def _user_billing(self, agent_name):  # here, the user_billing is used to compensate the agent for its effort

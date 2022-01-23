@@ -17,9 +17,9 @@ class CurtailmentContract(Contract):
     def contract_modification(self, quantity, name):
         # billing
         if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.buying_price") * 0.8  # getting the price per kW.h
+            quantity["price"] = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price per kW.h
         elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.selling_price") / 0.8  # getting the price per kW.h
+            quantity["price"] = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price per kW.h
 
         quantity["energy_minimum"] = 0  # set the minimal quantity of energy to 0
         quantity["energy_nominal"] = min(abs(quantity["energy_maximum"]*0.95), abs(quantity["energy_nominal"])) * sign(quantity["energy_maximum"])  # the abs() allows to manage both consumptions and productions

@@ -1,4 +1,4 @@
-# Contract are objects used to enable/disable certain operations during the supervision
+    # Contract are objects used to enable/disable certain operations during the supervision
 # They also serve to specify the way of billing the agents
 from src.tools.GlobalWorld import get_world
 

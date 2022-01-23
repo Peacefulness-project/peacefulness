@@ -739,6 +739,10 @@ class Storage(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
+        self._catalog.get(f"{self.name}.energy_stored")
+        energy_stored = self._degradation_of_energy_stored()  # reduction of the energy stored
+        self._catalog.set(f"{self.name}.energy_stored", energy_stored)
+
         energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
         energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
@@ -759,8 +763,6 @@ class Storage(Device):
             else:  # if the device loads energy
                 energy_stored += energy_accorded["quantity"] * self._efficiency["charge"]
 
-        self._catalog.set(f"{self.name}.energy_stored", energy_stored)
-        energy_stored = self._degradation_of_energy_stored()  # reduction of the energy stored
         self._catalog.set(f"{self.name}.energy_stored", energy_stored)
 
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time

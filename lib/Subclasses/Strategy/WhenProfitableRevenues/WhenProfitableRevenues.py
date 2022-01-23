@@ -68,7 +68,7 @@ class WhenProfitableRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
+        sort_function = self.get_price  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator

@@ -62,11 +62,16 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # these daemons fix a price for a given nature of energy
 
     # price managers
-    price_managing_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat", {"nature": LTH.name, "buying_price": 0.10, "selling_price": 0})  # price manager for the local electrical grid
-    price_managing_heat_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_flexible_producer", {"nature": LTH.name, "buying_price": 0, "selling_price": 0.1*9/10})  # price manager for the local electrical grid
+    if grid == "mixed":
+        price_managing_heat_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_BAU", {"nature": LTH.name, "buying_price": 0.10, "selling_price": 0})  # price manager for the local electrical grid
+        price_managing_heat_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_DLC", {"nature": LTH.name, "buying_price": 0.09, "selling_price": 0})  # price manager for the local electrical grid
 
-    price_managing_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.14})  # price manager for the local electrical grid
-    price_managing_elec_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_flexible_producer", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.14*9/10})  # price manager for the local electrical grid
+        price_managing_heat_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_flexible_producer", {"nature": LTH.name, "buying_price": 0, "selling_price": 0.1})  # price manager for the local electrical grid
+
+    price_managing_elec_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_BAU", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0})  # price manager for the local electrical grid
+    price_managing_elec_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_DLC", {"nature": LVE.name, "buying_price": 0.153, "selling_price": 0})  # price manager for the local electrical grid
+
+    price_managing_elec_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_flexible_producer", {"nature": LVE.name, "buying_price": 0, "selling_price": 0.14})  # price manager for the local electrical grid
 
     price_managing_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_grid", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.11})  # price manager for the local electrical grid
 
@@ -153,12 +158,12 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # contracts for aggregators
     contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("elec_grid_contract", LVE, price_managing_grid)
 
-    contract_DHN = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_contract", LVE, price_managing_elec_flexible_producer)
-
     # contracts for the production units
-    contract_flexible_production_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_heat", LTH, price_managing_heat_flexible_producer)
+    if grid == "mixed":
+        contract_DHN = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_contract", LVE, price_managing_elec_flexible_producer)
+        contract_flexible_production_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_heat", LTH, price_managing_heat_flexible_producer)
 
-    contract_not_flexible_production_elec = subclasses_dictionary["Contract"]["EgoistContract"]("contract_production_elec", LVE, price_managing_elec)
+    contract_not_flexible_production_elec = subclasses_dictionary["Contract"]["EgoistContract"]("contract_production_elec", LVE, price_managing_elec_BAU)
     contract_flexible_production_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_flexible_production_elec", LVE, price_managing_elec_flexible_producer)
 
     # ##############################################################################################
@@ -218,35 +223,35 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
 
     if grid == "mixed":
         # BAU contracts
-        world.agent_generation("1_mixed_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_mixed_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_mixed_BAU", BAU, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_mixed_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_BAU, "LTH": price_managing_heat_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_mixed_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_BAU, "LTH": price_managing_heat_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_mixed_BAU", BAU, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_BAU, "LTH": price_managing_heat_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
         # DLC contracts
-        world.agent_generation("1_mixed_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_mixed_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_mixed_DLC", DLC, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_mixed_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_DLC, "LTH": price_managing_heat_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_mixed_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_DLC, "LTH": price_managing_heat_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_mixed_DLC", DLC, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_BAU, "LTH": price_managing_heat_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
         # Curtailment contracts
-        world.agent_generation("1_mixed_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_mixed_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_mixed_curtailment", curtailment, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_mixed_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_DLC, "LTH": price_managing_heat_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_mixed_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_DLC, "LTH": price_managing_heat_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_mixed_curtailment", curtailment, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_mixed_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_managing_elec_BAU, "LTH": price_managing_heat_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
     elif grid == "elec":
         # BAU contracts
-        world.agent_generation("1_elec_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_BAU.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_elec_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_BAU.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_elec_BAU", BAU, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_BAU.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_elec_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_BAU.json", aggregator_elec, {"LVE": price_managing_elec_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_elec_BAU", BAU * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_BAU.json", aggregator_elec, {"LVE": price_managing_elec_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_elec_BAU", BAU, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_BAU.json", aggregator_elec, {"LVE": price_managing_elec_BAU}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
         # DLC contracts
-        world.agent_generation("1_elec_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_DLC.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_elec_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_DLC.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_elec_DLC", DLC, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_DLC.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_elec_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_DLC.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_elec_DLC", DLC * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_DLC.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_elec_DLC", DLC, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_DLC.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
         # Curtailment contracts
-        world.agent_generation("1_elec_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_curtailment.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("2_elec_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_curtailment.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-        world.agent_generation("5_elec_curtailment", curtailment, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_curtailment.json", aggregator_elec, {"LVE": price_managing_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("1_elec_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_1_curtailment.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("2_elec_curtailment", curtailment * 2, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_2_curtailment.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+        world.agent_generation("5_elec_curtailment", curtailment, "cases/Studies/EtudeDeCas2021/AgentTemplates/Agent_elec_5_curtailment.json", aggregator_elec, {"LVE": price_managing_elec_DLC}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
     # ##############################################################################################
     # Dataloggers

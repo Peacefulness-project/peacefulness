@@ -2,7 +2,7 @@
 # It corresponds to the current "strategy" in France and can be used as a reference.
 from src.common.Strategy import Strategy
 from src.tools.Utilities import sign
-from src.common.Strategy import SupervisorException
+from src.common.Strategy import StrategyException
 from math import inf
 
 
@@ -149,7 +149,7 @@ class AlwaysSatisfied(Strategy):
 
         else:
             # as we suppose that there is always a grid able to buy/sell an infinite quantity of energy, we souldn't be in this case
-            raise SupervisorException("An always satisfied strategy supposes the access to an infinite provider/consumer")
+            raise StrategyException("An always satisfied strategy supposes the access to an infinite provider/consumer")
 
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, energy_sold_inside, energy_bought_inside)
 

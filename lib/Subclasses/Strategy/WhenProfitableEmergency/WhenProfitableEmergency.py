@@ -38,17 +38,18 @@ class WhenProfitableEmergency(Strategy):
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
-        [buying_price, selling_price, final_price] = self._calculate_prices(sorted_demands, sorted_offers, max_price, min_price)  # initialization of prices
+        # print(minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
-        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices, buying_price, selling_price, final_price)
+        [quantities_exchanged, quantities_and_prices] = self._prepare_quantities_when_profitable(aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
-        self._quantities_exchanged_internally[aggregator.name] = {"quantity": quantities_exchanged, "price": final_price}  # we store this value for the descendant phase
+        self._quantities_exchanged_internally[aggregator.name] = {"quantity": quantities_exchanged, "price": None}  # we store this value for the descendant phase
+        # print(self._quantities_exchanged_internally)
 
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
         return quantities_and_prices
 
-    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator distributes energy
         energy_bought_outside = 0  # the absolute value of energy bought outside
         energy_sold_outside = 0  # the absolute value of energy sold outside
         energy_bought_inside = 0  # the absolute value of energy bought inside

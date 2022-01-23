@@ -69,12 +69,12 @@ LVE = load_low_voltage_electricity()
 
 # ##############################################################################################
 # Creation of daemons
-price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0, "selling_price": 1})  # sets prices for flat rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0, "selling_price": 1.5})  # sets prices for flat rate
 
-price_manager_elec_cheap = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_cheap", {"nature": LVE.name, "buying_price": 0.5/0.8, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_medium = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_medium", {"nature": LVE.name, "buying_price": 1/0.8, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_expensive = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_expensive", {"nature": LVE.name, "buying_price": 1.5/0.8, "selling_price": 0})  # sets prices for flat rate
-price_manager_elec_production = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_production", {"nature": LVE.name, "buying_price": 0, "selling_price": 1.5*0.9})  # sets prices for flat rate
+price_manager_elec_cheap = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_cheap", {"nature": LVE.name, "buying_price": 0.5, "selling_price": 0})  # sets prices for flat rate
+price_manager_elec_medium = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_medium", {"nature": LVE.name, "buying_price": 1, "selling_price": 0})  # sets prices for flat rate
+price_manager_elec_expensive = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_expensive", {"nature": LVE.name, "buying_price": 1.5, "selling_price": 0})  # sets prices for flat rate
+price_manager_elec_production = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_production", {"nature": LVE.name, "buying_price": 0, "selling_price": 1})  # sets prices for flat rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 10, "limit_selling_price": 0})  # sets prices for the system operator
 
@@ -93,9 +93,7 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 # ##############################################################################################
 # Manual creation of agents
-light_autarky_owner = Agent("light_autarky_owner")
-
-autarky_owner = Agent("autarky_owner")
+when_profitable_owner = Agent("when_profitable_owner")
 
 always_satisfied_owner = Agent("always_satisfied_owner")
 
@@ -105,10 +103,6 @@ aggregators_manager = Agent("aggregators_manager")
 # ##############################################################################################
 # Manual creation of contracts
 BAU_contract = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_contract", LVE, price_manager_elec)
-
-curtailment_contract = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_contract", LVE, price_manager_elec)
-
-cooperative_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract", LVE, price_manager_elec_cheap)
 
 curtailment_contract_cheap = subclasses_dictionary["Contract"]["CurtailmentContract"]("curtailment_contract_cheap", LVE, price_manager_elec_cheap)
 
@@ -132,28 +126,31 @@ aggregator_always_satisfied = Aggregator("local_grid_quantity", LVE, strategy_al
 
 # Each device is created 3 times
 # when profitable strategy
-device_profitable_cheap = subclasses_dictionary["Device"]["Background"]("device_profitable_cheap", curtailment_contract_cheap, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-device_profitable_medium = subclasses_dictionary["Device"]["Background"]("device_profitable_medium", curtailment_contract_medium, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-device_profitable_expensive = subclasses_dictionary["Device"]["Background"]("device_profitable_expensive", curtailment_contract_expensive, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_profitable_cheap_curtailment = subclasses_dictionary["Device"]["Background"]("device_profitable_cheap_curt", curtailment_contract_cheap, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_profitable_cheap_BAU = subclasses_dictionary["Device"]["Background"]("device_profitable_cheap_BAU", curtailment_contract_cheap, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-production_profitable = subclasses_dictionary["Device"]["DummyProducer"]("production_profitable", cooperative_contract_production, light_autarky_owner, aggregator_profitable, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
-# production_profitable2 = subclasses_dictionary["Device"]["DummyProducer"]("production_profitable2", cooperative_contract_production, light_autarky_owner, aggregator_profitable, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+device_profitable_medium_curtailment = subclasses_dictionary["Device"]["Background"]("device_profitable_medium_curt", curtailment_contract_medium, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_profitable_medium_BAU = subclasses_dictionary["Device"]["Background"]("device_profitable_medium_BAU", curtailment_contract_medium, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-# # autarky strategy
-# device_BAU_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_autarky", BAU_contract, autarky_owner, aggregator_autarky, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-# device_curtailment_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_autarky", curtailment_contract, autarky_owner, aggregator_autarky, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-# production_autarky = subclasses_dictionary["Device"]["DummyProducer"]("production_autarky", cooperative_contract, autarky_owner, aggregator_autarky, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+device_profitable_expensive_curtailment = subclasses_dictionary["Device"]["Background"]("device_profitable_expensive_curt", curtailment_contract_expensive, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_profitable_expensive_BAU = subclasses_dictionary["Device"]["Background"]("device_profitable_expensive_BAU", curtailment_contract_expensive, when_profitable_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+
+
+production_profitable_coop = subclasses_dictionary["Device"]["DummyProducer"]("production_profitable_curt", cooperative_contract_production, when_profitable_owner, aggregator_profitable, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+production_profitable_BAU = subclasses_dictionary["Device"]["DummyProducer"]("production_profitable_BAU", cooperative_contract_production, when_profitable_owner, aggregator_profitable, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+
 
 # always satisfied strategy
-device_BAU_cheap = subclasses_dictionary["Device"]["Background"]("device_BAU_cheap", curtailment_contract_cheap, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-device_BAU_medium = subclasses_dictionary["Device"]["Background"]("device_BAU_medium", curtailment_contract_medium, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-device_BAU_expensive = subclasses_dictionary["Device"]["Background"]("device_BAU_expensive", curtailment_contract_expensive, light_autarky_owner, aggregator_profitable, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
-
-production_BAU = subclasses_dictionary["Device"]["DummyProducer"]("production_BAU", cooperative_contract_production, light_autarky_owner, aggregator_profitable, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+# device_BAU_cheap = subclasses_dictionary["Device"]["Background"]("device_BAU_cheap", curtailment_contract_cheap, when_profitable_owner, aggregator_always_satisfied, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+# device_BAU_medium = subclasses_dictionary["Device"]["Background"]("device_BAU_medium", curtailment_contract_medium, when_profitable_owner, aggregator_always_satisfied, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+# device_BAU_expensive = subclasses_dictionary["Device"]["Background"]("device_BAU_expensive", curtailment_contract_expensive, when_profitable_owner, aggregator_always_satisfied, {"user": "dummy_user", "device": "constant_consumption"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+#
+# production_BAU = subclasses_dictionary["Device"]["DummyProducer"]("production_BAU", cooperative_contract_production, when_profitable_owner, aggregator_always_satisfied, {"device": "dummy_usage"}, {"max_power": 3}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 
 # ##############################################################################################
 # Creation of the validation daemon
+
 # description = "This script checks that exchange strategies work"
 #
 # filename = "exchange_strategy_validation"
