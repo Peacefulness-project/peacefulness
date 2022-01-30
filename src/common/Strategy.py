@@ -298,14 +298,12 @@ class Strategy:
         return [buying_price, selling_price, final_price]
 
     def _update_quantities_exchanged(self, quantities_exchanged_internally, quantities_bought_from_outside, quantities_sold_to_outside, quantity_to_affect, demands, offers):
-        quantity_to_affect = abs(quantity_to_affect)
         if offers["name"] == "outside":  # if the energy is bought from outside
             quantities_bought_from_outside += quantity_to_affect
         elif demands["name"] == "outside":  # if energy is sold to outside
-            quantities_sold_to_outside -= quantity_to_affect
+            quantities_sold_to_outside += quantity_to_affect
         else:
-            quantities_exchanged_internally += quantity_to_affect
-
+            quantities_exchanged_internally += abs(quantity_to_affect)
 
         return quantities_exchanged_internally, quantities_bought_from_outside, quantities_sold_to_outside
 
@@ -322,7 +320,7 @@ class Strategy:
 
         # adding the buying capacity to the other aggregator as a standard offer
         outside_selling_price = aggregator.contract.buying_price
-        outside_selling_capacity = - aggregator.capacity["buying"]
+        outside_selling_capacity = - aggregator.capacity["selling"]
         outside_offer = {"emergency": 0, "quantity": outside_selling_capacity, "price": outside_selling_price, "name": "outside"}
 
         sorted_offers.append(outside_offer)
@@ -330,7 +328,7 @@ class Strategy:
 
         # adding the selling capacity to the other aggregator as a standard demand
         outside_buying_price = aggregator.contract.selling_price
-        outside_buying_capacity = aggregator.capacity["selling"]
+        outside_buying_capacity = aggregator.capacity["buying"]
         outside_demand = {"emergency": 0, "quantity": outside_buying_capacity, "price": outside_buying_price, "name": "outside"}
 
         sorted_demands.append(outside_demand)
@@ -350,7 +348,7 @@ class Strategy:
                     j += 1  # next producer
 
                 else:  # if the producer can serve totally
-                    sorted_offers[j]["quantity"] -= sorted_demands[i]["quantity"]
+                    sorted_offers[j]["quantity"] += sorted_demands[i]["quantity"]
                     quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, energy_bought_outside, energy_sold_outside, sorted_demands[i]["quantity"], sorted_demands[i], sorted_offers[j])
                     i += 1  # next consumer
 
@@ -360,6 +358,7 @@ class Strategy:
         # non critical exchanges
         # note that the aggregator can both buy and sell energy to outside
         # while being not physically possible, it can be financially interesting
+        # print(energy_bought_outside, energy_sold_outside)
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         message["energy_maximum"] = energy_bought_outside
         quantities_and_prices.append(message)
@@ -368,36 +367,50 @@ class Strategy:
         message["energy_maximum"] = energy_sold_outside
         quantities_and_prices.append(message)
 
-
         # third, the difference between urgent production and consumption is affected
-        i -= 1
-        j -= 1
+        # i -= 1
+        # j -= 1
         urgent_energy_with_outside = 0
+        print(urgent_quantity_to_cover)
 
         if urgent_quantity_to_cover > 0:  # if there is more consumption
             while urgent_quantity_to_cover > 0:  # as long as there is too much consumption, production is used to cover it
                 if j >= len(sorted_offers):
                     raise StrategyException(f"The minimum consumption cannot be served.")
-                if - sorted_offers[j]["quantity"] > urgent_quantity_to_cover:  # if the cheapest production is sufficient to fill the gap
+                elif - sorted_offers[j]["quantity"] > urgent_quantity_to_cover:  # if the cheapest production is sufficient to fill the gap
                     sorted_offers[j]["quantity"] += urgent_quantity_to_cover  # the production available is reduced
+                    if sorted_offers[j]["name"] == "outside":  # if the energy is bought from outside
+                        urgent_energy_with_outside += urgent_quantity_to_cover
+                    else:
+                        quantities_exchanged_internally += abs(urgent_quantity_to_cover)
                     urgent_quantity_to_cover = 0
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, urgent_quantity_to_cover, sorted_demands[i], sorted_offers[j])
+
                 else:  # if the cheapest production is not sufficient to fill the gap
                     urgent_quantity_to_cover += sorted_offers[j]["quantity"]
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, sorted_offers[j]["quantity"], sorted_demands[i], sorted_offers[j])
+                    if sorted_offers[j]["name"] == "outside":  # if the energy is bought from outside
+                        urgent_energy_with_outside += sorted_offers[j]["quantity"]
+                    else:
+                        quantities_exchanged_internally += abs(sorted_offers[j]["quantity"])
                     j += 1
 
         elif urgent_quantity_to_cover < 0:  # if there is more production
             while urgent_quantity_to_cover < 0:  # as long as there is too much consumption, production is used to cover it
                 if i >= len(sorted_demands):
                     raise StrategyException(f"The minimum production cannot be absorbed.")
-                if sorted_demands[i]["quantity"] > - urgent_quantity_to_cover:  # if the most expensive consumption is sufficient to fill the gap
+                elif sorted_demands[i]["quantity"] > - urgent_quantity_to_cover:  # if the most expensive consumption is sufficient to fill the gap
                     sorted_demands[i]["quantity"] += urgent_quantity_to_cover  # the consumption available is reduced
+                    if sorted_demands[i]["name"] == "outside":  # if energy is sold to outside
+                        urgent_energy_with_outside += urgent_quantity_to_cover
+                    else:
+                        quantities_exchanged_internally += abs(urgent_quantity_to_cover)
                     urgent_quantity_to_cover = 0
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, urgent_quantity_to_cover, sorted_demands[i], sorted_offers[j])
+
                 else:  # if the most expensive consumption is not sufficient to fill the gap
                     urgent_quantity_to_cover += sorted_demands[i]["quantity"]
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, urgent_energy_with_outside, urgent_energy_with_outside, sorted_demands[i]["quantity"], sorted_demands[i], sorted_offers[j])
+                    if sorted_demands[i]["name"] == "outside":  # if energy is sold to outside
+                        urgent_energy_with_outside += sorted_demands[i]["quantity"]
+                    else:
+                        quantities_exchanged_internally += abs(sorted_demands[i]["quantity"])
                     i += 1
 
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}

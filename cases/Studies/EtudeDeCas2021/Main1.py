@@ -4,7 +4,7 @@
 from os import listdir, chdir
 
 
-# chdir("../../../")  # set the relative path to the project root
+chdir("../../../")  # set the relative path to the project root
 
 root_path = "cases/Studies/EtudeDeCas2021/cases1/"  # the path to the cases
 

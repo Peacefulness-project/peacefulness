@@ -71,7 +71,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     price_managing_elec_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_BAU", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0})  # price manager for the local electrical grid
     price_managing_elec_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_DLC", {"nature": LVE.name, "buying_price": 0.153, "selling_price": 0})  # price manager for the local electrical grid
 
-    price_managing_elec_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_flexible_producer", {"nature": LVE.name, "buying_price": 0, "selling_price": 0.14})  # price manager for the local electrical grid
+    price_managing_elec_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_flexible_producer", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.14})  # price manager for the local electrical grid
 
     price_managing_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec_grid", {"nature": LVE.name, "buying_price": 0.17, "selling_price": 0.11})  # price manager for the local electrical grid
 
