@@ -320,7 +320,7 @@ class Strategy:
 
         # adding the buying capacity to the other aggregator as a standard offer
         outside_selling_price = aggregator.contract.buying_price
-        outside_selling_capacity = - aggregator.capacity["selling"]
+        outside_selling_capacity = - aggregator.capacity["buying"]
         outside_offer = {"emergency": 0, "quantity": outside_selling_capacity, "price": outside_selling_price, "name": "outside"}
 
         sorted_offers.append(outside_offer)
@@ -328,7 +328,7 @@ class Strategy:
 
         # adding the selling capacity to the other aggregator as a standard demand
         outside_buying_price = aggregator.contract.selling_price
-        outside_buying_capacity = aggregator.capacity["buying"]
+        outside_buying_capacity = aggregator.capacity["selling"]
         outside_demand = {"emergency": 0, "quantity": outside_buying_capacity, "price": outside_buying_price, "name": "outside"}
 
         sorted_demands.append(outside_demand)
@@ -358,7 +358,6 @@ class Strategy:
         # non critical exchanges
         # note that the aggregator can both buy and sell energy to outside
         # while being not physically possible, it can be financially interesting
-        # print(energy_bought_outside, energy_sold_outside)
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         message["energy_maximum"] = energy_bought_outside
         quantities_and_prices.append(message)
@@ -368,10 +367,7 @@ class Strategy:
         quantities_and_prices.append(message)
 
         # third, the difference between urgent production and consumption is affected
-        # i -= 1
-        # j -= 1
         urgent_energy_with_outside = 0
-        print(urgent_quantity_to_cover)
 
         if urgent_quantity_to_cover > 0:  # if there is more consumption
             while urgent_quantity_to_cover > 0:  # as long as there is too much consumption, production is used to cover it
