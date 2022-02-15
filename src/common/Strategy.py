@@ -337,20 +337,30 @@ class Strategy:
         energy_bought_outside = 0
         energy_sold_outside = 0
 
-        while i < len(sorted_demands) and j < len(sorted_offers):
+        # the minimum to keep available to satisfy the urgent needs
+        if urgent_quantity_to_cover > 0:
+            energy_available = maximum_energy_produced + outside_buying_capacity - urgent_quantity_to_cover
+        else:
+            energy_available = maximum_energy_consumed - outside_selling_price + urgent_quantity_to_cover
+
+        while i < len(sorted_demands) and j < len(sorted_offers) and energy_available:
             buying_price = sorted_demands[i]["price"]
             selling_price = sorted_offers[j]["price"]
 
             if buying_price >= selling_price:
-                if sorted_demands[i]["quantity"] > - sorted_offers[j]["quantity"]:
-                    sorted_demands[i]["quantity"] += sorted_offers[j]["quantity"]  # the part served
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, energy_bought_outside, energy_sold_outside, sorted_offers[j]["quantity"], sorted_demands[i], sorted_offers[j])
+                if sorted_demands[i]["quantity"] > - sorted_offers[j]["quantity"]:  # if the producer cannot serve totally
+                    quantity_served = min(-sorted_offers[j]["quantity"], energy_available)
+                    sorted_demands[i]["quantity"] -= quantity_served  # the part served
+                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, energy_bought_outside, energy_sold_outside, -quantity_served, sorted_demands[i], sorted_offers[j])
                     j += 1  # next producer
+                    energy_available -= quantity_served
 
                 else:  # if the producer can serve totally
-                    sorted_offers[j]["quantity"] += sorted_demands[i]["quantity"]
-                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, energy_bought_outside, energy_sold_outside, sorted_demands[i]["quantity"], sorted_demands[i], sorted_offers[j])
+                    quantity_served = min(sorted_demands[i]["quantity"], energy_available)
+                    sorted_offers[j]["quantity"] += quantity_served
+                    quantities_exchanged_internally, energy_bought_outside, energy_sold_outside = self._update_quantities_exchanged(quantities_exchanged_internally, energy_bought_outside, energy_sold_outside, quantity_served, sorted_demands[i], sorted_offers[j])
                     i += 1  # next consumer
+                    energy_available -= quantity_served
 
             else:
                 break
