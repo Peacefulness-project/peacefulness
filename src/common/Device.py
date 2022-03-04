@@ -254,6 +254,8 @@ class Device:
             self._catalog.set(f"{self.name}.{nature.name}.money_earned", money_earned)
             self._catalog.set(f"{self.name}.{nature.name}.money_spent", money_spent)
 
+            # print(money_earned)
+
         if self._moment is not None:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
@@ -308,11 +310,13 @@ class Device:
             money_earned_inside = self._catalog.get(f"{aggregator.name}.money_earned")["inside"]  # the device updates the values regarding the inside situation
             money_earned_outside = self._catalog.get(f"{aggregator.name}.money_earned")["outside"]  # outside values are left unchanged
 
-            self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside + energy_bought[nature.name], "outside": energy_bought_outside})
-            self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside + energy_sold[nature.name], "outside": energy_sold_outside})
+            self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside + energy_sold[nature.name], "outside": energy_bought_outside})
+            self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside + energy_bought[nature.name], "outside": energy_sold_outside})
 
-            self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside + money_spent[nature.name], "outside": money_spent_outside})
-            self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside + money_earned[nature.name], "outside": money_earned_outside})
+            self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside + money_earned[nature.name], "outside": money_spent_outside})
+            self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside + money_spent[nature.name], "outside": money_earned_outside})
+
+            # print(self._catalog.get(f"{aggregator.name}.money_earned"))
 
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
