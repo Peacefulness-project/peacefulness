@@ -31,7 +31,7 @@ from time import process_time
 
 # ##############################################################################################
 # Rerooting
-# chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
+chdir("../../../../")  # here, you have to put the path to the root of project (the main directory)
 
 
 # ##############################################################################################
@@ -155,7 +155,7 @@ local_gas_grid = Aggregator("local_gas_grid", LPG, strategy_light_autarky, aggre
 # Manual creation of devices
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", egoist_elec_contract, WT_producer, local_electrical_grid, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["BiomassGasPlant"]("methanizer", cooperative_gas_contract, gas_producer, local_gas_grid, {"device": "heat"}, {"max_power": 700})  # creation of a heat production unit
+heat_production = subclasses_dictionary["Device"]["BiomassGasPlant"]("methanizer", cooperative_gas_contract, gas_producer, local_gas_grid, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of a heat production unit
 
 subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", egoist_elec_contract, PV_producer, local_electrical_grid, {"device": "standard_field"}, {"panels": 2000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 
@@ -167,19 +167,19 @@ subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", eg
 CPU_time_generation_of_device = process_time()
 
 # Egoist contracts
-world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
-# Cooperative contracts
-world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 300, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_DHN.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-
-# Curtailment contracts
-world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 200, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# # Cooperative contracts
+# world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("", 300, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+#
+# # Curtailment contracts
+# world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("", 200, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization

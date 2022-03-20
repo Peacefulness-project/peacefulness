@@ -73,21 +73,20 @@ world.set_time(start_date,  # time management: start date
 # Creation of nature
 LVE = load_low_voltage_electricity()
 
-LTH = load_low_temperature_heat()
+LPG = load_low_pressure_gas()
 
 
 # ##############################################################################################
 # Creation of daemons
-
 # Price Managers
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0.15, "selling_price": 0.10})  # sets prices for flat rate
 
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.10})  # sets prices for flat rate
+price_manager_gas = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_gas", {"nature": LPG.name, "buying_price": 0.15, "selling_price": 0.10})  # sets prices for flat rate
 
 # Limit Prices
 limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
 
-limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
+limit_price_gas = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LPG.name, "limit_buying_price": 0.2, "limit_selling_price": 0.1})  # sets prices for the system operator
 
 # Indoor temperature
 indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
@@ -110,7 +109,7 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "M
 # Creation of strategies
 strategy_grid = subclasses_dictionary["Strategy"]["Grid"]()
 
-strategy_light_autarky = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 
 # ##############################################################################################
@@ -123,7 +122,7 @@ WT_producer = Agent("WT_producer")
 
 PV_producer = Agent("PV_producer")
 
-heat_producer = Agent("heat_producer")
+gas_producer = Agent("gas_producer")
 
 
 # ##############################################################################################
@@ -132,14 +131,14 @@ heat_producer = Agent("heat_producer")
 # aggregators
 local_electrical_grid_contract = subclasses_dictionary["Contract"]["EgoistContract"]("local_electrical_grid_contract", LVE, price_manager_elec)
 
-district_heating_network_contract = subclasses_dictionary["Contract"]["EgoistContract"]("district_heating_network_contract", LTH, price_manager_heat)
+local_gas_grid_contract = subclasses_dictionary["Contract"]["EgoistContract"]("local_gas_grid_contract", LPG, price_manager_gas)
 
 # producers
 cooperative_elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_elec_contract", LVE, price_manager_elec)
 
 egoist_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("egoist_contract_elec", LVE, price_manager_elec)
 
-cooperative_heat_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_heat_contract", LTH, price_manager_heat)
+cooperative_gas_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_gas_contract", LPG, price_manager_gas)
 
 
 # ##############################################################################################
@@ -148,14 +147,13 @@ national_grid = Aggregator("national_grid", LVE, strategy_grid, aggregator_owner
 
 local_electrical_grid = Aggregator("local_electrical_grid", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
 
-district_heating_network = Aggregator("local_gas_grid", LTH, strategy_light_autarky, aggregator_owner, local_electrical_grid, district_heating_network_contract, 3.6, 2000)
-
+local_gas_grid = Aggregator("local_gas_grid", LPG, strategy_light_autarky, aggregator_owner, local_electrical_grid, local_gas_grid_contract)
 
 # ##############################################################################################
 # Manual creation of devices
 wind_turbine = subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine", egoist_elec_contract, WT_producer, local_electrical_grid, {"device": "standard"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
 
-heat_production = subclasses_dictionary["Device"]["DummyProducer"]("methanizer", cooperative_heat_contract, heat_producer, district_heating_network, {"device": "ECOS"}, {"max_power": 700})  # creation of a heat production unit
+gas_production = subclasses_dictionary["Device"]["BiomassGasPlant"]("methanizer", cooperative_gas_contract, gas_producer, local_gas_grid, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of a gas production unit
 
 subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", egoist_elec_contract, PV_producer, local_electrical_grid, {"device": "standard_field"}, {"panels": 2000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name})  # creation of a photovoltaic panel field
 
@@ -167,19 +165,19 @@ subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_advanced_field", eg
 CPU_time_generation_of_device = process_time()
 
 # Egoist contracts
-world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 500, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 250, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_1_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # Cooperative contracts
-world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 300, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_DHN.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 300, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 150, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_2_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # Curtailment contracts
-world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 200, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LPG": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_BAU_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 200, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_curtailment_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 100, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Agent_5_DLC_gas.json", [local_electrical_grid, local_gas_grid], {"LVE": price_manager_elec, "LPG": price_manager_gas}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -201,7 +199,7 @@ subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="mont
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("WindTurbine", period="month")
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("DummyProducer", period="month")
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("methanizer", period="month")
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", period="month")
 
 subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()

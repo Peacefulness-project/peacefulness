@@ -363,44 +363,44 @@ def correction_7_aggregators():
         print("The agent of the grid aggregator is not the correct one.")
         exit()
 
-    # creation of the aggregator called aggregator_elec
-    if "aggregator_elec" not in world.catalog.aggregators:
-        print("The aggregator called aggregator_elec has not been created successfully or does not bear the correct name.")
+    # creation of the aggregator called aggregator_gas
+    if "aggregator_gas" not in world.catalog.aggregators:
+        print("The aggregator called aggregator_gas has not been created successfully or does not bear the correct name.")
         exit()
 
-    # nature of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"].nature.name != "LVE":
-        print("The nature of the aggregator_elec aggregator is not the correct one.")
+    # nature of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"].nature.name != "LVE":
+        print("The nature of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # strategy of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"]._strategy.name != "always_satisfied_strategy":
-        print("The strategy of the aggregator_elec aggregator is not the correct one.")
+    # strategy of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"]._strategy.name != "always_satisfied_strategy":
+        print("The strategy of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # agent of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"].agent.name != "aggregators_owner":
-        print("The agent of the aggregator_elec aggregator is not the correct one.")
+    # agent of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"].agent.name != "aggregators_owner":
+        print("The agent of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # superior of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"].superior.name != "grid":
-        print("The superior of the aggregator_elec aggregator is not the correct one.")
+    # superior of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"].superior.name != "grid":
+        print("The superior of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # contract of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"]._contract.name != "elec_contract_egoist":
-        print("The contract of the aggregator_elec aggregator is not the correct one.")
+    # contract of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"]._contract.name != "elec_contract_egoist":
+        print("The contract of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # efficiency of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"].efficiency != 1:
-        print("The efficiency of the aggregator_elec aggregator is not the correct one.")
+    # efficiency of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"].efficiency != 1:
+        print("The efficiency of the aggregator_gas aggregator is not the correct one.")
         exit()
 
-    # capacity of the aggregator_elec
-    if world.catalog.aggregators["aggregator_elec"].capacity != inf:
-        print("The capacity of the aggregator_elec aggregator is not the correct one.")
+    # capacity of the aggregator_gas
+    if world.catalog.aggregators["aggregator_gas"].capacity != inf:
+        print("The capacity of the aggregator_gas aggregator is not the correct one.")
         exit()
 
     # creation of the aggregator called aggregator_heat
@@ -424,7 +424,7 @@ def correction_7_aggregators():
         exit()
 
     # superior of the aggregator_heat
-    if world.catalog.aggregators["aggregator_heat"].superior.name != "aggregator_elec":
+    if world.catalog.aggregators["aggregator_heat"].superior.name != "aggregator_gas":
         print("The superior of the aggregator_heat aggregator is not the correct one.")
         exit()
 
@@ -467,7 +467,7 @@ def correction_8_devices():
         exit()
 
     # aggregator of the Photovoltaics field
-    if world.catalog.devices["PV_field"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["PV_field"].natures[LVE]["aggregator"].name != "aggregator_gas":
         print("The aggregator of the Photovoltaics device is not the correct one.")
         exit()
 
@@ -502,7 +502,7 @@ def correction_8_devices():
         exit()
 
     # aggregator of the wind turbine
-    if world.catalog.devices["wind_turbine"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["wind_turbine"].natures[LVE]["aggregator"].name != "aggregator_gas":
         print("The aggregator of the wind turbine is not the correct one.")
         exit()
 
@@ -532,7 +532,7 @@ def correction_8_devices():
         exit()
 
     # aggregator of the background
-    if world.catalog.devices["background"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["background"].natures[LVE]["aggregator"].name != "aggregator_gas":
         print("The aggregator of the background is not the correct one.")
         exit()
 
@@ -562,7 +562,7 @@ def correction_8_devices():
         exit()
 
     # aggregator of the dishwasher
-    if world.catalog.devices["dishwasher"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["dishwasher"].natures[LVE]["aggregator"].name != "aggregator_gas":
         print("The aggregator of the dishwasher is not the correct one.")
         exit()
 
@@ -670,7 +670,7 @@ def correction_9_automatic_generation():
         exit()
 
     # aggregator elec
-    if world.catalog.devices["little_district_complete_profile_0_Background_0"].natures[LVE]["aggregator"].name != "aggregator_elec":
+    if world.catalog.devices["little_district_complete_profile_0_Background_0"].natures[LVE]["aggregator"].name != "aggregator_gas":
         print("The aggregator for electricity is not the correct one.")
         exit()
 

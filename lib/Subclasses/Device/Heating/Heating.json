@@ -12,6 +12,12 @@
       "max_power": {"LTH": 5}
     },
 
+    "house_gas": {
+      "usage_profile": [{"LPG": 1}, 1.5, 18000],
+      "consumption_variation": 0.1,
+      "max_power": {"LPG": 5}
+    },
+
     "apartment_elec": {
       "usage_profile": [{"LVE": 1}, 0.3, 7200],
       "consumption_variation": 0.1,
@@ -24,10 +30,10 @@
       "max_power": {"LTH": 2}
     },
 
-    "grand_apartment_heat": {
-      "usage_profile": [{"LTH": 1}, 1, 10800],
-      "consumption_variation": 0.25,
-      "max_power": {"LTH": 3}
+    "apartment_gas": {
+      "usage_profile": [{"LPG": 1}, 0.3, 7200],
+      "consumption_variation": 0.1,
+      "max_power": {"LPG": 2}
     },
 
     "grand_apartment_elec": {
@@ -35,6 +41,19 @@
       "consumption_variation": 0.25,
       "max_power": {"LVE": 3}
     },
+
+    "grand_apartment_heat": {
+      "usage_profile": [{"LTH": 1}, 1, 10800],
+      "consumption_variation": 0.25,
+      "max_power": {"LTH": 3}
+    },
+
+    "grand_apartment_gas": {
+      "usage_profile": [{"LPG": 1}, 1, 10800],
+      "consumption_variation": 0.25,
+      "max_power": {"LPG": 3}
+    },
+
 
     "apartment_heat_instant_consumption": {
       "usage_profile": [{"LTH": 1}, 0.7, 7200],

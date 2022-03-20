@@ -124,7 +124,7 @@ BAU_contract_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_con
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
+aggregator_elec = Aggregator("aggregator_gas", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
 
 
 # ##############################################################################################

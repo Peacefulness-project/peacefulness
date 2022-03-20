@@ -16,20 +16,20 @@
       "max_power": {"LTH": 2}
     },
 
-    "5_people_heat": {
-      "usage_profile": {"LTH": 220},
-      "consumption_variation": 0.2,
+    "family_gas": {
+      "usage_profile": {"LPG": 6},
+      "consumption_variation": 0.1,
 
-      "min_power": {"LTH": 0},
-      "max_power": {"LTH": 2}
+      "min_power": {"LPG": 0.5},
+      "max_power": {"LPG": 2}
     },
 
-    "2_people_heat": {
-      "usage_profile": {"LTH": 110},
+    "1_people_elec": {
+      "usage_profile": {"LVE": 65},
       "consumption_variation": 0.2,
 
-      "min_power": {"LTH": 0},
-      "max_power": {"LTH": 2}
+      "min_power": {"LVE": 0},
+      "max_power": {"LVE": 2}
     },
 
     "1_people_heat": {
@@ -40,12 +40,12 @@
       "max_power": {"LTH": 2}
     },
 
-    "5_people_elec": {
-      "usage_profile": {"LVE": 220},
+    "1_people_gas": {
+      "usage_profile": {"LPG": 65},
       "consumption_variation": 0.2,
 
-      "min_power": {"LVE": 0},
-      "max_power": {"LVE": 2}
+      "min_power": {"LPG": 0},
+      "max_power": {"LPG": 2}
     },
 
     "2_people_elec": {
@@ -56,12 +56,44 @@
       "max_power": {"LVE": 2}
     },
 
-    "1_people_elec": {
-      "usage_profile": {"LVE": 65},
+    "2_people_heat": {
+      "usage_profile": {"LTH": 110},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LTH": 0},
+      "max_power": {"LTH": 2}
+    },
+
+    "2_people_gas": {
+      "usage_profile": {"LPG": 110},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LPG": 0},
+      "max_power": {"LPG": 2}
+    },
+
+    "5_people_elec": {
+      "usage_profile": {"LVE": 220},
       "consumption_variation": 0.2,
 
       "min_power": {"LVE": 0},
       "max_power": {"LVE": 2}
+    },
+
+    "5_people_heat": {
+      "usage_profile": {"LTH": 220},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LTH": 0},
+      "max_power": {"LTH": 2}
+    },
+
+    "5_people_gas": {
+      "usage_profile": {"LPG": 220},
+      "consumption_variation": 0.2,
+
+      "min_power": {"LPG": 0},
+      "max_power": {"LPG": 2}
     },
 
     "single": {

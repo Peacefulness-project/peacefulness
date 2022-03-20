@@ -140,7 +140,7 @@ cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("hea
 
 aggregator_grid = Aggregator("grid", LVE, grid_strategy, aggregator_owner)
 
-aggregator_elec = Aggregator("aggregator_elec", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
+aggregator_elec = Aggregator("aggregator_gas", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
 
 aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity=1000)  # creation of a aggregator
 

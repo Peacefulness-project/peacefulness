@@ -1,18 +1,10 @@
 {
   "technical_data": {
-    "heat_production": {
-      "usage_profile": {"nature": "LTH"},
-      "efficiency": 0.8,
-      "period": 24,
-
-      "efficiency_variation": 0
-    },
-
-    "gas_production": {
+    "MSW_Rao": {
       "usage_profile": {"nature": "LPG"},
-      "efficiency": 0.5,
-      "period": 24,
-      "charge": 6,
+      "conversion_rate": 0.7,
+      "waste_type": "MSW_Rao",
+      "waste_to_gas_time": 360,
 
 
       "efficiency_variation": 0

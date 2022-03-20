@@ -2,14 +2,21 @@
 from src.common.DeviceMainClasses import NonControllableDevice
 
 
-class BiomassPlant(NonControllableDevice):
+class BiomassGasPlant(NonControllableDevice):
 
-    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/BiomassPlant/BiomassGasPlant.json"):
+    LHV_CH4 = 50.1 / 3.6
+
+    def __init__(self, name, contracts, agent, aggregators, profiles, parameters, filename="lib/Subclasses/Device/BiomassGasPlant/BiomassGasPlant.json"):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         time_step = self._catalog.get("time_step")
         self._max_power = parameters["max_power"] * time_step  # max power
-        self._energy_stock = parameters["charge"]
+        self._recharge = parameters["waste_recharge"]  # in kg
+        self._period = parameters["recharge_period"] / self._catalog.get("time_step")
+        self._waste_quantity = 0  # the waste stock
+        self._storage_capacity = parameters["storage_capacity"]  # the maximum energy storable in the tank, in kWh
+        self._energy_stock = self._storage_capacity / 2  # the current quantity of gas
+        self._next_prod = []
 
         self._catalog.add(f"{self.name}.exergy_in", 0)
         self._catalog.add(f"{self.name}.exergy_out", 0)
@@ -24,9 +31,10 @@ class BiomassPlant(NonControllableDevice):
         self._technical_profile = dict()
 
         # usage profile
-        self._efficiency = data_device["usage_profile"]["efficiency"]
-        self._period = data_device["usage_profile"]["period"] / self._catalog.get("time_step")
-        self._nature = data_device["usage_profile"]["nature"]
+        self._technical_profile[data_device["usage_profile"]["nature"]] = None
+        self._waste_type = data_device["waste_type"]
+        self._conversion_rate = data_device["conversion_rate"]
+        self._waste_to_gas_time = data_device["waste_to_gas_time"]
 
         self._unused_nature_removal()
 
@@ -35,44 +43,54 @@ class BiomassPlant(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
+        current_time = self._catalog.get("simulation_time")
+        if current_time % self._period== 0:
+            self._next_prod.append([current_time, self._recharge])
+            self._waste_quantity += self._recharge
+
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
-        min_production, max_production = self._production_limits()
-        energy_wanted[self._nature]["energy_minimum"] = min_production  # energy produced by the device
-        energy_wanted[self._nature]["energy_nominal"] = min_production  # energy produced by the device
-        energy_wanted[self._nature]["energy_maximum"] = max_production  # energy produced by the device
+        gas_production = self._calculate_gas_production()
+        min_production, max_production = self._production_limits(gas_production)
+        self._waste_quantity -= gas_production / self._conversion_rate  # quantity of waste remaining
+        self._energy_stock += gas_production
+        for nature in self.natures:
+            energy_wanted[nature.name]["energy_minimum"] = min_production  # energy produced by the device
+            energy_wanted[nature.name]["energy_nominal"] = min_production  # energy produced by the device
+            energy_wanted[nature.name]["energy_maximum"] = max_production  # energy produced by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
-
-        # # exergy calculation
-        # reference_temperature = self._catalog.get(f"{self._outdoor_temperature_location}.reference_temperature")
-        #
-        # exergy_in = list()
-        # for nature in energy_wanted:
-        #     exergy_in.append(energy_received * (1 - reference_temperature/self._fluid_temperature))
-        # exergy_in = sum(exergy_in)
-        #
-        # exergy_out = exergy_in * efficiency
-        #
-        # self._catalog.set(f"{self.name}.exergy_in", exergy_in)
-        # self._catalog.set(f"{self.name}.exergy_out", exergy_out)
 
     def react(self):
         super().react()
 
-        self._energy_stock -= self._catalog.get(f"{self.name}.{self._nature}.energy_accorded") * self._efficiency
+        for nature in self.natures:
+            self._energy_stock += self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")["quantity"]
 
-    def _production_limits(self):
+    def _production_limits(self, gas_production):
         """
         This method returns the minimum and maximum production possible for the plant taking into account its technical constraints.
 
         :return: min_production, max_production
         """
-        min_production = 0
-        max_production = - max(self._max_power, self._energy_stock / self._efficiency)
+        available_storage = self._storage_capacity - self._energy_stock
+        min_production = - max(gas_production - available_storage, 0)
+        max_production = - min(self._max_power, self._energy_stock + gas_production)
         # the value is negative because it is produced
 
         return min_production, max_production
+
+    def _calculate_gas_production(self):
+        if self._next_prod != []:
+            if self._catalog.get("simulation_time") == self._next_prod[0][0]:  # batch process
+                gas_production = self._next_prod[0][1] * self._conversion_rate
+                self._next_prod.pop(0)
+        else:
+            gas_production = 0
+
+        return gas_production
+
+
 
 

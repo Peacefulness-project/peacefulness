@@ -139,7 +139,7 @@ cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("hea
 
 aggregator_grid = Aggregator("grid", LVE, grid_strategy, aggregator_owner)
 
-aggregator_elec = Aggregator("aggregator_elec", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
+aggregator_elec = Aggregator("aggregator_gas", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
 
 aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity=1000)  # creation of a aggregator
 
@@ -151,7 +151,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 #       Its characteristics are:
 #       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "producer"
-#       3/ supervised by the aggregator "aggregator_elec"
+#       3/ supervised by the aggregator "aggregator_gas"
 #       For the technical features:
 #       4/ technical profile is "standard_field"
 #       5/ surface is 1000 m2
@@ -161,7 +161,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 #       Its characteristics are:
 #       1/ its contract is a "CurtailmentContract" for the low voltage electricity nature (see above, curtailment_elec)
 #       2/ owned by the agent "producer"
-#       3/ supervised by the aggregator "aggregator_elec"
+#       3/ supervised by the aggregator "aggregator_gas"
 #       For the technical features:
 #       4/ technical profile is "standard"
 #       5/ location is "Pau"
@@ -170,7 +170,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 #       Its characteristics are:
 #       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "consumer"
-#       3/ supervised by the aggregator "aggregator_elec"
+#       3/ supervised by the aggregator "aggregator_gas"
 #       For the technical features:
 #       4/ user profile is "family"
 #       5/ technical profile is "family"
@@ -179,7 +179,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 #       Its characteristics are:
 #       1/ its contract is an "EgoistContract" contract for the low voltage electricity nature (see above, BAU_elec)
 #       2/ owned by the agent "consumer"
-#       3/ supervised by the aggregator "aggregator_elec"
+#       3/ supervised by the aggregator "aggregator_gas"
 #       For the technical features:
 #       4/ user profile is "family"
 #       5/ technical profile is "medium_consumption"
