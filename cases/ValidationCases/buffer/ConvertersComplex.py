@@ -110,7 +110,7 @@ threshold_contract_heat = subclasses_dictionary["Contract"]["ThresholdPricesCont
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
 
-aggregator_elec = Aggregator("aggregator_gas", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
+aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
 
 aggregator_heat = Aggregator("aggregator_heat", LTH, autarky_strategy, aggregators_manager)
 

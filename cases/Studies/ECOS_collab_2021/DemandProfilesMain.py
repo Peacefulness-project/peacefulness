@@ -144,9 +144,9 @@ world.agent_generation("old_DHN_2", 1000, "cases/Studies/ECOS_collab_2021/AgentT
 world.agent_generation("old_DHN_5", 500, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_5_demand.json", [aggregator_elec, aggregator_heat_old], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 # # new DHN
-# world.agent_generation("new_DHN_1", 150, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_1_demand.json", [aggregator_gas, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-# world.agent_generation("new_DHN_2", 300, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_2_demand.json", [aggregator_gas, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-# world.agent_generation("new_DHN_5", 150, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_5_demand.json", [aggregator_gas, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("new_DHN_1", 150, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_1_demand.json", [aggregator_elec, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("new_DHN_2", 300, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_2_demand.json", [aggregator_elec, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("new_DHN_5", 150, "cases/Studies/ECOS_collab_2021/AgentTemplates/AgentECOS_5_demand.json", [aggregator_elec, aggregator_heat_new], {"LVE": price_managing_elec, "LTH": price_managing_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 
 # ##############################################################################################

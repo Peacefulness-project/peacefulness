@@ -144,7 +144,7 @@ cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("hea
 #       3/ owned by the agent "aggregators_owner"
 #
 
-# TODO: create an aggregator called "aggregator_gas"
+# TODO: create an aggregator called "aggregator_elec"
 #       Its characteristics are:
 #       1/ associated with the low voltage electricity nature (see above, LVE)
 #       2/ applying the strategy "AlwaysSatisfied" (see above, elec_strategy)

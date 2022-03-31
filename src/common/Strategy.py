@@ -319,7 +319,7 @@ class Strategy:
         j = 0
 
         # adding the buying capacity to the other aggregator as a standard offer
-        outside_selling_price = aggregator.contract.buying_price
+        outside_selling_price = aggregator.contract.buying_price / aggregator.efficiency
         outside_selling_capacity = - aggregator.capacity["buying"]
         outside_offer = {"emergency": 0, "quantity": outside_selling_capacity, "price": outside_selling_price, "name": "outside"}
 
@@ -327,7 +327,7 @@ class Strategy:
         sorted_offers = sorted(sorted_offers, key=self.get_price, reverse=False)
 
         # adding the selling capacity to the other aggregator as a standard demand
-        outside_buying_price = aggregator.contract.selling_price
+        outside_buying_price = aggregator.contract.selling_price * aggregator.efficiency
         outside_buying_capacity = aggregator.capacity["selling"]
         outside_demand = {"emergency": 0, "quantity": outside_buying_capacity, "price": outside_buying_price, "name": "outside"}
 
@@ -877,14 +877,41 @@ class Strategy:
     # ##########################################################################################
 
     def _update_balances(self, aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced):
-        self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": 0, "outside": energy_bought_outside})
-        self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": 0, "outside": energy_sold_outside})
+        energy_bought_dict = self._catalog.get(f"{aggregator.name}.energy_bought")
+        energy_bought_dict["outside"] = energy_bought_outside
+        self._catalog.set(f"{aggregator.name}.energy_bought", energy_bought_dict)
 
-        self._catalog.set(f"{aggregator.name}.money_spent", {"inside": 0, "outside": money_spent_outside})
-        self._catalog.set(f"{aggregator.name}.money_earned", {"inside": 0, "outside": money_earned_outside})
+        energy_sold_dict = self._catalog.get(f"{aggregator.name}.energy_sold")
+        energy_sold_dict["outside"] = energy_sold_outside
+        self._catalog.set(f"{aggregator.name}.energy_sold", energy_sold_dict)
+
+        money_spent_dict = self._catalog.get(f"{aggregator.name}.money_spent")
+        money_spent_dict["outside"] = money_spent_outside
+        self._catalog.set(f"{aggregator.name}.money_spent", money_spent_dict)
+
+        money_earned_dict = self._catalog.get(f"{aggregator.name}.money_earned")
+        money_earned_dict["outside"] = money_earned_outside
+        self._catalog.set(f"{aggregator.name}.money_earned", money_earned_dict)
 
         self._catalog.set(f"{aggregator.name}.energy_erased", {"production": maximum_energy_produced - energy_bought_inside, "consumption": maximum_energy_consumed - energy_sold_inside})
 
+        if aggregator.superior:
+            energy_bought_dict = self._catalog.get(f"{aggregator.superior.name}.energy_bought")
+            energy_bought_dict["inside"] = energy_bought_dict["inside"] + energy_sold_outside
+            self._catalog.set(f"{aggregator.superior.name}.energy_bought", energy_bought_dict)
+            
+            energy_sold_dict = self._catalog.get(f"{aggregator.superior.name}.energy_sold")
+            energy_sold_dict["inside"] = energy_sold_dict["inside"] + energy_bought_outside
+            self._catalog.set(f"{aggregator.superior.name}.energy_sold", energy_sold_dict)
+
+            money_spent_dict = self._catalog.get(f"{aggregator.superior.name}.money_spent")
+            money_spent_dict["inside"] = money_spent_dict["inside"] + money_earned_outside
+            self._catalog.set(f"{aggregator.superior.name}.money_spent", money_spent_dict)
+
+            money_earned_dict = self._catalog.get(f"{aggregator.superior.name}.money_earned")
+            money_earned_dict["inside"] = money_earned_dict["inside"] + money_spent_outside
+            self._catalog.set(f"{aggregator.superior.name}.money_earned", money_earned_dict)
+            
     # ##########################################################################################
     # Utility
     # ##########################################################################################

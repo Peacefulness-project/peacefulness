@@ -48,7 +48,7 @@ world = World(name_world)  # creation
 
 # ##############################################################################################
 # Definition of the path to the files
-world.set_directory("cases/Studies/PresentationArticleCases/Results/LargeScaleCase/")  # here, you have to put the path to your results directory
+world.set_directory("cases/Studies/PresentationArticleCases/Results/LargeScaleCaseRef/")  # here, you have to put the path to your results directory
 
 # ##############################################################################################
 # Definition of the random seed
@@ -109,7 +109,7 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "M
 # Creation of strategies
 strategy_grid = subclasses_dictionary["Strategy"]["Grid"]()
 
-strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_BAU = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 
 # ##############################################################################################
@@ -145,9 +145,9 @@ cooperative_gas_contract = subclasses_dictionary["Contract"]["CooperativeContrac
 # Creation of aggregators
 national_grid = Aggregator("national_grid", LVE, strategy_grid, aggregator_owner)
 
-local_electrical_grid = Aggregator("local_electrical_grid", LVE, strategy_light_autarky, aggregator_owner, national_grid, local_electrical_grid_contract)
+local_electrical_grid = Aggregator("local_electrical_grid", LVE, strategy_BAU, aggregator_owner, national_grid, local_electrical_grid_contract)
 
-local_gas_grid = Aggregator("local_gas_grid", LPG, strategy_light_autarky, aggregator_owner, local_electrical_grid, local_gas_grid_contract)
+local_gas_grid = Aggregator("local_gas_grid", LPG, strategy_BAU, aggregator_owner, national_grid, local_gas_grid_contract)
 
 # ##############################################################################################
 # Manual creation of devices
@@ -199,7 +199,7 @@ subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="mont
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("WindTurbine", period="month")
-subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("methanizer", period="month")
+subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("BiomassGasPlant", period="month")
 subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("PhotovoltaicsAdvanced", period="month")
 
 subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()

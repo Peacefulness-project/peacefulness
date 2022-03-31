@@ -84,7 +84,7 @@ world.set_random_seed("tournesol")
 start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               8760)  # number of time steps simulated
+               87)  # number of time steps simulated
 
 
 # ##############################################################################################
@@ -181,7 +181,7 @@ forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dumm
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["WhenProfitableEmergency"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 
 # the heat strategy
 strategy_heat = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
@@ -248,11 +248,11 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_man
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_gas = Aggregator(aggregator_name, LPG, strategy_heat, aggregator_manager, aggregator_grid, BAU_gas, forecaster=forecast_daemon)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec, forecaster=forecast_daemon)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
-aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_gas, BAU_elec, 1, {"buying": 7894456, "selling": 45612})  # creation of a aggregator
+aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_manager, aggregator_elec, BAU_elec, 1, {"buying": 7894456, "selling": 45612})  # creation of a aggregator
 
 
 # ##############################################################################################
@@ -263,15 +263,15 @@ aggregator_heat = Aggregator(aggregator_name, LTH, strategy_elec, aggregator_man
 
 
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
-# subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_gas, {"user": "ECOS", "device": "ECOS_5"})
-subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
+# subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
+# subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_elec, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-# world.agent_generation("single", 20, "lib/AgentTemplates/EgoistSingle.json", aggregator_gas, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-# world.agent_generation("family", 20, "lib/AgentTemplates/EgoistFamily.json", [aggregator_gas, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-# world.agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_gas, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
+world.agent_generation("single", 20, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("family", 20, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -325,7 +325,7 @@ test_contract_datalogger.add("physical_time", graph_status="X")
 # subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
+subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
 # subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period="global")
