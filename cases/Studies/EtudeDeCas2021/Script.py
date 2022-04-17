@@ -63,8 +63,8 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
 
     # price managers
     if grid == "mixed":
-        price_managing_heat_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_BAU", {"nature": LTH.name, "buying_price": 0.10, "selling_price": 0})  # price manager for the local electrical grid
-        price_managing_heat_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_DLC", {"nature": LTH.name, "buying_price": 0.09, "selling_price": 0})  # price manager for the local electrical grid
+        price_managing_heat_BAU = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_BAU", {"nature": LTH.name, "buying_price": 0.105, "selling_price": 0})  # price manager for the local electrical grid
+        price_managing_heat_DLC = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_DLC", {"nature": LTH.name, "buying_price": 0.95, "selling_price": 0})  # price manager for the local electrical grid
 
         price_managing_heat_flexible_producer = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_heat_flexible_producer", {"nature": LTH.name, "buying_price": 0, "selling_price": 0.1})  # price manager for the local electrical grid
 
@@ -136,7 +136,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
         supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
         if grid == "mixed":  # if there is a DHN
             # the DHN strategy
-            supervisor_heat = supervisor_elec
+            supervisor_heat = subclasses_dictionary["Strategy"][f"SubaggregatorHeatEmergency"]()
 
     # the national grid strategy
     grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()

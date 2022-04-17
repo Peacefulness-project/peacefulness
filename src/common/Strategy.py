@@ -899,7 +899,7 @@ class Strategy:
             energy_bought_dict = self._catalog.get(f"{aggregator.superior.name}.energy_bought")
             energy_bought_dict["inside"] = energy_bought_dict["inside"] + energy_sold_outside
             self._catalog.set(f"{aggregator.superior.name}.energy_bought", energy_bought_dict)
-            
+
             energy_sold_dict = self._catalog.get(f"{aggregator.superior.name}.energy_sold")
             energy_sold_dict["inside"] = energy_sold_dict["inside"] + energy_bought_outside
             self._catalog.set(f"{aggregator.superior.name}.energy_sold", energy_sold_dict)
@@ -911,7 +911,7 @@ class Strategy:
             money_earned_dict = self._catalog.get(f"{aggregator.superior.name}.money_earned")
             money_earned_dict["inside"] = money_earned_dict["inside"] + money_spent_outside
             self._catalog.set(f"{aggregator.superior.name}.money_earned", money_earned_dict)
-            
+
     # ##########################################################################################
     # Utility
     # ##########################################################################################

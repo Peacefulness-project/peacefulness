@@ -114,7 +114,7 @@ aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_ma
 
 aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
 aggregator_heat = Aggregator("aggregator_heat", LTH, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
-aggregator_gas = Aggregator("aggregator_elec", LPG, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
+aggregator_gas = Aggregator("aggregator_gas", LPG, BAU_strategy, aggregators_manager, aggregator_grid, BAU_contract_elec)
 
 
 # ##############################################################################################
