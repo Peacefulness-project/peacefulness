@@ -449,6 +449,34 @@ class Strategy:
 
         return quantities_and_prices
 
+    def _prepare_quantities_max_exchanges(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
+        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+
+        if minimum_energy_produced > minimum_energy_consumed:  # if minimum consumption is not sufficient ot absorb minimum production
+            if minimum_energy_produced > maximum_energy_consumed:  # if maximum consumption is not sufficient to absorb minimum production
+                energy_difference = maximum_energy_consumed - minimum_energy_produced
+                energy_minimum = energy_difference  # the minimum required to balance the grid
+                energy_nominal = energy_difference  # the nominal required to balance the grid
+                energy_maximum = energy_difference  # the minimum required to balance the grid
+            else:
+                energy_difference = maximum_energy_consumed - minimum_energy_produced
+                energy_minimum = 0  # the minimum required to balance the grid
+                energy_nominal = 0  # the nominal required to balance the grid
+                energy_maximum = energy_difference  # the minimum required to balance the grid
+        else:
+            energy_difference_minimum = minimum_energy_consumed - minimum_energy_produced
+            energy_difference_maximum = maximum_energy_consumed - minimum_energy_consumed
+            energy_minimum = energy_difference_minimum  # the minimum required to balance the grid
+            energy_nominal = energy_difference_minimum  # the nominal required to balance the grid
+            energy_maximum = energy_difference_maximum  # the minimum required to balance the grid
+
+        message["energy_minimum"] = energy_minimum
+        message["energy_nominal"] = energy_nominal
+        message["energy_maximum"] = energy_maximum
+        quantities_and_prices.append(message)
+
+        return quantities_and_prices
+
     def _publish_needs(self, aggregator, quantities_and_prices):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
         energy_pullable = aggregator.capacity["buying"]  # total energy obtainable from the superior through the connection
         energy_pushable = aggregator.capacity["selling"]  # total energy givable from the superior through the connection
