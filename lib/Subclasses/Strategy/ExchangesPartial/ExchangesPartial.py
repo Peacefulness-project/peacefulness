@@ -55,7 +55,6 @@ class ExchangesPartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -74,7 +73,6 @@ class ExchangesPartial(Strategy):
 
         # calculating the energy available
         energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution of energy
@@ -85,12 +83,16 @@ class ExchangesPartial(Strategy):
         # demand side
         [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
-        # offer side
-        [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
-
         # then we distribute the remaining quantities according to our sort
         # distribution among consumptions
         [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+
+        # ##########################################################################################
+        # calculating the energy available
+        energy_available_production = maximum_energy_consumed - energy_bought_outside  # the total energy available for productions
+
+        # offer side
+        [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
@@ -98,7 +100,6 @@ class ExchangesPartial(Strategy):
         # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
-
 
 
 
