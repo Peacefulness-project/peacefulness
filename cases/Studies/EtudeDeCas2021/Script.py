@@ -180,9 +180,9 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     if grid == "mixed":
         aggregator_name = "DHN_aggregator"
         if strategy_exchange != "BAU": # in cases with DSM, the power of the HP is considered "infinite" and equal to 10 MW otherwise
-            aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 2.5, {"buying": 6000, "selling": 0})  # creation of a aggregator
+            aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 2.5, {"buying": 2000, "selling": 0})  # creation of a aggregator
         else:
-            aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 2.5, {"buying": 6000, "selling": 0})  # creation of a aggregator
+            aggregator_heat = Aggregator(aggregator_name, LTH, supervisor_heat, DHN_manager, aggregator_elec, contract_DHN, 2.5, {"buying": 2000, "selling": 0})  # creation of a aggregator
 
     # ##############################################################################################
     # Devices
@@ -195,7 +195,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_4", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
     subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_5", contract_not_flexible_production_elec, producer, aggregator_elec, {"device": "ECOS_high"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
     if grid == "mixed":
-        subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_flexible_production_heat, producer, aggregator_heat, {"device": "heat"}, {"max_power": 6000})  # creation of a heat production unit
+        subclasses_dictionary["Device"]["DummyProducer"]("heat_production", contract_flexible_production_heat, producer, aggregator_heat, {"device": "heat"}, {"max_power": 7000})  # creation of a heat production unit
     elif grid == "elec":
         subclasses_dictionary["Device"]["ElectricDam"]("electric_dam", contract_flexible_production_elec, producer, aggregator_elec, {"device": "Pelton"}, {"height": 5, "max_power": 3000, "water_flow_daemon": water_flow_daemon.name})  # creation of an electric dam
 

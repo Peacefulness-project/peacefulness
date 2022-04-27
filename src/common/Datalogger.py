@@ -195,19 +195,20 @@ class Datalogger:
             file.close()
 
     def _global_process(self):  # seeks the min, the mean, the average, the max and the sum of the chosen key at the end of the simulation
-        for key in self._list:
-            current_value = self._list[key](key)  # the current value of the key
+        if self._catalog.get("simulation_time") >= 3:  # first rounds are ignored because unmeaningful peaks are reached at this moment
+            for key in self._list:
+                current_value = self._list[key](key)  # the current value of the key
 
-            if current_value is not None:  # if the value is relevant during this turn
-                the_mean = (self._buffer[key]["mean"] * (self._buffer[key]["active_rounds"] - 1)/self._buffer[key]["active_rounds"])\
-                           + (current_value / self._buffer[key]["active_rounds"])
-                active_rounds = self._buffer[key]["active_rounds"] + 1
+                if current_value is not None:  # if the value is relevant during this turn
+                    the_mean = (self._buffer[key]["mean"] * (self._buffer[key]["active_rounds"] - 1)/self._buffer[key]["active_rounds"])\
+                               + (current_value / self._buffer[key]["active_rounds"])
+                    active_rounds = self._buffer[key]["active_rounds"] + 1
 
-                minimum = min(self._buffer[key]["min"], current_value)
-                maximum = max(self._buffer[key]["max"], current_value)
-                the_sum = self._buffer[key]["sum"] + current_value
+                    minimum = min(self._buffer[key]["min"], current_value)
+                    maximum = max(self._buffer[key]["max"], current_value)
+                    the_sum = self._buffer[key]["sum"] + current_value
 
-                self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
+                    self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
 
     # ##########################################################################################
     # Final operations
