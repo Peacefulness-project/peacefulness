@@ -102,4 +102,3 @@ class ExchangesPartial(Strategy):
 
 
 
-

@@ -35,14 +35,22 @@ class ExchangesEmergency(Strategy):
 
         quantities_and_prices = self._prepare_quantities_max_exchanges(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
+        print(minimum_energy_consumed)
+        print(quantities_and_prices)
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+        print(quantities_and_prices)
+        print()
 
         return quantities_and_prices
 
     def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
+        energy_bought_outside = 0  # the absolute value of energy bought outside
+        energy_sold_outside = 0  # the absolute value of energy sold outside
         energy_bought_inside = 0  # the absolute value of energy bought inside
         energy_sold_inside = 0  # the absolute value of energy sold inside
 
+        money_earned_outside = 0  # the absolute value of money earned outside
+        money_spent_outside = 0  # the absolute value of money spent outside
         money_earned_inside = 0  # the absolute value of money earned inside
         money_spent_inside = 0  # the absolute value of money spent inside
 
@@ -60,40 +68,39 @@ class ExchangesEmergency(Strategy):
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
+        # balance of the exchanges made with outside
+        [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+
+        # ##########################################################################################
+        # balance of energy available
+        print(energy_bought_outside)
+
+        # calculating the energy available
+        energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
+        energy_available_production = maximum_energy_consumed + energy_sold_outside  # the total energy available for productions
+
         # ##########################################################################################
         # distribution of energy
 
-        if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid
-            # we consider that the gird falls
-            # updates the balances
-            self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": 0, "outside": 0})
-            self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": 0, "outside": 0})
+        # formulation of needs
+        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
-            self._catalog.set(f"{aggregator.name}.money_spent", {"inside": 0, "outside": 0})
-            self._catalog.set(f"{aggregator.name}.money_earned", {"inside": 0, "outside": 0})
+        # demand side
+        [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
-        else:  # if there is some possibility to balance the grid
+        # offer side
+        [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
-            # formulation of needs
-            [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        # then we distribute the remaining quantities according to our sort
+        # distribution among consumptions
+        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
-            # demand side
-            [sorted_demands, maximum_energy_produced, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, maximum_energy_produced, money_earned_inside, energy_sold_inside)
-
-            # offer side
-            [sorted_offers, maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, maximum_energy_consumed, money_spent_inside, energy_bought_inside)
-
-            # then we distribute the remaining quantities according to our sort
-            # distribution among consumptions
-            [maximum_energy_produced, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, max_price, sorted_demands, maximum_energy_produced, money_earned_inside, energy_sold_inside)
-
-            # distribution among productions
-            [maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, maximum_energy_consumed, money_spent_inside, energy_bought_inside)
+        # distribution among productions
+        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
         # ##########################################################################################
         # updates the balances
-        self._update_balances(aggregator, energy_bought_inside, 0, energy_sold_inside, 0, money_spent_inside, 0, money_earned_inside, 0, maximum_energy_consumed, maximum_energy_produced)
-
+        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
 
 
 

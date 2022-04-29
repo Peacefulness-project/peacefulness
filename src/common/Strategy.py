@@ -468,7 +468,7 @@ class Strategy:
             energy_difference_maximum = maximum_energy_consumed - minimum_energy_consumed
             energy_minimum = energy_difference_minimum  # the minimum required to balance the grid
             energy_nominal = energy_difference_minimum  # the nominal required to balance the grid
-            energy_maximum = energy_difference_maximum  # the minimum required to balance the grid
+            energy_maximum = energy_difference_minimum + energy_difference_maximum  # the minimum required to balance the grid
 
         message["energy_minimum"] = energy_minimum
         message["energy_nominal"] = energy_nominal
