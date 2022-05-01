@@ -35,11 +35,7 @@ class ExchangesEmergency(Strategy):
 
         quantities_and_prices = self._prepare_quantities_max_exchanges(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
-        print(minimum_energy_consumed)
-        print(quantities_and_prices)
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
-        print(quantities_and_prices)
-        print()
 
         return quantities_and_prices
 
@@ -73,11 +69,10 @@ class ExchangesEmergency(Strategy):
 
         # ##########################################################################################
         # balance of energy available
-        print(energy_bought_outside)
 
         # calculating the energy available
         energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed + energy_sold_outside  # the total energy available for productions
+        energy_available_production = maximum_energy_consumed + energy_sold_outside - energy_bought_outside  # the total energy available for production
 
         # ##########################################################################################
         # distribution of energy

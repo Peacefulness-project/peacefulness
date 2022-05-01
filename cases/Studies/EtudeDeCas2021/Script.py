@@ -259,6 +259,8 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+    subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period="global")
+    subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
     subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")

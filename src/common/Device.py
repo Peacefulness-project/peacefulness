@@ -316,8 +316,6 @@ class Device:
             self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside + money_earned[nature.name], "outside": money_spent_outside})
             self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside + money_spent[nature.name], "outside": money_earned_outside})
 
-            # print(self._catalog.get(f"{aggregator.name}.money_earned"))
-
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
             energy_bought_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_bought")
