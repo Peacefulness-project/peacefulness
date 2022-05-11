@@ -100,12 +100,12 @@ class Strategy:
                 maximum_energy_produced -= energy_maximum
 
         # decision-making values recording
-        self._catalog.set(f"{self.name}.minimum_energy_consumption", minimum_energy_consumed)
-        self._catalog.set(f"{self.name}.maximum_energy_consumption", maximum_energy_consumed)
-        self._catalog.set(f"{self.name}.minimum_energy_production", minimum_energy_produced)
-        self._catalog.set(f"{self.name}.maximum_energy_production", maximum_energy_produced)
-        self._catalog.set(f"{self.name}.energy_stored", 0)
-        self._catalog.set(f"{self.name}.energy_storable", 0)
+        self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", minimum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", maximum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.minimum_energy_production", minimum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_production", maximum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.energy_stored", 0)
+        self._catalog.set(f"{aggregator.name}.energy_storable", 0)
 
         # quantities concerning subaggregators
         for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
