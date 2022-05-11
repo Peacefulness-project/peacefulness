@@ -338,10 +338,10 @@ class Strategy:
         energy_sold_outside = 0
 
         # the minimum to keep available to satisfy the urgent needs
-        if urgent_quantity_to_cover > 0:
-            energy_available = maximum_energy_produced + outside_buying_capacity - urgent_quantity_to_cover
+        if urgent_quantity_to_cover > 0:  # if there more consumption
+            energy_available = max(0, maximum_energy_produced + outside_buying_capacity - urgent_quantity_to_cover)
         else:
-            energy_available = maximum_energy_consumed - outside_selling_price + urgent_quantity_to_cover
+            energy_available = max(0, maximum_energy_consumed - outside_selling_price + urgent_quantity_to_cover)
 
         while i < len(sorted_demands) and j < len(sorted_offers) and energy_available:
             buying_price = sorted_demands[i]["price"]
@@ -394,7 +394,7 @@ class Strategy:
                 else:  # if the cheapest production is not sufficient to fill the gap
                     urgent_quantity_to_cover += sorted_offers[j]["quantity"]
                     if sorted_offers[j]["name"] == "outside":  # if the energy is bought from outside
-                        urgent_energy_with_outside += sorted_offers[j]["quantity"]
+                        urgent_energy_with_outside -= sorted_offers[j]["quantity"]
                     else:
                         quantities_exchanged_internally += abs(sorted_offers[j]["quantity"])
                     j += 1
@@ -421,6 +421,7 @@ class Strategy:
 
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         message["energy_maximum"] = urgent_energy_with_outside
+        message["energy_nominal"] = urgent_energy_with_outside
         message["energy_minimum"] = urgent_energy_with_outside
         quantities_and_prices.append(message)
 

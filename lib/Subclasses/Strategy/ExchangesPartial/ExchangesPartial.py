@@ -88,6 +88,8 @@ class ExchangesPartial(Strategy):
         # offer side
         [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
+        energy_available_consumption = max(0, energy_available_consumption - maximum_energy_produced)
+
         # then we distribute the remaining quantities according to our sort
         # distribution among consumptions
         [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
