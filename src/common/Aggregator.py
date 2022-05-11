@@ -44,6 +44,14 @@ class Aggregator:
 
         self._catalog.add(f"{self.name}.energy_erased", {"production": 0, "consumption": 0})  # accounts for the money earned by the aggregator by selling energy during the round
 
+        # decision-making values
+        self._catalog.add(f"{self.name}.minimum_energy_consumption")
+        self._catalog.add(f"{self.name}.maximum_energy_consumption")
+        self._catalog.add(f"{self.name}.minimum_energy_production")
+        self._catalog.add(f"{self.name}.maximum_energy_production")
+        self._catalog.add(f"{self.name}.energy_stored")
+        self._catalog.add(f"{self.name}.energy_storable")
+
         if self.superior:
             self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_wanted", [])  # couples price/quantities sent by the aggregator to its superior
             self._catalog.add(f"{self.name}.{self.superior.nature.name}.energy_accorded", [])  # couple price/quantities accorded by the aggregator superior
@@ -94,6 +102,14 @@ class Aggregator:
 
         self._catalog.set(f"{self.name}.money_spent", {"inside": 0, "outside": 0})  # accounts for the money spent by the aggregator to buy energy during the round
         self._catalog.set(f"{self.name}.money_earned", {"inside": 0, "outside": 0})  # accounts for the money earned by the aggregator by selling energy during the round
+
+        # decision-making values
+        self._catalog.set(f"{self.name}.minimum_energy_consumption", 0)
+        self._catalog.set(f"{self.name}.maximum_energy_consumption", 0)
+        self._catalog.set(f"{self.name}.minimum_energy_production", 0)
+        self._catalog.set(f"{self.name}.maximum_energy_production", 0)
+        self._catalog.set(f"{self.name}.energy_stored", 0)
+        self._catalog.set(f"{self.name}.energy_storable", 0)
 
     def ask(self):  # aggregators make local balances and then publish their needs (both in demand and in offer)
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators

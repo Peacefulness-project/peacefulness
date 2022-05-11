@@ -99,6 +99,14 @@ class Strategy:
                     minimum_energy_produced -= energy_minimum
                 maximum_energy_produced -= energy_maximum
 
+        # decision-making values recording
+        self._catalog.set(f"{self.name}.minimum_energy_consumption", minimum_energy_consumed)
+        self._catalog.set(f"{self.name}.maximum_energy_consumption", maximum_energy_consumed)
+        self._catalog.set(f"{self.name}.minimum_energy_production", minimum_energy_produced)
+        self._catalog.set(f"{self.name}.maximum_energy_production", maximum_energy_produced)
+        self._catalog.set(f"{self.name}.energy_stored", 0)
+        self._catalog.set(f"{self.name}.energy_storable", 0)
+
         # quantities concerning subaggregators
         for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
             quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
@@ -123,9 +131,6 @@ class Strategy:
                     else:
                         minimum_energy_produced -= energy_minimum
                     maximum_energy_produced -= energy_maximum
-
-        # mismatch calculation
-        # mismatch = minimum_energy_consumed + maximum_energy_consumed - minimum_energy_produced - maximum_energy_produced
 
         return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced]
 
