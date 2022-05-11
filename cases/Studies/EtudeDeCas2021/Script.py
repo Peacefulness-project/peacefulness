@@ -136,7 +136,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
         supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
         if grid == "mixed":  # if there is a DHN
             # the DHN strategy
-            supervisor_heat = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()
+            supervisor_heat = supervisor_elec
 
     # the national grid strategy
     grid_supervisor = subclasses_dictionary["Strategy"]["Grid"]()
