@@ -768,6 +768,19 @@ class Storage(Device):
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
         pass
 
+    def make_balances(self):
+        super().make_balances()  # non-specific actions
+
+        for nature in self.natures:
+            energy_stored_aggregator = self._catalog.get(f"{nature.name}.energy_stored")
+            energy_storable_aggregator = self._catalog.get(f"{nature.name}.energy_storable")
+
+            energy_stored_device = self._catalog.get(f"{self.name}.energy_stored") * self._efficiency["discharge"]
+            energy_storable_device = (self._capacity - self._catalog.get(f"{self.name}.energy_stored")) / self._efficiency["charge"]
+
+            self._catalog.set(f"{nature.name}.energy_stored", energy_stored_aggregator + energy_stored_device)
+            self._catalog.set(f"{nature.name}.energy_storable", energy_storable_aggregator + energy_storable_device)
+
     # ##########################################################################################
     # Utility
     # ##########################################################################################
