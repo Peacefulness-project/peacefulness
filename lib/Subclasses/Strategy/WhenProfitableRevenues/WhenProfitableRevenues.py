@@ -19,7 +19,6 @@ class WhenProfitableRevenues(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
@@ -49,7 +48,7 @@ class WhenProfitableRevenues(Strategy):
 
         return quantities_and_prices
 
-    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
+    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator distributes energy
         energy_bought_outside = 0  # the absolute value of energy bought outside
         energy_sold_outside = 0  # the absolute value of energy sold outside
         energy_bought_inside = 0  # the absolute value of energy bought inside
@@ -64,7 +63,6 @@ class WhenProfitableRevenues(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -105,6 +103,7 @@ class WhenProfitableRevenues(Strategy):
         # distribution among productions
         [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
+        # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
 

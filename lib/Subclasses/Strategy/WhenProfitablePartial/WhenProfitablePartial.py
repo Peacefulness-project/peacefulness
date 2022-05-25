@@ -19,7 +19,6 @@ class WhenProfitablePartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
@@ -64,7 +63,6 @@ class WhenProfitablePartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -84,8 +82,9 @@ class WhenProfitablePartial(Strategy):
         # ##########################################################################################
         # balance of energy available
 
-        energy_available_consumption = maximum_energy_produced + energy_bought_outside - energy_sold_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside  # the total energy available for productions
+        # calculating the energy available
+        energy_available_consumption = self._quantities_exchanged_internally[aggregator.name]["quantity"] + energy_bought_outside  # the total energy available for consumptions
+        energy_available_production = self._quantities_exchanged_internally[aggregator.name]["quantity"] + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
         # distribution
