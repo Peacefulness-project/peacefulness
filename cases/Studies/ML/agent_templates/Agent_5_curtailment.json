@@ -1,0 +1,19 @@
+{
+  "template name": "5_people_curtailment",
+
+  "composition": {
+    "Background": [{"name":"Background", "data_profiles": {"user": "ECOS", "device": "ECOS_5"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+    "Dishwasher": [{"name":"Dishwasher", "data_profiles": {"user": "ECOS_5", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+    "WashingMachine": [{"name":"WashingMachine", "data_profiles": {"user": "ECOS_5", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+    "Dryer": [{"name":"Dryer", "data_profiles": {"user": "ECOS_5", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+
+    "Heating": [{"name":"Heating", "data_profiles": {"user": "residential", "device": "house_elec"}, "quantity": [1,1], "contract": "LVE_curtailment"}],
+    "HotWaterTank": [{"name":"HotWaterTank", "data_profiles": {"user": "ECOS_5", "device": "5_people_elec"}, "quantity": [1,1], "contract": "LVE_curtailment"}]
+  },
+
+  "contracts": {
+    "LVE_curtailment":  {"nature_name":"LVE", "contract_subclass": "CurtailmentContract"},
+    "LVE_BAU":  {"nature_name":"LVE", "contract_subclass": "EgoistContract"}
+  }
+
+}

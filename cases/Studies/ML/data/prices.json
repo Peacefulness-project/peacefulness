@@ -1,0 +1,10 @@
+{
+    "France": {
+        "format": "non_periodic",
+        "total_irradiation": {
+
+            "2018-01-01 01:00:00": 0.0000
+
+        }
+    }
+}

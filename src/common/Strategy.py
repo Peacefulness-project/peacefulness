@@ -2,11 +2,12 @@
 # It contains only the name of a file serving as a "main" for the supervisor and a description
 from math import inf
 from src.tools.GlobalWorld import get_world
+from typing import Dict, List, Callable
 
 
 class Strategy:
 
-    def __init__(self, name, description):
+    def __init__(self, name: str, description: str):
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
@@ -35,14 +36,14 @@ class Strategy:
     def reinitialize(self):
         pass
 
-    def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
+    def bottom_up_phase(self, aggregator: "Aggregator"):  # before communicating with the exterior, the aggregator makes its local balances
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         pass
 
-    def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator ditribute the energy among the devices and the subaggregators it has to manage
+    def top_down_phase(self, aggregator: "Aggregator"):  # after having exchanged with the exterior, the aggregator ditribute the energy among the devices and the subaggregators it has to manage
         pass
 
-    def check(self, aggregator):  # verification that decisions taken by supervisors are compatible for multi-energy devices
+    def check(self, aggregator: "Aggregator"):  # verification that decisions taken by supervisors are compatible for multi-energy devices
 
         [demands, offers] = self.make_energy_balances(aggregator)
 
@@ -70,13 +71,13 @@ class Strategy:
     # Strategy blocks
     # ##########################################################################################
 
-    def _limit_prices(self, aggregator):  # set limit prices for selling and buying energy
+    def _limit_prices(self, aggregator: "Aggregator"):  # set limit prices for selling and buying energy
         min_price = self._catalog.get(f"{aggregator.nature.name}.limit_selling_price")  # the price at which the grid sells energy
         max_price = self._catalog.get(f"{aggregator.nature.name}.limit_buying_price")  # the price at which the grid sells energy
 
         return [min_price, max_price]
 
-    def _limit_quantities(self, aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
+    def _limit_quantities(self, aggregator: "Aggregator", minimum_energy_consumed: float, maximum_energy_consumed: float, minimum_energy_produced: float, maximum_energy_produced: float):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
         # quantities concerning devices
         for device_name in aggregator.devices:
             energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
@@ -138,14 +139,14 @@ class Strategy:
     # forecast
     # ##########################################################################################
 
-    def call_to_forecast(self, aggregator):
+    def call_to_forecast(self, aggregator: "Aggregator"):
         aggregator.forecaster.get_predictions()
 
     # ##########################################################################################
     # bottom-up phase functions
     # ##########################################################################################
 
-    def make_energy_balances(self, aggregator):
+    def make_energy_balances(self, aggregator: "Aggregator"):
         demands = []  # a list where the demands of energy are sorted by emergency
         offers = []  # a list where the offers of energy are sorted by emergency
 
@@ -189,7 +190,7 @@ class Strategy:
 
         return [demands, offers]
 
-    def _reinitialise_decisions(self, aggregator):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
+    def _reinitialise_decisions(self, aggregator: "Aggregator"):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
         message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
 
         for device_name in aggregator.devices:  # if there is missing energy
@@ -198,7 +199,7 @@ class Strategy:
         for subaggregator in aggregator.subaggregators:
             self._catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", [])
 
-    def _remove_emergencies(self, aggregator, sorted_demands, sorted_offers):  # remove all the demands and offers who are urgent
+    def _remove_emergencies(self, aggregator: "Aggregator", sorted_demands: List[Dict], sorted_offers: List[Dict]):  # remove all the demands and offers who are urgent
         lines_to_remove = []  # a list containing the number of lines having to be removed
 
         # removing of urgent demands
@@ -237,7 +238,7 @@ class Strategy:
 
         return [sorted_demands, sorted_offers]
 
-    def _exchanges_balance(self, aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside):
+    def _exchanges_balance(self, aggregator: "Aggregator", money_spent_outside: float, energy_bought_outside: float, money_earned_outside: float, energy_sold_outside: float):
         if aggregator.superior:
             for element in self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded"):
                 if element["quantity"] > 0:  # energy bought by the aggregator
@@ -254,7 +255,7 @@ class Strategy:
 
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
-    def _prepare_quantitites_subaggregator(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # this function prepare the quantities and prices asked or proposed to the grid
+    def _prepare_quantitites_subaggregator(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # this function prepare the quantities and prices asked or proposed to the grid
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
@@ -281,7 +282,7 @@ class Strategy:
 
         return quantities_and_prices
 
-    def _calculate_prices(self, sorted_demands, sorted_offers, max_price, min_price):
+    def _calculate_prices(self, sorted_demands: List[Dict], sorted_offers: List[Dict], max_price: float, min_price: float):
         if sorted_demands:
             buying_price = min(sorted_demands[0]["price"], max_price)  # maximum price given by consumers
             final_price = buying_price
@@ -302,7 +303,7 @@ class Strategy:
 
         return [buying_price, selling_price, final_price]
 
-    def _update_quantities_exchanged(self, quantities_exchanged_internally, quantities_bought_from_outside, quantities_sold_to_outside, quantity_to_affect, demands, offers):
+    def _update_quantities_exchanged(self, quantities_exchanged_internally: Dict, quantities_bought_from_outside: float, quantities_sold_to_outside: float, quantity_to_affect: float, demands: Dict, offers: Dict):
         if offers["name"] == "outside":  # if the energy is bought from outside
             quantities_bought_from_outside += quantity_to_affect
         elif demands["name"] == "outside":  # if energy is sold to outside
@@ -312,7 +313,7 @@ class Strategy:
 
         return quantities_exchanged_internally, quantities_bought_from_outside, quantities_sold_to_outside
 
-    def _prepare_quantities_when_profitable(self, aggregator, sorted_demands, sorted_offers, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):
+    def _prepare_quantities_when_profitable(self, aggregator: "Aggregator", sorted_demands: List[Dict], sorted_offers: List[Dict], maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):
 
         # first, urgent quantities are removed from the demands and offers list
         [sorted_demands, sorted_offers] = self._remove_emergencies(aggregator, sorted_demands, sorted_offers)  # the mininum of energy, both for demands and offers, is removed from the corresponding lists
@@ -432,7 +433,7 @@ class Strategy:
 
         return [quantities_exchanged_internally, quantities_and_prices]
 
-    def _prepare_quantities_emergency_only(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
+    def _prepare_quantities_emergency_only(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
@@ -455,7 +456,7 @@ class Strategy:
 
         return quantities_and_prices
 
-    def _prepare_quantities_max_exchanges(self, maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
+    def _prepare_quantities_max_exchanges(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
 
         if minimum_energy_produced > minimum_energy_consumed:  # if minimum consumption is not sufficient ot absorb minimum production
@@ -483,7 +484,7 @@ class Strategy:
 
         return quantities_and_prices
 
-    def _publish_needs(self, aggregator, quantities_and_prices):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
+    def _publish_needs(self, aggregator: "Aggregator", quantities_and_prices: List[Dict]):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
         energy_pullable = aggregator.capacity["buying"]  # total energy obtainable from the superior through the connection
         energy_pushable = aggregator.capacity["selling"]  # total energy givable from the superior through the connection
 
@@ -513,19 +514,19 @@ class Strategy:
     # sort functions
     # ##########################################################################################
 
-    def get_emergency(self, line):
+    def get_emergency(self, line: Dict):
         return line["emergency"]
 
-    def get_revenue(self, line):
+    def get_revenue(self, line: Dict):
         return line["quantity"] * line["price"]
 
-    def get_price(self, line):
+    def get_price(self, line: Dict):
         return line["price"]
 
-    def get_quantity(self, line):
+    def get_quantity(self, line: Dict):
         return line["quantity"]
 
-    def _sort_quantities(self, aggregator, sort_function):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
+    def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are sorted by emergency
         sorted_offers = []  # a list where the offers of energy are sorted by emergency
 
@@ -597,7 +598,7 @@ class Strategy:
     # ##########################################################################################
     # emergency distribution functions
 
-    def _serve_emergency_demands(self, aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside):
+    def _serve_emergency_demands(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
         lines_to_remove = []  # a list containing the number of lines having to be removed
         for i in range(len(sorted_demands)):  # demands
             energy = sorted_demands[i]["quantity"]
@@ -662,7 +663,7 @@ class Strategy:
 
         return [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside]
 
-    def _serve_emergency_offers(self, aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside):
+    def _serve_emergency_offers(self, aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
         lines_to_remove = []  # a list containing the number of lines having to be removed
         for i in range(len(sorted_offers)):  # offers
             energy = sorted_offers[i]["quantity"]
@@ -728,7 +729,7 @@ class Strategy:
     # ##########################################################################################
     # distribution functions
 
-    def _distribute_consumption_full_service(self, aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside):
+    def _distribute_consumption_full_service(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
         i = 0
 
         if len(sorted_demands) >= 1:  # if there are offers
@@ -781,7 +782,7 @@ class Strategy:
 
         return [energy_available_consumption, money_earned_inside, energy_sold_inside]
 
-    def _distribute_production_full_service(self, aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside):
+    def _distribute_production_full_service(self, aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
         i = 0
 
         if len(sorted_offers) >= 1:  # if there are offers
@@ -835,7 +836,7 @@ class Strategy:
 
         return [energy_available_production, money_spent_inside, energy_bought_inside]
 
-    def _distribute_consumption_partial_service(self, aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside):  # distribution among consumptions
+    def _distribute_consumption_partial_service(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):  # distribution among consumptions
         energy_total = 0
 
         for element in sorted_demands:  # we sum all the emergency and the energy of demands1
@@ -870,7 +871,7 @@ class Strategy:
 
         return [energy_available_consumption, money_earned_inside, energy_sold_inside]
 
-    def _distribute_production_partial_service(self, aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside):
+    def _distribute_production_partial_service(self, aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
         # distribution among productions
         energy_total = 0
 
@@ -910,7 +911,7 @@ class Strategy:
     # results publication
     # ##########################################################################################
 
-    def _update_balances(self, aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced):
+    def _update_balances(self, aggregator: "Aggregator", energy_bought_inside: float, energy_bought_outside: float, energy_sold_inside: float, energy_sold_outside: float, money_spent_inside: float, money_spent_outside: float, money_earned_inside: float, money_earned_outside: float, maximum_energy_consumed: float, maximum_energy_produced: float):
         energy_bought_dict = self._catalog.get(f"{aggregator.name}.energy_bought")
         energy_bought_dict["outside"] = energy_bought_outside
         self._catalog.set(f"{aggregator.name}.energy_bought", energy_bought_dict)

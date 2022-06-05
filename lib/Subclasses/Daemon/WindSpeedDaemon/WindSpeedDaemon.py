@@ -3,7 +3,7 @@ from json import load
 from numpy import mean
 
 from src.common.Daemon import Daemon
-from src.tools.ReadingFunctions import get_each_hour_per_month, get_1_day_per_month
+from src.tools.ReadingFunctions import get_each_hour_per_month, get_1_day_per_month, get_non_periodic_values
 
 
 class WindSpeedDaemon(Daemon):
@@ -25,7 +25,8 @@ class WindSpeedDaemon(Daemon):
 
         # getting back the appropriate way of reading the data
         self._files_formats = {"each_hour/month": get_each_hour_per_month,  # every hours in a month
-                               "1/month": get_1_day_per_month  # 1 representative day, hour by hour, for each month
+                               "1/month": get_1_day_per_month,  # 1 representative day, hour by hour, for each month
+                               "non_periodic": get_non_periodic_values,  # each value is associated to a precise datetime, which must match the ones encountered in the simulation
                                }
         self._get_wind_speed = self._files_formats[self._format]
 

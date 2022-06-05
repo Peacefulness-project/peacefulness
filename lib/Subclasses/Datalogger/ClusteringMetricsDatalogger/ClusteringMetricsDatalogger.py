@@ -11,6 +11,9 @@ class ClusteringMetricsDatalogger(Datalogger):  # a sub-class of dataloggers ded
         else:
             super().__init__(f"aggregator_clustering_metrics_frequency_{period}", f"AggregatorsClusteringMetrics_frequency_{period}", period)
 
+    # ##############################################################################################
+    # functions-defining methods
+
         def create_get_minimum_consumption_ratio(aggregator_name):
 
             def get_minimum_consumption_ratio(name):
@@ -41,6 +44,28 @@ class ClusteringMetricsDatalogger(Datalogger):  # a sub-class of dataloggers ded
 
             return get_maximum_production_ratio
 
+        def create_get_energy_stored_ratio(aggregator_name):
+
+            def get_energy_stored_ratio(name):
+                maximum_consumption = self._catalog.get(f"{aggregator_name}.maximum_energy_consumption")
+                energy_stored = self._catalog.get(f"{aggregator_name}.energy_stored")
+
+                return energy_stored / maximum_consumption
+
+            return get_energy_stored_ratio
+
+        def create_get_energy_storable_ratio(aggregator_name):
+
+            def get_energy_storable_ratio(name):
+                maximum_consumption = self._catalog.get(f"{aggregator_name}.maximum_energy_consumption")
+                energy_storable = self._catalog.get(f"{aggregator_name}.energy_stored")
+
+                return energy_storable / maximum_consumption
+
+            return get_energy_storable_ratio
+
+        # ##############################################################################################
+
         self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
 
         if self._type != "global":
@@ -51,4 +76,6 @@ class ClusteringMetricsDatalogger(Datalogger):  # a sub-class of dataloggers ded
             self.add(f"{aggregator_name}.minimum_consumption_ratio", create_get_minimum_consumption_ratio(aggregator_name))
             self.add(f"{aggregator_name}.minimum_production_ratio", create_get_minimum_production_ratio(aggregator_name))
             self.add(f"{aggregator_name}.maximum_production_ratio", create_get_maximum_production_ratio(aggregator_name))
+            self.add(f"{aggregator_name}.energy_stored_ratio", create_get_energy_stored_ratio(aggregator_name))
+            self.add(f"{aggregator_name}.energy_storable_ratio", create_get_energy_storable_ratio(aggregator_name))
 

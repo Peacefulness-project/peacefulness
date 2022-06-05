@@ -72,7 +72,7 @@ class ExchangesEmergency(Strategy):
 
         # calculating the energy available
         energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed + energy_sold_outside - energy_bought_outside  # the total energy available for production
+        energy_available_production = minimum_energy_consumed + energy_sold_outside - energy_bought_outside  # the total energy available for production
 
         # ##########################################################################################
         # distribution of energy

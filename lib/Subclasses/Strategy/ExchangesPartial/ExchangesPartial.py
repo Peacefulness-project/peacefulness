@@ -17,14 +17,13 @@ class ExchangesPartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price  # we choose a sort criteria
+        sort_function = self.get_emergency  # we choose a sort criteria
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
@@ -55,7 +54,6 @@ class ExchangesPartial(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
@@ -74,7 +72,7 @@ class ExchangesPartial(Strategy):
 
         # calculating the energy available
         energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed + energy_sold_outside - energy_bought_outside  # the total energy available for production
+        energy_available_production = minimum_energy_consumed + energy_sold_outside - energy_bought_outside  # the total energy available for production
 
         # ##########################################################################################
         # distribution of energy
