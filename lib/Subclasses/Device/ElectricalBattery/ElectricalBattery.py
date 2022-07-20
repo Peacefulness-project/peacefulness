@@ -4,8 +4,8 @@ from src.common.DeviceMainClasses import Storage
 
 class ElectricalBattery(Storage):
 
-    def __init__(self, name, contracts, agent, aggregator, profiles, filename="lib/Subclasses/Device/ElectricalBattery/ElectricalBattery.json"):
-        super().__init__(name, contracts, agent, filename, aggregator, profiles)
+    def __init__(self, name, contracts, agent, aggregator, profiles, parameters, filename="lib/Subclasses/Device/ElectricalBattery/ElectricalBattery.json"):
+        super().__init__(name, contracts, agent, filename, aggregator, profiles, parameters)
 
     # ##########################################################################################
     # Initialization

@@ -13,7 +13,7 @@ class Strategy:
 
         self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
                           "top-down": {"quantity": 0, "price": 0},
-                          "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": ""}}
+                          "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}}
 
         world = get_world()  # get the object world
         self._catalog = world.catalog  # the catalog in which some data are stored
@@ -45,7 +45,7 @@ class Strategy:
 
     def check(self, aggregator: "Aggregator"):  # verification that decisions taken by supervisors are compatible for multi-energy devices
 
-        [demands, offers] = self.make_energy_balances(aggregator)
+        [demands, offers] = self._make_energy_balances(aggregator)
 
         demands_total = 0
         offers_total = 0
@@ -146,7 +146,7 @@ class Strategy:
     # bottom-up phase functions
     # ##########################################################################################
 
-    def make_energy_balances(self, aggregator: "Aggregator"):
+    def _make_energy_balances(self, aggregator: "Aggregator"):
         demands = []  # a list where the demands of energy are sorted by emergency
         offers = []  # a list where the offers of energy are sorted by emergency
 
@@ -779,6 +779,7 @@ class Strategy:
 
                 money_earned_inside += energy * price  # money earned by selling energy to the device
                 energy_sold_inside += energy  # the absolute value of energy sold inside
+                energy_available_consumption -= energy
 
         return [energy_available_consumption, money_earned_inside, energy_sold_inside]
 

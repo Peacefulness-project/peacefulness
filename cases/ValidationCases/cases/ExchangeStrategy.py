@@ -5,6 +5,7 @@
 from datetime import datetime
 
 from os import chdir
+from math import inf
 
 from lib.DefaultNatures.DefaultNatures import *
 
@@ -80,7 +81,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
 strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-
+strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesEmergency"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -93,6 +94,8 @@ light_autarky_owner = Agent("light_autarky_owner")
 autarky_owner = Agent("autarky_owner")
 
 always_satisfied_owner = Agent("always_satisfied_owner")
+
+exchanges_owner = Agent("exchanges_owner")
 
 aggregators_manager = Agent("aggregators_manager")
 
@@ -113,12 +116,13 @@ aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_ma
 aggregator_light_autarky = Aggregator("local_grid_emergency", LVE, strategy_light_autarky, aggregators_manager, aggregator_grid, BAU_contract)
 aggregator_autarky = Aggregator("local_grid_price", LVE, strategy_autarky, aggregators_manager, aggregator_grid, BAU_contract)
 aggregator_always_satisfied = Aggregator("local_grid_quantity", LVE, strategy_always_satisfied, aggregators_manager, aggregator_grid, BAU_contract)
+aggregator_max_exchanges = Aggregator("local_grid_exchanges", LVE, strategy_max_exchanges, aggregators_manager, aggregator_grid, BAU_contract, capacity={"buying": 12, "selling": inf})
 
 
 # ##############################################################################################
 # Manual creation of devices
 
-# Each device is created 3 times
+# Each device is created 4 times
 # light autarky strategy
 device_BAU_light_autarky = subclasses_dictionary["Device"]["Background"]("device_BAU_light_autarky", BAU_contract, light_autarky_owner, aggregator_light_autarky, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 device_curtailment_light_autarky = subclasses_dictionary["Device"]["Background"]("device_curtailment_light_autarky", curtailment_contract, light_autarky_owner, aggregator_light_autarky, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
@@ -134,6 +138,10 @@ device_BAU_always_satisfied = subclasses_dictionary["Device"]["Background"]("dev
 device_curtailment_always_satisfied = subclasses_dictionary["Device"]["Background"]("device_curtailment_always_satisfied", curtailment_contract, always_satisfied_owner, aggregator_always_satisfied, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 production_always_satisfied = subclasses_dictionary["Device"]["DummyProducer"]("production_always_satisfied", cooperative_contract, always_satisfied_owner, aggregator_always_satisfied, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
+# exchanges strategy
+device_BAU_exchanges = subclasses_dictionary["Device"]["Background"]("device_BAU_exchanges", BAU_contract, exchanges_owner, aggregator_max_exchanges, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_curtailment_exchanges = subclasses_dictionary["Device"]["Background"]("device_curtailment_exchanges", curtailment_contract, exchanges_owner, aggregator_max_exchanges, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_exchanges = subclasses_dictionary["Device"]["DummyProducer"]("production_exchanges", cooperative_contract, exchanges_owner, aggregator_max_exchanges, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
 # ##############################################################################################
 # Creation of the validation daemon
@@ -148,7 +156,10 @@ reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10,
                     "autarky_owner.LVE.energy_sold": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 
                     "always_satisfied_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
-                    "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+                    "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
+
+                    "exchanges_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
+                    "exchanges_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
                     }
 
 name = "LVE_light_autarky"

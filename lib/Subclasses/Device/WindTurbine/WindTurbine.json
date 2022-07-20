@@ -1,5 +1,9 @@
 {
   "technical_data": {
+    "little": {
+      "usage_profile": {"nature": "LVE", "efficiency": 0.3,  "max_power": 1000, "surface": 1500},
+      "efficiency_variation": 0
+    },
     "standard": {
       "usage_profile": {"nature": "LVE", "efficiency": 0.3, "max_power": 1500, "surface": 13500},
       "efficiency_variation": 0

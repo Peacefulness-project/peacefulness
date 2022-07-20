@@ -702,6 +702,9 @@ class Converter(Device):
 class Storage(Device):
 
     def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters=None):
+
+        self._capacity = parameters["capacity"]
+
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
@@ -717,18 +720,16 @@ class Storage(Device):
         self._randomize_multiplication(data_device["discharge"]["efficiency"], data_device["efficiency_variation"])
         self._randomize_multiplication(data_device["charge"]["power"], data_device["power_variation"])
         self._randomize_multiplication(data_device["discharge"]["power"], data_device["power_variation"])
-        self._randomize_multiplication(data_device["capacity"], data_device["capacity_variation"])
 
         minimum_energy_variation = self._catalog.get("gaussian")(1, data_device["capacity_variation"])  # modification of the minimum_energy
-        minimum_energy_variation = min(max(0, minimum_energy_variation), data_device["capacity"])  # to avoid negative values and values beyond the maximum minimum_energy
+        minimum_energy_variation = min(max(0, minimum_energy_variation), self._capacity)  # to avoid negative values and values beyond the maximum minimum_energy
         data_device["minimum_energy"] *= minimum_energy_variation
 
         # setting
         self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
         self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
 
-        self._capacity = data_device["capacity"]  # max energy storable in the device
-        self._catalog.add(f"{self.name}.energy_stored", data_device["capacity"] * 0.5)  # the energy stored at a given time, considered as half charged at the beginning
+        self._catalog.add(f"{self.name}.energy_stored", self._capacity * 0.5)  # the energy stored at a given time, considered as half charged at the beginning
         self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
 
         self._charge_nature = data_device["charge"]["nature"]
@@ -772,14 +773,15 @@ class Storage(Device):
         super().make_balances()  # non-specific actions
 
         for nature in self.natures:
-            energy_stored_aggregator = self._catalog.get(f"{nature.name}.energy_stored")
-            energy_storable_aggregator = self._catalog.get(f"{nature.name}.energy_storable")
+            aggregator = self.natures[nature]["aggregator"]
+            energy_stored_aggregator = self._catalog.get(f"{aggregator.name}.energy_stored")
+            energy_storable_aggregator = self._catalog.get(f"{aggregator.name}.energy_storable")
 
             energy_stored_device = self._catalog.get(f"{self.name}.energy_stored") * self._efficiency["discharge"]
             energy_storable_device = (self._capacity - self._catalog.get(f"{self.name}.energy_stored")) / self._efficiency["charge"]
 
-            self._catalog.set(f"{nature.name}.energy_stored", energy_stored_aggregator + energy_stored_device)
-            self._catalog.set(f"{nature.name}.energy_storable", energy_storable_aggregator + energy_storable_device)
+            self._catalog.set(f"{aggregator.name}.energy_stored", energy_stored_aggregator + energy_stored_device)
+            self._catalog.set(f"{aggregator.name}.energy_storable", energy_storable_aggregator + energy_storable_device)
 
     # ##########################################################################################
     # Utility

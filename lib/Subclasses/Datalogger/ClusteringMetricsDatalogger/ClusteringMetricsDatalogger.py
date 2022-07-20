@@ -66,7 +66,10 @@ class ClusteringMetricsDatalogger(Datalogger):  # a sub-class of dataloggers ded
 
         # ##############################################################################################
 
-        self._aggregators_list = self._catalog.get("dictionaries")['aggregators'].keys()  # get all the names
+        self._aggregators_list = []
+        for aggregator_name in self._catalog.get("dictionaries")['aggregators'].keys():
+            if self._catalog.get("dictionaries")['aggregators'][aggregator_name].strategy.name != "grid_strategy":
+                self._aggregators_list.append(aggregator_name)  # get all the names
 
         if self._type != "global":
             self.add(f"simulation_time", graph_status="X")

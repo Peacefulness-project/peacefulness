@@ -12,7 +12,7 @@
   },
 
   "contracts": {
-    "LVE_DLC":  {"nature_name":"LVE", "contract_subclass": "CompensationCooperativeContract"},
+    "LVE_DLC":  {"nature_name":"LVE", "contract_subclass": "CooperativeContract"},
     "LVE_BAU":  {"nature_name":"LVE", "contract_subclass": "EgoistContract"}
   }
 
