@@ -1,13 +1,13 @@
 # This sheet describes a strategy always refusing to trade with other
 # It can correspond to the strategy of an island, for example
 from src.common.Strategy import Strategy
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Callable
 import pandas as pd
 
 
 class TrainingStrategy(Strategy):
 
-    def __init__(self, priorities_consumption: List[str], priorities_production: List[str]):
+    def __init__(self, priorities_consumption: Callable, priorities_production: Callable):
         super().__init__("training_strategy", "strategy with parameters used to train a ML algorithm")
 
         index = ["min", "soft_DSM_conso", "hard_DSM_conso", "buy_outside_emergency", "store"]
@@ -18,7 +18,7 @@ class TrainingStrategy(Strategy):
                 [self._assess_buy_outside, self._exchanges_buy_outside, self._distribution_buy_outside],
                 [self._assess_storage, self._exchanges_storage, self._distribution_storage]
                 ]
-        self._priorities_management_consumption = pd.DataFrame(index=index, columns=columns, data=data)
+        self._options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
         index = ["min", "soft_DSM_prod", "hard_DSM_prod", "sell_outside_emergency", "unstore"]
         columns = ["assess", "exchange", "distribute"]
@@ -28,16 +28,25 @@ class TrainingStrategy(Strategy):
                 [self._assess_sell_outside, self._exchanges_sell_outside, self._distribution_sell_outside],
                 [self._assess_unstorage, self._exchanges_unstorage, self._distribution_unstorage]
                 ]
-        self._priorities_management_production = pd.DataFrame(index=index, columns=columns, data=data)
+        self._options_production = pd.DataFrame(index=index, columns=columns, data=data)
 
-        self._priorities_consumption = ["min"] + priorities_consumption  # satisfying the minimum quantities is always, implicitly, the absolute priority
-        self._priorities_production = ["min"] + priorities_production  # satisfying the minimum quantities is always, implicitly, the absolute priority
+        self._priorities_consumption = priorities_consumption
+
+        self._priorities_production = priorities_production
 
         self._sort_function = self.get_emergency  # TODO: à faire en fonction du critère de performance choisi
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
+
+    def _get_priorities_consumption(self) -> List[str]:
+        ordered_list = ["min"] + self._priorities_consumption(self)  # satisfying the minimum quantities is always, implicitly, the absolute priority
+        return ordered_list
+
+    def _get_priorities_production(self) -> List[str]:
+        ordered_list = ["min"] + self._priorities_production(self)  # satisfying the minimum quantities is always, implicitly, the absolute priority
+        return ordered_list
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
@@ -101,7 +110,7 @@ class TrainingStrategy(Strategy):
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
-        energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside = self._apply_priorities_distribution(aggregator)
+        energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside = self._apply_priorities_distribution(aggregator, min_price, max_price, sorted_demands, sorted_offers, energy_available_consumption, energy_available_production)
 
         # ##########################################################################################
         # updates the balances
@@ -114,21 +123,22 @@ class TrainingStrategy(Strategy):
     def _asses_quantities_for_each_option(self, aggregator: "Aggregator"):
         [demands, offers] = self._sort_quantities(aggregator, self._sort_function)
         quantity_per_option = {"consumption": {}, "production": {}}
+        priorities_consumption = self._get_priorities_consumption()
+        priorities_production = self._get_priorities_production()
 
-        for priority in self._priorities_consumption:
-            quantity_per_option["consumption"][priority] = self._priorities_management_consumption.loc[priority]["assess"](aggregator, demands)
-        for priority in self._priorities_production:
-            quantity_per_option["production"][priority] = self._priorities_management_production.loc[priority]["assess"](aggregator, offers)
-        print(quantity_per_option)
+        for priority in priorities_consumption:
+            quantity_per_option["consumption"][priority] = self._options_consumption.loc[priority]["assess"](aggregator, demands)
+        for priority in priorities_production:
+            quantity_per_option["production"][priority] = self._options_production.loc[priority]["assess"](aggregator, offers)
 
         # balances update
         min_cons = quantity_per_option["consumption"]["min"]
         min_prod = quantity_per_option["production"]["min"]
-        if "store" in self._priorities_consumption:
+        if "store" in priorities_consumption:
             energy_storable = quantity_per_option["consumption"]["store"]
         else:
             energy_storable = 0
-        if "unstore" in self._priorities_production:
+        if "unstore" in priorities_production:
             energy_unstorable = quantity_per_option["production"]["unstore"]
         else:
             energy_unstorable = 0
@@ -143,24 +153,32 @@ class TrainingStrategy(Strategy):
 
     def _apply_priorities_exchanges(self, aggregator: "Aggregator", quantity_to_affect: float, quantity_available_per_option: Dict) -> List[Dict]:
         quantities_and_price = []
-        for priority in self._priorities_consumption:
+        priorities_consumption = self._get_priorities_consumption()
+        priorities_production = self._get_priorities_production()
+
+        for priority in priorities_consumption:
             quantity_available = quantity_available_per_option["consumption"][priority]
-            quantity_affected, quantities_and_price = self._priorities_management_consumption.loc[priority]["exchange"](aggregator, quantity_to_affect, quantity_available, quantities_and_price)
+            quantity_affected, quantities_and_price = self._options_consumption.loc[priority]["exchange"](aggregator, quantity_to_affect, quantity_available, quantities_and_price)
             quantity_to_affect -= quantity_affected
-        for priority in self._priorities_production:
+        for priority in priorities_production:
             quantity_available = quantity_available_per_option["production"][priority]
-            quantity_affected, quantities_and_price = self._priorities_management_production.loc[priority]["exchange"](aggregator, quantity_to_affect, quantity_available, quantities_and_price)
+            quantity_affected, quantities_and_price = self._options_production.loc[priority]["exchange"](aggregator, quantity_to_affect, quantity_available, quantities_and_price)
             quantity_to_affect -= quantity_affected
 
         return quantities_and_price
 
-    def _apply_priorities_distribution(self, aggregator: "Aggregator", energy_available_consumption: float, enegy_available_production: float):
+    def _apply_priorities_distribution(self, aggregator: "Aggregator", min_price: float, max_price: float, sorted_demands, sorted_offers, energy_available_consumption: float, energy_available_production: float):
         energy_bought_inside = 0  # the absolute value of energy bought inside
         energy_sold_inside = 0  # the absolute value of energy sold inside
         money_earned_inside = 0  # the absolute value of money earned inside
         money_spent_inside = 0  # the absolute value of money spent inside
+        priorities_consumption = self._get_priorities_consumption()
+        priorities_production = self._get_priorities_production()
 
-
+        for priority in priorities_consumption:
+            [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](aggregator, min_price, sorted_demands, energy_available_production, money_spent_inside, energy_bought_inside)
+        for priority in priorities_production:
+            [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](aggregator, max_price, sorted_offers, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
         return energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside
 
@@ -225,7 +243,7 @@ class TrainingStrategy(Strategy):
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                     energy_available_consumption -= energy
 
-                    i += 1
+                i += 1
 
             # this block gives the remaining energy to the last unserved device
             if sorted_demands[i]["quantity"] and sorted_demands[i]["emergency"] <= 0.9 and sorted_demands[i]["type"] != "storage":  # if the demand really exists
@@ -250,7 +268,7 @@ class TrainingStrategy(Strategy):
                 energy_sold_inside += energy  # the absolute value of energy sold inside
                 energy_available_consumption -= energy
 
-        return energy_available_consumption, money_earned_inside, energy_sold_inside
+        return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # hard DSM
 
@@ -295,7 +313,7 @@ class TrainingStrategy(Strategy):
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                     energy_available_consumption -= energy
 
-                    i += 1
+                i += 1
 
             # this block gives the remaining energy to the last unserved device
             if sorted_demands[i]["quantity"] and sorted_demands[i]["emergency"] > 0.9 and sorted_demands[i]["type"] != "storage":  # if the demand really exists
@@ -321,7 +339,7 @@ class TrainingStrategy(Strategy):
                 energy_sold_inside += energy  # the absolute value of energy sold inside
                 energy_available_consumption -= energy
 
-        return energy_available_consumption, money_earned_inside, energy_sold_inside
+        return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # outside energy
 
@@ -345,7 +363,7 @@ class TrainingStrategy(Strategy):
         return quantity_remaining, quantities_and_prices
 
     def _distribution_buy_outside(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
-        return energy_available_consumption, money_earned_inside, energy_sold_inside
+        return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # store
 
@@ -390,11 +408,10 @@ class TrainingStrategy(Strategy):
                     energy_sold_inside += energy  # the absolute value of energy sold inside
                     energy_available_consumption -= energy
 
-                    i += 1
+                i += 1
 
             # this block gives the remaining energy to the last unserved device
-            if sorted_demands[i]["quantity"] and sorted_demands[i][
-                "type"] != "storage":  # if the demand really exists
+            if sorted_demands[i]["quantity"] and sorted_demands[i]["type"] != "storage":  # if the demand really exists
                 name = sorted_demands[i]["name"]
                 energy = min(sorted_demands[i]["quantity"], energy_available_consumption)  # the quantity of energy needed
                 price = sorted_demands[i]["price"]  # the price of energy
@@ -416,7 +433,7 @@ class TrainingStrategy(Strategy):
                 energy_sold_inside += energy  # the absolute value of energy sold inside
                 energy_available_consumption -= energy
 
-        return energy_available_consumption, money_earned_inside, energy_sold_inside
+        return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # ################################################################################################################
     # production
@@ -479,7 +496,7 @@ class TrainingStrategy(Strategy):
                     energy_bought_inside -= energy  # the absolute value of energy sold inside
                     energy_available_production += energy
 
-                    i += 1
+                i += 1
 
             # this line gives the remnant of energy to the last unserved device
             if sorted_offers[i]["quantity"] and sorted_offers[i]["emergency"] <= 0.9 and sorted_offers[i]["type"] != "storage":  # if the demand really exists
@@ -504,7 +521,7 @@ class TrainingStrategy(Strategy):
                 money_spent_inside -= energy * price  # money spent by buying energy from the device
                 energy_bought_inside -= energy  # the absolute value of energy bought inside
 
-        return energy_available_production, money_spent_inside, energy_bought_inside
+        return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # hard DSM
 
@@ -549,7 +566,7 @@ class TrainingStrategy(Strategy):
                     energy_bought_inside -= energy  # the absolute value of energy sold inside
                     energy_available_production += energy
 
-                    i += 1
+                i += 1
 
             # this line gives the remnant of energy to the last unserved device
             if sorted_offers[i]["quantity"] and sorted_offers[i]["emergency"] > 0.9 and sorted_offers[i]["type"] != "storage":  # if the demand really exists
@@ -574,7 +591,7 @@ class TrainingStrategy(Strategy):
                 money_spent_inside -= energy * price  # money spent by buying energy from the device
                 energy_bought_inside -= energy  # the absolute value of energy bought inside
 
-        return energy_available_production, money_spent_inside, energy_bought_inside
+        return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # outside energy
 
@@ -598,7 +615,7 @@ class TrainingStrategy(Strategy):
         return quantity_remaining, quantities_and_prices
 
     def _distribution_sell_outside(self, aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
-        return energy_available_production, money_spent_inside, energy_bought_inside
+        return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # unstore
 
@@ -643,7 +660,7 @@ class TrainingStrategy(Strategy):
                     energy_bought_inside -= energy  # the absolute value of energy sold inside
                     energy_available_production += energy
 
-                    i += 1
+                i += 1
 
             # this line gives the remnant of energy to the last unserved device
             if sorted_offers[i]["quantity"] and sorted_offers[i]["type"] == "storage":  # if the demand really exists
@@ -668,7 +685,7 @@ class TrainingStrategy(Strategy):
                 money_spent_inside -= energy * price  # money spent by buying energy from the device
                 energy_bought_inside -= energy  # the absolute value of energy bought inside
 
-        return energy_available_production, money_spent_inside, energy_bought_inside
+        return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # ##########################################################################################
     # Utilities

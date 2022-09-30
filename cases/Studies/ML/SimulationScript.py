@@ -4,6 +4,7 @@
 # ##############################################################################################
 # Importations
 from datetime import datetime
+from typing import Callable
 
 from src.common.World import World
 
@@ -22,7 +23,7 @@ from src.common.Datalogger import Datalogger
 from src.tools.SubclassesDictionary import get_subclasses
 
 
-def run_simulation(start_date, hours_simulated, priorities_conso, priorities_prod):
+def create_simulation(start_date: "datetime", hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, location: str):
 
     # ##############################################################################################
     # Minimum
@@ -89,7 +90,7 @@ def run_simulation(start_date, hours_simulated, priorities_conso, priorities_pro
 
     # Outdoor temperature
     # this daemon is responsible for the value of outside temperature in the catalog
-    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Santerre"}, filename="cases/Studies/ML/data/temperature.json", exergy=False)
+    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": location}, filename="cases/Studies/ML/data/temperature.json", exergy=False)
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
@@ -97,15 +98,15 @@ def run_simulation(start_date, hours_simulated, priorities_conso, priorities_pro
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": "Santerre"}, filename="cases/Studies/ML/data/irradiation.json", direct_normal_irradiation=False)
+    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": location}, filename="cases/Studies/ML/data/irradiation.json", direct_normal_irradiation=False)
 
     # Wind
     # this daemon is responsible for updating the value of raw solar Wind
-    wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "Santerre"}, filename="cases/Studies/ML/data/wind_speed.json")
+    wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": location}, filename="cases/Studies/ML/data/wind_speed.json")
 
     # Water flow
     # this daemon is responsible for updating the value of the flow of water for an electric dam
-    water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"location": "GavedePau_Pau"})
+    water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"location": location})
 
     # ##############################################################################################
     # Creation of strategies
@@ -182,13 +183,6 @@ def run_simulation(start_date, hours_simulated, priorities_conso, priorities_pro
     subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
 
-    # ##############################################################################################
-    # Simulation start
-    world.start()
-
-    # ##############################################################################################
-    # output sent to ML algorithm
-    return world.catalog
-
+    return world
 
 

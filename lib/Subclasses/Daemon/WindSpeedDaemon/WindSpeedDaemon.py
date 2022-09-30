@@ -20,8 +20,8 @@ class WindSpeedDaemon(Daemon):
         file.close()
 
         self._format = data["format"]
-        self._wind_values = data["wind_speed"]
-        self._height_ref = data["height_ref"]
+        self._wind_values = data["wind_speed"]  # m.s-1
+        self._height_ref = data["height_ref"]  # m
 
         # getting back the appropriate way of reading the data
         self._files_formats = {"each_hour/month": get_each_hour_per_month,  # every hours in a month
