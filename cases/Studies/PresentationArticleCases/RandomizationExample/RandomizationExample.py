@@ -154,7 +154,7 @@ district_heating_network = Aggregator("district_heating_network", LTH, strategy_
 CPU_time_generation_of_device = process_time()
 
 
-world.agent_generation(1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Randomization_example.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+world.agent_generation("", 1000, "cases/Studies/PresentationArticleCases/AdditionalData/AgentTemplates/Randomization_example.json", [local_electrical_grid, district_heating_network], {"LVE": price_manager_elec, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 
 
 # CPU time measurement
@@ -170,8 +170,8 @@ export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
 
 producer_datalogger = Datalogger("agent_alone", "AgentAlone", graph_options=export_graph_options_1, graph_labels={"xlabel": "time", "ylabel": "producer"})
 producer_datalogger.add("simulation_time", graph_status="X")
-producer_datalogger.add(f"2_people_example_0.LVE.energy_bought")
-producer_datalogger.add(f"2_people_example_0.LTH.energy_bought")
+producer_datalogger.add(f"_2_people_example_0.LVE.energy_bought")
+producer_datalogger.add(f"_2_people_example_0.LTH.energy_bought")
 
 subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](graph_options=export_graph_options_1)
 subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]("global", export_graph_options_1)
