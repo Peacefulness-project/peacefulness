@@ -11,11 +11,26 @@ from src.tools.GlobalWorld import get_world
 
 
 class Datalogger:
-
-    def __init__(self, name, filename, period=0, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
+    """
+    Object in charge of exporting outputs of a run. It can also generate automatically graphs.
+    Multiple subclasses have been made to export data pre-identified as interesting or to calculate automatically indicators,
+     such as self-sufficiency or curtailment.
+    """
+    def __init__(self, name: str, filename: str, period=0, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
+        """
+        Parameters
+        ----------
+        name: str, name of the datalogger object
+        filename: str, path and name of the file where the data has to be written
+        period: int or "global" or "month", number of round between 2 exports of data. By default, set to 0 to export data each turn. "global" key word means that only overall values on the whole runs are exported.
+        "month" keyword means that data is exported each month.
+        graph_options: str, ...
+        graph_labels: Dict, ...
+        """
         self._name = name
 
-        self._list = dict()  # list of catalog keys which has to be written
+        self._list = dict()  # list of catalog keys which have to be written
+        self._values = dict()  # values are stored here before being written in a file at the end of the run.
 
         self._buffer = dict()  # dict which stores data between each period of registering
         # allows to report info such as mean, min and max between two periods
@@ -57,7 +72,21 @@ class Datalogger:
     # Initialization
     # ##########################################################################################
 
-    def add(self, name, function="default", graph_status="Y", graph_style="lines", graph_legend=False):  # add 1 key of the catalog to the datalogger
+    def add(self, name: str, function="default", graph_status="Y", graph_style="lines", graph_legend=False):  # add 1 key of the catalog to the datalogger
+        """
+        Adds a key to the datalogger, i.e a new column in the final file.
+        Basically, the name of the new column corresponds to the catalog key with the same name, but it is possible to include a more complicated treatment by specifying a function.
+        If the datalogger has to create a graph, ...
+
+        Parameters
+        ----------
+        name: str, the name of the column
+        function: func or "default", the treatment to apply to the key. When set to "default", it stores the key "name" of the catalog
+        graph_status:
+        graph_style:
+        graph_legend:
+        """
+
         if function == "default":  # the function parameter allows to export the result of a calculation directly during the simulation
             self._list[name] = self._catalog.get  # creates an entry in the buffer if needed
         else:
@@ -66,6 +95,12 @@ class Datalogger:
         if "Y" in graph_status and (self._type != "regular" or self._period > 1):  # numeric keys are added to a buffer when it is not
             # it allows to return the mean, the min and the max
             self._buffer[name] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}  # creates an entry in the buffer
+            self._values[f"{name}_mean"] = []
+            self._values[f"{name}_min"] = []
+            self._values[f"{name}_max"] = []
+            self._values[f"{name}_sum"] = []
+        else:
+            self._values[name] = []
 
         # todo: pas de graph_legend ni graph_type pour graph_status="X"... on les ignore ou on pète une erreur ?
         # todo: graph_status="X" ne doit apparaitre qu'une fois
@@ -83,15 +118,22 @@ class Datalogger:
             pass
 
     def add_all(self):  # add all keys from the catalog to the datalogger
+        """
+        Add all keys of the catalog in the datalogger. Should be avoided for 2 reasons:
+        - it can result in a massive amount of data with redundancies
+        - having a single datalogger containing all the different types of values is of little interest for post-treatment
+        """
         for name in self._catalog.keys:
             self.add(name)
 
     def initial_operations(self):  # create the headers of the column
+        """
+        Method used in world at the beginning of a run to create the files where datalogger export data.
+        """
         if self._type != "global":
             file = open(self._path+self._filename+__text_extension__, 'a+')
 
             for name in self._list:
-
                 if name in self._buffer:
                     file.write(f"mean_{name}\t"
                                f"min_{name}\t"
@@ -137,7 +179,6 @@ class Datalogger:
             self._next_time += self._period  # calculates the next period of writing
 
     def _regular_process(self):  # record all the chosen key regularly in a file
-        file = open(self._path+self._filename+__text_extension__, "a+")
 
         for key in self._list:
             value = self._list[key](key)
@@ -149,19 +190,15 @@ class Datalogger:
                 self._y_values[key]["values"].append(value)
 
             if key in self._buffer:
-                file.write(f"{self._buffer[key]['mean']}\t"  # saves the mean
-                           f"{self._buffer[key]['min']}\t"  # saves the min
-                           f"{self._buffer[key]['max']}\t"  # saves the max
-                           f"{self._buffer[key]['sum']}\t"  # saves the sum
-                           )
+                self._values[f"{key}_mean"].append(self._buffer[key]['mean'])
+                self._values[f"{key}_min"].append(self._buffer[key]['min'])
+                self._values[f"{key}_max"].append(self._buffer[key]['max'])
+                self._values[f"{key}_sum"].append(self._buffer[key]['sum'])
 
                 self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
 
             else:
-                file.write(f"{value}\t")
-
-        file.write("\n")
-        file.close()
+                self._values[key].append(value)
 
     def _month_process(self):  # seeks the min, the mean, the average, the max and the sum of the chosen key at the end of the simulation
         for key in self._buffer:
@@ -215,8 +252,8 @@ class Datalogger:
     # ##########################################################################################
 
     def final_process(self):
+        file = open(self._path + self._filename + __text_extension__, "a+")
         if self._type == "global":  # if global values are wanted
-            file = open(self._path+self._filename+__text_extension__, "a+")
 
             for key in self._buffer:
                 file.write(f"for the key {key}:\n")
@@ -226,10 +263,7 @@ class Datalogger:
                 file.write(f"\tsum: {self._buffer[key]['sum']}\n")
                 file.write("\n")
 
-            file.close()
-
         elif self._type == "month":
-            file = open(self._path + self._filename + __text_extension__, "a+")
             for key in self._list:
 
                 value = self._list[key](key)
@@ -250,6 +284,13 @@ class Datalogger:
                     self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
                 else:
                     file.write(f"{value}\t")
+
+        else:
+            for key in self._values:
+                for i in range(len(self._values)):
+                    file.write(f"{self._values[key][i]}\t")
+
+        file.close()
 
     def final_export(self):  # call the relevant export functions
         export(self._graph_options, self._path + self._filename, self._x_values, self._y_values, self._graph_labels)
