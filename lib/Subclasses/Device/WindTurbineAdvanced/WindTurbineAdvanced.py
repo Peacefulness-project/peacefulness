@@ -77,7 +77,7 @@ class WindTurbineAdvanced(NonControllableDevice):
             energy_received = 1/2 * air_density * self._Cp * self._surface * wind**3 * self._efficiency * (wind**3 - self._U_cut_bot**3)/(self._U_nom**3 - self._U_cut_bot**3) / 1000
 
         elif (wind > self._U_nom) and (wind <= self._U_cut_top):
-            energy_received = 1 / 2 * air_density * self._Cp * self._surface * wind ** 3 * self._efficiency / 1000
+            energy_received = 1 / 2 * air_density * self._Cp * self._surface * self._U_nom ** 3 * self._efficiency / 1000
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
