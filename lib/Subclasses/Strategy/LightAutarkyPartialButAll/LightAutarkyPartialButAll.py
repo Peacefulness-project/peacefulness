@@ -1,12 +1,12 @@
-# This sheet describes a strategy always wanting to buy all the energy lacking and to sell all the energy available
-# It corresponds to the current "strategy" in France and can be used as a reference.
+# This sheet describes a strategy always refusing to trade with other
+# It can correspond to the strategy of an island, for example
 from src.common.Strategy import Strategy
 
 
-class SubaggregatorHeatRevenues(Strategy):
+class LightAutarkyPartialButAll(Strategy):
 
     def __init__(self):
-        super().__init__("subaggregator_heat_revenues_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves by decreasing gains for the aggregator.")
+        super().__init__("light_autarky_partial_strategy", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves by decreasing emergency.")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -24,35 +24,17 @@ class SubaggregatorHeatRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_revenue  # we choose a sort criteria
+        sort_function = self.get_price  # we choose a sort criteria
+
+        # formulation of needs
+        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
-        # ##########################################################################################
-        # management of grid call
-        # this aggregator can only ask two different quantities: the first for its urgent needs, associated to an infinite price
-        # and another one, associated to non-urgent needs
-
-        # calculate the quantities needed to fulfill its needs
-        # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
-
-        # as the aggregator cannot sell energy, we remove the negative quantities
-        lines_to_remove = list()
-        for i in range(len(quantities_and_prices)):
-            if quantities_and_prices[i]["energy_maximum"] <= 0:  # if the aggregator wants to sell energy
-                lines_to_remove.append(i)  # we remove it form the list
-
-        lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
-
-        for line_index in lines_to_remove:  # removing the already served elements
-            quantities_and_prices.pop(line_index)
-
-        # ##########################################################################################
-        # publication of the needs to its superior
+        quantities_and_prices = self._prepare_quantities_emergency_only(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
@@ -77,7 +59,7 @@ class SubaggregatorHeatRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_revenue  # we choose a sort criteria
+        sort_function = self.get_emergency  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -87,19 +69,19 @@ class SubaggregatorHeatRevenues(Strategy):
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
-        # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
-
         # ##########################################################################################
         # balance of energy available
 
-        energy_available_consumption = maximum_energy_produced + energy_bought_outside - energy_sold_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed - energy_bought_outside + energy_sold_outside  # the total energy available for productions
+        # calculating the energy available
+        energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
+        energy_available_production = maximum_energy_consumed + energy_sold_outside  # the total energy available for productions
 
         # ##########################################################################################
-        # distribution
+        # distribution of energy
 
-        # first we ensure the urgent quantities will be satisfied
+        # formulation of needs
+        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+
         # demand side
         [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
@@ -108,14 +90,16 @@ class SubaggregatorHeatRevenues(Strategy):
 
         # then we distribute the remaining quantities according to our sort
         # distribution among consumptions
-        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+        [energy_available_consumption, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
 
         # distribution among productions
-        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
+        [energy_available_production, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(aggregator, min_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
 
         # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
+
+
 
 
 

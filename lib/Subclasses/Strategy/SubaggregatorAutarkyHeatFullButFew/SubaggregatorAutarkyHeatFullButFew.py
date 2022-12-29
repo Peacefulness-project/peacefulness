@@ -1,12 +1,15 @@
 # This sheet describes a strategy always wanting to buy all the energy lacking and to sell all the energy available
 # It corresponds to the current "strategy" in France and can be used as a reference.
 from src.common.Strategy import Strategy
+from typing import Callable
 
 
-class SubaggregatorHeatRevenues(Strategy):
+class SubaggregatorAutarkyHeatFullButFew(Strategy):
 
-    def __init__(self):
-        super().__init__("subaggregator_heat_revenues_strategy", "Strategy for a DHN dependant of an electrical grid. During distribution, serves by decreasing gains for the aggregator.")
+    def __init__(self, distribution_ranking_function: Callable):
+        super().__init__(f"subaggregator_heat_strategy_{distribution_ranking_function.__name__}", "Strategy for a DHN dependant of an electrical grid. During distribution, it serves totally a restricted number of devices, according to the distributrion ranking function.")
+
+        self._distribution_ranking_function = distribution_ranking_function
 
     # ##########################################################################################
     # Dynamic behavior
@@ -24,12 +27,10 @@ class SubaggregatorHeatRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_revenue  # we choose a sort criteria
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # ##########################################################################################
         # management of grid call
@@ -38,7 +39,7 @@ class SubaggregatorHeatRevenues(Strategy):
 
         # calculate the quantities needed to fulfill its needs
         # make maximum two couples quantity/price: one for the urgent quantities and another one for the non-urgent quantities
-        quantities_and_prices = self._prepare_quantitites_subaggregator(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
+        quantities_and_prices = self._prepare_quantities_emergency_only(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)
 
         # as the aggregator cannot sell energy, we remove the negative quantities
         lines_to_remove = list()
@@ -77,18 +78,16 @@ class SubaggregatorHeatRevenues(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_revenue  # we choose a sort criteria
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, self._distribution_ranking_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # balance of energy available

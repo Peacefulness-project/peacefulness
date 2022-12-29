@@ -81,7 +81,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
 strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
 strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesEmergency"]()
+strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesFullButFew"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
