@@ -36,22 +36,22 @@ class CurtailmentRampContract(Contract):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def contract_modification(self, quantity, name):
+    def contract_modification(self, message, name):
         # billing
-        if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.buying_price") + self._effort[name]["effort"] * self._bonus  # getting the price per kW.h, at a price artificially corrected by a bonus
-        elif quantity["energy_maximum"] <= 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.selling_price") - self._effort[name]["effort"] * self._bonus  # getting the price per kW.h, at a price artificially corrected by the bonus
+        if message["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
+            message["price"] = self._catalog.get(f"{self._daemon_name}.buying_price") + self._effort[name]["effort"] * self._bonus  # getting the price per kW.h, at a price artificially corrected by a bonus
+        elif message["energy_maximum"] <= 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
+            message["price"] = self._catalog.get(f"{self._daemon_name}.selling_price") - self._effort[name]["effort"] * self._bonus  # getting the price per kW.h, at a price artificially corrected by the bonus
 
-        quantity["energy_minimum"] = 0  # set the minimal quantity of energy to 0
-        quantity["energy_nominal"] = min(abs(quantity["energy_maximum"] * 0.95), abs(quantity["energy_nominal"])) * sign(quantity["energy_maximum"])  # the abs() allows to manage both consumptions and productions
+        message["energy_minimum"] = 0  # set the minimal quantity of energy to 0
+        message["energy_nominal"] = min(abs(message["energy_maximum"] * 0.95), abs(message["energy_nominal"])) * sign(message["energy_maximum"])  # the abs() allows to manage both consumptions and productions
         # this contract forbids the quantity to be urgent
         # it means that the devices will never be sure to be served
 
-        self._effort[name]["initial_request"] = quantity["energy_maximum"]  # record of the initial request of the device to compare it with the quantity served
+        self._effort[name]["initial_request"] = message["energy_maximum"]  # record of the initial request of the device to compare it with the quantity served
         # print(self._catalog.get(f"{self._daemon_name}.buying_price") + self._effort[name]["effort"] * self._bonus)
 
-        return quantity
+        return message
 
     def billing(self, energy_wanted, energy_accorded, name):  # the action of the distribution phase
         energy_served = energy_accorded["quantity"]

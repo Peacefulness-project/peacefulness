@@ -6,6 +6,9 @@ from typing import Dict, List, Callable
 
 
 class Strategy:
+    """
+    Strategies are objects bearing the logic applied by an aggregator to distribute energy.
+    """
 
     def __init__(self, name: str, description: str):
         self._name = name  # the name of the supervisor  in the catalog
@@ -25,6 +28,14 @@ class Strategy:
     # ##########################################################################################
 
     def complete_message(self, additional_elements):
+        """
+        When complementary information is added in the messages exchanged between devices and aggregators,
+        this method updates the self._message attribute.
+
+        Parameters
+        ----------
+        additional_elements: any parsable type of object
+        """
         for message in self._messages:
             old_message = self._messages[message]
             self._messages[message] = {**old_message, **additional_elements}
@@ -33,17 +44,41 @@ class Strategy:
     # Dynamic behavior
     # ##########################################################################################
 
-    def reinitialize(self):
+    def reinitialize(self):  # useless method. to be kept for later uses ?
+        """
+        Method called by world to reinitialize energy and money balances at the beginning of each round.
+        """
         pass
 
     def bottom_up_phase(self, aggregator: "Aggregator"):  # before communicating with the exterior, the aggregator makes its local balances
+        """
+        Method defining the logic applied by the strategy concerning the aggregators exchanges with other aggregators.
+
+        Parameters
+        ----------
+        aggregator: Aggregator, the aggregator applying the strategy
+        """
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         pass
 
     def top_down_phase(self, aggregator: "Aggregator"):  # after having exchanged with the exterior, the aggregator ditribute the energy among the devices and the subaggregators it has to manage
+        """
+        Method defining the logic applied by the strategy for distributing energy once the aggregator knows which quantity it exchanges with outside.
+
+        Parameters
+        ----------
+        aggregator: Aggregator, the aggregator applying the strategy
+        """
         pass
 
-    def check(self, aggregator: "Aggregator"):  # verification that decisions taken by supervisors are compatible for multi-energy devices
+    def multi_energy_balance_check(self, aggregator: "Aggregator"):  # verification that decisions taken by supervisors are compatible for multi-energy devices
+        """
+        In multi-energy contexts, this method checks that the first principle is respected.
+
+        Parameters
+        ----------
+        aggregator: Aggregator: the aggregator checked
+        """
 
         [demands, offers] = self._make_energy_balances(aggregator)
 

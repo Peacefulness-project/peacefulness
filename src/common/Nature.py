@@ -5,6 +5,9 @@ from src.tools.GlobalWorld import get_world
 
 
 class Nature:  # this class contains the different natures
+    """
+    Nature represent the nature of an energy flow. It does not bear any physical information.
+    """
     _list = list()  # a list indexing all types of nature
 
     def __init__(self, name, description):
@@ -36,6 +39,9 @@ class Nature:  # this class contains the different natures
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
+        """
+        Method called by world to reinitialize energy and money balances at the beginning of each round.
+        """
         self._catalog.set(f"{self.name}.energy_produced", 0)  # total of energy of this nature produced during the round
         self._catalog.set(f"{self.name}.energy_consumed", 0)  # total of energy of this nature consumed during the round
         self._catalog.set(f"{self.name}.energy_erased", 0)  # total of energy of this nature erased during the round

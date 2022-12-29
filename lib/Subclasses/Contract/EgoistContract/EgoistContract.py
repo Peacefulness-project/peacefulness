@@ -13,18 +13,18 @@ class EgoistContract(Contract):
     # Dynamic behaviour
     # ##########################################################################################
 
-    def contract_modification(self, quantity, name):
+    def contract_modification(self, message, name):
         # billing
-        if quantity["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price per kW.h
-        elif quantity["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
-            quantity["price"] = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price per kW.h
+        if message["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
+            message["price"] = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price per kW.h
+        elif message["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
+            message["price"] = self._catalog.get(f"{self._daemon_name}.selling_price")  # getting the price per kW.h
 
-        Emax = quantity["energy_maximum"]  # it is the maximal quantity of energy asked/received
-        quantity["energy_minimum"] = Emax  # the minimal quantity of energy is put at the maximum to mean that it is urgent
-        quantity["energy_nominal"] = Emax  # the nominal quantity of energy is put at the maximum to mean that it is urgent
+        Emax = message["energy_maximum"]  # it is the maximal quantity of energy asked/received
+        message["energy_minimum"] = Emax  # the minimal quantity of energy is put at the maximum to mean that it is urgent
+        message["energy_nominal"] = Emax  # the nominal quantity of energy is put at the maximum to mean that it is urgent
 
-        return quantity  # this contract forces the priority to 1, which means it is always urgent
+        return message  # this contract forces the priority to 1, which means it is always urgent
 
 
 

@@ -14,10 +14,12 @@ class Datalogger:
     """
     Object in charge of exporting outputs of a run. It can also generate automatically graphs.
     Multiple subclasses have been made to export data pre-identified as interesting or to calculate automatically indicators,
-     such as self-sufficiency or curtailment.
+    such as self-sufficiency or curtailment.
     """
     def __init__(self, name: str, filename: str, period=0, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
         """
+        A datalogger, object in charge of exporting data.
+
         Parameters
         ----------
         name: str, name of the datalogger object

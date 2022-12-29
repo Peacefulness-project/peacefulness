@@ -1,17 +1,31 @@
-    # Contract are objects used to enable/disable certain operations during the supervision
+# Contract are objects used to enable/disable certain operations during the supervision
 # They also serve to specify the way of billing the agents
 from src.tools.GlobalWorld import get_world
+from typing import Dict, List
 
 
 class Contract:
+    """
+    Contracts are in charge of completing the message sent by devices to aggregators.
+    """
 
-    def __init__(self, name, nature, daemon, parameters=None):
+    def __init__(self, name: str, nature: "Nature", price_daemon: "Daemon", parameters=None):
+        """
+        A contract, an object setting the prices and the rules for the different messages sent by devices to aggregators.
+
+        Parameters
+        ----------
+        name: str, the name of the contract
+        nature: Nature, the nature managed by this contract
+        price_daemon: Daemon, the daemon used to set the prices
+        parameters: Dict or None, parameters needed by subclasses
+        """
         self._name = name
         self._nature = nature
 
         self.description = ""  # a brief description of the contract
 
-        self._daemon_name = daemon.name
+        self._daemon_name = price_daemon.name
 
         # parameters is an optional dictionary which stores additional information needed by user-defined classes
         # putting these information there allow them to be saved/loaded via world method
@@ -37,7 +51,14 @@ class Contract:
     # Initialization
     # ##########################################################################################
 
-    def initialization(self, device_name):  # a method allowing the contract to do something when a dice suscribe to it
+    def initialization(self, device_name: str):  # a method allowing the contract to do something when a device susbcribe to it
+        """
+        Method that can be used by subclasses to do something when a device subscribes to it
+
+        Parameters
+        ----------
+        device_name: str
+        """
         pass
 
     # ##########################################################################################
@@ -45,6 +66,9 @@ class Contract:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
+        """
+        Method called by world to reinitialize energy and money balances at the beginning of each round.
+        """
         self._catalog.set(f"{self.name}.money_earned", 0)  # the money earned by all the devices ruled to this contract during this round
         self._catalog.set(f"{self.name}.money_spent", 0)  # the money spent by all the devices ruled by this contract during this round
 
@@ -56,10 +80,31 @@ class Contract:
             self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
 
     # quantities management
-    def contract_modification(self, quantity, name):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency
+    def contract_modification(self, message: Dict, name: str):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency
+        """
+        Method used by subclasses to modify the message sent by the device.
+
+        Parameters
+        ----------
+        message: Dict,
+        name: str,
+        """
         pass  # a method to determine the price must be defined in the subclasses
 
-    def billing(self, energy_wanted, energy_accorded, name):  # the action of the distribution phase
+    def billing(self, energy_wanted: Dict, energy_accorded: Dict, name: str) -> List:  # the action of the distribution phase
+        """
+        Method used by subclasses to update messages sent by the aggregators to the devices.
+
+        Parameters
+        ----------
+        energy_wanted: Dict,
+        energy_accorded: Dict,
+        name: str
+
+        Returns
+        -------
+        [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent], List of elements needed to reconstruct the message
+        """
         energy_wanted = energy_wanted["energy_maximum"]
         energy_served = energy_accorded["quantity"]
         price = energy_accorded["price"]

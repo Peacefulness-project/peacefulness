@@ -9,6 +9,9 @@ from src.tools.GlobalWorld import get_world
 
 
 class Device:
+    """
+    the Device class represents devices producing, consuming, converting or storing energy. Its main role is to inform the aggregator of its physical state.
+    """
 
     def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
@@ -102,6 +105,14 @@ class Device:
     # ##########################################################################################
 
     def complete_message(self, additional_elements):
+        """
+        When complementary information is added in the messages exchanged between devices and aggregators,
+        this method updates the self._message attribute.
+
+        Parameters
+        ----------
+        additional_elements: any parsable type of object
+        """
         self._additional_elements = additional_elements
         for message in self._messages:
             old_message = self._messages[message]
@@ -214,6 +225,9 @@ class Device:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the balances
+        """
+        Method called by world to reinitialize energy and money balances at the beginning of each round.
+        """
         messages = {"bottom-up": {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]},
                     "top-down": {element: self._messages["top-down"][element] for element in self._messages["top-down"]}}
 
@@ -230,17 +244,34 @@ class Device:
             self._catalog.set(f"{self.name}.{nature.name}.money_spent", 0)
 
     def update(self):  # method updating needs of the devices before the supervision
+        """
+        Method used in the first phase of a round where the device communicates its demands or proposal of energy to the aggregator.
+        It is specific to each device subclass.
+        """
         pass
 
     def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
+        """
+        This method is used tp ensure that decisions taken by aggregators for multi-energy devices respect the first principle.
+        """
         pass
 
     def publish_wanted_energy(self, energy_wanted):  # apply the contract to the energy wanted and then publish it in the catalog
+        """
+        Method sending the message containing the devices needs to its contract and then communicating it to its aggregator.
+        Parameters
+        ----------
+        energy_wanted: message containing the infoirmation for the aggregator
+        """
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name], self.name)  # the contract may modify the offer
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
 
     def react(self):  # method updating the device according to the decisions taken by the strategy
+        """
+        Once aggregator's decisions communicated to the device, this method updates devices balances.
+        It can be modified for some subclasses to also modify devices attributes (for example the energy stored by the device).
+        """
         for nature in self.natures:
             energy_wanted = self.get_energy_wanted(nature)
             energy_accorded = self.get_energy_accorded(nature)
@@ -260,6 +291,9 @@ class Device:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 
     def make_balances(self):  # devices compute the balances for the other objects: contracts, aggregator, agent and nature
+        """
+        This method updates the balances of all objects like to the device: agent, aggregators, naturea nd contracts.
+        """
         energy_sold = dict()
         energy_bought = dict()
         energy_erased = dict()

@@ -443,7 +443,7 @@ class World:
 
             # aggregators then check if everything is fine and correct potential problems
             for aggregator in independent_aggregators_list:
-                aggregator.check()
+                aggregator.multi_energy_balance_check()
                 # the method is recursive
 
             if self._catalog.get("incompatibility"):  # if a second round is needed

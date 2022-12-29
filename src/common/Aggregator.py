@@ -7,8 +7,25 @@ default_capacity = {"buying": inf, "selling": inf}
 
 
 class Aggregator:
+    """
 
-    def __init__(self, name, nature, strategy, agent, superior=None, contract=None, efficiency=1, capacity=default_capacity, forecaster=None):
+    """
+    def __init__(self, name: str, nature: "Nature", strategy: "Strategy", agent: "Agent", superior=None, contract=None, efficiency=1, capacity=default_capacity, forecaster=None):
+        """
+        An aggregator, an object whose role is to assure energy balance for the devices it is in charge of.
+
+        Parameters
+        ----------
+        name: str, the name of the aggregator
+        nature: Nature, the nature this aggregator is managing
+        strategy: Strategy, the strategy this manager is applying
+        agent: Agent, the agent the aggregator belongs to
+        superior: Aggregator or None, the superior with which this aggregator can exchange if any
+        contract: Contract or None, the contract needed if this aggregator has a superior
+        efficiency: float, the efficiency with which the aggregator can exchange with its superior
+        capacity: {"buying": float, "selling": float}, the limits of energy this aggregator is able to exchange with its superior
+        forecaster: ? or None, work in progress
+        """
         self._name = name  # the name written in the catalog
         self._nature = nature  # the nature of energy of the aggregator
 
@@ -22,7 +39,6 @@ class Aggregator:
         if forecaster:  # if a forecaster is chosen
             self.forecaster = forecaster  # the forecast data
         else:  # a dummy forecaster is created, returning nothing
-            # todo: faire un truc propre ?
             class dummy_forecaster():
                 def get_predicitions(self):
                     return {"demand": {"value": 0, "uncertainty": 1}, "production": {"value": 0, "uncertainty": 1}}
@@ -92,6 +108,9 @@ class Aggregator:
     # ##########################################################################################
 
     def reinitialize(self):  # reinitialization of the values
+        """
+        Method called by world to reinitialize energy and money balances at the beginning of each round.
+        """
         if self.superior:
             self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_wanted", [])  # couples price/quantities sent by the aggregator to its superior
             self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_accorded", [])  # couple price/quantities accorded by the aggregator superior
@@ -112,6 +131,9 @@ class Aggregator:
         self._catalog.set(f"{self.name}.energy_storable", 0)
 
     def ask(self):  # aggregators make local balances and then publish their needs (both in demand and in offer)
+        """
+        Recursive method allowing to get the messages form all the devices and aggregators it has in charge.
+        """
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.ask()
 
@@ -123,18 +145,27 @@ class Aggregator:
             # the nature of the energy wanted is that of the superior
 
     def distribute(self):  # aggregators distribute the energy they exchanged with outside
+        """
+        Recursive method used to communicate the decisions taken to all devices and aggregators it has in charge.
+        """
         self._strategy.top_down_phase(self)  # distribute the energy acquired from or sold to the exterior
 
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.distribute()
 
-    def check(self):
-        self._strategy.check(self)  # distribute the energy acquired from or sold to the exterior
+    def check(self):  # verification that decisions taken by supervisors are compatible for multi-energy devices
+        """
+        Recursive method used to check that energy balances respect the first principle.
+        """
+        self._strategy.multi_energy_balance_check(self)
 
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
-            managed_aggregator.check()
+            managed_aggregator.multi_energy_balance_check()
 
     def make_balances(self):
+        """
+        Method used to make energy and money balances.
+        """
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.make_balances()
 
@@ -157,10 +188,24 @@ class Aggregator:
     # Utility
     # ##########################################################################################
 
-    def add_device(self, device_name):  # add the given device_name to the list of devices managed by the aggregator
+    def add_device(self, device_name: str):  # add the given device_name to the list of devices managed by the aggregator
+        """
+        Method used by devices to signal the aggregator it has to manage them.
+
+        Parameters
+        ----------
+        device_name: str
+        """
         self._devices.append(device_name)
 
-    def add_subaggregator(self, subaggregator_name):  # add the given subaggregator_name to the list of subaggregators managed by the aggregator
+    def add_subaggregator(self, subaggregator_name: str):  # add the given subaggregator_name to the list of subaggregators managed by the aggregator
+        """
+        Method used by other aggregators to signal this aggregator it has to manage them.
+
+        Parameters
+        ----------
+        subaggregator_name: str
+        """
         self._subaggregators.append(subaggregator_name)
 
     @property

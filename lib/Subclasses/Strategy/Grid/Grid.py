@@ -13,7 +13,7 @@ class Grid(Strategy):
     # Dynamic behavior
     # ##########################################################################################
 
-    def check(self, aggregator):
+    def multi_energy_balance_check(self, aggregator):
         pass
 
     # ##########################################################################################

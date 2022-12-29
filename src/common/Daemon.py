@@ -4,6 +4,9 @@ from src.tools.GlobalWorld import get_world
 
 
 class Daemon:
+    """
+    Daemons are in charge of updating catalog keys not taken in charge by other objects, like weather or prices.
+    """
 
     def __init__(self, name, period=0, parameters=None, filename=None):
         if name is None:
@@ -34,6 +37,9 @@ class Daemon:
     # ##########################################################################################
 
     def launch(self):  # modify the catalog at the given period
+        """
+        Method used by world to activate the daemon.
+        """
         current_time = self._catalog.get("simulation_time")  # the simulation time allows to know if it has to be called or not
 
         if current_time >= self._next_time:  # data is saved only if the current time is a multiple of the period
@@ -41,6 +47,9 @@ class Daemon:
             self._next_time += self._period
 
     def _process(self):  # where specific tasks are defined
+        """
+        Intern method updating catalog key(s). Specific to each daemon subclass.
+        """
         pass
 
     # ##########################################################################################
@@ -48,6 +57,9 @@ class Daemon:
     # ##########################################################################################
 
     def final_process(self):
+        """
+        Method used by world to modify a catalog key at the end of a run.
+        """
         pass
 
     # ##########################################################################################
