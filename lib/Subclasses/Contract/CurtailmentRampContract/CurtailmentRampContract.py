@@ -85,7 +85,7 @@ class CurtailmentRampContract(Contract):
             energy_sold = 0
             money_earned = refund * energy_erased  # the refund the consumer gets if she is curtailed
             money_spent = price * energy_served  # what the consumer pay for the energy it consumes
-            # print(money_earned, money_spent)
+            print(money_earned, money_spent)
 
         # second, management of the effort
         time_step = self._catalog.get("time_step")

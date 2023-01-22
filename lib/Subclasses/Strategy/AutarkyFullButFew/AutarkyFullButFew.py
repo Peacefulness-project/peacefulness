@@ -4,7 +4,7 @@ from src.common.Strategy import Strategy
 from typing import Callable
 
 
-class AutarkyFullBuFew(Strategy):
+class AutarkyFullButFew(Strategy):
     def __init__(self, distribution_ranking_function: Callable):
         super().__init__(f"autarky_strategy_{distribution_ranking_function.__name__}", "Never try to buy/sell energy from/to outside. During distribution, serves totally a restricted number of devices according to the distribution ranking function.")
 

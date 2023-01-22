@@ -4,14 +4,12 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
@@ -284,7 +282,7 @@ export_plot9 = {
 
 parameters = {"description": description, "reference_values": reference_values, "filename": filename, "tolerance": 1E-6, "export_plots": [export_plot1, export_plot2, export_plot3, export_plot4, export_plot5, export_plot6, export_plot7, export_plot8, export_plot9]}
 
-validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("distribution_strategy_test", parameters)
+validation_daemon = subclasses_dictionary["Daemon"]["ValidationDaemon"]("user_profiles_test", parameters)
 
 
 # ##############################################################################################

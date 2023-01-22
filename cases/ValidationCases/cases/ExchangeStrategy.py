@@ -1,19 +1,16 @@
-# This script checks that distribution strategies work
+# This script checks that exchanges strategies work
 
 # ##############################################################################################
 # Importations
 from datetime import datetime
 
-from os import chdir
-from math import inf
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
 from src.common.World import World
+from src.common.Strategy import *
 
 from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
@@ -78,10 +75,10 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # ##############################################################################################
 # Creation of strategies
 # the different distribution strategies
-strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
-strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
+strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
+strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_emergency)
 strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesFullButFew"]()
+strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesFullButFew"](get_emergency)
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -158,8 +155,8 @@ reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10,
                     "always_satisfied_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
                     "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
 
-                    "exchanges_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
-                    "exchanges_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]
+                    "exchanges_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    "exchanges_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                     }
 
 name = "LVE_light_autarky"

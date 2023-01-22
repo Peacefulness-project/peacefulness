@@ -1,14 +1,17 @@
 # This sheet describes a strategy always wanting to buy all the energy lacking and to sell all the energy available
 # It corresponds to the current "strategy" in France and can be used as a reference.
-from src.common.Strategy import Strategy
+from src.common.Strategy import Strategy, get_price
+from typing import Callable
 
 
-class WhenProfitablePrice(Strategy):
+class WhenProfitableFullButFew(Strategy):
 
-    def __init__(self):
+    def __init__(self, sort_function: Callable):
         super().__init__("when_profitable_strategy", "Distributes energy only when the aggregator makes a profit. During distriburion, serves the most financially interesting devices.")
 
         self._quantities_exchanged_internally = dict()  # this dict contains the quantities exchanged internally
+
+        self._sort_function = sort_function
 
     # ##########################################################################################
     # Dynamic behavior
@@ -28,7 +31,7 @@ class WhenProfitablePrice(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price  # we choose a sort criteria
+        sort_function = get_price  # we choose a sort criteria
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
@@ -66,7 +69,7 @@ class WhenProfitablePrice(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price
+        sort_function = self._sort_function
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator

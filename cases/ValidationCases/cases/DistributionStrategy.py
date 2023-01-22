@@ -4,14 +4,12 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
@@ -80,9 +78,9 @@ water_temperature_daemon = subclasses_dictionary["Daemon"]["ColdWaterTemperature
 # ##############################################################################################
 # Creation of strategies
 # the different distribution strategies
-strategy_emergency = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
-strategy_price = subclasses_dictionary["Strategy"]["AutarkyPrice"]()
-strategy_quantity = subclasses_dictionary["Strategy"]["AutarkyQuantity"]()
+strategy_emergency = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_emergency)
+strategy_price = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_price)
+strategy_quantity = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_quantity)
 strategy_partial = subclasses_dictionary["Strategy"]["AutarkyPartialButAll"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
@@ -121,7 +119,6 @@ producer_elec_contract = subclasses_dictionary["Contract"]["CurtailmentContract"
 # ##############################################################################################
 # Creation of aggregators
 aggregator_grid = Aggregator("national_grid", LVE, grid_strategy, aggregators_manager)
-
 aggregator_elec_emergency = Aggregator("local_grid_emergency", LVE, strategy_emergency, aggregators_manager, aggregator_grid, elec_contract)
 aggregator_elec_price = Aggregator("local_grid_price", LVE, strategy_price, aggregators_manager, aggregator_grid, elec_contract)
 aggregator_elec_quantity = Aggregator("local_grid_quantity", LVE, strategy_quantity, aggregators_manager, aggregator_grid, elec_contract)

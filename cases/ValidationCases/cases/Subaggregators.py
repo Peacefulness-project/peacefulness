@@ -4,14 +4,12 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
@@ -76,7 +74,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # ##############################################################################################
 # Creation of strategies
 # BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()

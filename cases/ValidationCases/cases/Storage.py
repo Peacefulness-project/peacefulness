@@ -4,14 +4,12 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
@@ -122,8 +120,8 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, BAU_strategy, aggregators_m
 
 # ##############################################################################################
 # Manual creation of devices
-subclasses_dictionary["Device"]["ElectricalBattery"]("battery_charge_and_discharge", threshold_contract_elec, battery_owner_no_degradation, aggregator_elec, {"device": "battery_no_degradation"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
-subclasses_dictionary["Device"]["ElectricalBattery"]("battery_degradation", threshold_contract_elec, battery_owner_degradation, aggregator_elec, {"device": "battery_degradation"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery_charge_and_discharge", threshold_contract_elec, battery_owner_no_degradation, aggregator_elec, {"device": "battery_no_degradation"},  {"capacity": 10}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery_degradation", threshold_contract_elec, battery_owner_degradation, aggregator_elec, {"device": "battery_degradation"},  {"capacity": 10}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
 
 subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_charge_and_discharge", threshold_contract_heat, sensible_owner_no_degradation, aggregator_heat, {"device": "water_tank_no_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
 subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_degradation", threshold_contract_heat, sensible_owner_degradation, aggregator_heat, {"device": "water_tank_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
@@ -141,17 +139,17 @@ reference_values = {"battery_owner_no_degradation.LVE.energy_bought": [1, 1, 1, 
                     "battery_owner_no_degradation.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "battery_charge_and_discharge.energy_stored": [5.75, 6.5, 7.25, 8, 8.75, 9.5, 10, 10, 10, 10, 10, 10, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
 
-                    "battery_owner_degradation.LVE.energy_bought": [2, 2, 2, 1.477, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "battery_owner_degradation.LVE.energy_bought": [2, 2, 2, 1.8415, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "battery_owner_degradation.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0.87, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    "battery_degradation.energy_stored": [6.3, 7.47, 8.523, 9, 9, 9, 9, 9, 9, 9, 9, 9, 6.3, 3.87, 2.7, 2.43, 2.187, 1.9683, 1.77147, 1.594323, 1.4348907, 1.29140163, 1.162261467, 1.0460353203],
+                    "battery_degradation.energy_stored": [6.5, 7.85, 9.065, 10, 10, 10, 10, 10, 10, 10, 10, 10, 7, 4.3, 3, 2.7, 2.43, 2.187, 1.9683, 1.77147, 1.594323, 1.4348907, 1.2914016, 1.162261467],
 
                     "sensible_owner_no_degradation.LTH.energy_bought": [2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "sensible_owner_no_degradation.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0],
                     "sensible_charge_and_discharge.energy_stored": [325.15, 327.15, 329.15, 331.15, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 330.15, 327.15, 324.15, 321.15, 318.15, 315.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15],
 
-                    "sensible_owner_degradation.LTH.energy_bought": [4, 4, 4, 4, 3.322225, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    "sensible_owner_degradation.LTH.energy_bought": [4, 4, 4, 4, 4, 3.403675625, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "sensible_owner_degradation.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1.640284375, 0, 0, 0, 0, 0, 0, 0],
-                    "sensible_degradation.energy_stored": [324.95, 326.66, 328.2845, 329.827775, 330.65, 330.65, 330.65, 330.65, 330.65, 330.65, 330.65, 330.65, 326.375, 322.31375, 318.4555625, 314.790284375, 311.65, 310.225, 308.87125, 307.5851875, 306.363428125, 305.20275671875, 304.10011888281247, 303.0526129386718],
+                    "sensible_degradation.energy_stored": [325.15, 327.05, 328.855, 330.56975, 332.1987625, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 328.65, 324.375, 320.31375, 316.4555625, 313.15, 311.65, 310.225, 308.87125, 307.5851875, 306.363428125, 305.20275671875, 304.10011888281247],
 
                     # "latent_owner_no_degradation.LTH.energy_bought": [1, 1, 1, 1, 1, 1, 2/3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     # "latent_owner_no_degradation.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

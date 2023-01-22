@@ -365,7 +365,7 @@ class Strategy:
         outside_offer = {"emergency": 0, "quantity": outside_selling_capacity, "price": outside_selling_price, "name": "outside"}
 
         sorted_offers.append(outside_offer)
-        sorted_offers = sorted(sorted_offers, key=self.get_price, reverse=False)
+        sorted_offers = sorted(sorted_offers, key=get_price, reverse=False)
 
         # adding the selling capacity to the other aggregator as a standard demand
         outside_buying_price = aggregator.contract.selling_price * aggregator.efficiency
@@ -373,7 +373,7 @@ class Strategy:
         outside_demand = {"emergency": 0, "quantity": outside_buying_capacity, "price": outside_buying_price, "name": "outside"}
 
         sorted_demands.append(outside_demand)
-        sorted_demands = sorted(sorted_demands, key=self.get_price, reverse=True)
+        sorted_demands = sorted(sorted_demands, key=get_price, reverse=True)
 
         energy_bought_outside = 0
         energy_sold_outside = 0
@@ -548,18 +548,6 @@ class Strategy:
     # ##########################################################################################
     # sort functions
     # ##########################################################################################
-
-    def get_emergency(self, line: Dict):
-        return line["emergency"]
-
-    def get_revenue(self, line: Dict):
-        return line["quantity"] * line["price"]
-
-    def get_price(self, line: Dict):
-        return line["price"]
-
-    def get_quantity(self, line: Dict):
-        return line["quantity"]
 
     def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are sorted by emergency
@@ -990,6 +978,25 @@ class Strategy:
     @property
     def name(self):  # shortcut for read-only
         return self._name
+
+
+# ##########################################################################################
+# Utility
+# ##########################################################################################
+def get_emergency(message: Dict):
+    return message["emergency"]
+
+
+def get_revenue(message: Dict):
+    return message["quantity"] * message["price"]
+
+
+def get_price(message: Dict):
+    return message["price"]
+
+
+def get_quantity(message: Dict):
+    return message["quantity"]
 
 
 class StrategyException(Exception):

@@ -3,7 +3,6 @@
     "battery_no_degradation": {
       "charge": {"nature": "LVE", "power": 1, "efficiency":  0.75},
       "discharge": {"nature": "LVE", "power": 2, "efficiency": 0.5},
-      "capacity": 10,
       "minimum_energy": 3,
       "degradation_rate": 0,
 
@@ -15,7 +14,6 @@
     "battery_degradation": {
       "charge": {"nature": "LVE", "power": 2, "efficiency":  1},
       "discharge": {"nature": "LVE", "power": 2, "efficiency": 1},
-      "capacity": 10,
       "minimum_energy": 3,
       "degradation_rate": 0.1,
 

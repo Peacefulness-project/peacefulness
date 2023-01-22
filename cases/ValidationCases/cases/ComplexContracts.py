@@ -3,18 +3,14 @@
 # ##############################################################################################
 # Importations
 from datetime import datetime
-from math import inf
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
-from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 
 
@@ -69,7 +65,7 @@ LVE = load_low_voltage_electricity()
 
 # ##############################################################################################
 # Creation of daemons
-price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0.2*10/9, "selling_price": 0})  # sets prices for flat rate
+price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"nature": LVE.name, "buying_price": 0.2, "selling_price": 0})  # sets prices for flat rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 
@@ -77,7 +73,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # ##############################################################################################
 # Creation of strategies
 # the different distribution strategies
-Autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
+Autarky_strategy = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_emergency)
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()

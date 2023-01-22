@@ -1,6 +1,6 @@
 # This sheet describes a strategy always refusing to trade with other
 # It can correspond to the strategy of an island, for example
-from src.common.Strategy import Strategy
+from src.common.Strategy import *
 
 
 class AutarkyPartialButAll(Strategy):
@@ -31,7 +31,7 @@ class AutarkyPartialButAll(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
+        sort_function = get_emergency  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator

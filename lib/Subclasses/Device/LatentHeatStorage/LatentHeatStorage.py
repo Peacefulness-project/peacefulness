@@ -6,6 +6,7 @@ from src.common.DeviceMainClasses import Storage
 class LatentHeatStorage(Storage):
 
     def __init__(self, name, contracts, agent, aggregator, profiles, parameters, filename="lib/Subclasses/Device/LatentHeatStorage/LatentHeatStorage.json"):
+        parameters["capacity"] = 0
         super().__init__(name, contracts, agent, filename, aggregator, profiles, parameters)
 
         temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]

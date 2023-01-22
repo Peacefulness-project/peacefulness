@@ -701,7 +701,7 @@ class Converter(Device):
 # ##############################################################################################
 class Storage(Device):
 
-    def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters=None):
+    def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters):
 
         self._capacity = parameters["capacity"]
 

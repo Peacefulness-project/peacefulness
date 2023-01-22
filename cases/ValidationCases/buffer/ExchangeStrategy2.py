@@ -4,14 +4,12 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
 
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
@@ -82,7 +80,7 @@ subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit
 # ##############################################################################################
 # Creation of strategies
 # the different distribution strategies
-strategy_light_autarky = subclasses_dictionary["Strategy"]["WhenProfitableRevenues"]()
+strategy_light_autarky = subclasses_dictionary["Strategy"]["WhenProfitableFullButFew"](get_price)
 # strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyEmergency"]()
 strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 

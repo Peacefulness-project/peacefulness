@@ -19,7 +19,10 @@ class PriceManagerRTPDaemon(Daemon):
 
         self._format = data["format"]
         self._prices = data["prices"]
-        self._selling_coeff = parameters["coefficient"]
+        if "coefficient" in parameters:
+            self._selling_coeff = parameters["coefficient"]
+        else:
+            self._selling_coeff = 1
 
         # getting back the appropriate way of reading the data
         self._files_formats = {"1day/year": get_1_day_per_year,  # 1 representative day, hour by hour, for each month

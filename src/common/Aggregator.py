@@ -160,7 +160,7 @@ class Aggregator:
         self._strategy.multi_energy_balance_check(self)
 
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
-            managed_aggregator.multi_energy_balance_check()
+            managed_aggregator.check()
 
     def make_balances(self):
         """

@@ -285,8 +285,6 @@ class Device:
             self._catalog.set(f"{self.name}.{nature.name}.money_earned", money_earned)
             self._catalog.set(f"{self.name}.{nature.name}.money_spent", money_spent)
 
-            # print(money_earned)
-
         if self._moment is not None:
             self._moment = (self._moment + 1) % self._period  # incrementing the hour in the period
 

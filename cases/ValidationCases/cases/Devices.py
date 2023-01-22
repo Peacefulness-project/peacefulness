@@ -9,8 +9,6 @@ from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
-from src.common.Datalogger import Datalogger
-from src.common.Nature import Nature
 from src.common.World import World
 
 from src.tools.GraphAndTex import GraphOptions
