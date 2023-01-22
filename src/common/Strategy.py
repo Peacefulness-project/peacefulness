@@ -549,7 +549,16 @@ class Strategy:
     # sort functions
     # ##########################################################################################
 
-    def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable):  # a function calculating the emergency associated with devices and returning 2 sorted lists: one for the demands and one for the offers
+    def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable):  # a function calculating the emergency associated, with a sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
+
+        [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)
+
+        sorted_demands = sorted(sorted_demands, key=sort_function, reverse=True)
+        sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)
+
+        return [sorted_demands, sorted_offers]
+
+    def _separe_quantities(self, aggregator: "Aggregator"):  # a function calculating the emergency associated, without sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are sorted by emergency
         sorted_offers = []  # a list where the offers of energy are sorted by emergency
 
@@ -612,9 +621,6 @@ class Strategy:
                     message["price"] = price
                     message["name"] = subaggregator.name
                     sorted_offers.append(message)
-
-        sorted_demands = sorted(sorted_demands, key=sort_function, reverse=True)
-        sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)
 
         return [sorted_demands, sorted_offers]
 

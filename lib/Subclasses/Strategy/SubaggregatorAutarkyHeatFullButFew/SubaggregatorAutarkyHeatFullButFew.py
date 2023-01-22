@@ -20,17 +20,14 @@ class SubaggregatorAutarkyHeatFullButFew(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
         # ##########################################################################################
         # management of grid call
@@ -74,14 +71,13 @@ class SubaggregatorAutarkyHeatFullButFew(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, energy_available_from_converters] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)

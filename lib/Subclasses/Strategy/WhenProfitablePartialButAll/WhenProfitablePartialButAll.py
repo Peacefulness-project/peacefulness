@@ -1,6 +1,6 @@
 # This sheet describes a strategy always wanting to buy all the energy lacking and to sell all the energy available
 # It corresponds to the current "strategy" in France and can be used as a reference.
-from src.common.Strategy import Strategy
+from src.common.Strategy import *
 
 
 class WhenProfitablePartialButAll(Strategy):
@@ -23,12 +23,11 @@ class WhenProfitablePartialButAll(Strategy):
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
-        quantities_exchanged = 0  # the quantity of energy exchanged internally allowed by the strategy
         quantities_and_prices = []  # a list containing couples energy/prices
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_price  # we choose a sort criteria
+        sort_function = get_price  # we choose a sort criteria
 
         # formulation of needs
         [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
@@ -66,8 +65,6 @@ class WhenProfitablePartialButAll(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
@@ -77,7 +74,7 @@ class WhenProfitablePartialButAll(Strategy):
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # balance of energy available

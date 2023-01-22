@@ -24,11 +24,6 @@ class LightAutarkyFullButFew(Strategy):
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
-
-        # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, self._distributrion_ranking_function)  # sort the quantities according to their prices
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 

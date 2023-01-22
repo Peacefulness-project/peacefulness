@@ -1,6 +1,6 @@
 # This sheet describes a strategy always refusing to trade with other
 # It can correspond to the strategy of an island, for example
-from src.common.Strategy import Strategy
+from src.common.Strategy import *
 
 
 class ExchangesPartial(Strategy):
@@ -20,13 +20,6 @@ class ExchangesPartial(Strategy):
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
-
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
-
-        sort_function = self.get_emergency  # we choose a sort criteria
-
-        # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -57,8 +50,6 @@ class ExchangesPartial(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
@@ -78,7 +69,7 @@ class ExchangesPartial(Strategy):
         # distribution of energy
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
 
         # demand side
         [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)

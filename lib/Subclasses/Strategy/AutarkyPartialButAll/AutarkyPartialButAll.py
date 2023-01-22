@@ -31,8 +31,6 @@ class AutarkyPartialButAll(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = get_emergency  # we choose a sort criteria
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
@@ -52,7 +50,7 @@ class AutarkyPartialButAll(Strategy):
 
         else:  # if there is some possibility to balance the grid
             # formulation of needs
-            [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+            [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
 
             # first we ensure the urgent quantities will be satisfied
             # demand side

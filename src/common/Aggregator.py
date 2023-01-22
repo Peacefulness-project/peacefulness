@@ -32,6 +32,8 @@ class Aggregator:
         self._agent = agent
 
         self._strategy = strategy  # the strategy, i.e the strategy applied by this aggregator
+        self.sorted_demands = []  # an ordered list containing the demands received by an aggregator during a time step
+        self.sorted_offers = []  # an ordered list containing the offers received by an aggregator during a time step
 
         self.superior = superior  # the other aggregator this one is obeying to
         # it can be None

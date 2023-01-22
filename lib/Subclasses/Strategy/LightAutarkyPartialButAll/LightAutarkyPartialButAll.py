@@ -17,17 +17,9 @@ class LightAutarkyPartialButAll(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
-
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
-
-        sort_function = self.get_price  # we choose a sort criteria
-
-        # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -55,11 +47,8 @@ class LightAutarkyPartialButAll(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        energy_available_from_converters = 0  # the quantity of energy available thanks to converters
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
-
-        sort_function = self.get_emergency  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
@@ -80,7 +69,7 @@ class LightAutarkyPartialButAll(Strategy):
         # distribution of energy
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
 
         # demand side
         [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
