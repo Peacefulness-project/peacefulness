@@ -117,7 +117,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
             supervisor_elec = subclasses_dictionary["Strategy"][f"LightAutarkyPartial"]()
             if grid == "mixed":  # if there is a DHN
                 # the DHN strategy
-                supervisor_heat = subclasses_dictionary["Strategy"][f"ExchangesPartial"]()
+                supervisor_heat = subclasses_dictionary["Strategy"][f"ExchangesPartialButAll"]()
 
     elif strategy_exchange == "profitable":
         if strategy_distribution == "full":
@@ -130,7 +130,7 @@ def simulation(DSM_proportion, strategy_exchange, strategy_distribution, grid):
             supervisor_elec = subclasses_dictionary["Strategy"][f"WhenProfitablePartial"]()
             if grid == "mixed":  # if there is a DHN
                 # the DHN strategy
-                supervisor_heat = subclasses_dictionary["Strategy"][f"ExchangesPartial"]()
+                supervisor_heat = subclasses_dictionary["Strategy"][f"ExchangesPartialButAll"]()
 
     elif strategy_exchange == "BAU":
         supervisor_elec = subclasses_dictionary["Strategy"][f"AlwaysSatisfied"]()

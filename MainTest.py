@@ -27,7 +27,7 @@ from src.tools.Utilities import adapt_path
 
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
@@ -181,7 +181,7 @@ forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dumm
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 # the heat strategy
 strategy_heat = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()

@@ -3,7 +3,7 @@
 from src.common.Strategy import *
 
 
-class ExchangesPartial(Strategy):
+class ExchangesPartialButAll(Strategy):
 
     def __init__(self):
         super().__init__("exchanges_partial_strategy", "Always tries to buy the maximum energy possible outside. During distribution, serves partially everybody.")

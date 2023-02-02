@@ -49,7 +49,6 @@ class CurtailmentRampContract(Contract):
         # it means that the devices will never be sure to be served
 
         self._effort[name]["initial_request"] = message["energy_maximum"]  # record of the initial request of the device to compare it with the quantity served
-        # print(self._catalog.get(f"{self._daemon_name}.buying_price") + self._effort[name]["effort"] * self._bonus)
 
         return message
 
@@ -85,7 +84,6 @@ class CurtailmentRampContract(Contract):
             energy_sold = 0
             money_earned = refund * energy_erased  # the refund the consumer gets if she is curtailed
             money_spent = price * energy_served  # what the consumer pay for the energy it consumes
-            print(money_earned, money_spent)
 
         # second, management of the effort
         time_step = self._catalog.get("time_step")
