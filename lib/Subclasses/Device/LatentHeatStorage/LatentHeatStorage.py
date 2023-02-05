@@ -44,17 +44,16 @@ class LatentHeatStorage(Storage):
         # tank characteristics
         self._thermal_conductivity = data_device["thermal_conductivity"]
         self._thickness = data_device["thickness"]
-        self._volume = data_device["volume"]
+        self._mass = data_device["volume"] * data_device["density"]
         self._surface = data_device["surface"]
 
         # material characteristics
-        self._density = data_device["density"]
         self._thermal_capacity_liquid = data_device["thermal_capacity_liquid"]
         self._thermal_capacity_solid = data_device["thermal_capacity_solid"]
 
         # energy equivalence
-        self._min_energy = (273.15 + self._min_temperature) * self._density * self._volume * self._thermal_capacity_solid  # energy corresponding to the min temperature, when the material is solid
-        self._capacity = ((273.15 + self._T_solidus) * self._thermal_capacity_solid + self._latent_heat + (self._T_liquidus + self._max_temperature) * self._thermal_capacity_liquid) * self._density * self._volume  # energy corresponding to the max temperature, when the material is liquid
+        self._min_energy = (273.15 + self._min_temperature) * self._mass * self._thermal_capacity_solid  # energy corresponding to the min temperature, when the material is solid
+        self._capacity = ((273.15 + self._T_solidus) * self._thermal_capacity_solid + self._latent_heat + (self._T_liquidus + self._max_temperature) * self._thermal_capacity_liquid) * self._mass  # energy corresponding to the max temperature, when the material is liquid
         self._catalog.add(f"{self.name}.energy_stored", self._min_energy + (self._capacity - self._min_energy) / 2)  # the energy stored at a given time, considered as half charged at the beginning
         middle_temperature = (self._max_temperature + self._min_temperature) / 2  # temperature corresponding to the initial half-charge
         self._solidus_fraction = max(min((middle_temperature - self._T_solidus) / (self._T_liquidus - self._T_solidus), 0), 1)  # the initial liquid fraction in the storage (if any)
@@ -77,33 +76,8 @@ class LatentHeatStorage(Storage):
         storage_temperature = self._energy_to_temperature(energy_stored)  # conversion of stored energy to temperature of the storage
         outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
         time_step = self._catalog.get("time_step")
-        heat_transfer = self._thermal_conductivity * self._surface * time_step / self._thickness * (outdoor_temperature - storage_temperature)
-        # todo : méthode de calcul de Q
-        
-        # here, we considered that the temperature of the storage is superior to outside temperature
-        # storage temperature is considered constant in the heat transfer calculation
-        if storage_temperature < self._T_solidus:  # if the material is fully solid
-            storage_temperature = storage_temperature + heat_transfer / (self._density * self._volume * self._thermal_capacity_solid)
-        
-        elif (storage_temperature < self._T_liquidus) & (storage_temperature > self._T_solidus):  # if the two phases coexist
-            energy_left_after_solidification = heat_transfer + self._density * self._volume * self._latent_heat * (storage_temperature - self._T_solidus) / (self._T_liquidus - self._T_solidus)  # this checks if the material is fully solidified
-            if energy_left_after_solidification <= 0:  # the material is fully solidified
-                storage_temperature = self._T_solidus + energy_left_after_solidification / (self._density * self._volume * self._thermal_capacity_solid)
-            else:  # if the material is not fully solidified
-                storage_temperature = storage_temperature + heat_transfer / (self._density * self._volume * self._latent_heat / (self._T_liquidus - self._T_solidus))
-
-        else:  # if the material is fully liquid
-            energy_left_before_solidification = heat_transfer + self._density * self._volume * self._thermal_capacity_liquid * (storage_temperature - self._T_liquidus)  # this checks if the material has started to solidify
-            if energy_left_before_solidification <= 0:  # the material has started to solidify, we have to check if it has fully solidified
-                energy_left_after_solidification = energy_left_before_solidification + self._density * self._volume * self._latent_heat  # this checks if the material is fully solidified
-                if energy_left_after_solidification <= 0:  # the material is fully solidified
-                    storage_temperature = self._T_solidus + energy_left_after_solidification / (self._density * self._volume * self._thermal_capacity_solid)
-                else:  # if the material is not fully solidified
-                    storage_temperature = self._T_liquidus + energy_left_before_solidification / (self._density * self._volume * self._latent_heat / (self._T_liquidus - self._T_solidus))
-            else:  # if the material has not started to solidify
-                storage_temperature = storage_temperature + heat_transfer / (self._density * self._volume * self._thermal_capacity_liquid)
-
-        return self._temperature_to_energy(storage_temperature)  # actualisation of the energy stored
+        heat_loss = self._thermal_conductivity * self._surface * time_step / self._thickness * (outdoor_temperature - storage_temperature)
+        return energy_stored + heat_loss  # actualisation of the energy stored
 
 
 
