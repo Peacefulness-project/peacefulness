@@ -5,11 +5,9 @@
 # Importations
 from datetime import datetime
 
-from os import chdir
-
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 
 # pre-defined natures
 from lib.DefaultNatures.DefaultNatures import *
@@ -29,7 +27,6 @@ from src.tools.SubclassesDictionary import get_subclasses
 # the following objects are necessary for the simulation to be performed
 # you need exactly one object of each type
 # ##############################################################################################
-chdir("../../../")
 
 
 # ##############################################################################################
@@ -130,7 +127,7 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "P
 strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["SubaggregatorHeatEmergency"]()
+strategy_heat = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 # the strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()

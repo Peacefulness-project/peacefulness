@@ -58,13 +58,12 @@ class ElectricDam(NonControllableDevice):
 
         # finding the adapted efficiency
         power_available = flow * water_density * self._height * 9.81 / 1000
-        if power_available > self._max_power:
-            coeff_efficiency = 1
-        else:
-            i = 0
-            while power_available / self._max_power > self._relative_flow[i]/100:
-                i += 1
-            coeff_efficiency = self._relative_efficiency[i]
+        i = 0
+        # print(power_available / self._max_power)
+        while power_available / self._max_power > self._relative_flow[i] and i < len(self._relative_flow)-1:
+            i += 1
+            # print(i, self._relative_flow[i])
+        coeff_efficiency = self._relative_efficiency[i]
 
         efficiency = self._max_efficiency * coeff_efficiency
 

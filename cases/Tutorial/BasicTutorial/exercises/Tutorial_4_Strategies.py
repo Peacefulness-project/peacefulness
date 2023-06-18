@@ -7,11 +7,9 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from os import chdir
-
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
@@ -20,10 +18,7 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-
-# ##############################################################################################
-# Rerooting
-chdir("../../../../")
+from src.tools.GraphAndTex import GraphOptions
 
 
 # ##############################################################################################
@@ -113,7 +108,7 @@ water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"locatio
 
 # TODO: create a strategy "AlwaysSatisfied"
 
-# TODO: create a strategy "LightAutarkyEmergency"
+# TODO: create a strategy "LightAutarkyFullButFew" with the get_emergency priority
 
 
 # ##############################################################################################

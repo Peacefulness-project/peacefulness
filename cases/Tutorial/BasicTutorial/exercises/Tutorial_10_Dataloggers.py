@@ -6,11 +6,9 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from os import chdir
-
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
@@ -20,11 +18,6 @@ from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
 
 from src.tools.GraphAndTex import GraphOptions
-
-# ##############################################################################################
-# Rerooting
-chdir("../../../../")
-
 
 # ##############################################################################################
 # Importation of subclasses
@@ -112,7 +105,7 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 elec_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 
 # ##############################################################################################
@@ -142,7 +135,7 @@ aggregator_grid = Aggregator("grid", LVE, grid_strategy, aggregator_owner)
 
 aggregator_elec = Aggregator("aggregator_elec", LVE, elec_strategy, aggregator_owner, aggregator_grid, BAU_elec)  # creation of a aggregator
 
-aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity=1000)  # creation of a aggregator
+aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_owner, aggregator_elec, BAU_elec, efficiency=3.5, capacity={"buying": 10000, "selling": 0})  # creation of a aggregator
 
 
 # ##############################################################################################

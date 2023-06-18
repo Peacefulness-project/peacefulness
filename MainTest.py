@@ -84,7 +84,7 @@ world.set_random_seed("tournesol")
 start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               87)  # number of time steps simulated
+               8760)  # number of time steps simulated
 
 
 # ##############################################################################################
@@ -271,8 +271,8 @@ subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-world.agent_generation("single", 200, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-world.agent_generation("family", 200, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("single", 200, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# world.agent_generation("family", 200, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 world.agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
@@ -347,6 +347,8 @@ subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global"
 
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
+
+subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("tutu", "Tutu", ["dummy_complete_profile_0_ElectricDam_0"], period=1)
 
 subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="global")

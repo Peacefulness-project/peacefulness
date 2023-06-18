@@ -288,10 +288,10 @@ class Datalogger:
                     file.write(f"{value}\t")
 
         else:
-            for key in self._values:
-                for i in range(len(self._values)):
+            for i in range(self._catalog.get("time_limit")):
+                for key in self._values:
                     file.write(f"{self._values[key][i]}\t")
-
+                file.write("\n")
         file.close()
 
     def final_export(self):  # call the relevant export functions

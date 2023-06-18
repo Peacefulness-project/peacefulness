@@ -6,15 +6,10 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from os import chdir
-
-from lib.Subclasses.Daemon.PriceManagerDaemon.PriceManagerDaemon import PriceManagerDaemon
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
-
-from lib.Subclasses.Daemon.PriceManagerDaemon import PriceManagerDaemon
 
 from src.common.Agent import Agent
 
@@ -22,10 +17,7 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-
-# ##############################################################################################
-# Rerooting
-chdir("../../../../")
+from src.tools.GraphAndTex import GraphOptions
 
 
 # ##############################################################################################

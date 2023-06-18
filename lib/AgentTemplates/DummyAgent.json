@@ -14,7 +14,7 @@
     "Dryer": [{"name": "Dryer", "data_profiles": {"user": "family", "device": "medium_consumption"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device": "heat"}, "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"max_power": 100}}],
 
-    "ElectricDam": [{"name": "ElectricDam", "data_profiles": {"device": "Pelton"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"height": 100, "max_power": 1000}}],
+    "ElectricDam": [{"name": "ElectricDam", "data_profiles": {"device": "Pelton"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"height": 2, "max_power": 1000}}],
 
     "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
     "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
@@ -38,7 +38,7 @@
   },
 
   "contracts": {
-    "LVE_BAU":  {"nature_name": "LVE", "contract_subclass": "CooperativeContract"},
+    "LVE_BAU":  {"nature_name": "LVE", "contract_subclass": "EgoistContract"},
     "LTH_BAU":  {"nature_name": "LTH", "contract_subclass": "EgoistContract"}
   }
 

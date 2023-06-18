@@ -6,11 +6,9 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from os import chdir
-
 from src.common.World import World
 
-from src.common.Nature import Nature
+from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
@@ -19,10 +17,7 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-
-# ##############################################################################################
-# Rerooting
-chdir("../../../../")
+from src.tools.GraphAndTex import GraphOptions
 
 
 # ##############################################################################################
@@ -111,7 +106,7 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 elec_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
-heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyEmergency"]()
+heat_strategy = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 
 # ##############################################################################################
@@ -155,12 +150,12 @@ cooperative_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("hea
 # TODO: create an aggregator called "aggregator_heat"
 #       Its characteristics are:
 #       1/ associated with the low temperature nature (see above, LTH)
-#       2/ applying the strategy "LightAutarkyEmergency" (see above, heat_strategy)
+#       2/ applying the strategy "AutarkyEmergencyFullButFew" (see above, heat_strategy)
 #       3/ owned by the agent "aggregators_owner"
 #       4/ its superior with the general electrical aggregator (see above, aggregator_grid)
 #       5/ its contract is business as usual "EgoistContract" (see above, BAU_elec)
 #       6/ efficiency of 3.5
-#       7/ max power of 1 MW
+#       7/ max power of 1 MW from electricity to heat and 0 from heat to electricity
 
 
 # ##############################################################################################
