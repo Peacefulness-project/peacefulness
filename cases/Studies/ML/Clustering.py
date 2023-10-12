@@ -1,44 +1,81 @@
-from cases.Studies.ML. SimulationScript import create_simulation
-import pandas as pd
-from random import shuffle
-import datetime
+from cases.Studies.ML.SimulationScript import create_simulation
+from cases.Studies.ML.Utilities import *
 
 
-def dummy_order_priorities_conso(strategy: "Strategy"):
-    ordered_list = ["store", "soft_DSM_conso", "hard_DSM_conso", "buy_outside_emergency"]
-    shuffle(ordered_list)
-    return ordered_list
+import math
+from numpy import average, std, zeros
+from typing import List
+from sklearn import cluster
+# lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
 
 
-def dummy_order_priorities_prod(strategy: "Strategy"):
-    ordered_list = ["soft_DSM_prod", "hard_DSM_prod", "sell_outside_emergency", "unstore"]
-    shuffle(ordered_list)
-    return ordered_list
+def clustering(simulation_length: int, clusters_number: int, clustering_metrics: List):
+    delay_days = [i for i in range(50)]
 
+    print(f"creation of the situation set")
+    raw_situations = {key: [] for key in clustering_metrics}
+    for day in delay_days:
+        world = create_simulation(simulation_length, dummy_order_priorities_conso(),
+                                  dummy_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
+        datalogger = world.catalog.dataloggers["metrics"]
+        for key in clustering_metrics:
+            raw_situations[key] = raw_situations[key] + datalogger._values[key]
 
-def clustering(simulation_length):
-    start_date = datetime.datetime(year=2018, month=1, day=1, hour=1,)
-    location = "Santerre"  # location used for meteo daemons
-    parameters = [  # prices are not taken into account for now
-        # meteo
+    # # approche centrage et réduction sur chaque variable, probablement pas bonne bu liens entre variables
+    # refined_situations = {key: [] for key in metrics}
+    # for key in metrics:
+    #     mean = average(raw_situations[key])
+    #     maximum = max(raw_situations[key])
+    #     minimum = min(raw_situations[key])
+    #     refined_situations[key] = [(value - mean)/(maximum - minimum) for value in raw_situations[key]]
+    #     # print(f"{key}: {refined_situations[key]}")
+    #     # print(std(refined_situations[key]))
 
-        # storage
-        "battery.energy_stored",
-        # consumption
-        "LVE.minimum_energy_consumption",
-        "LVE.maximum_energy_consumption",
-    ]
+    # approche centrage par rapport au minimum d'energie demandée en consommation
+    # qui de fait disparaît des métriques
+    print(f"construction of the description of the situations")
+    refined_situations = zeros((len(delay_days), len(clustering_metrics)-1))
+    normalisation_values = []
+    for i in range(len(delay_days)):
+        min_cons = raw_situations["general_aggregator.minimum_energy_consumption"][i]
+        normalisation_values.append(min_cons)
+        refined_situations[i][0] = raw_situations["battery.energy_stored"][i] / min_cons  # energy stored
 
-    # + demand en attente
+        refined_situations[i][1] = raw_situations["general_aggregator.maximum_energy_consumption"][i] / min_cons  # max consumption
 
-    situations = pd.DataFrame(columns=parameters)
-    for i in range(1):
-        start_date += datetime.timedelta(hours=1)
-        catalog = create_simulation(start_date, simulation_length, dummy_order_priorities_conso,
-                                    dummy_order_priorities_prod, location)
-        buffer_dict = {}
+        refined_situations[i][2] = raw_situations["general_aggregator.minimum_energy_production"][i] / min_cons  # min production
+        refined_situations[i][3] = raw_situations["general_aggregator.maximum_energy_production"][i] / min_cons  # max production
 
+    print(f"identification of clusters")
+    clusters = cluster.KMeans(clusters_number).fit(refined_situations)
+    situations_list = [[] for _ in range(len(raw_situations["battery.energy_stored"]))]
+    for criterion in raw_situations:
+        i = 0
+        if criterion != "general_aggregator.minimum_energy_consumption":
+            for value in raw_situations[criterion]:
+                situations_list[i].append(value)
+                i += 1
 
+    cluster_centers = []
+    for i in range(len(clusters.cluster_centers_)):
+        refined_center = clusters.cluster_centers_[i]
+        raw_center = refined_center * normalisation_values[i]
+        cluster_centers.append(list(raw_center))
 
+    # retrouver le jour le plus proche de chaque centre
+    cluster_days = []
+    for center in cluster_centers:
+        indice = 0
+        distance_min = math.inf
+        for i in range(len(situations_list)):
+            situation = situations_list[i]
+            distance = sum([(center[j] - situation[j])**2 for j in range(len(center))])
+            if distance < distance_min:
+                distance_min = distance
+                indice = i
+        cluster_days.append(indice)
+    print(f"cluster centers: {cluster_centers}")
+    print(f"corresponding days: {cluster_days}")
+    print("\n\n")
 
-
+    return cluster_centers, cluster_days

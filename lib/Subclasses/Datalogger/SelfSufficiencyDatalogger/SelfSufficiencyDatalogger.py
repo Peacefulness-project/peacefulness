@@ -48,6 +48,5 @@ class SelfSufficiencyDatalogger(Datalogger):  # a sub-class of dataloggers desig
         self._natures_list = self._catalog.get("dictionaries")['natures'].keys()  # get all the names
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
-            self.add(f"{aggregator_name}_self_consumption", create_self_consumption_function(aggregator_name), graph_status="Y")
-            self.add(f"{aggregator_name}_coverage_rate", create_coverage_rate_function(aggregator_name), graph_status="Y")
-
+            self.add(f"{aggregator_name}.self_consumption", create_self_consumption_function(aggregator_name), graph_status="Y")
+            self.add(f"{aggregator_name}.coverage_rate", create_coverage_rate_function(aggregator_name), graph_status="Y")

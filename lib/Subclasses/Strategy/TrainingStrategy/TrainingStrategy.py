@@ -1,6 +1,6 @@
 # This sheet describes a strategy always refusing to trade with other
 # It can correspond to the strategy of an island, for example
-from src.common.Strategy import Strategy
+from src.common.Strategy import *
 from typing import List, Dict, Tuple, Callable
 import pandas as pd
 
@@ -34,7 +34,7 @@ class TrainingStrategy(Strategy):
 
         self._priorities_production = priorities_production
 
-        self._sort_function = self.get_emergency  # TODO: à faire en fonction du critère de performance choisi
+        self._sort_function = get_emergency  # TODO: à faire en fonction du critère de performance choisi
 
     # ##########################################################################################
     # Dynamic behavior
@@ -86,7 +86,7 @@ class TrainingStrategy(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
-        sort_function = self.get_emergency  # we choose a sort criteria
+        sort_function = self._sort_function  # we choose a sort criteria
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator

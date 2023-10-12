@@ -3,7 +3,7 @@
 
 # ##############################################################################################
 # Importations
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable
 
 from src.common.World import World
@@ -23,7 +23,7 @@ from src.common.Datalogger import Datalogger
 from src.tools.SubclassesDictionary import get_subclasses
 
 
-def create_simulation(start_date: "datetime", hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, location: str):
+def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
 
     # ##############################################################################################
     # Minimum
@@ -40,12 +40,12 @@ def create_simulation(start_date: "datetime", hours_simulated: int, priorities_c
     # Creation of the world
     # a world contains all the other elements of the model
     # a world needs just a name
-    name_world = "Disc World"
+    name_world = f"clustering_case_day_{delay_days}"
     world = World(name_world)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ML/Results"
+    pathExport = "cases/Studies/ML/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -56,7 +56,8 @@ def create_simulation(start_date: "datetime", hours_simulated: int, priorities_c
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    # start_date = datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
+    start_date = datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days=delay_days)
+    # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
                    hours_simulated)  # number of time steps simulated
@@ -73,6 +74,7 @@ def create_simulation(start_date: "datetime", hours_simulated: int, priorities_c
 
     # ##############################################################################################
     # Creation of daemons
+    location = "Santerre"
 
     # Price Managers
     # this daemons fix a price for a given nature of energy
@@ -162,26 +164,42 @@ def create_simulation(start_date: "datetime", hours_simulated: int, priorities_c
     # Automated generation of complete agents (i.e with devices and contracts)
 
     # BAU contracts
-    world.agent_generation("M5BAU", 50, "cases/Studies/ML/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+    world.agent_generation("M5BAU", 200, "cases/Studies/ML/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
+                           {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
+                           verbose=False
+                           )
 
     # DLC contracts
-    world.agent_generation("M5Coop", 50, "cases/Studies/ML/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+    world.agent_generation("M5Coop", 200, "cases/Studies/ML/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
+                           {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
+                           verbose=False
+                           )
 
     # Curtailment contracts
-    world.agent_generation("M5Curt", 50, "cases/Studies/ML/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+    world.agent_generation("M5Curt", 200, "cases/Studies/ML/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
+                           {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
+                           verbose=False
+                           )
 
     # ##############################################################################################
     # Creation of dataloggers
 
     # datalogger used to get back producer outputs
-    producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
+    # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
 
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)
+    # subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
+
+    # dataogger used to export chosen metrics
+    metrics_datalogger = Datalogger("metrics", "Metrics.txt")
+    for key in metrics:
+        metrics_datalogger.add(key)
+
+    world.start(False)
 
     return world
 

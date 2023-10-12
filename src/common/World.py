@@ -273,8 +273,9 @@ class World:
     # Automated generation of agents
     # ##########################################################################################
 
-    def agent_generation(self, name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}):  # this method creates several agents, each with a predefinite set of devices
-        print(f"generation of the {quantity} agents from the {filename} template.")
+    def agent_generation(self, name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}, verbose=True):  # this method creates several agents, each with a predefinite set of devices
+        if verbose:
+            print(f"generation of the {quantity} agents from the {filename} template.")
 
         # loading the data in the file
         file = open(filename, "r")
@@ -331,7 +332,8 @@ class World:
 
                         device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters)  # creation of the device
 
-        print("Done\n")
+        if verbose:
+            print("Done\n")
 
     # ##########################################################################################
     # Initialization
@@ -373,10 +375,11 @@ class World:
 
         return independent_agent_list
 
-    def start(self):
+    def start(self, verbose=True):
         self._check()  # check if everything is fine in world definition
 
-        print(f"Start of the run named {self.name}.\n")
+        if verbose:
+            print(f"Start of the run named {self.name}.\n")
 
         independent_aggregators_list = self._identify_independent_aggregators()
 
@@ -392,7 +395,8 @@ class World:
             # Beginning of the turn
             # ###########################
 
-            print(f"iteration {self._catalog.get('simulation_time')}")
+            if verbose:
+                print(f"iteration {self._catalog.get('simulation_time')}")
 
             # reinitialization of values in the catalog
             # these values are, globally, the money and energy balances
@@ -481,7 +485,8 @@ class World:
             for daemon in self._catalog.daemons.values():
                 daemon.launch()
 
-            print()
+            if verbose:
+                print()
 
         for datalogger in self._catalog.dataloggers.values():
             datalogger.final_process()

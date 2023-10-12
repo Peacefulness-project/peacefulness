@@ -13,7 +13,7 @@ class Device:
     the Device class represents devices producing, consuming, converting or storing energy. Its main role is to inform the aggregator of its physical state.
     """
 
-    def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
+    def __init__(self, name: str, contracts, agent: "Agent", aggregators, filename: str, profiles, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
 
         self._filename = filename  # the name of the data file
