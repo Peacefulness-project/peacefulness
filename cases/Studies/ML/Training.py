@@ -5,12 +5,9 @@ from cases.Studies.ML. SimulationScript import create_simulation
 from cases.Studies.ML.Utilities import *
 
 
-def training(simulation_length: int, cluster_center_start_date: List, performance_norm: Callable, assessed_priorities:Dict):
+def training(simulation_length: int, cluster_center_start_date: List, performance_norm: Callable, assessed_priorities:Dict, performance_metrics: List):
     # performance assessment phase
     performances_record = PerformanceRecord(cluster_center_start_date)
-    performance_metrics = [
-                           "general_aggregator.coverage_rate",
-    ]
 
     print("identification of the relevant strategy for each cluster")
     for i in range(len(cluster_center_start_date)):
@@ -32,7 +29,7 @@ def training(simulation_length: int, cluster_center_start_date: List, performanc
             print(f"performance reached: {performance}")
 
             performances_record.add_to_record(priority_name, i, performance)
-        print()
+    print("Done\n")
 
     # strategy assignation phase
     best_strategies = {}

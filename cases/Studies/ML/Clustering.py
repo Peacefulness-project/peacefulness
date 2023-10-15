@@ -15,11 +15,13 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
     for day in delay_days:
-        world = create_simulation(simulation_length, dummy_order_priorities_conso(),
-                                  dummy_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
+        print(f"situation starting at day {day}")
+        world = create_simulation(simulation_length, random_order_priorities_conso(),
+                                  random_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
         datalogger = world.catalog.dataloggers["metrics"]
         for key in clustering_metrics:
             raw_situations[key] = raw_situations[key] + datalogger._values[key]
+    print("Done\n")
 
     # # approche centrage et réduction sur chaque variable, probablement pas bonne bu liens entre variables
     # refined_situations = {key: [] for key in metrics}
@@ -45,6 +47,7 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
 
         refined_situations[i][2] = raw_situations["general_aggregator.minimum_energy_production"][i] / min_cons  # min production
         refined_situations[i][3] = raw_situations["general_aggregator.maximum_energy_production"][i] / min_cons  # max production
+    print("Done\n")
 
     print(f"identification of clusters")
     clusters = cluster.KMeans(clusters_number).fit(refined_situations)
@@ -74,6 +77,8 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
                 distance_min = distance
                 indice = i
         cluster_days.append(indice)
+    print("Done\n")
+
     print(f"cluster centers: {cluster_centers}")
     print(f"corresponding days: {cluster_days}")
     print("\n\n")

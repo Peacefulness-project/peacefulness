@@ -2,7 +2,7 @@ from random import shuffle
 from typing import *
 
 
-def dummy_order_priorities_conso():
+def random_order_priorities_conso():
     ordered_list = ["store", "soft_DSM_conso", "hard_DSM_conso", "buy_outside_emergency"]
     shuffle(ordered_list)
     def random_priorities(strategy: "Strategy"):
@@ -10,7 +10,7 @@ def dummy_order_priorities_conso():
     return random_priorities
 
 
-def dummy_order_priorities_prod():
+def random_order_priorities_prod():
     ordered_list = ["soft_DSM_prod", "hard_DSM_prod", "sell_outside_emergency", "unstore"]
     shuffle(ordered_list)
     def random_priorities(strategy: "Strategy"):

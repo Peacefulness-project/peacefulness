@@ -34,7 +34,7 @@ class TrainingStrategy(Strategy):
 
         self._priorities_production = priorities_production
 
-        self._sort_function = get_emergency  # TODO: à faire en fonction du critère de performance choisi
+        self._sort_function = get_emergency  # laisser le choix: à déterminer par l'algo de ML, je pense
 
     # ##########################################################################################
     # Dynamic behavior
@@ -49,15 +49,8 @@ class TrainingStrategy(Strategy):
         return ordered_list
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
-        minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
-        maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
-        maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-
         # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
-
-        [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         # assess quantity for consumption and prod
         quantity_available_per_option = self._asses_quantities_for_each_option(aggregator)
@@ -68,7 +61,8 @@ class TrainingStrategy(Strategy):
         )
 
         # affect available quantities
-        quantities_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option)
+        quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option)
+        self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
         return quantities_and_prices
 
@@ -201,7 +195,6 @@ class TrainingStrategy(Strategy):
     # no specific function for distribution, the canonical one is used
 
     # soft DSM
-
     def _assess_soft_DSM_conso(self, aggregator: "Aggregator", demands: List[Dict]) -> float:
         quantity_for_this_option = 0
 
@@ -271,7 +264,6 @@ class TrainingStrategy(Strategy):
         return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # hard DSM
-
     def _assess_hard_DSM_conso(self, aggregator: "Aggregator", demands: List[Dict]) -> float:
         quantity_for_this_option = 0
 
@@ -342,7 +334,6 @@ class TrainingStrategy(Strategy):
         return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # outside energy
-
     def _assess_buy_outside(self, aggregator: "Aggregator", demands: List[Dict]) -> float:
         quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
 
@@ -357,7 +348,6 @@ class TrainingStrategy(Strategy):
         message["energy_nominal"] = quantity_bought
         message["energy_maximum"] = quantity_bought
 
-        message = self._publish_needs(aggregator, [message])
         quantities_and_prices.append(message)
 
         return quantity_remaining, quantities_and_prices
@@ -366,7 +356,6 @@ class TrainingStrategy(Strategy):
         return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
     # store
-
     def _assess_storage(self, aggregator: "Aggregator", demands: List[Dict]) -> float:  # TODO: séparer stockage du reste (et corrgier plus haut)
         quantity_for_this_option = 0
 
@@ -454,7 +443,6 @@ class TrainingStrategy(Strategy):
     # no specific function for distribution, the canoncial one is used
 
     # soft DSM
-
     def _assess_soft_DSM_prod(self, aggregator: "Aggregator", offers: List[Dict]) -> float:
         quantity_for_this_option = 0
 
@@ -524,7 +512,6 @@ class TrainingStrategy(Strategy):
         return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # hard DSM
-
     def _assess_hard_DSM_prod(self, aggregator: "Aggregator", offers: List[Dict]) -> float:
         quantity_for_this_option = 0
 
@@ -594,7 +581,6 @@ class TrainingStrategy(Strategy):
         return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # outside energy
-
     def _assess_sell_outside(self, aggregator: "Aggregator", offers: List[Dict]) -> float:
         quantity_for_this_option = aggregator.capacity["selling"] * aggregator.efficiency
 
@@ -609,7 +595,6 @@ class TrainingStrategy(Strategy):
         message["energy_nominal"] = - quantity_sold
         message["energy_maximum"] = - quantity_sold
 
-        message = self._publish_needs(aggregator, [message])
         quantities_and_prices.append(message)
 
         return quantity_remaining, quantities_and_prices
@@ -618,7 +603,6 @@ class TrainingStrategy(Strategy):
         return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
     # unstore
-
     def _assess_unstorage(self, aggregator: "Aggregator", offers: List[Dict]) -> float:  # TODO: séparer stockage du reste (et corrgier plus haut)
         quantity_for_this_option = 0
 

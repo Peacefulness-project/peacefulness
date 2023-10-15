@@ -4,7 +4,9 @@ import math
 from cases.Studies.ML. SimulationScript import create_simulation
 
 
-def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics: List, comparison_simulation_length: int, performance_norm: Callable, assessed_priorities: Dict):
+def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics: List,
+               comparison_simulation_length: int, performance_norm: Callable,
+               assessed_priorities: Dict, ref_priorities_consumption: Callable, ref_priorities_production: Callable):
     def find_strategy(cons_or_prod: str):
         def find(strategy: "Strategy"):  # function identifying the cluster and the relevant strategy
             current_situation = [strategy._catalog.get(key) for key in clustering_metrics]
@@ -23,11 +25,6 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
     ]
 
     # reference run
-    # exchange first, then storage and DSM if nothing else
-    def ref_priorities_consumption(strategy: "Strategy"):
-        return ['buy_outside_emergency', 'store', 'soft_DSM_conso', 'hard_DSM_conso',]
-    def ref_priorities_production(strategy: "Strategy"):
-        return ['sell_outside_emergency', 'unstore', 'soft_DSM_prod', 'hard_DSM_prod',]
     print(f"start of the reference run")
     ref_world = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
     ref_datalogger = ref_world.catalog.dataloggers["metrics"]
@@ -35,6 +32,7 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
     for key in performance_metrics:
         ref_results[key] = ref_datalogger._values[key]
     ref_performance = performance_norm(ref_results)
+    print("Done\n")
 
     # improved run
     print(f"start of the (presumably) better run")
@@ -46,6 +44,7 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
     for key in performance_metrics:
         tested_results[key] = tested_datalogger._values[key]
     tested_performance = performance_norm(tested_results)
+    print("Done\n")
 
     print(ref_performance)
     print(tested_performance)
