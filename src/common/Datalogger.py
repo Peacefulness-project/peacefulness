@@ -93,7 +93,8 @@ class Datalogger:
             self._list[name] = self._catalog.get  # creates an entry in the buffer if needed
         else:
             self._list[name] = function  # creates an entry in the buffer if needed
-            self._catalog.add(name)
+            if self._type != "global":
+                self._catalog.add(name)
 
         if "Y" in graph_status and (self._type != "regular" or self._period > 1):  # numeric keys are added to a buffer when it is not
             # it allows to return the mean, the min and the max
@@ -154,7 +155,7 @@ class Datalogger:
 
     def _data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
         current_value = self._list[key](key)  # the current value of the key
-        if self._list[key] != self._catalog.get:
+        if self._list[key] != self._catalog.get and self._type != "global":
             self._catalog.set(key, current_value)
 
         if current_value is not None:  # if the value is relevant during this turn
