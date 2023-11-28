@@ -1,4 +1,6 @@
 # device representing a photovoltaic panel
+from typing import Dict
+
 from src.common.DeviceMainClasses import NonControllableDevice
 
 
@@ -29,6 +31,14 @@ class WindTurbine(NonControllableDevice):
         self._surface = data_device["usage_profile"]["surface"]
 
         self._unused_nature_removal()
+
+    @property
+    def description(self) -> Dict:
+        return {"type": "WT",
+                "max_power": self._max_power,
+                "location": self._location,
+                "efficiency": self._efficiency,
+                }
 
     # ##########################################################################################
     # Dynamic behavior

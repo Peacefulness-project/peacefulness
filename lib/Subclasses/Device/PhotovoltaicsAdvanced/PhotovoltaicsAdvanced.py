@@ -1,6 +1,7 @@
 # device representing a photovoltaic panel
 from src.common.DeviceMainClasses import NonControllableDevice
 from math import sin, pi, log10
+from typing import Dict
 
 
 class PhotovoltaicsAdvanced(NonControllableDevice):
@@ -55,6 +56,13 @@ class PhotovoltaicsAdvanced(NonControllableDevice):
 
         self._unused_nature_removal()
 
+    @property
+    def description(self) -> Dict:
+        return {"type": "PV",
+                "surface": self._surface_panel * self._panels,
+                "location": self._irradiation_location,
+                }
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -90,8 +98,6 @@ class PhotovoltaicsAdvanced(NonControllableDevice):
 
         self._catalog.set(f"{self.name}_exergy_in", exergy_in)
         self._catalog.set(f"{self.name}_exergy_out", exergy_out)
-
-
 
 
 

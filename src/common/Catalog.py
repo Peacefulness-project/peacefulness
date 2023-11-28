@@ -126,6 +126,10 @@ class Catalog:
     def graph_options(self):  # for read only
         return self._data["dictionaries"]["graph_options"]
 
+    @property
+    def forecasters(self):  # for read only
+        return self._data["dictionaries"]["forecasters"]
+
 
 # Exception
 class CatalogException(Exception):

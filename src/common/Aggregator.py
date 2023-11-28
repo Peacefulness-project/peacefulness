@@ -41,7 +41,7 @@ class Aggregator:
         else:  # a dummy forecaster is created, returning nothing
             class dummy_forecaster():
                 def get_predicitions(self):
-                    return {"demand": {"value": 0, "uncertainty": 1}, "production": {"value": 0, "uncertainty": 1}}
+                    return {}
 
         self._devices = list()  # a list of the devices managed by the aggregator
         self._subaggregators = list()  # a list of the aggregators managed by the aggregator

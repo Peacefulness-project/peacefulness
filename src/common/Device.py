@@ -3,6 +3,7 @@
 from datetime import datetime
 from json import load
 from math import ceil
+from typing import Dict
 # Local packages
 from src.tools.Utilities import middle_separation, into_list
 from src.tools.GlobalWorld import get_world
@@ -219,6 +220,13 @@ class Device:
         variation = self._catalog.get("gaussian")(1, variation)  # modification of the duration
         variation = max(0, variation)  # to avoid negative durations
         value *= variation
+
+    # ##########################################################################################
+    # Consumption reading
+
+    @property
+    def description(self) -> Dict:
+        return None
 
     # ##########################################################################################
     # Dynamic behavior

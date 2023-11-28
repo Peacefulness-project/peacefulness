@@ -43,6 +43,15 @@ class ElectricDam(NonControllableDevice):
 
         self._unused_nature_removal()
 
+    @property
+    def description(self):
+        return {"type": "dam",
+                "max_power": self._max_power,
+                "location": self._location,
+                "efficieny": self._max_efficiency,
+                "min_flow": self._relative_min_flow,
+                }
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################

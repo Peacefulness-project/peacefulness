@@ -18,6 +18,7 @@ from src.common.Agent import Agent
 from src.common.Device import Device
 from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
+from src.common.Forecaster import Forecaster
 from src.tools.GraphAndTex import GraphOptions
 
 from src.tools.Utilities import big_separation, adapt_path, into_list
@@ -65,6 +66,7 @@ class World:
         dictionaries["devices"] = dict()  # dict containing the devices
         dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
         dictionaries["graph_options"] = dict()  # dict containing the graph options
+        dictionaries["forecasters"] = dict()  # dict containing the forecasters
 
         self._catalog.add("dictionaries", dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
@@ -123,6 +125,7 @@ class World:
         if time_limit <= 0 and not isinstance(time_limit, int):
             raise WorldException(f"The time_limit argument must be a strictly positive integer.")
 
+        self._catalog.add("start_date", start_date)  # the start date in datetime format
         self._catalog.add("physical_time", start_date)  # physical time in seconds
         self._catalog.add("simulation_time", 0)  # simulation time in iterations
 
@@ -226,6 +229,17 @@ class World:
 
         self._catalog.aggregators[aggregator.name] = aggregator  # registering the aggregator in the dedicated dictionary
         self._used_names.append(aggregator.name)  # adding the name to the list of used names
+        # used_name is a general list: it avoids erasing
+
+    def register_forecaster(self, forecaster):
+        if forecaster.name in self._used_names:  # checking if the name is already used
+            raise WorldException(f"{forecaster.name} already in use")
+
+        if isinstance(forecaster, Forecaster) is False:  # checking if the object has the expected type
+            raise WorldException("The object is not of the correct type")
+
+        self._catalog.forecasters[forecaster.name] = forecaster  # registering the forecaster in the dedicated dictionary
+        self._used_names.append(forecaster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
     def register_device(self, device):  # method connecting one device to the world

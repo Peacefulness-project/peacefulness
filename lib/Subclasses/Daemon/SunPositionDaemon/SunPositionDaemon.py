@@ -1,62 +1,19 @@
 # this daemon is designed to atualize the value of the sun position in the sky.
-from json import load
-from numpy import mean
-
-from src.common.Daemon import Daemon
-from src.tools.ReadingFunctions import get_1_day_per_month
+from lib.Subclasses.Daemon.DataReadingDaemon.DataReadingDaemon import DataReadingDaemon
 
 
-class SunPositionDaemon(Daemon):
+class SunPositionDaemon(DataReadingDaemon):
 
     def __init__(self, parameters, period=1, filename="lib/Subclasses/Daemon/SunPositionDaemon/SunPositionProfiles.json"):
-        self._location = parameters["location"]  # the location corresponding to the data
+        name = "sun_position_in_"
+        super().__init__(name, period, parameters, filename)
 
-        name = "sun_position_in_" + self._location
-        super().__init__(name, period, parameters)
+        self._managed_keys = [("azimut", f"{self.location}.azimut", "intensive"),
+                              ("sun_height", f"{self.location}.sun_height", "intensive"),
+                              ]
 
-        # getting the data for the chosen location
-        file = open(filename, "r")
-        data = load(file)[self._location]
-        file.close()
+        self._initialize_managed_keys()
 
-        self._format = data["format"]
-        self._azimut = data["azimut"]
-        self._sun_height = data["sun_height"]
 
-        # getting back the appropriate way of reading the data
-        self._files_formats = {"day/month": get_1_day_per_month}  # every hours in a month
-
-        self._get_sun_position = self._files_formats[self._format]
-
-        # setting initial values
-        self._catalog.add(f"{self._location}.azimut", self._get_sun_position(self._azimut, self._catalog))
-        self._catalog.add(f"{self._location}.sun_height", self._get_sun_position(self._sun_height, self._catalog))
-
-    # ##########################################################################################
-    # Dynamic behavior
-    # ##########################################################################################
-
-    def _process(self):
-        time_step = self._catalog.get("time_step")
-
-        if time_step <= 1:
-            self._catalog.set(f"{self._location}.azimut", self._get_sun_position(self._azimut, self._catalog))
-            self._catalog.set(f"{self._location}.sun_height", self._get_sun_position(self._sun_height, self._catalog))
-        elif time_step > 1:
-            values_to_be_averaged_azimut = []
-            values_to_be_averaged_sun_height = []
-            for j in range(int(time_step)):
-                values_to_be_averaged_azimut.append(self._get_sun_position(self._azimut, self._catalog, -j))
-                values_to_be_averaged_sun_height.append(self._get_sun_position(self._sun_height, self._catalog, -j))
-            self._catalog.set(f"{self._location}.azimut", mean(values_to_be_averaged_azimut))
-            self._catalog.set(f"{self._location}.sun_height", mean(values_to_be_averaged_sun_height))
-
-    # ##########################################################################################
-    # Utilities
-    # ##########################################################################################
-
-    @property
-    def location(self):
-        return self._location
 
 

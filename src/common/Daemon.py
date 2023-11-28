@@ -74,6 +74,10 @@ class Daemon:
     def name(self):  # shortcut for read-only
         return self._name
 
+    @property
+    def period(self):  # shortcut for read-only
+        return self._period
+
 
 # Exception
 class DaemonException(Exception):

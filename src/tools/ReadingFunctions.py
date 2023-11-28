@@ -29,6 +29,7 @@ def get_each_hour_per_month(values, catalog, time_offset=0):  # this methods is 
     month = physical_time.month  # the current month
     day = physical_time.day - 1  # the "- 1" is necessary because python indexation begins at 0 and day at 1
     hour = physical_time.hour
+    print("plop")
 
     return values[str(month)][24 * day + hour]
 
@@ -45,5 +46,16 @@ def get_1_day_per_year(values, catalog, time_offset=0):
     hour = physical_time.hour % 24
 
     return values[hour]
+
+
+reading_functions = {
+                     "day/month": get_1_day_per_month,  # 1 day in a month
+                     "365days": get_365_days,  # every days in a year, hour by hour
+                     "non_periodic": get_non_periodic_values,  # each value is associated to a precise datetime, which must match the ones encountered in the simulation
+                     "each_hour/month": get_each_hour_per_month,  # every hours in a month
+                     "1/month": get_1_values_per_month,  # 1 representative value for each month
+                     "1day/year": get_1_day_per_year,  # 1 representative day, hour by hour, for each month
+                     }
+
 
 
