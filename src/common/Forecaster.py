@@ -1,5 +1,5 @@
 # the mother class of forecasters, objects giving clues to strategies on what will happen next
-from typing import Callable
+from typing import Callable, List, Dict
 
 from src.tools.GlobalWorld import get_world
 
@@ -18,16 +18,17 @@ empty_prediction = {
 
 
 class Forecaster:
-    def __init__(self, name: str, aggregator: "Aggregator"):
+    def __init__(self, name: str, aggregator: "Aggregator", data_daemon_list: List["DataReadingDaemon"]):
         self._name = name
         self._aggregator = aggregator
+        self._daemons = data_daemon_list
 
         world = get_world()  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         self._create_predictions = self._build_aggregator_description()
 
-        world.register_forecaster(self)  # register the forecaster into world dedicated dictionary
+        world.register_forecaster(self)  # register the _forecaster into world dedicated dictionary
 
     # ##########################################################################################
     # Initialization
@@ -55,6 +56,10 @@ class Forecaster:
     @property
     def name(self):
         return self._name
+
+    @property
+    def catalog(self):
+        return self._catalog
 
     @property
     def aggregator(self):

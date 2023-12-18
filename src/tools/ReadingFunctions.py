@@ -29,7 +29,6 @@ def get_each_hour_per_month(values, catalog, time_offset=0):  # this methods is 
     month = physical_time.month  # the current month
     day = physical_time.day - 1  # the "- 1" is necessary because python indexation begins at 0 and day at 1
     hour = physical_time.hour
-    print("plop")
 
     return values[str(month)][24 * day + hour]
 

@@ -8,7 +8,7 @@ class GroundTemperatureDaemon(DataReadingDaemon):
         name = "ground_temperature_in_"
         super().__init__(name, 1, parameters, filename)
 
-        self._managed_keys = [("temperatures", f"{self.location}.ground_temperature", "intensive")]
+        self._managed_keys = [("temperatures", f"{self.location}.ground_temperature", "intensive")]  # °C
 
         self._initialize_managed_keys()
 

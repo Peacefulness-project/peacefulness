@@ -6,7 +6,7 @@ from os import makedirs, remove
 from random import random, seed as random_generator_seed, randint, gauss
 from json import load, dumps
 from shutil import make_archive, unpack_archive, rmtree
-from pickle import dump as pickle_dump, load as pickle_load
+from typing import List
 from math import inf
 # Current packages
 from src.common.Catalog import Catalog
@@ -55,20 +55,20 @@ class World:
         # dictionaries contained by world
         self._subclasses_dictionary = get_subclasses()  # this dictionary contains all the classes defined by the user
         # it serves to re-instantiate daemons, devices, dataloggers, contracts and strategies
-        dictionaries = dict()
+        instance_dictionaries = dict()
 
-        dictionaries["natures"] = dict()  # types of energy presents in world
-        dictionaries["daemons"] = dict()  # dict containing the daemons
-        dictionaries["strategies"] = dict()  # objects which perform the calculus
-        dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
-        dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
-        dictionaries["contracts"] = dict()  # dict containing the different contracts
-        dictionaries["devices"] = dict()  # dict containing the devices
-        dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
-        dictionaries["graph_options"] = dict()  # dict containing the graph options
-        dictionaries["forecasters"] = dict()  # dict containing the forecasters
+        instance_dictionaries["natures"] = dict()  # types of energy presents in world
+        instance_dictionaries["daemons"] = dict()  # dict containing the daemons
+        instance_dictionaries["strategies"] = dict()  # objects which perform the calculus
+        instance_dictionaries["aggregators"] = dict()  # a mono-energy sub-environment which favours self-consumption
+        instance_dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
+        instance_dictionaries["contracts"] = dict()  # dict containing the different contracts
+        instance_dictionaries["devices"] = dict()  # dict containing the devices
+        instance_dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
+        instance_dictionaries["graph_options"] = dict()  # dict containing the graph options
+        instance_dictionaries["forecasters"] = dict()  # dict containing the forecasters
 
-        self._catalog.add("dictionaries", dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
+        self._catalog.add("dictionaries", instance_dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
         self._used_names = []  # this list contains the catalog name of all elements
         # It avoids to erase inadvertently pre-defined elements
@@ -238,7 +238,7 @@ class World:
         if isinstance(forecaster, Forecaster) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        self._catalog.forecasters[forecaster.name] = forecaster  # registering the forecaster in the dedicated dictionary
+        self._catalog.forecasters[forecaster.name] = forecaster  # registering the _forecaster in the dedicated dictionary
         self._used_names.append(forecaster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
 
@@ -372,7 +372,7 @@ class World:
         if "path" not in self.catalog.keys:
             raise WorldException(f"A path to the results files is needed")
 
-    def _identify_independent_aggregators(self):
+    def _identify_independent_aggregators(self) -> List:
         # first, we identify all the highest rank aggregators, who are the sole being called directly by world
         independent_aggregators_list = []
         for aggregator in self._catalog.aggregators.values():
@@ -381,13 +381,22 @@ class World:
 
         return independent_aggregators_list
 
-    def _identify_independent_agents(self):
+    def _identify_independent_agents(self) -> List:
         independent_agent_list = []  # a list containing all the independant agents
         for agent in self._catalog.agents.values():
             if not agent.superior:  # if the agent has no superior, it is added to the list of independant agents
                 independent_agent_list.append(agent)
 
         return independent_agent_list
+
+    # def _identify_data_reading_daemons(self) -> Dict:
+    #     data_reading_daemons_list = {}
+    #
+    #     for daemon in self._catalog.daemons.values():
+    #         if isinstance(daemon, DataReadingDaemon):
+    #             data_reading_daemons_list.append(daemon)
+    #
+    #     return data_reading_daemons_list
 
     def start(self, verbose=True):
         self._check()  # check if everything is fine in world definition
@@ -620,7 +629,7 @@ class World:
                 aggregators_list[aggregator.name].append("inf")
             else:
                 aggregators_list[aggregator.name].append(aggregator.capacity)
-            # rajouter forecaster plus tard
+            # rajouter _forecaster plus tard
 
         filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
         file = open(filename, "w")

@@ -83,8 +83,8 @@ class WeightedCurtailmentDatalogger(Datalogger):  # a sub-class of dataloggers d
             return get_curtailment_rate
 
         for aggregator_name in self._aggregators_list:  # for each aggregator registered into world, all the relevant keys are added
-            self.add(f"{aggregator_name}.curtailment_rate_consumption", create_get_curtailment_rate_function_consumption(aggregator_name), graph_status="Y")
-            self.add(f"{aggregator_name}.curtailment_rate_production", create_get_curtailment_rate_function_production(aggregator_name), graph_status="Y")
+            self.add(f"{aggregator_name}.weighed_curtailment_rate_consumption", create_get_curtailment_rate_function_consumption(aggregator_name), graph_status="Y")
+            self.add(f"{aggregator_name}.weighed_curtailment_rate_production", create_get_curtailment_rate_function_production(aggregator_name), graph_status="Y")
 
     # ##########################################################################################
     # Final operations
@@ -106,8 +106,8 @@ class WeightedCurtailmentDatalogger(Datalogger):  # a sub-class of dataloggers d
                     mean_energy_sold = 1
 
                 for key in self._buffer[f"{aggregator_name}.energy_total_consumption"]:
-                    self._buffer[f"{aggregator_name}.curtailment_rate_consumption"][key] = self._buffer[f"{aggregator_name}.curtailment_rate_consumption"][key] / mean_energy_bought
-                    self._buffer[f"{aggregator_name}.curtailment_rate_production"][key] = self._buffer[f"{aggregator_name}.curtailment_rate_production"][key] / mean_energy_sold
+                    self._buffer[f"{aggregator_name}.weighed_curtailment_rate_consumption"][key] = self._buffer[f"{aggregator_name}.weighed_curtailment_rate_consumption"][key] / mean_energy_bought
+                    self._buffer[f"{aggregator_name}.weighed_curtailment_rate_production"][key] = self._buffer[f"{aggregator_name}.weighed_curtailment_rate_production"][key] / mean_energy_sold
 
                 self._buffer.pop(f"{aggregator_name}.energy_total_consumption")
                 self._buffer.pop(f"{aggregator_name}.energy_total_production")

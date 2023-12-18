@@ -16,7 +16,6 @@
 # ==================================================================================================================
 # ==================================================================================================================
 
-
 # ##############################################################################################
 # Importations
 from datetime import datetime
@@ -124,14 +123,14 @@ LPG = load_low_pressure_gas()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_elec", {"location": "France", "coefficient": 1})  # sets prices for flat rate
+price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France", "coefficient": 1})  # sets prices for flat rate
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0.1, 0.2], "on-peak_hours": [[12, 24]]})  # sets prices for TOU rate
 price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_grid", {"nature": LVE.name, "buying_price": 0.5, "selling_price": 0.1})  # sets prices for flat rate
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0.1})  # sets prices for flat rate
 
 
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_heat", {"nature": LTH.name, "buying_price": 0.15, "selling_price": 0.1})  # sets prices for flat rate
-price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France", "coefficient": 1})  # sets prices for flat rate
+# price_manager_RTP_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices_heat", {"location": "France", "coefficient": 1})  # sets prices for flat rate
 price_manager_TOU_heat = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_heat", {"nature": LTH.name, "buying_price": [0.1, 0.2], "selling_price": [0.1, 0.2], "on-peak_hours": [[12, 24]]})  # sets prices for TOU rate
 
 
@@ -171,10 +170,6 @@ water_flow_daemon = subclasses_dictionary["Daemon"]["WaterFlowDaemon"]({"locatio
 # Sun position daemon
 # this daemon is responsible for updating the value of position of the sun in the sky
 sun_position_daemon = subclasses_dictionary["Daemon"]["SunPositionDaemon"]({"location": "Pau"})
-
-# Forecast
-# this daemon is supposed to create predictions about future consumption and demands
-forecast_daemon = subclasses_dictionary["Daemon"]["DummyForecasterDaemon"]("dummy_forecaster")
 
 # ##############################################################################################
 # Strategy
@@ -248,7 +243,7 @@ aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_man
 
 # here we create a second one put under the orders of the first
 aggregator_name = "general_aggregator"
-aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec, forecaster=forecast_daemon)  # creation of a aggregator
+aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, aggregator_manager, aggregator_grid, BAU_elec)  # creation of a aggregator
 
 # here we create another aggregator dedicated to heat
 aggregator_name = "Local_DHN"
@@ -281,6 +276,21 @@ filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  
 file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the device generation phase: {CPU_time_generation_of_device}\n")
 file.close()
+
+
+# ##############################################################################################
+# Forecaster
+from typing import Tuple
+import random as rd
+def noise_function(depth: int):
+    low_estimation = 1 - rd.random() * 0.01 * depth
+    high_estimation = 1 + rd.random() * 0.01 * depth
+    uncertainty = depth * 0.01
+
+    return low_estimation, high_estimation, uncertainty
+
+
+subclasses_dictionary["Forecaster"]["FirstForecaster"]("debug_forecaster", aggregator_elec, noise_function, 5)
 
 
 # ##############################################################################################

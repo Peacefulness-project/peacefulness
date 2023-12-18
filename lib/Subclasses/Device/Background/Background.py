@@ -3,6 +3,7 @@
 # - they don't consume a lot of energy nor they have an important power demand;
 # - patterns of use or of consumption are difficult to model;
 # - they are non-controllable, i.e the supervisor has no possibility to interact with them.
+from typing import Dict
 
 from src.common.DeviceMainClasses import NonControllableDevice
 
@@ -89,6 +90,12 @@ class Background(NonControllableDevice):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
         self._moment = int((self._moment + start_time_variation) // self._catalog.get("time_step") % self._period)
 
+    def description(self, nature_name: str) -> Dict:
+        return {"type": "background",
+                "technical_profile": self._technical_profile[nature_name],
+                "moment": self._moment,
+                }
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -97,12 +104,10 @@ class Background(NonControllableDevice):
         message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
 
-        for nature in energy_wanted:
-            # print(self._moment)
-            # print(len(self._technical_profile[nature]))
-            energy_wanted[nature]["energy_minimum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_nominal"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
-            energy_wanted[nature]["energy_maximum"] = self._technical_profile[nature][self._moment]  # energy needed for all natures used by the device
+        for nature_name in energy_wanted:
+            energy_wanted[nature_name]["energy_minimum"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature_name]["energy_nominal"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature_name]["energy_maximum"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

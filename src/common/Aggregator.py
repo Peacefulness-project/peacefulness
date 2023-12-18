@@ -36,12 +36,10 @@ class Aggregator:
         self.superior = superior  # the other aggregator this one is obeying to
         # it can be None
 
-        if forecaster:  # if a forecaster is chosen
-            self.forecaster = forecaster  # the forecast data
-        else:  # a dummy forecaster is created, returning nothing
-            class dummy_forecaster():
-                def get_predicitions(self):
-                    return {}
+        if forecaster:  # if a _forecaster is chosen
+            self._forecaster = forecaster  # the forecast data
+        else:
+            self._forecaster = None
 
         self._devices = list()  # a list of the devices managed by the aggregator
         self._subaggregators = list()  # a list of the aggregators managed by the aggregator
@@ -136,6 +134,10 @@ class Aggregator:
         """
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.ask()
+
+        # forecast update
+        if self._forecaster:
+            self._forecaster.update_forecast()
 
         quantities_and_prices = self._strategy.bottom_up_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
 

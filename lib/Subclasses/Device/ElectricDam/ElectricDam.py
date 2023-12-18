@@ -43,13 +43,14 @@ class ElectricDam(NonControllableDevice):
 
         self._unused_nature_removal()
 
-    @property
-    def description(self):
+    def description(self, nature_name: str):
         return {"type": "dam",
                 "max_power": self._max_power,
                 "location": self._location,
-                "efficieny": self._max_efficiency,
-                "min_flow": self._relative_min_flow,
+                "max_efficiency": self._max_efficiency,
+                "relative_efficiency": self._relative_efficiency,
+                "relative_min_flow": self._relative_min_flow,
+                "height": self._height,
                 }
 
     # ##########################################################################################
@@ -68,10 +69,8 @@ class ElectricDam(NonControllableDevice):
         # finding the adapted efficiency
         power_available = flow * water_density * self._height * 9.81 / 1000
         i = 0
-        # print(power_available / self._max_power)
         while power_available / self._max_power > self._relative_flow[i] and i < len(self._relative_flow)-1:
             i += 1
-            # print(i, self._relative_flow[i])
         coeff_efficiency = self._relative_efficiency[i]
 
         efficiency = self._max_efficiency * coeff_efficiency

@@ -8,11 +8,11 @@ class WaterFlowDaemon(DataReadingDaemon):
         super().__init__(name, period, parameters, filename)
 
         # non updated values
-        self._catalog.add(f"{self._location}.reserved_flow", self._data["reserved_flow"])
-        self._catalog.add(f"{self._location}.max_flow", self._data["max_flow"])
+        self._catalog.add(f"{self._location}.reserved_flow", self._data["reserved_flow"])  # -
+        self._catalog.add(f"{self._location}.max_flow", self._data["max_flow"])  # m3.s-1
 
         # updated values
-        self._managed_keys = [("flow", f"{self._location}.flow_value", "extensive")]
+        self._managed_keys = [("flow", f"{self._location}.flow_value", "extensive")]  # m3.s-1
         self._initialize_managed_keys()
 
 

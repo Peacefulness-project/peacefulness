@@ -222,10 +222,9 @@ class Device:
         value *= variation
 
     # ##########################################################################################
-    # Consumption reading
+    # Description
 
-    @property
-    def description(self) -> Dict:
+    def description(self, nature_name: str) -> Dict:
         return None
 
     # ##########################################################################################

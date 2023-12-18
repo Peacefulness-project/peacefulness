@@ -25,19 +25,51 @@ class DataReadingDaemon(Daemon):
         self._managed_keys: List[Tuple] = []  # a list of tuple of keys managed by each daemon. The format is the following:
         # ("key_name_in_data", "key_name_in_catalog", "intensive" OR "extensive")
 
+        # to consult this daemon data easily
+        # it is designed for a forecasting use
+        def consult_data(depth: int) -> Dict:
+            """
+            A method specific to each data-based daemons enabling them to give information on several time steps on demand.
+
+            Parameters
+            ----------
+            depth: int, the number of consecutive time steps consulted from the current one
+
+            Returns
+            -------
+            A dict on the "key": [data] format
+
+            """
+            consulted_data = {key_tuple[1]: [] for key_tuple in self.managed_keys}
+            for i in range(depth):
+                one_time_step_data = self._methode_intermediaire_de_merde(1, i)
+                for catalog_key, value in one_time_step_data:
+                    consulted_data[catalog_key].append(value)
+
+            return consulted_data
+        self._catalog.add(f"consult_function.{type(self).__name__}.{self.location}", consult_data)
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
 
     def _initialize_managed_keys(self):
+        value_dict = self._methode_intermediaire_de_merde(self._period, 0)
         for data_key, catalog_key, quantity_type in self.managed_keys:
-            self.catalog.add(catalog_key, self._get_data(self.data[data_key], self.catalog))
+            value = value_dict[catalog_key]
+            self.catalog.add(catalog_key, value)
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
 
     def _process(self):
+        values_dict = self._methode_intermediaire_de_merde(self.period, 0)
+
+        for catalog_key in values_dict:
+            self.catalog.set(catalog_key, values_dict[catalog_key])
+
+    def _methode_intermediaire_de_merde(self, time_step_length: int, offset_bis: int):
         """
         For this kind of daemon, the process consists in updating a value in the catalog according to their own data dictionary.
         Their main job is to handle time steps different from 1 hour.
@@ -50,7 +82,7 @@ class DataReadingDaemon(Daemon):
         time_step_value = self._catalog.get("time_step")
 
         # relevant datetime identification
-        real_physical_time_start = self.catalog.get("physical_time")
+        real_physical_time_start = self.catalog.get("physical_time") + timedelta(hours=time_step_value * offset_bis)
 
         # ##########################################################################################
         # start management
@@ -64,7 +96,7 @@ class DataReadingDaemon(Daemon):
 
         # ##########################################################################################
         # end management
-        real_physical_time_end = real_physical_time_start + timedelta(hours=time_step_value * self.period)
+        real_physical_time_end = real_physical_time_start + timedelta(hours=time_step_value * time_step_length)
         rounded_physical_time_end = datetime(
             year=real_physical_time_end.year,
             month=real_physical_time_end.month,
@@ -88,12 +120,13 @@ class DataReadingDaemon(Daemon):
         # end date
         needed_hours.append((-self._period, last_hour_fraction))  # last hour management
 
+        values_dict = {}
         for data_key, catalog_key, quantity_type in self.managed_keys:
             if quantity_type == "extensive":  # ... values are divided if the quantity is extensive
                 value = 0
                 for i in range(len(needed_hours)):
                     value += self._get_data(self._data[data_key], self.catalog, needed_hours[i][0]) * needed_hours[i][1]
-                self._catalog.set(catalog_key, value)
+                values_dict[catalog_key] = value
             elif quantity_type is "intensive":  # ... values are the same if the quantity is intensive
                 values = []
                 coefs = []
@@ -101,30 +134,12 @@ class DataReadingDaemon(Daemon):
                     values.append(self._get_data(self._data[data_key], self.catalog, needed_hours[i][0]) * needed_hours[i][1])
                     coefs.append(needed_hours[i][1])
                 mean_values = sum(values) / sum(coefs)
-                self._catalog.set(catalog_key, mean_values)
+                values_dict[catalog_key] = mean_values
             else:  # an error is raised otherwise
                 raise DaemonException(f"The type of a quantity must be either 'intensive' either 'extensive'.\n"
                                       f"It's not the case for the key {data_key} of daemon {self.name}.")
 
-    def consult_data(self, t_start: int, t_end: int) -> Dict:
-        """
-        A method specific to each data-based daemons enabling them to give information on several time steps on demand.
-
-        Parameters
-        ----------
-        t_start: int, the first time step
-        t_end: int, the last time step
-
-        Returns
-        -------
-        A dict on the "key": [data] format
-
-        """
-        consulted_data = {}
-        for data_key, catalog_key, quantity_type in self.managed_keys:
-            consulted_data[data_key] = [self._get_data(data_key, self.catalog, t) for t in range(t_start, t_end)]
-
-        return consulted_data
+        return values_dict
 
     # ##########################################################################################
     # Utilities

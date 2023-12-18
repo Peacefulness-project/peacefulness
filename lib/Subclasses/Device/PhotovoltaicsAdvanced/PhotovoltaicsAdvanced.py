@@ -56,11 +56,11 @@ class PhotovoltaicsAdvanced(NonControllableDevice):
 
         self._unused_nature_removal()
 
-    @property
-    def description(self) -> Dict:
+    def description(self, nature_name: str) -> Dict:
         return {"type": "PV",
                 "surface": self._surface_panel * self._panels,
                 "location": self._irradiation_location,
+                "efficiency": self._efficiency_pan,
                 }
 
     # ##########################################################################################
