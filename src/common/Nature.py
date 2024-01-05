@@ -2,6 +2,7 @@
 # This class is just a dictionary containing the different nature of energy
 # A representative of this class is created for each world
 from src.tools.GlobalWorld import get_world
+from src.common.Messages import MessagesManager
 
 
 class Nature:  # this class contains the different natures
@@ -49,8 +50,8 @@ class Nature:  # this class contains the different natures
         self._catalog.set(f"{self.name}.money_spent", 0)  # energy received by the agent during the current round
         self._catalog.set(f"{self.name}.money_earned", 0)  # energy delivered by the agent during the current round
 
-        for element in self._catalog.get("additional_elements"):
-            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
 
     # ##########################################################################################
     # Utility

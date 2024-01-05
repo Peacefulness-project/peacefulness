@@ -49,8 +49,7 @@ class SolarThermalCollector(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         irradiation = self._catalog.get(f"{self._irradiation_location}.total_irradiation_value") / 1000  # the value is divided by 1000 to transfrom w into kW
         temperature = self._catalog.get(f"{self._outdoor_temperature_location}.current_outdoor_temperature")

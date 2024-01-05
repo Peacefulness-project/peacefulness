@@ -5,10 +5,16 @@ from src.common.Device import Device, DeviceException
 from json import load
 
 from src.tools.Utilities import into_list
+from src.common.Messages import MessagesManager
 
 
 # ##############################################################################################
 class NonControllableDevice(Device):
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     # ##########################################################################################
     # Initialization
@@ -20,55 +26,63 @@ class NonControllableDevice(Device):
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
+        # self._randomize_multiplication_dict(data_device["usage_profile"], data_device["consumption_variation"])
+
         # we randomize a bit in order to represent reality better
+        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
+        for nature in data_device["usage_profile"]:
+            for i in range(len(data_device["usage_profile"][nature]["weekday"])):
+                data_device["usage_profile"][nature]["weekday"][i] *= consumption_variation
+            for i in range(len(data_device["usage_profile"][nature]["weekend"])):
+                data_device["usage_profile"][nature]["weekend"][i] *= consumption_variation
 
         self._randomize_start_variation(data_user)
-
-        self._randomize_multiplication_dict(data_device["usage_profile"], data_device["consumption_variation"])
-
-        self._randomize_duration(data_user)
 
         # adaptation of the data to the time step
         # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
         time_step = self._catalog.get("time_step")
 
-        # user profile
-        for line in data_user["profile"]:
-            current_moment = int(line[0] // time_step)  # the moment when the device will be turned on
+        for nature in data_device["usage_profile"]:
+            consumption_profile = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                  2 * data_device["usage_profile"][nature]["weekend"]
 
-            # creation of the user profile, where there are hours associated with the use of the device
-            # first time step
+            # user profile
+            for line in consumption_profile:
+                current_moment = int(line // time_step)  # the moment when the device will be turned on
 
-            ratio = (self._moment % time_step - line[0] % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
-            if ratio <= 0:  # in case beginning - start is negative
-                ratio += 1
-            self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
+                # creation of the user profile, where there are hours associated with the use of the device
+                # first time step
 
-            # intermediate time steps
-            duration_residue = line[1] - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
-            while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                ratio = (self._moment % time_step - line % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+                if ratio <= 0:  # in case beginning - start is negative
+                    ratio += 1
+                self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
+
+                # intermediate time steps
+                duration_residue = 1 - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
+                while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                    current_moment += 1
+                    duration_residue -= 1
+                    self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
+
+                # final time step
                 current_moment += 1
-                duration_residue -= 1
-                self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
-
-            # final time step
-            current_moment += 1
-            ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
-            self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
+                ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
+                self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
         # usage profile
         self._technical_profile = []  # creation of an empty usage_profile with all cases ready
 
         self._technical_profile = dict()
         for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
-            self._technical_profile[nature] = data_device["usage_profile"][nature]
+            self._technical_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                              2 * data_device["usage_profile"][nature]["weekend"]
 
         self._unused_nature_removal()  # remove unused natures
 
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
-        for line in data["profile"]:  # modification of the basic user_profile according to the results of random generation
-            line[0] += start_time_variation % self._period
+        self._moment = int((self._moment + start_time_variation) // self._catalog.get("time_step") % self._period)
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration
@@ -87,29 +101,23 @@ class NonControllableDevice(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
-        for line in self._user_profile:
-            if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet
-                for nature in energy_wanted:
-                    energy_wanted[nature]["energy_minimum"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
-                    energy_wanted[nature]["energy_nominal"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
-                    energy_wanted[nature]["energy_maximum"] = self._technical_profile[nature] * line[1]  # energy needed for all natures used by the device
+        for nature_name in energy_wanted:
+            energy_wanted[nature_name]["energy_minimum"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature_name]["energy_nominal"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
+            energy_wanted[nature_name]["energy_maximum"] = self._technical_profile[nature_name][self._moment]  # energy needed for all natures used by the device
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
-
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
-
-    @property
-    def type(self):
-        return "non_controllable"
 
 
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
@@ -281,8 +289,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
 
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile who is taken into account
 
@@ -336,17 +343,14 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
             energy_min = sum([self.get_energy_wanted_min(nature) for nature in self.natures])  # total minimum energy wanted by the device
 
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
-
-    @property
-    def type(self):
-        return "shiftable"
-
 
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
@@ -443,8 +447,7 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         if self._remaining_time == 0:  # if the device is not running then it's the user_profile which is taken into account
 
@@ -475,17 +478,14 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
             if self._remaining_time:  # decrementing the remaining time of use
                 self._remaining_time -= 1
 
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
-
-    @property
-    def type(self):
-        return "adjustable"
-
 
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name, contracts, agent, aggregators, filename, profiles, parameters=None):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
@@ -543,8 +543,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        # message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         if self._remaining_time == 0:  # checking if the device has to start
             for usage in self._user_profile:
@@ -581,17 +581,14 @@ class ChargerDevice(Device):  # a consumption which is adjustable
             if self._remaining_time:  # decrementing the remaining time of use
                 self._remaining_time -= 1
 
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
-
-    @property
-    def type(self):
-        return "charger"
-
 
 # ##############################################################################################
 class Converter(Device):
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name, contracts, agent, filename, upstream_aggregators_list, downstream_aggregators_list, profiles, parameters=None):
         upstream_aggregators_list = into_list(upstream_aggregators_list)
@@ -619,7 +616,7 @@ class Converter(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         # downstream side
         for aggregator in self ._downstream_aggregators_list:
@@ -638,7 +635,7 @@ class Converter(Device):
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
-        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         # determination of the energy consumed/produced
         energy_wanted_downstream = []
@@ -689,17 +686,14 @@ class Converter(Device):
     def react(self):
         super().react()  # actions needed for all the devices
 
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
-
-    @property
-    def type(self):
-        return "converter"
-
 
 # ##############################################################################################
 class Storage(Device):
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters):
 
@@ -744,7 +738,7 @@ class Storage(Device):
         energy_stored = self._degradation_of_energy_stored()  # reduction of the energy stored over time
         self._catalog.set(f"{self.name}.energy_stored", energy_stored)
 
-        energy_wanted = {nature.name: {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]} for nature in self.natures}  # demand or proposal of energy which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
         energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"], max((energy_stored - self._min_energy) * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
@@ -783,13 +777,7 @@ class Storage(Device):
             self._catalog.set(f"{aggregator.name}.energy_stored", energy_stored_aggregator + energy_stored_device)
             self._catalog.set(f"{aggregator.name}.energy_storable", energy_storable_aggregator + energy_storable_device)
 
-    # ##########################################################################################
-    # Utility
-    # ##########################################################################################
 
-    @property
-    def type(self):
-        return "storage"
 
 
 

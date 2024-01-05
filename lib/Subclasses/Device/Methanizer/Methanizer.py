@@ -29,8 +29,7 @@ class Methanizer(AdjustableDevice):
     # ##########################################################################################
 
     def update(self):
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device

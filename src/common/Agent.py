@@ -2,6 +2,7 @@
 # consumption and/or production points
 # It is linked with a contract
 from src.tools.GlobalWorld import get_world
+from src.common.Messages import MessagesManager
 
 
 class Agent:
@@ -52,8 +53,8 @@ class Agent:
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", 0)  # energy delivered by the agent during the current round
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)  # quantity of energy wanted but not served by the supervisor
 
-        for element in self._catalog.get("additional_elements"):
-            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
 
     def report(self):  # function allowing agents to get information from their owned agents and pass it to their superior
         """

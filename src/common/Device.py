@@ -7,12 +7,18 @@ from typing import Dict
 # Local packages
 from src.tools.Utilities import middle_separation, into_list
 from src.tools.GlobalWorld import get_world
+from src.common.Messages import MessagesManager
 
 
 class Device:
     """
     the Device class represents devices producing, consuming, converting or storing energy. Its main role is to inform the aggregator of its physical state.
     """
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
 
     def __init__(self, name: str, contracts, agent: "Agent", aggregators, filename: str, profiles, parameters=None):
         self._name = name  # the name which serve as root in the catalog entries
@@ -33,9 +39,9 @@ class Device:
         # 1 key <=> 1 energy nature
         self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
 
-        self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-                         "top-down": {"quantity": 0, "price": 0}}
-        self._additional_elements = {}  # additional elements are elements added by users in the message
+        # self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
+        #                  "top-down": {"quantity": 0, "price": 0}}
+        # self._additional_elements = {}  # additional elements are elements added by users in the message
 
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
@@ -75,8 +81,8 @@ class Device:
                 self.agent._contracts[nature] = None
 
             # messages exchanged
-            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self._messages["bottom-up"])  # the energy asked or proposed by the device and the price associated
-            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self._messages["top-down"])  # the energy delivered or accepted by the strategy
+            self._catalog.add(f"{self.name}.{nature.name}.energy_wanted", self.__class__.information_message())  # the energy asked or proposed by the device and the price associated
+            self._catalog.add(f"{self.name}.{nature.name}.energy_accorded", self.__class__.decision_message())  # the energy delivered or accepted by the strategy
 
             # results
             self._catalog.add(f"{self.name}.{nature.name}.energy_erased", 0)
@@ -104,20 +110,6 @@ class Device:
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-
-    def complete_message(self, additional_elements):
-        """
-        When complementary information is added in the messages exchanged between devices and aggregators,
-        this method updates the self._message attribute.
-
-        Parameters
-        ----------
-        additional_elements: any parsable type of object
-        """
-        self._additional_elements = additional_elements
-        for message in self._messages:
-            old_message = self._messages[message]
-            self._messages[message] = {**old_message, **additional_elements}
 
     # ##########################################################################################
     # Consumption reading
@@ -235,13 +227,11 @@ class Device:
         """
         Method called by world to reinitialize energy and money balances at the beginning of each round.
         """
-        messages = {"bottom-up": {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]},
-                    "top-down": {element: self._messages["top-down"][element] for element in self._messages["top-down"]}}
 
         for nature in self.natures:
             # message exchanged
-            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", messages["top-down"])
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", messages["bottom-up"])
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", self.__class__.decision_message())
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", self.__class__.information_message())
 
             # results
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)
@@ -250,12 +240,22 @@ class Device:
             self._catalog.set(f"{self.name}.{nature.name}.money_earned", 0)
             self._catalog.set(f"{self.name}.{nature.name}.money_spent", 0)
 
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
+
     def update(self):  # method updating needs of the devices before the supervision
         """
         Method used in the first phase of a round where the device communicates its demands or proposal of energy to the aggregator.
         It is specific to each device subclass.
         """
         pass
+
+    def _create_message(self):
+        messages_dict = {}
+        for nature in self.natures:
+            messages_dict[nature.name] = self.__class__.information_message()
+
+        return messages_dict
 
     def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
         """
@@ -305,7 +305,7 @@ class Device:
         money_spent = dict()
         money_earned = dict()
 
-        additional_elements_value = {element: {} for element in self._additional_elements}  # a summary of all values linked to additionnal elements
+        keys_dict = {nature.name: MessagesManager.added_information for nature in self.natures}  # a summary of all values linked to additionnal elements
 
         for nature in self.natures:
             energy_erased[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_erased")
@@ -314,8 +314,10 @@ class Device:
             money_earned[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_earned")
             money_spent[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_spent")
 
-            for element in self._additional_elements:
-                additional_elements_value[element][nature.name] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")[element]
+            # print(keys_dict[nature.name])
+            for key in keys_dict[nature.name]:
+                # print(self._catalog.get(f"{self.name}.{nature.name}.energy_accorded"))
+                keys_dict[nature.name][key] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")[key]
 
             # balance for different natures
             energy_sold_nature = self._catalog.get(f"{nature.name}.energy_produced")
@@ -330,9 +332,9 @@ class Device:
             self._catalog.set(f"{nature.name}.money_spent", money_spent_nature + money_spent[nature.name])  # money spent by the aggregator to buy energy during the round
             self._catalog.set(f"{nature.name}.money_earned", money_earned_nature + money_earned[nature.name])  # money earned by the aggregator by selling energy during the round
 
-            for element in self._additional_elements:
-                old_value = self._catalog.get(f"{nature.name}.{element}")
-                self._catalog.set(f"{nature.name}.{element}", old_value + additional_elements_value[element][nature.name])
+            for key in keys_dict[nature.name]:
+                old_value = self._catalog.get(f"{nature.name}.{key}")
+                self._catalog.set(f"{nature.name}.{key}", old_value + keys_dict[nature.name][key])
 
             # balance at the aggregator level
             aggregator = self._natures[nature]["aggregator"]
@@ -368,9 +370,9 @@ class Device:
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_spent", money_spent_contract + money_spent[nature.name])  # money spent by the contract to buy energy during the round
             self._catalog.set(f"{self.natures[nature]['contract'].name}.money_earned", money_earned_contract + money_earned[nature.name])  # money earned by the contract by selling energy during the round
 
-            for element in self._additional_elements:
-                old_value = self._catalog.get(f"{self.natures[nature]['contract'].name}.{element}")
-                self._catalog.set(f"{self.natures[nature]['contract'].name}.{element}", old_value + additional_elements_value[element][nature.name])
+            for key in keys_dict[nature.name]:
+                old_value = self._catalog.get(f"{self.natures[nature]['contract'].name}.{key}")
+                self._catalog.set(f"{self.natures[nature]['contract'].name}.{key}", old_value + keys_dict[nature.name][key])
 
             # balance at the agent level
             energy_erased_agent = self._catalog.get(f"{self.agent.name}.{nature.name}.energy_erased")
@@ -386,9 +388,9 @@ class Device:
             self._catalog.set(f"{self.agent.name}.money_spent", money_spent_agent + sum(money_spent.values()))  # money spent by the aggregator to buy energy during the round
             self._catalog.set(f"{self.agent.name}.money_earned", money_earned_agent + sum(money_earned.values()))  # money earned by the aggregator by selling energy during the round
 
-            for element in self._additional_elements:
-                old_value = self._catalog.get(f"{self.agent.name}.{element}")
-                self._catalog.set(f"{self.agent.name}.{element}", old_value + sum(additional_elements_value[element].values()))
+            for key in keys_dict[nature.name]:
+                old_value = self._catalog.get(f"{self.agent.name}.{key}")
+                self._catalog.set(f"{self.agent.name}.{key}", old_value + keys_dict[nature.name][key])
 
     # ##########################################################################################
     # Utility

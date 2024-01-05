@@ -48,8 +48,7 @@ class BiomassGasPlant(NonControllableDevice):
             self._next_prod.append([current_time, self._recharge])
             self._waste_quantity += self._recharge
 
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         gas_production = self._calculate_gas_production()
         min_production, max_production = self._production_limits(gas_production)

@@ -68,8 +68,7 @@ class PhotovoltaicsAdvanced(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         irradiation = self._catalog.get(f"{self._irradiation_location}.total_irradiation_value")
 

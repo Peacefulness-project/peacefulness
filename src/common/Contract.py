@@ -2,6 +2,7 @@
 # They also serve to specify the way of billing the agents
 from src.tools.GlobalWorld import get_world
 from typing import Dict, List
+from src.common.Messages import MessagesManager
 
 
 class Contract:
@@ -76,8 +77,8 @@ class Contract:
         self._catalog.set(f"{self.name}.energy_sold", 0)  # the energy sold by all the devices attached to this contract during this round
         self._catalog.set(f"{self.name}.energy_erased", 0)  # the sum of energy erased by all the devices attached to this contract during the round
 
-        for element in self._catalog.get("additional_elements"):
-            self._catalog.set(f"{self.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
 
     # quantities management
     def contract_modification(self, message: Dict, name: str):  # this function adds a price to the information sent by the device and may modfy other things, such as emergency

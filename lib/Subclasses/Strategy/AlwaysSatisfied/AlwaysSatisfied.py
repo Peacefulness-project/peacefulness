@@ -25,7 +25,7 @@ class AlwaysSatisfied(Strategy):
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
         energy_difference = maximum_energy_consumed - maximum_energy_produced
 
-        quantities_and_prices = [{element: self._messages["top-down"][element] for element in self._messages["top-down"]}]  # the standard bottom-up message
+        quantities_and_prices = [self._create_information_message()]
         quantities_and_prices[0]["energy_minimum"] = energy_difference
         quantities_and_prices[0]["energy_nominal"] = energy_difference
         quantities_and_prices[0]["energy_maximum"] = energy_difference
@@ -83,7 +83,7 @@ class AlwaysSatisfied(Strategy):
 
             # quantities concerning devices
             for name in aggregator.devices:
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 energy = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
                 price = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
 
@@ -121,7 +121,7 @@ class AlwaysSatisfied(Strategy):
 
                 # balances
                 for element in quantities_and_prices:  # for each couple energy/price
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = self._create_decision_message()
                     message["quantity"] = element["energy_maximum"]
                     message["price"] = element["price"]
 

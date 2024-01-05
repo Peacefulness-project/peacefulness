@@ -1,22 +1,31 @@
 # This sheet describes the supervisor
 # It contains only the name of a file serving as a "main" for the supervisor and a description
-from math import inf
-from src.tools.GlobalWorld import get_world
 from typing import Dict, List, Callable
+from math import inf
+from copy import deepcopy
+from src.tools.GlobalWorld import get_world
+from src.common.Messages import MessagesManager
 
 
 class Strategy:
     """
     Strategies are objects bearing the logic applied by an aggregator to distribute energy.
     """
+    messages_manager = MessagesManager()
+    information_message = messages_manager.create_information_message
+    decision_message = messages_manager.create_decision_message
+    information_keys = messages_manager.information_keys
+    decision_keys = messages_manager.decision_keys
+
+    sorted_lists = {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}
 
     def __init__(self, name: str, description: str):
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
-        self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-                          "top-down": {"quantity": 0, "price": 0},
-                          "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}}
+        # self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
+        #                   "top-down": {"quantity": 0, "price": 0},
+        #                   "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}}
 
         world = get_world()  # get the object world
         self._catalog = world.catalog  # the catalog in which some data are stored
@@ -27,18 +36,30 @@ class Strategy:
     # Initialization
     # ##########################################################################################
 
-    def complete_message(self, additional_elements):
-        """
-        When complementary information is added in the messages exchanged between devices and aggregators,
-        this method updates the self._message attribute.
-
-        Parameters
-        ----------
-        additional_elements: any parsable type of object
-        """
-        for message in self._messages:
-            old_message = self._messages[message]
-            self._messages[message] = {**old_message, **additional_elements}
+    # def complete_message(self, additional_elements):
+    #     """
+    #     When complementary information is added in the messages exchanged between devices and aggregators,
+    #     this method updates the self._message attribute.
+    #
+    #     Parameters
+    #     ----------
+    #     additional_elements: any parsable type of object
+    #     """
+    #     for message in self._messages:
+    #         old_message = self._messages[message]
+    #         self._messages[message] = {**old_message, **additional_elements}
+    
+    def _create_information_message(self):
+        messages_dict = self.__class__.information_message()
+        return messages_dict
+    
+    def _create_decision_message(self):
+        messages_dict = self.__class__.decision_message()
+        return messages_dict
+    
+    def _create_empty_sorted_lists(self):
+        sorted_lists = deepcopy(self.__class__.sorted_lists)
+        return sorted_lists
 
     # ##########################################################################################
     # Dynamic behavior
@@ -226,7 +247,7 @@ class Strategy:
         return [demands, offers]
 
     def _reinitialise_decisions(self, aggregator: "Aggregator"):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
-        message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+        message = self._create_decision_message()
 
         for device_name in aggregator.devices:  # if there is missing energy
             self._catalog.set(f"{device_name}.{aggregator.nature.name}.energy_accorded", message)
@@ -291,7 +312,7 @@ class Strategy:
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
     def _prepare_quantitites_subaggregator(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # this function prepare the quantities and prices asked or proposed to the grid
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
 
         if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
             energy_difference = max(minimum_energy_consumed - maximum_energy_produced, 0)
@@ -409,11 +430,11 @@ class Strategy:
         # non critical exchanges
         # note that the aggregator can both buy and sell energy to outside
         # while being not physically possible, it can be financially interesting
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
         message["energy_maximum"] = energy_bought_outside
         quantities_and_prices.append(message)
 
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
         message["energy_maximum"] = energy_sold_outside
         quantities_and_prices.append(message)
 
@@ -460,7 +481,7 @@ class Strategy:
                         quantities_exchanged_internally += abs(sorted_demands[i]["quantity"])
                     i += 1
 
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
         message["energy_maximum"] = urgent_energy_with_outside
         message["energy_nominal"] = urgent_energy_with_outside
         message["energy_minimum"] = urgent_energy_with_outside
@@ -469,7 +490,7 @@ class Strategy:
         return [quantities_exchanged_internally, quantities_and_prices]
 
     def _prepare_quantities_emergency_only(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
 
         if maximum_energy_produced < minimum_energy_consumed or maximum_energy_consumed < minimum_energy_produced:  # if there is no possibility to balance the grid without help
             if minimum_energy_consumed > maximum_energy_produced:  # if there is a lack of production
@@ -492,7 +513,7 @@ class Strategy:
         return quantities_and_prices
 
     def _prepare_quantities_max_exchanges(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self._create_information_message()
 
         if minimum_energy_produced > minimum_energy_consumed:  # if minimum consumption is not sufficient to absorb minimum production
             if minimum_energy_produced > maximum_energy_consumed:  # if maximum consumption is not sufficient to absorb minimum production
@@ -574,7 +595,7 @@ class Strategy:
                 emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
 
             if Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
-                message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
+                message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax
                 message["quantity_min"] = Emin
@@ -582,7 +603,7 @@ class Strategy:
                 message["name"] = device_name
                 sorted_demands.append(message)
             elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
-                message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
+                message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax
                 message["quantity_min"] = Emin
@@ -606,7 +627,7 @@ class Strategy:
                     emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
 
                 if Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
-                    message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
+                    message = self._create_empty_sorted_lists()
                     message["emergency"] = emergency
                     message["quantity"] = Emax
                     message["quantity_min"] = Emin
@@ -614,7 +635,7 @@ class Strategy:
                     message["name"] = subaggregator.name
                     sorted_demands.append(message)
                 elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
-                    message = {element: self._messages["sorted_lists"][element] for element in self._messages["sorted_lists"]}
+                    message = self._create_empty_sorted_lists()
                     message["emergency"] = emergency
                     message["quantity"] = Emax
                     message["quantity_min"] = Emin
@@ -642,7 +663,7 @@ class Strategy:
                 if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
 
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = energy
                 message["price"] = price
 
@@ -667,7 +688,7 @@ class Strategy:
                 else:
                     energy = energy_minimum
 
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = energy
                 message["price"] = price
 
@@ -707,7 +728,7 @@ class Strategy:
             if sorted_offers[i]["emergency"] == 1:  # if it is urgent
                 lines_to_remove.append(i)
 
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = energy
                 message["price"] = price
 
@@ -732,7 +753,7 @@ class Strategy:
                 else:
                     energy = energy_minimum
 
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -769,7 +790,7 @@ class Strategy:
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -795,7 +816,7 @@ class Strategy:
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -823,7 +844,7 @@ class Strategy:
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -849,7 +870,7 @@ class Strategy:
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -884,7 +905,7 @@ class Strategy:
                 energy *= energy_ratio
 
                 Emin = demand["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -920,7 +941,7 @@ class Strategy:
                 energy *= energy_ratio
 
                 Emin = offer["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator

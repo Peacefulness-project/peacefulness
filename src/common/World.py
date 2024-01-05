@@ -20,6 +20,7 @@ from src.common.Daemon import Daemon
 from src.common.Datalogger import Datalogger
 from src.common.Forecaster import Forecaster
 from src.tools.GraphAndTex import GraphOptions
+from src.common.Messages import MessagesManager
 
 from src.tools.Utilities import big_separation, adapt_path, into_list
 from src.tools.SubclassesDictionary import get_subclasses
@@ -49,8 +50,6 @@ class World:
 
         # Randomness management
         self._random_seed = None  # the seed used in the random number generator of Python
-
-        self._catalog.add("additional_elements", dict())  # a dictionary containing the additional information added by the user to the messages exchanged between devices, contracts and aggregators
 
         # dictionaries contained by world
         self._subclasses_dictionary = get_subclasses()  # this dictionary contains all the classes defined by the user
@@ -137,9 +136,9 @@ class World:
     # ##########################################################################################
     # options
 
-    def complete_message(self, additional_element, default_value=None):  # this function adds more element in the message exchanged between devices, contracts and aggregators
+    def complete_message(self, additional_element: str, default_value=0):  # this function adds more element in the message exchanged between devices, contracts and aggregators
         # this new element requires to modify the related device, contract and strategy subclasses to have some effect
-        self._catalog.get("additional_elements")[additional_element] = default_value
+        MessagesManager.complete_all_messages(additional_element, default_value)
 
     # ##########################################################################################
     # modelling
@@ -151,8 +150,8 @@ class World:
         if isinstance(nature, Nature) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
-            self._catalog.add(f"{nature.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{nature.name}.{element_name}", default_value)
 
         self._catalog.natures[nature.name] = nature
         self._used_names.append(nature.name)  # adding the name to the list of used names
@@ -176,8 +175,8 @@ class World:
         if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        strategy.complete_message(
-            self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
+        # strategy.complete_message(
+        #     self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
 
         self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
         self._used_names.append(strategy.name)  # adding the name to the list of used names
@@ -190,8 +189,8 @@ class World:
         if isinstance(agent, Agent) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
-            self._catalog.add(f"{agent.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{agent.name}.{element_name}", default_value)
 
         if agent.superior:  # if the agent has a superior
             self._catalog.agents[agent.superior]._owned_agents_name.append(agent)
@@ -207,8 +206,8 @@ class World:
         if isinstance(contract, Contract) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
-            self._catalog.add(f"{contract.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{contract.name}.{element_name}", default_value)
 
         self._catalog.contracts[contract.name] = contract  # registering the contract in the dedicated dictionary
         self._used_names.append(contract.name)  # adding the name to the list of used names
@@ -221,8 +220,8 @@ class World:
         if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
             raise WorldException("The object is not of the correct type")
 
-        for element in self._catalog.get("additional_elements"):  # for all new elements, an entry is created in the catalog
-            self._catalog.add(f"{aggregator.name}.{element}", self._catalog.get("additional_elements")[element])
+        for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{aggregator.name}.{element_name}", default_value)
 
         if aggregator.superior:  # if the aggregator has a superior
             aggregator.superior._subaggregators.append(aggregator)
@@ -253,7 +252,8 @@ class World:
         if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
             raise WorldException(f"{device._agent.name} does not exist")
 
-        device.complete_message(self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
+        for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
+            self._catalog.add(f"{device.name}.{element_name}", default_value)
 
         for nature in device.natures:
             device._natures[nature]["aggregator"].add_device(device.name)  # adding the device name to its aggregator list of devices
@@ -510,6 +510,9 @@ class World:
 
             if verbose:
                 print()
+
+        if verbose:
+            print("writing results")
 
         for datalogger in self._catalog.dataloggers.values():
             datalogger.final_process()

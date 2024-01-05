@@ -4,6 +4,7 @@
 from math import inf
 from src.tools.GlobalWorld import get_world
 default_capacity = {"buying": inf, "selling": inf}
+from src.common.Messages import MessagesManager
 
 
 class Aggregator:
@@ -101,6 +102,12 @@ class Aggregator:
         except:
             pass
 
+        messages_manager = MessagesManager()
+        self.information_message = messages_manager.create_information_message
+        # decision_message = messages_manager.create_decision_message
+        # information_keys = messages_manager.information_keys
+        # decision_keys = messages_manager.decision_keys
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -127,6 +134,9 @@ class Aggregator:
         self._catalog.set(f"{self.name}.maximum_energy_production", 0)
         self._catalog.set(f"{self.name}.energy_stored", 0)
         self._catalog.set(f"{self.name}.energy_storable", 0)
+
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
 
     def ask(self):  # aggregators make local balances and then publish their needs (both in demand and in offer)
         """

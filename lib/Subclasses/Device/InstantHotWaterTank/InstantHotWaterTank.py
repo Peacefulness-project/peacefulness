@@ -99,8 +99,7 @@ class InstantHotWaterTank(ChargerDevice):
     # ##########################################################################################
 
     def update(self):
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         for consumption in self._user_profile:  # for every moment when hot water is needed
             if self._moment == consumption[0]:  # if it matches with the current moment, the tank is instantly heated

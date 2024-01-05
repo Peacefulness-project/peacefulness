@@ -35,7 +35,7 @@ class Grid(Strategy):
 
         # quantities concerning devices
         for name in aggregator.devices:
-            message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+            message = self._create_decision_message()
             energy = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
             price = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted")["price"]  # the price of the energy asked
 
@@ -74,7 +74,7 @@ class Grid(Strategy):
 
             # balances
             for element in quantities_and_prices:  # for each couple energy/price
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self._create_decision_message()
                 message["quantity"] = element["energy_maximum"]
                 message["price"] = element["price"]
 

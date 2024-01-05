@@ -65,7 +65,7 @@ class DummyCO2Device(NonControllableDevice):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        energy_wanted = {nature: self._messages["bottom-up"] for nature in self._technical_profile}  # consumption that will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         for line in self._user_profile:
             if line[0] == self._moment:  # if a consumption has been scheduled and if it has not been fulfilled yet

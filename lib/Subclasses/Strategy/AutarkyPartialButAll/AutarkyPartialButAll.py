@@ -13,7 +13,7 @@ class AutarkyPartialButAll(Strategy):
     # ##########################################################################################
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        quantities_and_prices = [self._messages["bottom-up"]]  # always refuses to exchange with outside
+        quantities_and_prices = [aggregator.information_message()]
 
         return quantities_and_prices
          

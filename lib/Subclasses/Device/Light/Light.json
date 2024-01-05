@@ -1,12 +1,16 @@
 {
   "technical_data": {
     "house": {
-      "usage_profile": {"LVE": 0.1},
+      "usage_profile": {"LVE":
+      {"weekday": [0, 0, 0, 0, 0, 0, 0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0],
+        "weekend": [0, 0, 0, 0, 0, 0, 0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0]}},
       "consumption_variation": 0.1
     },
 
     "apartment": {
-      "usage_profile": {"LVE": 0.05},
+      "usage_profile": {"LVE":
+      {"weekday": [0, 0, 0, 0, 0, 0, 0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0],
+        "weekend": [0, 0, 0, 0, 0, 0, 0.1, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0]}},
       "consumption_variation": 0.1
     }
 
@@ -14,7 +18,7 @@
 
   "user_profile":{
     "offset": {
-      "profile": [[8, 6.5]],
+      "profile": [0],
 
       "period": 24,
       "offset": 12,
@@ -24,7 +28,7 @@
     },
 
     "residential": {
-      "profile": [[19, 3]],
+      "profile": [0],
 
       "period": 24,
       "offset": 0,

@@ -63,8 +63,7 @@ class ElectricDam(NonControllableDevice):
         flow = self._catalog.get(f"{self._location}.flow_value") * (1 - reserved_flow)
         max_flow = self._catalog.get(f"{self._location}.max_flow") * (1 - reserved_flow)
 
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
-        energy_wanted = {nature.name: message for nature in self.natures}  # consumption which will be asked eventually
+        energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         # finding the adapted efficiency
         power_available = flow * water_density * self._height * 9.81 / 1000
