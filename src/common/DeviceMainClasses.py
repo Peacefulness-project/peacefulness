@@ -11,6 +11,10 @@ from src.common.Messages import MessagesManager
 # ##############################################################################################
 class NonControllableDevice(Device):
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
+    messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
+    messages_manager.set_type("standard")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys
@@ -114,6 +118,10 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
+    messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
+    messages_manager.set_type("standard")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys
@@ -347,6 +355,10 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 # ##############################################################################################
 class AdjustableDevice(Device):  # a consumption which is adjustable
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
+    messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
+    messages_manager.set_type("standard")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys
@@ -482,6 +494,10 @@ class AdjustableDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class ChargerDevice(Device):  # a consumption which is adjustable
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
+    messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
+    messages_manager.set_type("standard")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys
@@ -585,6 +601,8 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 # ##############################################################################################
 class Converter(Device):
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("efficiency", 1)  # kWh/kWh, a value of the efficiency of the conversion is added
+    messages_manager.set_type("converter")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys
@@ -690,6 +708,11 @@ class Converter(Device):
 # ##############################################################################################
 class Storage(Device):
     messages_manager = MessagesManager()
+    messages_manager.complete_information_message("state_of_charge", 0)  # kWh/kWh, the ration of charge stored energy / (max energy - min energy)
+    messages_manager.complete_information_message("capacity", 0)  # kWh, the maximum energy recoverable from the storage device (max energy - min energy)
+    messages_manager.complete_information_message("self_discharge_rate", 0)  # kWh/kWh, the rate at which the storage device is dicharging
+    messages_manager.complete_information_message("efficiency", 1)  # kWh/kWh, the efficiency of the cycle
+    messages_manager.set_type("storage")
     information_message = messages_manager.create_information_message
     decision_message = messages_manager.create_decision_message
     information_keys = messages_manager.information_keys

@@ -273,6 +273,7 @@ class Device:
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name], self.name)  # the contract may modify the offer
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
+            print(self.name, energy_wanted)
 
     def react(self):  # method updating the device according to the decisions taken by the strategy
         """
