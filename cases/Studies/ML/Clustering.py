@@ -1,13 +1,13 @@
-from cases.Studies.ML.SimulationScript import create_simulation
-from cases.Studies.ML.Utilities import *
+import gc
 
+from cases.Studies.ML.Utilities import *
+from cases.Studies.ML.SimulationScript import create_simulation
 
 import math
 from numpy import average, std, zeros
 from typing import List
 from sklearn import cluster
 # lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
-
 
 def clustering(simulation_length: int, clusters_number: int, clustering_metrics: List):
     delay_days = [i for i in range(50)]
@@ -16,11 +16,10 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     raw_situations = {key: [] for key in clustering_metrics}
     for day in delay_days:
         print(f"situation starting at day {day}")
-        world = create_simulation(simulation_length, random_order_priorities_conso(),
+        metrics_datalogger = create_simulation(simulation_length, random_order_priorities_conso(),
                                   random_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
-        datalogger = world.catalog.dataloggers["metrics"]
         for key in clustering_metrics:
-            raw_situations[key] = raw_situations[key] + datalogger._values[key]
+            raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
     print("Done\n")
 
     # # approche centrage et réduction sur chaque variable, probablement pas bonne bu liens entre variables

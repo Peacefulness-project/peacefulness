@@ -1,8 +1,7 @@
 # ##############################################################################################
 # Native packages
 # Current packages
-from src.common.Device import Device, DeviceException
-from json import load
+from src.common.Device import Device
 
 from src.tools.Utilities import into_list
 from src.common.Messages import MessagesManager

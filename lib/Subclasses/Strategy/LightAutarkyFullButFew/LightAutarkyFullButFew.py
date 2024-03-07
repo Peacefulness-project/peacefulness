@@ -21,7 +21,7 @@ class LightAutarkyFullButFew(Strategy):
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
 
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
         # ##########################################################################################

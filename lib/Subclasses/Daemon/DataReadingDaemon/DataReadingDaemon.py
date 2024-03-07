@@ -1,5 +1,7 @@
 # this daemon class is designed to serve as a basis for creating daemons aimed at reading data.
-from json import load
+import gc
+
+from ijson import items
 from typing import Dict, List, Tuple
 from datetime import datetime, timedelta
 
@@ -15,9 +17,10 @@ class DataReadingDaemon(Daemon):
         super().__init__(name, period, parameters, filename)
 
         # getting the data for the chosen location
-        file = open(filename, "r")
-        self._data = load(file)[self._location]  # the data corresponding to the specified location
-        file.close()
+        with open(filename, "r") as file:
+            temp = items(file, f"{self._location}", use_float=True)  # the data corresponding to the specified location
+            for truc in temp:
+                self._data = truc
 
         self._format = self._data["format"]
         self._get_data = reading_functions[self._format]  # the format acts a tag returning the relevant reading function
@@ -42,7 +45,7 @@ class DataReadingDaemon(Daemon):
             """
             consulted_data = {key_tuple[1]: [] for key_tuple in self.managed_keys}
             for i in range(depth):
-                one_time_step_data = self._methode_intermediaire_de_merde(1, i)
+                one_time_step_data = self._data_update(1, i)
                 for catalog_key, value in one_time_step_data:
                     consulted_data[catalog_key].append(value)
 
@@ -54,7 +57,7 @@ class DataReadingDaemon(Daemon):
     # ##########################################################################################
 
     def _initialize_managed_keys(self):
-        value_dict = self._methode_intermediaire_de_merde(self._period, 0)
+        value_dict = self._data_update(self._period, 0)
         for data_key, catalog_key, quantity_type in self.managed_keys:
             value = value_dict[catalog_key]
             self.catalog.add(catalog_key, value)
@@ -64,12 +67,12 @@ class DataReadingDaemon(Daemon):
     # ##########################################################################################
 
     def _process(self):
-        values_dict = self._methode_intermediaire_de_merde(self.period, 0)
+        values_dict = self._data_update(self.period, 0)
 
         for catalog_key in values_dict:
             self.catalog.set(catalog_key, values_dict[catalog_key])
 
-    def _methode_intermediaire_de_merde(self, time_step_length: int, offset_bis: int):
+    def _data_update(self, time_step_length: int, offset_bis: int):
         """
         For this kind of daemon, the process consists in updating a value in the catalog according to their own data dictionary.
         Their main job is to handle time steps different from 1 hour.
@@ -127,7 +130,7 @@ class DataReadingDaemon(Daemon):
                 for i in range(len(needed_hours)):
                     value += self._get_data(self._data[data_key], self.catalog, needed_hours[i][0]) * needed_hours[i][1]
                 values_dict[catalog_key] = value
-            elif quantity_type is "intensive":  # ... values are the same if the quantity is intensive
+            elif quantity_type == "intensive":  # ... values are the same if the quantity is intensive
                 values = []
                 coefs = []
                 for i in range(len(needed_hours)):
@@ -140,6 +143,12 @@ class DataReadingDaemon(Daemon):
                                       f"It's not the case for the key {data_key} of daemon {self.name}.")
 
         return values_dict
+
+    def final_process(self):
+        """
+        Method used by world to modify a catalog key at the end of a run.
+        """
+        self._catalog.remove(f"consult_function.{type(self).__name__}.{self.location}")
 
     # ##########################################################################################
     # Utilities

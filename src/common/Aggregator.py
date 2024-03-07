@@ -2,7 +2,7 @@
 # we consider that there is a notion of spatial proximity between devices of the same aggregator
 # As an example, it can represent a house with a solar panel, the electrical grid of a neighbourhood or a district heating network
 from math import inf
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 default_capacity = {"buying": inf, "selling": inf}
 from src.common.Messages import MessagesManager
 
@@ -47,7 +47,7 @@ class Aggregator:
 
         self.quantities = dict()  # a dictionary containing, for each device and each subaggregator, the quantity asked, the price billed, the quantity delivered and the price it cost it
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         # Creation of specific entries in the catalog

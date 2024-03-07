@@ -1,29 +1,20 @@
 # This script is the one deconstructed in the tuto to create a case on the wiki.
-
-
-# ##############################################################################################
-# Importations
-from datetime import datetime, timedelta
 from typing import Callable
-
-from src.common.World import World
-
-from src.common.Nature import Nature
-
-# pre-defined natures
-from lib.DefaultNatures.DefaultNatures import *
-
-from src.common.Agent import Agent
-
-from src.common.Aggregator import Aggregator
-
-from src.common.Datalogger import Datalogger
-
-# all the subclasses are imported in the following dictionary
-from src.tools.SubclassesDictionary import get_subclasses
 
 
 def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
+    # ##############################################################################################
+    # Importations
+    from datetime import datetime, timedelta
+    from src.common.World import World
+    from src.tools.AgentGenerator import agent_generation
+    # pre-defined natures
+    from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity
+    from src.common.Agent import Agent
+    from src.common.Aggregator import Aggregator
+    from src.common.Datalogger import Datalogger
+    # all the subclasses are imported in the following dictionary
+    from src.tools.SubclassesDictionary import get_subclasses
 
     # ##############################################################################################
     # Minimum
@@ -56,7 +47,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days=delay_days)
+    start_date = datetime(year=2018, month=1, day=1, hour=1, minute=0, second=0, microsecond=0) + timedelta(days=delay_days)
     # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
@@ -164,19 +155,19 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Automated generation of complete agents (i.e with devices and contracts)
 
     # BAU contracts
-    world.agent_generation("M5BAU", 200, "cases/Studies/ML/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5BAU", 200, "cases/Studies/ML/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # DLC contracts
-    world.agent_generation("M5Coop", 200, "cases/Studies/ML/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Coop", 200, "cases/Studies/ML/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # Curtailment contracts
-    world.agent_generation("M5Curt", 200, "cases/Studies/ML/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Curt", 200, "cases/Studies/ML/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
@@ -201,6 +192,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     world.start(False)
 
-    return world
+    return metrics_datalogger
 
 

@@ -16,7 +16,8 @@ from src.tools.FilesExtensions import __pdf_extension__, __csv_extension__, __te
 
 from src.tools.Utilities import into_list
 
-from src.tools.GlobalWorld import get_world
+# from src.tools.GlobalWorld import get_world
+from src.common.World import World
 
 
 # ##############################################################################################
@@ -26,7 +27,7 @@ class GraphOptions:
         self.formats = formats
         self.graph_type = graph_type
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         world.register_graph_option(self)  # register this device into world dedicated dictionary
 
     @property

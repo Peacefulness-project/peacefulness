@@ -1,9 +1,8 @@
 # This sheet describes the supervisor
 # It contains only the name of a file serving as a "main" for the supervisor and a description
 from typing import Dict, List, Callable
-from math import inf
 from copy import deepcopy
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 from src.common.Messages import MessagesManager
 
 
@@ -27,7 +26,7 @@ class Strategy:
         #                   "top-down": {"quantity": 0, "price": 0},
         #                   "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}}
 
-        world = get_world()  # get the object world
+        world = World.ref_world  # get the object world
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         world.register_strategy(self)  # register the strategy into world dedicated dictionary

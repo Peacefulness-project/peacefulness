@@ -7,7 +7,7 @@ from math import inf
 from src.tools.FilesExtensions import __text_extension__
 
 from src.tools.GraphAndTex import GraphOptions, export
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 
 
 class Datalogger:
@@ -39,7 +39,7 @@ class Datalogger:
 
         self._next_time = 0  # next time step for which data will be written
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # catalog from which data is extracted
 
         self._path = self._catalog.get('path') + "/outputs/"

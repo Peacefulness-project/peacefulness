@@ -1,30 +1,16 @@
 # Declaration of core classes
 # ##############################################################################################
 # Native packages
+import gc
 from datetime import datetime, timedelta
-from os import makedirs, remove
+from os import makedirs
 from random import random, seed as random_generator_seed, randint, gauss
-from json import load, dumps
-from shutil import make_archive, unpack_archive, rmtree
 from typing import List
-from math import inf
 # Current packages
 from src.common.Catalog import Catalog
-from src.common.Strategy import Strategy
-from src.common.Nature import Nature
-from src.common.Aggregator import Aggregator
-from src.common.Contract import Contract
-from src.common.Agent import Agent
-from src.common.Device import Device
-from src.common.Daemon import Daemon
-from src.common.Datalogger import Datalogger
-from src.common.Forecaster import Forecaster
-from src.tools.GraphAndTex import GraphOptions
 from src.common.Messages import MessagesManager
-
-from src.tools.Utilities import big_separation, adapt_path, into_list
+from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
-from src.tools.GlobalWorld import set_world
 
 
 # ##############################################################################################
@@ -35,6 +21,7 @@ from src.tools.GlobalWorld import set_world
 # Then, it contains dictionaries of elements that describe the studied case, such as devices or agents
 # Lastly, it contains a dictionary, of so-called data-loggers, who are in charge of exporting the data into files
 class World:
+    ref_world = None
 
     def __init__(self, name=None):
         if name:
@@ -74,7 +61,7 @@ class World:
 
         self._aggregator_order = []  # this list allows to know which aggregator have to be run first according to the converters
 
-        set_world(self)  # set world as a global variable used later to instantiate objects
+        self.__class__.ref_world = self  # set world as a global variable used later to instantiate objects
 
         self._catalog.add("incompatibility", False)  # a flag indicating if a second round is needed
 
@@ -147,9 +134,6 @@ class World:
         if nature.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{nature.name} already in use")
 
-        if isinstance(nature, Nature) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
             self._catalog.add(f"{nature.name}.{element_name}", default_value)
 
@@ -161,9 +145,6 @@ class World:
         if daemon.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{daemon.name} already in use")
 
-        if isinstance(daemon, Daemon) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         self._catalog.daemons[daemon.name] = daemon  # registering the daemon in the dedicated dictionary
         self._used_names.append(daemon.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -172,12 +153,6 @@ class World:
         if strategy.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{strategy.name} already in use")
 
-        if isinstance(strategy, Strategy) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
-        # strategy.complete_message(
-        #     self._catalog.get("additional_elements"))  # the  message is completed with the new elements added in world
-
         self._catalog.strategies[strategy.name] = strategy  # registering the aggregator in the dedicated dictionary
         self._used_names.append(strategy.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -185,9 +160,6 @@ class World:
     def register_agent(self, agent):  # method connecting one agent to the world
         if agent.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{agent.name} already in use")
-
-        if isinstance(agent, Agent) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
 
         for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
             self._catalog.add(f"{agent.name}.{element_name}", default_value)
@@ -203,9 +175,6 @@ class World:
         if contract.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{contract.name} already in use")
 
-        if isinstance(contract, Contract) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
             self._catalog.add(f"{contract.name}.{element_name}", default_value)
 
@@ -216,9 +185,6 @@ class World:
     def register_aggregator(self, aggregator):  # method connecting one aggregator to the world
         if aggregator.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{aggregator.name} already in use")
-
-        if isinstance(aggregator, Aggregator) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
 
         for element_name, default_value in MessagesManager.added_information.items():  # for all new elements, an entry is created in the catalog
             self._catalog.add(f"{aggregator.name}.{element_name}", default_value)
@@ -234,9 +200,6 @@ class World:
         if forecaster.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{forecaster.name} already in use")
 
-        if isinstance(forecaster, Forecaster) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         self._catalog.forecasters[forecaster.name] = forecaster  # registering the _forecaster in the dedicated dictionary
         self._used_names.append(forecaster.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -244,9 +207,6 @@ class World:
     def register_device(self, device):  # method connecting one device to the world
         if device.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{device.name} already in use")
-
-        if isinstance(device, Device) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
 
         # checking if the agent is defined correctly
         if device._agent.name not in self._catalog.agents:  # if the specified agent does not exist
@@ -265,9 +225,6 @@ class World:
         if datalogger.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{datalogger.name} already in use")
 
-        if isinstance(datalogger, Datalogger) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         self._catalog.dataloggers[datalogger.name] = datalogger  # registering the datalogger in the dedicated dictionary
         self._used_names.append(datalogger.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
@@ -276,78 +233,9 @@ class World:
         if graph_option.name in self._used_names:  # checking if the name is already used
             raise WorldException(f"{graph_option.name} already in use")
 
-        if isinstance(graph_option, GraphOptions) is False:  # checking if the object has the expected type
-            raise WorldException("The object is not of the correct type")
-
         self._catalog.graph_options[graph_option.name] = graph_option  # registering the GraphOptions in the dedicated dictionary
         self._used_names.append(graph_option.name)  # adding the name to the list of used names
         # used_name is a general list: it avoids erasing
-
-    # ##########################################################################################
-    # Automated generation of agents
-    # ##########################################################################################
-
-    def agent_generation(self, name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}, verbose=True):  # this method creates several agents, each with a predefinite set of devices
-        if verbose:
-            print(f"generation of the {quantity} agents from the {filename} template.")
-
-        # loading the data in the file
-        file = open(filename, "r")
-        data = load(file)
-        file.close()
-
-        # creation of contracts
-        contract_dict = {}
-        for contract_type in data["contracts"]:  # for each contract
-            contract_name = f"{name}_{data['template name']}_{contract_type}"
-            nature = self._catalog.natures[data["contracts"][contract_type]["nature_name"]]
-            identifier = price_manager_daemon[nature.name]
-            contract_class = self._subclasses_dictionary["Contract"][data["contracts"][contract_type]["contract_subclass"]]
-
-            if len(data["contracts"][contract_type]) == 2:  # if there are no parameters
-                contract = contract_class(contract_name, nature, identifier)
-            else:  # if there are parameters
-                parameters = data["contracts"][contract_type]["parameters"]
-                contract = contract_class(contract_name, nature, identifier, parameters)
-
-            contract_dict[contract_type] = contract
-
-        # process of data daemon dictionary
-        data_daemons = {key: data_daemons[key].name for key in data_daemons}  # transform the daemons objects into strings
-
-        for i in range(quantity):
-
-            # creation of an agent
-            agent_name = f"{name}_{data['template name']}_{str(i)}"
-            agent = Agent(agent_name)  # creation of the agent, which name is "Profile X"_"number"
-
-            # creation of devices
-            for device_data in data["composition"]:
-                for profile in data["composition"][device_data]:
-                    if profile["quantity"][0] > profile["quantity"][1]:
-                        raise WorldException(f"The minimum number of devices {profile['name']} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
-                    number_of_devices = self._catalog.get("int")(profile["quantity"][0], profile["quantity"][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
-                    for j in range(number_of_devices):
-                        device_name = f"{agent_name}_{profile['name']}_{j}"  # name of the device, "Profile X"_5_Light_0
-                        device_class = self._subclasses_dictionary["Device"][device_data]
-
-                        # management of contracts
-                        contracts = []
-                        for contract_type in contract_dict:
-                            if profile["contract"] == contract_type:
-                                contracts.append(contract_dict[contract_type])
-
-                        # management of devices needing data
-                        if "parameters" in profile:
-                            parameters = profile["parameters"]
-                            parameters.update(data_daemons)
-                        else:
-                            parameters = data_daemons
-
-                        device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters)  # creation of the device
-
-        if verbose:
-            print("Done\n")
 
     # ##########################################################################################
     # Initialization
@@ -389,14 +277,15 @@ class World:
 
         return independent_agent_list
 
-    # def _identify_data_reading_daemons(self) -> Dict:
-    #     data_reading_daemons_list = {}
-    #
-    #     for daemon in self._catalog.daemons.values():
-    #         if isinstance(daemon, DataReadingDaemon):
-    #             data_reading_daemons_list.append(daemon)
-    #
-    #     return data_reading_daemons_list
+    def _clean_up(self):
+        """
+        Memory cleaning at the end of the run.
+        Returns
+        -------
+
+        """
+        self.catalog.remove("dictionaries")  # --> circular reference here
+        gc.collect()
 
     def start(self, verbose=True):
         self._check()  # check if everything is fine in world definition
@@ -521,6 +410,8 @@ class World:
         for daemon in self._catalog.daemons.values():
             daemon.final_process()
 
+        self._clean_up()
+
     # ##########################################################################################
     # Dynamic behavior
     ############################################################################################
@@ -533,291 +424,6 @@ class World:
 
         self._catalog.set("physical_time", physical_time)  # updating the value of physical time
         self._catalog.set("simulation_time", current_time + 1)
-
-    # ##########################################################################################
-    # save/load system
-    # ##########################################################################################
-    # this method allows to export world
-    # the idea is to save the minimum information given by the user in the main
-    # to be able to reconstruct it later
-
-    def save(self):
-        filepath = adapt_path([self._catalog.get("path"), "inputs", "save"])
-        makedirs(filepath)
-
-        # world file
-        world_dict = {"name": self.name,
-
-                      "random seed": self._random_seed,
-
-                      # time management
-                      "start date": self._catalog.get("physical_time").strftime("%d %b %Y %H:%M:%S"),  # converting the datetime object into a string
-                      "time step": self.catalog.get("time_step"),
-                      "time limit": self.time_limit
-                      }
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"World.json"])
-        file = open(filename, "w")
-        file.write(dumps(world_dict, indent=2))
-        file.close()
-
-        # # personalized classes file
-        #
-        # filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Classes.pickle"])
-        # file = open(filename, "wb")
-        # pickle_dump(self._subclasses_dictionary, file)  # the dictionary containing the classes is exported entirely
-        # file.close()
-
-        # natures file
-        natures_list = {nature.name: nature.description for nature in self.catalog.natures.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Natures.json"])
-        file = open(filename, "w")
-        file.write(dumps(natures_list, indent=2))
-        file.close()
-
-        # daemons file
-        daemons_list = {daemon.name: [f"{type(daemon).__name__}",
-                                      daemon._period,
-                                      daemon._parameters
-                                      ] for daemon in self.catalog.daemons.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Daemon.json"])
-        file = open(filename, "w")
-        file.write(dumps(daemons_list, indent=2))
-        file.close()
-
-        # strategies file
-        strategies_list = {strategy.name: [f"{type(strategy).__name__}"] for strategy in self.catalog.strategies.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"strategy.json"])
-        file = open(filename, "w")
-        file.write(dumps(strategies_list, indent=2))
-        file.close()
-
-        # agents file
-        agents_list = {agent.name: agent._superior_name for agent in self.catalog.agents.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Agents.json"])
-        file = open(filename, "w")
-        file.write(dumps(agents_list, indent=2))
-        file.close()
-
-        # contracts file
-        contracts_list = {contract.name: [f"{type(contract).__name__}",
-                                          contract.nature.name,
-                                          contract._daemon_name,
-                                          contract._parameters
-                                          ] for contract in self.catalog.contracts.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Contract.json"])
-        file = open(filename, "w")
-        file.write(dumps(contracts_list, indent=2))
-        file.close()
-
-        # aggregators file
-        aggregators_list = {}
-
-        for aggregator in self.catalog.aggregators.values():
-            aggregators_list[aggregator.name] = [aggregator.nature.name, aggregator.strategy.name, aggregator.agent.name]
-            if aggregator.superior:
-                aggregators_list[aggregator.name].append(aggregator.superior.name)
-                aggregators_list[aggregator.name].append(aggregator.contract.name)
-            else:
-                aggregators_list[aggregator.name].append(None)
-                aggregators_list[aggregator.name].append(None)
-
-            aggregators_list[aggregator.name].append(aggregator.efficiency)
-            if aggregator.capacity == inf:
-                aggregators_list[aggregator.name].append("inf")
-            else:
-                aggregators_list[aggregator.name].append(aggregator.capacity)
-            # rajouter _forecaster plus tard
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Clusters.json"])
-        file = open(filename, "w")
-        file.write(dumps(aggregators_list, indent=2))
-        file.close()
-
-        # devices file
-        devices_list = {device.name: [f"{type(device).__name__}",
-                                      [element["contract"].name for element in device._natures.values()],  # contracts
-                                      device.agent.name,  # agent
-                                      [element["aggregator"].name for element in device._natures.values()],  # aggregators
-                                      device._filename,  # where data profiles are found
-                                      device._parameters  # the optional parameters used by the device
-                                      ] for device in self.catalog.devices.values()}
-
-        filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Device.json"])
-        file = open(filename, "w")
-        file.write(dumps(devices_list, indent=2))
-        file.close()
-
-        # # dataloggers file
-        # dataloggers_list = {datalogger.name: [datalogger._filename,
-        #                                       datalogger._period,
-        #                                       datalogger._graph_options.name,
-        #                                       datalogger._graph_labels,
-        #                                       datalogger._list
-        #                                       ] for datalogger in self.catalog.dataloggers.values()}
-        #
-        # filename = adapt_path([self._catalog.get("path"), "inputs", "save", f"Datalogger.json"])
-        # file = open(filename, "w")
-        # file.write(dumps(dataloggers_list, indent=2))
-        # file.close()
-
-        # creation of the archive
-        make_archive(filepath, "tar", filepath)  # packing the archive
-        rmtree(filepath)  # deleting the directory with all the now useless files
-
-    def load(self, filename):
-        unpack_archive(filename, format="tar")  # unpacking the archive
-
-        # World file
-        file = open("World.json", "r")
-        data = load(file)
-
-        self.set_random_seed(data["random seed"])
-
-        start_date = data["start date"]
-        start_date = datetime.strptime(start_date, "%d %b %Y %H:%M:%S")  # converting the string into a datetime object
-        time_step = data["time step"]
-        time_limit = data["time limit"]
-        self.set_time(start_date, time_step, time_limit)
-
-        file.close()
-        remove("World.json")  # deleting the useless world file
-
-        # # personalized classes file
-        # file = open("Classes.pickle", "rb")
-        #
-        # data = pickle_load(file)
-        #
-        # for user_class in data:
-        #     self._subclasses_dictionary[user_class] = data[user_class]
-        #
-        # file.close()
-        # remove("Classes.pickle")  # deleting the useless file
-
-        # Natures file
-        file = open("Natures.json", "r")
-        data = load(file)
-
-        for nature_name in data:
-            nature = Nature(nature_name, data[nature_name])  # creation of a nature
-
-        file.close()
-        remove("Natures.json")  # deleting the useless file
-
-        # Daemon file
-        file = open("Daemon.json", "r")
-        data = load(file)
-
-        for daemon_name in data:
-            daemon_period = data[daemon_name][1]
-            daemon_parameters = data[daemon_name][2]
-            daemon_class = self._subclasses_dictionary["Daemon"][data[daemon_name][0]]
-            daemon = daemon_class(daemon_name, daemon_period, daemon_parameters)
-
-        file.close()
-        remove("Daemon.json")  # deleting the useless file
-        
-        # strategy file
-        file = open("strategy.json", "r")
-        data = load(file)
-
-        for strategy_name in data:
-            strategy_period = data[strategy_name][1]
-            strategy_parameters = data[strategy_name][2]
-            strategy_class = self._subclasses_dictionary["Strategy"][data[strategy_name][0]]
-            strategy = strategy_class(strategy_name, strategy_period, strategy_parameters)
-
-        file.close()
-        remove("strategy.json")  # deleting the useless file
-
-        # Agents file
-        file = open("Agents.json", "r")
-        data = load(file)
-
-        for agent_name in data:
-            agent = Agent(agent_name)  # creation of an agent
-
-        file.close()
-        remove("Agents.json")  # deleting the useless file
-
-        # Contract file
-        file = open("Contract.json", "r")
-        data = load(file)
-
-        for contract_name in data:
-            contract_class = self._subclasses_dictionary["Contract"][data[contract_name][0]]
-            contract_nature = self._natures[data[contract_name][1]]
-            contract_parameters = data[contract_name][2]
-
-            contract = contract_class(contract_name, contract_nature, contract_parameters)
-
-        file.close()
-        remove("Contract.json")  # deleting the useless file
-
-        # Aggregator file
-        file = open("Clusters.json", "r")
-        data = load(file)
-
-        for aggregator_name in data:
-            aggregator_nature = self._natures[data[aggregator_name]]
-            aggregator = Aggregator(aggregator_name, aggregator_nature)  # creation of a aggregator
-
-        file.close()
-        remove("Clusters.json")  # deleting the useless file
-
-        # Device file
-        file = open("Device.json", "r")
-        data = load(file)
-
-        for device_name in data:
-            agent = self._agents[data[device_name][1]]
-            aggregators = [self._aggregators[aggregator_name] for aggregator_name in data[device_name][2]]
-            contracts = [self._contracts[contract_name] for contract_name in data[device_name][3]]
-            device_class = self._subclasses_dictionary[data[device_name][0]]
-            user_profile_name = data[device_name][7]  # loading the user profile name
-            usage_profile_name = data[device_name][8]  # loading the usage profile name
-
-            # loading the parameters
-            device_parameters = data[device_name][10]
-
-            # creation of the device
-            device = device_class["Device"](device_name, contracts, agent, aggregators, user_profile_name, usage_profile_name, device_parameters, "loaded device")
-
-            # loading the real hour
-            device._hour = self._catalog.get("physical_time").hour  # loading the hour of the day
-            device._period = data[device_name][4]  # loading the period
-            device._moment = data[device_name][9]  # loading the initial moment
-
-            # loading the profiles
-            device._user_profile = data[device_name][5]  # loading the user profile
-            device._usage_profile = data[device_name][6]  # loading the usage profile
-
-
-        file.close()
-        remove("Device.json")  # deleting the useless file
-
-        # # Datalogger file
-        # file = open("Datalogger.json", "r")
-        # data = load(file)
-        #
-        # for datalogger_name in data:
-        #     filename = data[datalogger_name][0]
-        #     period = data[datalogger_name][1]
-        #     sum_over_time = data[datalogger_name][2]
-        #     logger = Datalogger(self, datalogger_name, filename, period, sum_over_time)  # creation
-        #
-        #     for entry in data[datalogger_name][3]:
-        #         logger.add(entry)  # this datalogger exports all the data available in the catalog
-        #
-        # file.close()
-        # remove("Datalogger.json")  # deleting the useless file
-
-        file.close()
 
     # ##########################################################################################
     # Utility

@@ -1,11 +1,11 @@
 from math import sqrt
 from numpy.random import normal
-from json import load, dump
+from json import loads, dump
 
 
 def autoregressive_profiles_generator(standard_deviation, correlation_factor, location, daemon, key, key2 = None):
     file = open("../../lib/Subclasses/Daemon/" + str(daemon) + "Daemon/" + str(daemon) + "Profiles.json", "r")
-    data = load(file)[location]
+    data = loads(file.read())[location]
     file.close()
 
     generated_daemon = {}

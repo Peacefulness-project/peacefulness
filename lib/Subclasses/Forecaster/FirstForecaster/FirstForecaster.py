@@ -1,6 +1,7 @@
 # this _forecaster knows
 # it creates noise around the real value according to a function (in argment) for n tm steps (in argument too)
 from src.common.Forecaster import *  # brings also some elements from the "typing" module
+from src.common.World import World
 
 empty_prediction = {
     "rigid_consumption": {
@@ -21,7 +22,7 @@ class FirstForecaster(Forecaster):
         self._name = name
         self._aggregator = aggregator
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
         world.register_forecaster(self)  # register the _forecaster into world dedicated dictionary
 

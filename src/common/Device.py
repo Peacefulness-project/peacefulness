@@ -1,12 +1,12 @@
 # Root class for all devices constituting a case
 # Native packages
 from datetime import datetime
-from json import load
+from ijson import items
 from math import ceil
 from typing import Dict
 # Local packages
 from src.tools.Utilities import middle_separation, into_list
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 from src.common.Messages import MessagesManager
 
 
@@ -39,10 +39,6 @@ class Device:
         # 1 key <=> 1 energy nature
         self._natures = dict()  # contains, for each energy nature used by the device, the aggregator and the nature associated
 
-        # self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-        #                  "top-down": {"quantity": 0, "price": 0}}
-        # self._additional_elements = {}  # additional elements are elements added by users in the message
-
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
             if aggregator.nature in self.natures:
@@ -71,7 +67,7 @@ class Device:
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # linking the catalog to the device
 
         world.register_device(self)  # register this device into world dedicated dictionary
@@ -118,32 +114,34 @@ class Device:
         pass
 
     def _read_consumer_data(self, user_profile):
-
         # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        with open(self._filename, "r") as file:
+            temp = items(file, "user_profile", use_float=True)
+            data = {}
+            for truc in temp:
+                data = truc
 
         # getting the user profile
         try:
-            user_data = data["user_profile"][user_profile]
+            user_data = data[user_profile]
         except:
             raise DeviceException(f"{user_profile} does not belong to the list of predefined user profiles for the class {type(self).__name__}: {data['user_profile'].keys()}")
 
         return user_data
 
     def _read_technical_data(self, technical_profile):
-
         # parsing the data
-        file = open(self._filename, "r")
-        data = load(file)
+        with open(self._filename, "r") as file:
+            temp = items(file, "technical_data", use_float=True)
+            data = {}
+            for truc in temp:
+                data = truc
 
         # getting the technical profile
         try:
-            technical_data = data["technical_data"][technical_profile]
+            technical_data = data[technical_profile]
         except:
             raise DeviceException(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
-
-        file.close()
 
         return technical_data
 
@@ -273,7 +271,6 @@ class Device:
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name], self.name)  # the contract may modify the offer
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", energy_wanted[nature.name])  # publication of the message
-            print(self.name, energy_wanted)
 
     def react(self):  # method updating the device according to the decisions taken by the strategy
         """

@@ -1,7 +1,7 @@
 # This class represents agent i.e the people or the enterprise which owns
 # consumption and/or production points
 # It is linked with a contract
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 from src.common.Messages import MessagesManager
 
 
@@ -10,7 +10,6 @@ class Agent:
     def __init__(self, name: str, superior=None):
         """
         An agent, object representing the owner of the different devices, aggregators and even other agents in some cases.
-        Agents do not know the objects they are owning but the objects do.
 
         Parameters
         ----------
@@ -22,7 +21,7 @@ class Agent:
         self._contracts = dict()  # the contract defines the type of strategy relevant
         # for the agent for each nature of energy. A contract is a keyword (for now, at least)
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         if superior:  # if there is a superior

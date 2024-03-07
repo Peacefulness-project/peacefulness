@@ -220,7 +220,7 @@ class TrainingStrategy(Strategy):
                     price = min(price, max_price)
 
                     Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -246,7 +246,7 @@ class TrainingStrategy(Strategy):
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -289,7 +289,7 @@ class TrainingStrategy(Strategy):
                     price = min(price, max_price)
 
                     Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -340,7 +340,8 @@ class TrainingStrategy(Strategy):
         return quantity_for_this_option
 
     def _exchanges_buy_outside(self, aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        # message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = self.__class__.information_message()
         quantity_remaining = max(0, quantity_to_affect - quantity_available_for_this_option)
         quantity_bought = quantity_to_affect - quantity_remaining
 
@@ -381,7 +382,7 @@ class TrainingStrategy(Strategy):
                     price = min(price, max_price)
 
                     Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = self.__class__.decision_message()
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -407,7 +408,7 @@ class TrainingStrategy(Strategy):
                 price = min(price, max_price)
 
                 Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self.__class__.decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
@@ -468,7 +469,7 @@ class TrainingStrategy(Strategy):
                     price = max(price, min_price)
 
                     Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = self.__class__.decision_message()
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -494,7 +495,7 @@ class TrainingStrategy(Strategy):
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = self.__class__.decision_message()
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -537,7 +538,7 @@ class TrainingStrategy(Strategy):
                     price = max(price, min_price)
 
                     Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = self.__class__.decision_message()
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -563,7 +564,7 @@ class TrainingStrategy(Strategy):
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                 message["quantity"] = Emin + energy
                 message["price"] = price
 
@@ -587,7 +588,7 @@ class TrainingStrategy(Strategy):
         return quantity_for_this_option
 
     def _exchanges_sell_outside(self, aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-        message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
+        message = {element: self.__class__.information_message()[element] for element in self.__class__.information_message()}
         quantity_remaining = max(0, quantity_to_affect - quantity_available_for_this_option)
         quantity_sold = quantity_to_affect - quantity_remaining
 
@@ -628,7 +629,7 @@ class TrainingStrategy(Strategy):
                     price = max(price, min_price)
 
                     Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                    message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                    message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                     message["quantity"] = Emin + energy
                     message["price"] = price
 
@@ -654,7 +655,7 @@ class TrainingStrategy(Strategy):
                 price = max(price, min_price)
 
                 Emin = sorted_offers[i]["quantity_min"]  # we get back the minimum, which has already been served
-                message = {element: self._messages["top-down"][element] for element in self._messages["top-down"]}
+                message = {element: self.__class__.decision_message()[element] for element in self.__class__.decision_message()}
                 message["quantity"] = Emin + energy
                 message["price"] = price
 

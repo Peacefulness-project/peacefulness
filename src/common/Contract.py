@@ -1,6 +1,6 @@
 # Contract are objects used to enable/disable certain operations during the supervision
 # They also serve to specify the way of billing the agents
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 from typing import Dict, List
 from src.common.Messages import MessagesManager
 
@@ -35,7 +35,7 @@ class Contract:
         else:  # if there are no parameters
             self._parameters = {}  # they are put in an empty dictionary
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog
 
         # Creation of specific entries

@@ -1,7 +1,6 @@
 # the mother class of forecasters, objects giving clues to strategies on what will happen next
 from typing import Callable, List, Dict
-
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 
 empty_prediction = {
     "rigid_consumption": {
@@ -23,7 +22,7 @@ class Forecaster:
         self._aggregator = aggregator
         self._daemons = data_daemon_list
 
-        world = get_world()  # get automatically the world defined for this case
+        world = World.ref_world  # get automatically the world defined for this case
         self._catalog = world.catalog  # the catalog in which some data are stored
 
         self._create_predictions = self._build_aggregator_description()
