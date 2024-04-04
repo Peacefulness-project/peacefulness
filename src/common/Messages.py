@@ -1,6 +1,5 @@
-# This file contains 2 classes corresponding to the bottom-up message (information gathering phase) and top-down (decision trnansmission)
+# This file contains 1 class corresponding to the bottom-up message (information gathering phase) and top-down (decision trnansmission)
 import copy
-from typing import List
 
 
 class MessagesManager:
@@ -8,9 +7,9 @@ class MessagesManager:
     This class manages the messages exchanged between devices and aggregators through contracts.
     """
 
-    # the minmum information needed everywhere
-    information_message = {"type": "", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": 0}
-    decision_message = {"quantity": 0, "price": 0}
+    # the minimum information needed everywhere
+    information_message = {"type": "", "aggregator": "", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": 0}
+    decision_message = {"aggregator": "", "quantity": 0, "price": 0}
     # the information added to all messages
     added_information = {}
 
@@ -31,7 +30,7 @@ class MessagesManager:
         ----------
         additional_element: any parsable type of object
         """
-        self._specific_information_message = {**self._specific_information_message, **{additional_element:default_value}}
+        self._specific_information_message = {**self._specific_information_message, **{additional_element: default_value}}
 
     def complete_decision_message(self, additional_element: str, default_value):
         """

@@ -42,7 +42,7 @@ class Device:
         aggregators = into_list(aggregators)  # make it iterable
         for aggregator in aggregators:
             if aggregator.nature in self.natures:
-                raise DeviceException(f"a aggregator has already been defined for nature {aggregator.nature}")
+                raise DeviceException(f"An aggregator has already been defined for nature {aggregator.nature}")
             else:
                 self._natures[aggregator.nature] = {"aggregator": None, "contract": None}
                 self._natures[aggregator.nature]["aggregator"] = aggregator
@@ -228,8 +228,12 @@ class Device:
 
         for nature in self.natures:
             # message exchanged
-            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", self.__class__.decision_message())
-            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", self.__class__.information_message())
+            decision_message = self.__class__.decision_message()
+            decision_message["aggregator"] = self._natures[nature]["aggregator"].name
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", decision_message)
+            information_message = self.__class__.information_message()
+            information_message["aggregator"] = self._natures[nature]["aggregator"].name
+            self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", information_message)
 
             # results
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)
@@ -266,7 +270,7 @@ class Device:
         Method sending the message containing the devices needs to its contract and then communicating it to its aggregator.
         Parameters
         ----------
-        energy_wanted: message containing the infoirmation for the aggregator
+        energy_wanted: message containing the information for the aggregator
         """
         for nature in self.natures:  # publication of the consumption in the catalog
             energy_wanted[nature.name] = self.natures[nature]["contract"].contract_modification(energy_wanted[nature.name], self.name)  # the contract may modify the offer

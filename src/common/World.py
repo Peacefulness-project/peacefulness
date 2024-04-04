@@ -5,7 +5,7 @@ import gc
 from datetime import datetime, timedelta
 from os import makedirs
 from random import random, seed as random_generator_seed, randint, gauss
-from typing import List
+from typing import List, Callable
 # Current packages
 from src.common.Catalog import Catalog
 from src.common.Messages import MessagesManager
@@ -23,7 +23,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 class World:
     ref_world = None
 
-    def __init__(self, name=None):
+    def __init__(self, name: str = None):
         if name:
             self._name = name
         else:  # By default, world is named after the date
@@ -287,7 +287,7 @@ class World:
         self.catalog.remove("dictionaries")  # --> circular reference here
         gc.collect()
 
-    def start(self, verbose=True):
+    def start(self, verbose=True, exogen_instruction: Callable = None):
         self._check()  # check if everything is fine in world definition
 
         if verbose:
@@ -348,11 +348,8 @@ class World:
                 aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
 
-            # LDP = Pdsm, les gamblers se taisent lors de la première boucle et se prononcent lors de la deuxième, en fonction d'un prix local = Pdsm
-
             # multi-energy devices management
             # as multi-energy devices state depends on different aggreators, a second round of distribution is performed in case of an incompability
-
             # multi-energy devices update their balances first and correct potential incompatibilities
             for device in self._catalog.devices.values():
                 device.second_update()
@@ -390,6 +387,9 @@ class World:
             for datalogger in self._catalog.dataloggers.values():
                 datalogger.launch()
 
+            if exogen_instruction:  # facultative instruction needed for a specific need
+                exogen_instruction()
+
             # time update
             self._update_time()
 
@@ -400,6 +400,7 @@ class World:
             if verbose:
                 print()
 
+        # end of the run
         if verbose:
             print("writing results")
 
@@ -409,6 +410,9 @@ class World:
 
         for daemon in self._catalog.daemons.values():
             daemon.final_process()
+
+        if verbose:
+            print("Done")
 
         self._clean_up()
 

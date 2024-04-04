@@ -3,8 +3,11 @@
 # from tools.DataProcessingFunctions import *
 from numpy import mean
 from math import inf
+from typing import List, Dict
+from numbers import Number
 
 from src.tools.FilesExtensions import __text_extension__
+from src.tools.Utilities import into_list
 
 from src.tools.GraphAndTex import GraphOptions, export
 from src.common.World import World
@@ -16,7 +19,7 @@ class Datalogger:
     Multiple subclasses have been made to export data pre-identified as interesting or to calculate automatically indicators,
     such as self-sufficiency or curtailment.
     """
-    def __init__(self, name: str, filename: str, period=0, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
+    def __init__(self, name: str, filename: str, period=1, graph_options="default", graph_labels={"xlabel": "X", "ylabel": "Y"}):
         """
         A datalogger, object in charge of exporting data.
 
@@ -94,7 +97,7 @@ class Datalogger:
         else:
             self._list[name] = function  # creates an entry in the buffer if needed
             if self._type != "global":
-                self._catalog.add(name)
+                self._catalog.add(name, 0)
 
         if "Y" in graph_status and (self._type != "regular" or self._period > 1):  # numeric keys are added to a buffer when it is not
             # it allows to return the mean, the min and the max
@@ -153,12 +156,12 @@ class Datalogger:
     # Data processing
     # ##########################################################################################
 
-    def _data_processing(self, key):  # function which returns the mean, the min and the max of a key between 2 periods
+    def _data_processing(self, key: str):  # function which returns the mean, the min and the max of a key between 2 periods
         current_value = self._list[key](key)  # the current value of the key
         if self._list[key] != self._catalog.get and self._type != "global":
             self._catalog.set(key, current_value)
 
-        if current_value is not None:  # if the value is relevant during this turn
+        if current_value is not None and isinstance(current_value, Number):  # if the value is relevant during this turn
             the_mean = (self._buffer[key]["mean"] * (self._buffer[key]["active_rounds"] - 1) / self._buffer[key]["active_rounds"]) \
                        + (current_value / self._buffer[key]["active_rounds"])
             active_rounds = self._buffer[key]["active_rounds"] + 1
@@ -168,6 +171,28 @@ class Datalogger:
             the_sum = self._buffer[key]["sum"] + current_value
 
             self._buffer[key] = {"mean": the_mean, "min": minimum, "max": maximum, "sum": the_sum, "active_rounds": active_rounds}
+
+    # ##########################################################################################
+    # requests
+    # ##########################################################################################
+
+    def request_keys(self, key_list: List[str]) -> Dict:
+        key_list = into_list(key_list)  # treated as a list even if a single string
+        keys_dict = {}
+        for key in key_list:
+            if self._period == 1 or not isinstance(self._list[key](key), Number):
+                keys_dict[key] = self._list[key](key)
+            else:
+                keys_dict[key] = {}
+                try:
+                    keys_dict[key]["mean"] = self._values[f"{key}_mean"][-1]
+                    keys_dict[key]["min"] = self._values[f"{key}_min"][-1]
+                    keys_dict[key]["max"] = self._values[f"{key}_max"][-1]
+                    keys_dict[key]["sum"] = self._values[f"{key}_sum"][-1]
+                except:  # the dict is not created at the beginning
+                    keys_dict[key] = None
+
+        return keys_dict
 
     # ##########################################################################################
     # Writing in the file
@@ -244,7 +269,7 @@ class Datalogger:
             for key in self._list:
                 current_value = self._list[key](key)  # the current value of the key
 
-                if current_value is not None:  # if the value is relevant during this turn
+                if current_value is not None and isinstance(self._list[key](key), Number):  # if the value is relevant during this turn
                     the_mean = (self._buffer[key]["mean"] * (self._buffer[key]["active_rounds"] - 1)/self._buffer[key]["active_rounds"])\
                                + (current_value / self._buffer[key]["active_rounds"])
                     active_rounds = self._buffer[key]["active_rounds"] + 1
@@ -294,9 +319,10 @@ class Datalogger:
                     file.write(f"{value}\t")
 
         else:
-            for i in range(self._catalog.get("time_limit")):
-                for key in self._values:
-                    file.write(f"{self._values[key][i]}\t")
+            self._process()  # treatment of the residual data
+            for i in range(self._catalog.get("time_limit") // self._period+1):
+                for key, values in self._values.items():
+                    file.write(f"{values[i]}\t")
                 file.write("\n")
         file.close()
 

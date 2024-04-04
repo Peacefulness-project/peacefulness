@@ -356,7 +356,7 @@ subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global"
 # subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
 # subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
-subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=1)
+subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=2)
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("tutu", "Tutu", ["dummy_complete_profile_0_ElectricDam_0"], period=1)
@@ -431,24 +431,24 @@ file.close()
 
 # ##############################################################################################
 # here we have the possibility to save the world to use it later
-save_wanted = False
-
-if save_wanted:
-    CPU_time = process_time()  # CPU time measurement
-
-    world.save()  # saving the world
-    print("plop\n\n\n\n\n")
-
-    path = f"{world.catalog.get('path')}/inputs/save.tar"
-    world = World("new_world")  # creation
-    world.load(path)
-
-    # CPU time measurement
-    CPU_time = process_time() - CPU_time  # time taken by the initialization
-    filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
-    file = open(filename, "a")  # creation of the file
-    file.write(f"time taken by the saving phase: {CPU_time}\n")
-    file.close()
+# save_wanted = False
+#
+# if save_wanted:
+#     CPU_time = process_time()  # CPU time measurement
+#
+#     world.save()  # saving the world
+#     print("plop\n\n\n\n\n")
+#
+#     path = f"{world.catalog.get('path')}/inputs/save.tar"
+#     world = World("new_world")  # creation
+#     world.load(path)
+#
+#     # CPU time measurement
+#     CPU_time = process_time() - CPU_time  # time taken by the initialization
+#     filename = adapt_path([world._catalog.get("path"), "outputs", "CPU_time.txt"])  # adapting the path to the OS
+#     file = open(filename, "a")  # creation of the file
+#     file.write(f"time taken by the saving phase: {CPU_time}\n")
+#     file.close()
 
 # ##############################################################################################
 # simulation
