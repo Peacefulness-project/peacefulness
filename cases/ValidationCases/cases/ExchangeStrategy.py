@@ -3,7 +3,7 @@
 # ##############################################################################################
 # Importations
 from datetime import datetime
-
+from math import inf
 
 from lib.DefaultNatures.DefaultNatures import *
 

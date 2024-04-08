@@ -1,4 +1,4 @@
-# This script checks that devices are working well.
+# This script checks that the dataloggher request_function works well.
 
 # ##############################################################################################
 # Importations
@@ -96,8 +96,7 @@ wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": "P
 # Creation of strategies
 
 # BAU strategy
-BAU_strategy = DataLoggerRequestsStrategy("requests", ["physical_time", "background_owner.LVE.energy_bought"])
-
+BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -131,32 +130,62 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 # Manual creation of devices
 subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
-
-subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage_devices_test"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
-
-subclasses_dictionary["Device"]["Photovoltaics"]("Photovoltaics", BAU_contract_elec, PV_owner, aggregator_elec, {"device": "dummy_usage"}, {"irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "panels": 1}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Photovoltaics.json")
-
-subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", BAU_contract_elec, hot_water_tank_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage_devices_test"}, {"cold_water_temperature_daemon": water_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
-
-subclasses_dictionary["Device"]["WindTurbine"]("WT", BAU_contract_elec, wind_turbine_owner, aggregator_elec, {"device": "dummy_usage"}, {"wind_speed_daemon": wind_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/WT.json")
-
 
 # ##############################################################################################
-test_contract_datalogger = Datalogger("requests", "Requests", period="global")
-test_contract_datalogger.add("physical_time", graph_status="X")
-test_contract_datalogger.add("background_owner.LVE.energy_bought")
+test_datalogger_1 = Datalogger("requests_1", "Requests", period=1)
+test_datalogger_1.add("simulation_time")
+test_datalogger_1.add("physical_time", graph_status="X")
+test_datalogger_1.add("background_owner.LVE.energy_bought")
+expected_values_1 = {"physical_time": ["2000-01-01 00:00:00", "2000-01-01 01:00:00", "2000-01-01 02:00:00", "2000-01-01 03:00:00", "2000-01-01 04:00:00", "2000-01-01 05:00:00", "2000-01-01 06:00:00", "2000-01-01 07:00:00", "2000-01-01 08:00:00", "2000-01-01 09:00:00", "2000-01-01 10:00:00", "2000-01-01 11:00:00", "2000-01-01 12:00:00", "2000-01-01 13:00:00", "2000-01-01 14:00:00", "2000-01-01 15:00:00", "2000-01-01 16:00:00", "2000-01-01 17:00:00", "2000-01-01 18:00:00", "2000-01-01 19:00:00", "2000-01-01 20:00:00", "2000-01-01 21:00:00", "2000-01-01 22:00:00", "2000-01-01 23:00:00"],
+                     "background_owner.LVE.energy_bought": [0, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20., 21., 22., 23.]}
+
+test_datalogger_3 = Datalogger("requests_3", "Requests", period=3)
+test_datalogger_3.add("simulation_time")
+test_datalogger_3.add("physical_time", graph_status="X")
+test_datalogger_3.add("background_owner.LVE.energy_bought")
+expected_values_3 = {"physical_time": ["2000-01-01 00:00:00", "2000-01-01 03:00:00", "2000-01-01 06:00:00", "2000-01-01 09:00:00", "2000-01-01 12:00:00", "2000-01-01 15:00:00", "2000-01-01 18:00:00", "2000-01-01 21:00:00", "2000-01-01 21:00:00"],
+                     "background_owner.LVE.energy_bought.mean": [0., 2., 5., 8., 11., 14., 17., 20., 23.],
+                     "background_owner.LVE.energy_bought.min": [0, 1., 4., 7., 10., 13., 16., 19., 22., 23.],
+                     "background_owner.LVE.energy_bought.max": [0, 3., 6., 9., 12., 15., 18., 21., 23.],
+                     "background_owner.LVE.energy_bought.sum": [0, 6., 15., 24., 33., 42., 51., 60., 69.]
+                     }
 
 
-def dipslay_info():
-    key_dict = test_contract_datalogger.request_keys(["physical_time","background_owner.LVE.energy_bought"])
-    for key, value in key_dict.items():
-        print(f"{key}: {value}")
+i = [0]
+def check_values():
+    # frequency 1
+    key_dict = test_datalogger_1.request_keys(["simulation_time", "physical_time", "background_owner.LVE.energy_bought"])
+    simulation_time = key_dict["simulation_time"]
+    for key in expected_values_1:
+        if str(expected_values_1[key][simulation_time]) != str(key_dict[key]):
+            print((expected_values_1[key][simulation_time]), (key_dict[key]))
+            raise Exception(f"A problem has been encountered at {simulation_time}")
+
+    # frequency 3
+    if simulation_time % 3 == 0 or simulation_time == 23:
+        key_dict = test_datalogger_3.request_keys(["simulation_time", "physical_time", "background_owner.LVE.energy_bought"])
+        if str(expected_values_3["physical_time"][simulation_time//3]) != str(key_dict["physical_time"]):
+            print((expected_values_3["physical_time"][simulation_time//3]), (key_dict["physical_time"]))
+
+        if str(expected_values_3["background_owner.LVE.energy_bought.mean"][i[0]]) != str(key_dict["background_owner.LVE.energy_bought"]["mean"]):
+            print((expected_values_3["background_owner.LVE.energy_bought.mean"][i[0]]), (key_dict["background_owner.LVE.energy_bought"]["mean"]))
+        if str(expected_values_3["background_owner.LVE.energy_bought.min"][i[0]]) != str(key_dict["background_owner.LVE.energy_bought"]["min"]):
+            print((expected_values_3["background_owner.LVE.energy_bought.min"][i[0]]), (key_dict["background_owner.LVE.energy_bought"]["min"]))
+        if str(expected_values_3["background_owner.LVE.energy_bought.max"][i[0]]) != str(key_dict["background_owner.LVE.energy_bought"]["max"]):
+            print((expected_values_3["background_owner.LVE.energy_bought.max"][i[0]]), (key_dict["background_owner.LVE.energy_bought"]["max"]))
+        if str(expected_values_3["background_owner.LVE.energy_bought.sum"][i[0]]) != str(key_dict["background_owner.LVE.energy_bought"]["sum"]):
+            print((expected_values_3["background_owner.LVE.energy_bought.sum"][i[0]]), (key_dict["background_owner.LVE.energy_bought"]["sum"]))
+        i[0] += 1
+
+# for key in key_list:
+    #     if str(expected_values_3[key][simulation_time]) != str(key_dict[key]):
+    #         print((expected_values_3[key][simulation_time]), (key_dict[key]))
+            # raise Exception(f"A problem has been encountered at {simulation_time}")
 
 
 # ##############################################################################################
 # Simulation start
-world.start(exogen_instruction=dipslay_info)
+world.start(exogen_instruction=check_values)
 
 
 
