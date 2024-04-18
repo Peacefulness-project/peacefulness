@@ -36,7 +36,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ML/" + step_name
+    pathExport = "cases/Studies/ML/Results/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################

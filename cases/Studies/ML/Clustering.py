@@ -9,20 +9,21 @@ from typing import List
 from sklearn import cluster
 # lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
 
-def clustering(simulation_length: int, clusters_number: int, clustering_metrics: List):
-    delay_days = [i for i in range(50)]
+
+def clustering(simulation_length: int, clusters_number: int, clustering_metrics: List, days_number: int, sequences_gap: int):
+    delay_days = [i for i in range(days_number)]
 
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
     for day in delay_days:
         print(f"situation starting at day {day}")
         metrics_datalogger = create_simulation(simulation_length, random_order_priorities_conso(),
-                                  random_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
+                                               random_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
         for key in clustering_metrics:
             raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
     print("Done\n")
 
-    # # approche centrage et réduction sur chaque variable, probablement pas bonne bu liens entre variables
+    # # approche centrage et réduction sur chaque variable, probablement pas bonne du lien entre variables
     # refined_situations = {key: [] for key in metrics}
     # for key in metrics:
     #     mean = average(raw_situations[key])
@@ -69,7 +70,7 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     for center in cluster_centers:
         indice = 0
         distance_min = math.inf
-        for i in range(len(situations_list)):
+        for i in range(len(delay_days)):
             situation = situations_list[i]
             distance = sum([(center[j] - situation[j])**2 for j in range(len(center))])
             if distance < distance_min:
@@ -79,7 +80,7 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     print("Done\n")
 
     print(f"cluster centers: {cluster_centers}")
-    print(f"corresponding days: {cluster_days}")
+    print(f"cluster days: {cluster_days}")
     print("\n\n")
 
     return cluster_centers, cluster_days

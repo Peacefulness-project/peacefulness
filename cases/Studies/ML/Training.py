@@ -15,9 +15,8 @@ def training(simulation_length: int, cluster_center_start_date: List, performanc
         for priority_name in assessed_priorities:
             print(f"test of strategy {priority_name}")
             assessed_priority = assessed_priorities[priority_name]
-            world = create_simulation(simulation_length, assessed_priority["consumption"],  assessed_priority["production"], f"training/{str(assessed_priority)}", performance_metrics, delay_days=cluster_center_start_date[i])
+            datalogger = create_simulation(simulation_length, assessed_priority["consumption"],  assessed_priority["production"], f"training/{priority_name}", performance_metrics, delay_days=cluster_center_start_date[i])
 
-            datalogger = world.catalog.dataloggers["metrics"]
             raw_outputs = {}
             for key in performance_metrics:
                 raw_outputs[key] = datalogger._values[key]
@@ -29,6 +28,7 @@ def training(simulation_length: int, cluster_center_start_date: List, performanc
             print(f"performance reached: {performance}")
 
             performances_record.add_to_record(priority_name, i, performance)
+        print()
     print("Done\n")
 
     # strategy assignation phase
