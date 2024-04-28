@@ -1,8 +1,0 @@
-for nature LVE
-	peak-to-average consumption: 0.4132657519817225
-	peak-to-average production: 0.3016201011072302
-
-for nature LTH
-	peak-to-average consumption: 0.22035177280517473
-	peak-to-average production: 0.11942683720553061
-
