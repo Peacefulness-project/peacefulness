@@ -23,7 +23,7 @@ class TrainingStrategy(Strategy):
         index = ["min", "soft_DSM_prod", "hard_DSM_prod", "sell_outside_emergency", "unstore"]
         columns = ["assess", "exchange", "distribute"]
         data = [[self._assess_min_prod, self._exchanges_min_conso, self._serve_emergency_offers],
-                [self._assess_soft_DSM_prod, self._exchanges_soft_DSM_prod, self._distribution_soft_DSM_prod],  # TODO: mettre les bonnes méthodes quand elles seront prêtes
+                [self._assess_soft_DSM_prod, self._exchanges_soft_DSM_prod, self._distribution_soft_DSM_prod],
                 [self._assess_hard_DSM_prod, self.exchanges_hard_DSM_prod, self._distribution_hard_DSM_prod],
                 [self._assess_sell_outside, self._exchanges_sell_outside, self._distribution_sell_outside],
                 [self._assess_unstorage, self._exchanges_unstorage, self._distribution_unstorage]
@@ -49,7 +49,7 @@ class TrainingStrategy(Strategy):
         return ordered_list
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
         # assess quantity for consumption and prod

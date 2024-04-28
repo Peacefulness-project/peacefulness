@@ -1,4 +1,5 @@
 from random import seed
+import numpy as np
 
 
 from cases.Studies.ML.Utilities import *
@@ -10,7 +11,7 @@ training_simulation_length = 24  # length of sequences used for clustering.
 
 
 days_number = 52  # number of sequences simulated
-gap = 24 * 6  # gap (given in iterations) between 2 sequences simulated
+gap = 7  # gap (given in iterations) between 2 sequences simulated
 cluster_number = 10  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
 
 
@@ -40,21 +41,24 @@ clustering_metrics = [  # prices are not taken into account for now
 performance_metrics = [
     "general_aggregator.coverage_rate",
     "general_aggregator.self_consumption",
+
+    "general_aggregator.curtailment_rate_consumption",
 ]  # critères de performance, spécifiques au cas étudié...
 
 
 def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return sum(performance_vector["general_aggregator.coverage_rate"] + performance_vector["general_aggregator.self_consumption"])
+    return np.mean(performance_vector["general_aggregator.coverage_rate"]) + np.mean(performance_vector["general_aggregator.self_consumption"]) \
+           - 2 * np.mean(performance_vector["general_aggregator.curtailment_rate_consumption"])
 
 
 # ######################################################################################################################
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
-tested_strategies = {
-    "toto": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
-    "tutu": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
-    "titi": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
-    }  # Ici on teste un set prédéfini de stratégies
+# tested_strategies = {
+#     "toto": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
+#     "tutu": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
+#     "titi": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
+#     }  # Ici on teste un set prédéfini de stratégies
 # vrai problème de définition de l'espace des stratégies (espace évolutif, type recherche heuristique ? coûteux mais devrait fonctionner et moins coûteux qu'un test systématique)
 
 

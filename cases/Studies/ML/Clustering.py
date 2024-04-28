@@ -11,7 +11,7 @@ from sklearn import cluster
 
 
 def clustering(simulation_length: int, clusters_number: int, clustering_metrics: List, days_number: int, sequences_gap: int):
-    delay_days = [i for i in range(days_number)]
+    delay_days = [sequences_gap * i for i in range(days_number)]
 
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
