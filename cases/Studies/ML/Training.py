@@ -1,22 +1,20 @@
 from typing import *
 from numpy import sqrt
 from skopt import gp_minimize
-import itertools
 
 from cases.Studies.ML. SimulationScript import create_simulation
 from cases.Studies.ML.Utilities import *
 
 
-def training(simulation_length: int, cluster_center_start_dates: List, performance_norm: Callable, performance_metrics: List) -> Dict:
+def training(simulation_length: int, cluster_center_start_dates: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict) -> Dict:
     # performance assessment phase
-
     print("identification of the relevant strategy for each cluster")
     best_strategies = {}
-    research_method = systematic_test
+    research_method = bayesian_search
     for cluster_center in cluster_center_start_dates:
         print(f"strategy search for cluster {cluster_center}")
         best_strategies[cluster_center] = research_method(cluster_center, simulation_length,
-                                                          performance_metrics, performance_norm)
+                                                          performance_metrics, performance_norm, assessed_priorities)
     print("Done\n")
 
     print("\n\n")
@@ -27,15 +25,10 @@ def training(simulation_length: int, cluster_center_start_dates: List, performan
     return best_strategies
 
 
-consumption_options = ['store', 'soft_DSM_conso', 'buy_outside_emergency', 'hard_DSM_conso']
-production_options = ['unstore', 'soft_DSM_prod', 'sell_outside_emergency', 'hard_DSM_prod']
-# assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
-# assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
-assessed_priorities_consumption = [consumption_options]
-assessed_priorities_production = [production_options]
+def systematic_test(cluster_center_start_date: int, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List]) -> Tuple:
+    assessed_priorities_consumption = assessed_priorities["consumption"]
+    assessed_priorities_production = assessed_priorities["production"]
 
-
-def systematic_test(cluster_center_start_date: int, simulation_length: int, performance_metrics: List, performance_norm: Callable) -> Tuple:
     performances_record = PerformanceRecord([cluster_center_start_date])
     for i in range(len(assessed_priorities_consumption)):
         for j in range(len(assessed_priorities_production)):
@@ -61,15 +54,21 @@ def systematic_test(cluster_center_start_date: int, simulation_length: int, perf
             print()
 
     # selection
-    best_strategy = performances_record.sort_strategies(0)[0]
+    performance, strategy_indices = performances_record.sort_strategies(0)[0]
+    best_strategy = (performance,
+                     [strategy_indices[0], strategy_indices[1]]
+                     )
     print(f"best strategy performance: {best_strategy[0]}")
     print(f"best strategy name: {best_strategy[1]}")
-    print(best_strategy)
 
     return best_strategy
 
 
-def bayesian_search(cluster_center_start_date: int, simulation_length: int, performance_metrics: List, performance_norm: Callable) -> Tuple:
+def bayesian_search(cluster_center_start_date: int, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List]) -> Tuple:
+    assessed_priorities_consumption = assessed_priorities["consumption"]
+    assessed_priorities_production = assessed_priorities["production"]
+    consumption_options_number = len(assessed_priorities_consumption[0])
+    production_options_number = len(assessed_priorities_production[0])
 
     # black box function for bayesian search
     def function_to_optimize(priorities_indices: Tuple):
@@ -89,20 +88,20 @@ def bayesian_search(cluster_center_start_date: int, simulation_length: int, perf
         return -performance  # "-" because the function tries to minimize
 
     # bounds correspond to indices of arrangement
-    bounds = [(0, len(consumption_options)),  # consumption bounds
-              (0, len(production_options))]    # production bounds
+    bounds = [(0, consumption_options_number),  # consumption bounds
+              (0, production_options_number)]    # production bounds
 
     results = gp_minimize(func=function_to_optimize,
                           dimensions=bounds,
                           n_calls=10,
                           n_random_starts=5,
                           # random_state=,
-                          verbose=True,
+                          verbose=False,
                           )
-    print(results.x)
-    print(results.fun)
-    print("\n\n")
-    best_strategy = (results.fun, )
+    consumption_strategy = assessed_priorities_consumption[results.x[0]]
+    production_strategy = assessed_priorities_production[results.x[1]]
+    best_strategy = (results.fun, [consumption_strategy, production_strategy])
+    print(f"{best_strategy}\n")
 
     return best_strategy
 

@@ -1,5 +1,6 @@
 from random import seed
 import numpy as np
+import itertools
 
 
 from cases.Studies.ML.Utilities import *
@@ -61,6 +62,13 @@ def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidem
 #     }  # Ici on teste un set prédéfini de stratégies
 # vrai problème de définition de l'espace des stratégies (espace évolutif, type recherche heuristique ? coûteux mais devrait fonctionner et moins coûteux qu'un test systématique)
 
+consumption_options = ['store', 'soft_DSM_conso', 'buy_outside_emergency', 'hard_DSM_conso']
+production_options = ['unstore', 'soft_DSM_prod', 'sell_outside_emergency', 'hard_DSM_prod']
+assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
+assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
+# assessed_priorities_consumption = [consumption_options]
+# assessed_priorities_production = [production_options]
+assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
 
 # reference strategies
 # exchange first, then storage and DSM if nothing else

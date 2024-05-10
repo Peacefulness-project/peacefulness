@@ -17,8 +17,8 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
                 distance = sum([(center[j] - current_situation[j]) ** 2 for j in range(len(center))])
                 if distance < distance_min:
                     distance_min = distance
-                    ordered_list = assessed_priorities[best_strategies[i][1]]
-            return ordered_list[cons_or_prod](strategy)
+                    ordered_list = best_strategies[i][1]
+            return ordered_list[cons_or_prod]
         return find
 
     # reference run
