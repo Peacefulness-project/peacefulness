@@ -388,7 +388,7 @@ class World:
                 datalogger.launch()
 
             if exogen_instruction:  # facultative instruction needed for a specific need
-                exogen_instruction()
+                exogen_instruction(self)
 
             # time update
             self._update_time()
