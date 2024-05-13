@@ -11,7 +11,7 @@
       "usage_profile": {"LVE": {"weekday": [0.09, 0.15, 0.14, 0.13, 0.13, 0.13, 0.15, 0.19, 0.16, 0.08, 0.16, 0.13, 0.16, 0.16, 0.11, 0.11, 0.34, 1.15, 0.52, 0.56, 0.49, 0.39, 0.35, 0.31],
         "weekend": [0.13, 0.15, 0.10, 0.15, 0.15, 0.13, 0.09, 0.15, 0.13, 0.21, 0.28, 0.18, 0.18, 0.39, 0.24, 0.28, 0.16, 0.17, 0.14, 0.58, 0.56, 0.46, 0.46, 0.74]}
       },
-      "consumption_variation": 0.25
+      "consumption_variation": 0.0
     },
 
     "ECOS_2": {
@@ -51,13 +51,11 @@
     },
 
     "ECOS": {
-      "profile": [0],
-
       "period": 168,
       "offset": "Week",
 
-      "start_time_variation": 3,
-      "duration_variation": 0.5
+      "start_time_variation": 0,
+      "duration_variation": 0
     },
 
     "single": {

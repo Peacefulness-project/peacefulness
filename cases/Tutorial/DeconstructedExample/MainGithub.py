@@ -5,11 +5,9 @@
 # Importations
 from datetime import datetime
 
-from src.common.World import World
+from src.tools.AgentGenerator import agent_generation
 
 from src.common.Strategy import *
-
-# pre-defined natures
 from lib.DefaultNatures.DefaultNatures import *
 
 from src.common.Agent import Agent
@@ -18,21 +16,17 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
-# all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
 
+from src.tools.GraphAndTex import GraphOptions
+
+subclasses_dictionary = get_subclasses()
 
 # ##############################################################################################
 # Minimum
 # the following objects are necessary for the simulation to be performed
 # you need exactly one object of each type
 # ##############################################################################################
-
-
-# ##############################################################################################
-# Importation of subclasses
-# all the subclasses are imported in the following dictionary
-subclasses_dictionary = get_subclasses()
 
 
 # ##############################################################################################
@@ -58,7 +52,7 @@ world.set_random_seed("sunflower")
 # ##############################################################################################
 # Time parameters
 # it needs a start date, the value of an iteration in hours and the total number of iterations
-start_date = datetime(year=2019, month=5, day=14, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
+start_date = datetime(year=2019, month=5, day=10, hour=0, minute=0, second=0, microsecond=0)  # a start date in the datetime format
 world.set_time(start_date,  # time management: start date
                0.25,  # value of a time step (in hours)
                24*4)  # number of time steps simulated
@@ -194,19 +188,19 @@ heat_production = subclasses_dictionary["Device"]["DummyProducer"]("heat_product
 # Automated generation of complete agents (i.e with devices and contracts)
 
 # BAU contracts
-world.agent_generation("A1BAU", 165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("A2BAU", 330, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("M5BAU", 165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A1BAU", 165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A2BAU", 330, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("M5BAU", 165, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_BAU.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
 
 # DLC contracts
-world.agent_generation("A1Coop", 200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("A2Coop", 400, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("M5Coop", 200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A1Coop", 200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A2Coop", 400, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("M5Coop", 200, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_DLC.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
 
 # Curtailment contracts
-world.agent_generation("A1Curt", 135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("A2Curt", 270, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
-world.agent_generation("M5Curt", 135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A1Curt", 135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_1_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("A2Curt", 270, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_2_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
+agent_generation("M5Curt", 135, "cases/Tutorial/DeconstructedExample/agent_templates/AgentGitHub_5_curtailment.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_elec_TOU, "LTH": price_manager_heat}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon})
 
 
 # ##############################################################################################

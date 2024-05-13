@@ -6,7 +6,7 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from src.common.World import World
+from src.tools.AgentGenerator import agent_generation
 
 from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
@@ -17,11 +17,10 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
+from src.tools.SubclassesDictionary import get_subclasses
+
 from src.tools.GraphAndTex import GraphOptions
 
-# ##############################################################################################
-# Importation of subclasses
-from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
@@ -156,7 +155,7 @@ subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer
 # ##############################################################################################
 # Automated generation of agents
 
-world.agent_generation("little_district", 50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "water_flow_daemon": water_flow_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon})
+agent_generation("little_district", 50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "water_flow_daemon": water_flow_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon})
 
 
 # ##############################################################################################

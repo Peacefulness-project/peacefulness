@@ -25,8 +25,6 @@ from time import process_time
 from src.tools.Utilities import adapt_path
 from src.tools.AgentGenerator import agent_generation
 
-from src.common.World import World
-
 from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 

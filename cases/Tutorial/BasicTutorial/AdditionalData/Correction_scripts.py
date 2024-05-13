@@ -1,12 +1,12 @@
 # The correction_1_settings on the tutorial 1 bearing on settings
-from src.tools.GlobalWorld import get_world
+from src.common.World import World
 from datetime import datetime
 from os import remove, rmdir
 from math import inf
 
 
 def correction_1_settings():
-    world = get_world()
+    world = World.ref_world
 
     # creation of world
     if world == None:
@@ -62,7 +62,7 @@ def correction_1_settings():
 
 
 def correction_2_natures():
-    world = get_world()
+    world = World.ref_world
 
     # loading of LVE nature
     if "LVE" not in world.catalog.natures:
@@ -88,7 +88,7 @@ def correction_2_natures():
 
 
 def correction_3_daemons():
-    world = get_world()
+    world = World.ref_world
 
     # creation and name of the price manager elec
     if "elec_prices" not in world.catalog.daemons:
@@ -248,7 +248,7 @@ def correction_3_daemons():
 
 
 def correction_4_strategies():
-    world = get_world()
+    world = World.ref_world
 
     # grid strategy
     if "grid_strategy" not in world.catalog.strategies:
@@ -269,7 +269,7 @@ def correction_4_strategies():
 
 
 def correction_5_agents():
-    world = get_world()
+    world = World.ref_world
 
     # creation of the agent called "PV_producer"
     if "producer" not in world.catalog.agents:
@@ -290,7 +290,7 @@ def correction_5_agents():
 
 
 def correction_6_contracts():
-    world = get_world()
+    world = World.ref_world
 
     # creation of the egoist elec contract
     if "elec_contract_egoist" not in world.catalog.contracts:
@@ -341,7 +341,7 @@ def correction_6_contracts():
 
 
 def correction_7_aggregators():
-    world = get_world()
+    world = World.ref_world
 
     # creation of the aggregator called grid
     if "grid" not in world.catalog.aggregators:
@@ -447,7 +447,7 @@ def correction_7_aggregators():
 
 
 def correction_8_devices():
-    world = get_world()
+    world = World.ref_world
     LVE = world.catalog.natures["LVE"]
     LTH = world.catalog.natures["LTH"]
 
@@ -645,7 +645,7 @@ def correction_8_devices():
 
 
 def correction_9_automatic_generation():
-    world = get_world()
+    world = World.ref_world
     LVE = world.catalog.natures["LVE"]
     LTH = world.catalog.natures["LTH"]
 
@@ -693,7 +693,7 @@ def correction_9_automatic_generation():
 
 
 def correction_10_dataloggers():
-    world = get_world()
+    world = World.ref_world
 
     # creation of the datalogger for self-sufficiency
     if "self_sufficiency_frequency_1" not in world.catalog.dataloggers:
@@ -1122,7 +1122,7 @@ def correction_10_dataloggers():
 
 
 def correction_11_start_the_simulation():
-    world = get_world()
+    world = World.ref_world
 
     # verifying that the simulation has started
     if world.catalog.get("simulation_time") == 0:

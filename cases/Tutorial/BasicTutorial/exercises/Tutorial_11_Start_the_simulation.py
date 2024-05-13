@@ -6,7 +6,7 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from src.common.World import World
+from src.tools.AgentGenerator import agent_generation
 
 from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
@@ -17,11 +17,10 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
+from src.tools.SubclassesDictionary import get_subclasses
+
 from src.tools.GraphAndTex import GraphOptions
 
-# ##############################################################################################
-# Importation of subclasses
-from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 
@@ -157,7 +156,7 @@ subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer
 # ##############################################################################################
 # Automated generation of agents
 
-world.agent_generation("little_district", 50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "water_flow_daemon": water_flow_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon})
+agent_generation("little_district", 50, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "water_flow_daemon": water_flow_daemon, "cold_water_temperature_daemon": water_temperature_daemon, "wind_speed_daemon": wind_daemon, "sun_position_daemon": sun_position_daemon})
 
 
 # ##############################################################################################
@@ -169,52 +168,53 @@ subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](1)
 subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]("global")
 
 
-# # First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
-# export_graph_options_1 = GraphOptions("first_graph_option", "csv")
-#
-# consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1, graph_labels={"xlabel": "X", "ylabel": "Y"})
-#
-# consumer_datalogger_1.add("simulation_time", graph_status="X")
-#
-# consumer_datalogger_1.add("consumer.LVE.energy_bought", graph_status="Y")
-#
-# # Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
-# export_graph_options_2 = GraphOptions("second_graph_option", ["csv", "LaTeX"], "single_series")
-#
-# consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2, graph_labels={"xlabel": "X", "ylabel": "Y"})
-#
-# consumer_datalogger_2.add("simulation_time", graph_status="X")
-#
-# consumer_datalogger_2.add("consumer.LVE.energy_bought", graph_status="Y")
-# consumer_datalogger_2.add("consumer.LTH.energy_bought", graph_status="Y")
-#
-# # Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
-# export_graph_options_3 = GraphOptions("third_graph_option", ["csv", "LaTeX"], "multiple_series")
-#
-# axis_labels = {"xlabel": "X-axis", "ylabel": "Y-axis"}
-# consumer_datalogger_3 = Datalogger("consumer_datalogger_3", "ConsumerData3", 4, graph_options=export_graph_options_3, graph_labels=axis_labels)
-#
-# consumer_datalogger_3.add("simulation_time", graph_status="X")
-#
-# consumer_datalogger_3.add("consumer.LVE.energy_bought", graph_status="Y", graph_legend=r"$\alpha$", graph_style="lines")
-# consumer_datalogger_3.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$\beta$", graph_style="points")
-#
-# # Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
-# export_graph_options_4 = GraphOptions("fourth_graph_option", ["csv", "LaTeX", "matplotlib"], "multiple_series")
-#
-# axis_labels = {"xlabel": "$t \, [\si{\hour}]$", "ylabel": "$\mathcal{P}_{ref.} \, [\si{\watt}]$"}
-# consumer_datalogger_4 = Datalogger("consumer_datalogger_4", "ConsumerData4", 4, graph_options=export_graph_options_4, graph_labels=axis_labels)
-#
-# consumer_datalogger_4.add("simulation_time", graph_status="X")
-#
-# consumer_datalogger_4.add("consumer.LVE.energy_bought", graph_status="Y", graph_legend=r"$P_1$", graph_style="lines")
-# consumer_datalogger_4.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$P_2$", graph_style="lines")
-# consumer_datalogger_4.add("consumer.money_spent", graph_status="Y2", graph_legend=r"$\mathcal{C}$", graph_style="points")
+# First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
+export_graph_options_1 = GraphOptions("first_graph_option", "csv")
+
+consumer_datalogger_1 = Datalogger("consumer_datalogger_1", "ConsumerData1", 2, graph_options=export_graph_options_1, graph_labels={"xlabel": "X", "ylabel": "Y"})
+
+consumer_datalogger_1.add("simulation_time", graph_status="X")
+
+consumer_datalogger_1.add("consumer.LVE.energy_bought", graph_status="Y")
+
+# Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
+export_graph_options_2 = GraphOptions("second_graph_option", ["csv", "LaTeX"], "single_series")
+
+consumer_datalogger_2 = Datalogger("consumer_datalogger_2", "ConsumerData2", 2, graph_options=export_graph_options_2, graph_labels={"xlabel": "X", "ylabel": "Y"})
+
+consumer_datalogger_2.add("simulation_time", graph_status="X")
+
+consumer_datalogger_2.add("consumer.LVE.energy_bought", graph_status="Y")
+consumer_datalogger_2.add("consumer.LTH.energy_bought", graph_status="Y")
+
+# Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
+export_graph_options_3 = GraphOptions("third_graph_option", ["csv", "LaTeX"], "multiple_series")
+
+axis_labels = {"xlabel": "X-axis", "ylabel": "Y-axis"}
+consumer_datalogger_3 = Datalogger("consumer_datalogger_3", "ConsumerData3", 4, graph_options=export_graph_options_3, graph_labels=axis_labels)
+
+consumer_datalogger_3.add("simulation_time", graph_status="X")
+
+consumer_datalogger_3.add("consumer.LVE.energy_bought", graph_status="Y", graph_legend=r"$\alpha$", graph_style="lines")
+consumer_datalogger_3.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$\beta$", graph_style="points")
+
+# Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
+export_graph_options_4 = GraphOptions("fourth_graph_option", ["csv", "LaTeX", "matplotlib"], "multiple_series")
+
+axis_labels = {"xlabel": "$t \, [\si{\hour}]$", "ylabel": "$\mathcal{P}_{ref.} \, [\si{\watt}]$"}
+consumer_datalogger_4 = Datalogger("consumer_datalogger_4", "ConsumerData4", 4, graph_options=export_graph_options_4, graph_labels=axis_labels)
+
+consumer_datalogger_4.add("simulation_time", graph_status="X")
+
+consumer_datalogger_4.add("consumer.LVE.energy_bought", graph_status="Y", graph_legend=r"$P_1$", graph_style="lines")
+consumer_datalogger_4.add("consumer.LTH.energy_bought", graph_status="Y", graph_legend=r"$P_2$", graph_style="lines")
+consumer_datalogger_4.add("consumer.money_spent", graph_status="Y2", graph_legend=r"$\mathcal{C}$", graph_style="points")
 
 
 # ##############################################################################################
 # Start the simulation
 # TODO: start the simulation using the method start of world
+world.start()
 
 # ##############################################################################################
 # Correction
