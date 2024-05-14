@@ -1,6 +1,6 @@
-# Tutorial 10
-# Dataloggers
-from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_10_dataloggers  # a specific importation
+# Tutorial 9
+# Automated generation
+from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import correction_9_automatic_generation  # a specific importation
 
 # ##############################################################################################
 # Usual importations
@@ -152,6 +152,7 @@ subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank", cooperative_he
 
 subclasses_dictionary["Device"]["Heating"]("heating", cooperative_heat, consumer, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
+
 # ##############################################################################################
 # Automated generation of agents
 
@@ -159,60 +160,27 @@ agent_generation("little_district", 50, "lib/AgentTemplates/DummyAgent.json", [a
 
 
 # ##############################################################################################
-# Datalogger
+# Forecasters
+import random as rd
 
-# Inherited dataloggers for the balances of self-consumption and energy exchanges
-# TODO: create a datalogger of the subclass "SelfSufficiencyDatalogger" with a period of 1
 
-# TODO: create a datalogger of the subclass "NatureBalancesDatalogger" with a period "global"
+def gaussian_noise_function(depth: int):
+    low_estimation = 1 - rd.random() * 0.01 * depth
+    high_estimation = 1 + rd.random() * 0.01 * depth
+    uncertainty = depth * 0.01
 
-# First basic instance of datalogger, which will be used for I/O operations, to handle a simple consumer
-# TODO: create a graph_option object, named "first_graph_option", exporting in "csv" format
+    return low_estimation, high_estimation, uncertainty
 
-# TODO: create a datalogger called "consumer_datalogger_1", exporting data to the file "ConsumerData1", with a period of 2 rounds and creating a graph in csv
-
-# TODO: add to the datalogger "consumer_datalogger_1" the key "simulation_time" to be used as the "X" axis
-
-# TODO: add to the datalogger "consumer_datalogger_1" the key "consumer.LVE.energy_bought" to be used as the "Y" axis
-
-# Second instance of datalogger, which will be used for I/O operations, to handle a consumer with more exported values
-# TODO: create a graph_option object, named "second_graph_option", exporting in "csv" and in "LaTeX" formats, with a "single_series" graph type
-
-# TODO: create a datalogger called "consumer_datalogger_2", exporting data to the file "ConsumerData2", with a period of 2 rounds and creating a graph in csv and in LaTeX
-
-# TODO: add to the datalogger "consumer_datalogger_2" the key "simulation_time" as the "X" axis
-
-# TODO: add to the datalogger "consumer_datalogger_2" the key "consumer.LVE.energy_bought" as a "Y" series
-
-# TODO: add to the datalogger "consumer_datalogger_2" the key "consumer.LTH.energy_bought" as a "Y" series
-
-# Third instance of datalogger, which will be used for I/O operations, to handle a consumer with extended options for exported values
-# TODO: create a graph_option object, named "third_graph_option", exporting in "csv" and in "LaTeX" formats, with a "multiple_series" graph_type
-
-# TODO: create a datalogger called "consumer_datalogger_3", exporting data to the file "ConsumerData3", with a period of 4 rounds and creating a graph in csv and in LaTeX
-
-# TODO: add to the datalogger "consumer_datalogger_3" the key "simulation_time" as the "X" axis
-
-# TODO: add to the datalogger "consumer_datalogger_3" the key "consumer.LVE.energy_bought" as a "Y" series, with "$\alpha$" as a legend and with a graph style "lines"
-
-# TODO: add to the datalogger "consumer_datalogger_3" the key "consumer.LTH.energy_bought" as a "Y" series, with "$\beta$" as a legend and with a graph style "points"
-
-# Fourth instance of datalogger, which will be used for I/O operations, to handle a consumer with more extended options for exported values
-# TODO: create a graph_option object, named "fourth_graph_option", exporting in "csv", in "LaTeX" and in "matplotlib" formats, with a "multiple_series" graph_type
-
-# TODO: create a datalogger called "consumer_datalogger_4", exporting data to the file "ConsumerData4", with a period of 4 rounds and creating a graph in csv, in LaTeX and in matplotlib, with a "multiple_series" graph type.
-
-# TODO: add to the datalogger "consumer_datalogger_4" the key "simulation_time" to be used as the "X" axis
-
-# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LVE.energy_bought" as a "Y" series and with "$P_1$" as a legend
-
-# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LTH.energy_bought" as a "Y" series, and with "$P_2$" as a legend
-
-# TODO: add to the datalogger "consumer_datalogger_4" the key "consumer.LTH.energy_bought" as a "Y2" series, with "$\mathcal{C}$" as a legend and with a graph style "points"
+# TODO: create a forecaster called tuto_forecaster belonging to the subclass BasicForecaster:
+#   Its characteristics are:
+#   1/ named tuto_forecaster
+#   2/ attached to aggregator elec
+#   3/ using the gaussian_noise_function described above
+#   4/ with a forecasting depth of 5 rounds
 
 
 # ##############################################################################################
 # Correction
-correction_10_dataloggers()
+correction_9_automatic_generation()
 
 

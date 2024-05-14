@@ -17,7 +17,7 @@ empty_prediction = {
 }
 
 
-class FirstForecaster(Forecaster):
+class BasicForecaster(Forecaster):
     def __init__(self, name: str, aggregator: "Aggregator", noise_function: Callable, forecast_depth: int):
         self._name = name
         self._aggregator = aggregator

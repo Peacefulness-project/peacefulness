@@ -221,10 +221,20 @@ producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
 nature_balances = subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"]()
 aggregator_balances = subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
-
 # ##############################################################################################
-# here we have the possibility to save the world to use it later
-# world.save()  # saving the world for a later use
+# Forecaster
+import random as rd
+
+
+def gaussian_noise_function(depth: int):
+    low_estimation = 1 - rd.random() * 0.01 * depth
+    high_estimation = 1 + rd.random() * 0.01 * depth
+    uncertainty = depth * 0.01
+
+    return low_estimation, high_estimation, uncertainty
+
+
+subclasses_dictionary["Forecaster"]["BasicForecaster"]("dummy_forecaster", aggregator_elec, gaussian_noise_function, 5)
 
 
 # ##############################################################################################

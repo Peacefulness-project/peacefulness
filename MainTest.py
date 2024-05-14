@@ -289,7 +289,7 @@ def noise_function(depth: int):
     return low_estimation, high_estimation, uncertainty
 
 
-subclasses_dictionary["Forecaster"]["FirstForecaster"]("debug_forecaster", aggregator_elec, noise_function, 5)
+subclasses_dictionary["Forecaster"]["BasicForecaster"]("debug_forecaster", aggregator_elec, noise_function, 5)
 
 
 # ##############################################################################################

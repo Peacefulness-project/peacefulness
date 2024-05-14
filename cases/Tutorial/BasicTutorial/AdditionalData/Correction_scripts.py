@@ -692,7 +692,31 @@ def correction_9_automatic_generation():
     print("Congratulations, everything is working well.")
 
 
-def correction_10_dataloggers():
+def correction_10_forecasters():
+    world = World.ref_world
+
+    # name of the forecaster
+    if "dummy_forecaster" not in world.catalog.forecasters:
+        print("The forecaster tuto_forecaster has not been created successfully or does not bear the correct name.")
+        exit()
+
+    # aggregator of the forecaster
+    if world.catalog.forecasters["tuto_forecaster"]._aggregator.name != "aggregator_elec":
+        print("The forecaster is not attached to the good aggregator.")
+        exit()
+
+    # noise function of the forecaster
+    if world.catalog.forecasters["tuto_forecaster"]._noise_function.__name__ != "gaussian_noise_function":
+        print("The forecaster has not the good noise function.")
+        exit()
+
+    # forecast depth of the forecaster
+    if world.catalog.forecasters["tuto_forecaster"]._forecast_depth != 5:
+        print("The forecaster has not the good forecasting depth.")
+        exit()
+
+
+def correction_11_dataloggers():
     world = World.ref_world
 
     # creation of the datalogger for self-sufficiency
@@ -1121,7 +1145,7 @@ def correction_10_dataloggers():
     print("Congratulations, everything is working well.")
 
 
-def correction_11_start_the_simulation():
+def correction_12_start_the_simulation():
     world = World.ref_world
 
     # verifying that the simulation has started

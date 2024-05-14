@@ -50,9 +50,9 @@ class World:
         instance_dictionaries["agents"] = dict()  # it represents an economic agent, and is attached to, in particular, a contract
         instance_dictionaries["contracts"] = dict()  # dict containing the different contracts
         instance_dictionaries["devices"] = dict()  # dict containing the devices
+        instance_dictionaries["forecasters"] = dict()  # dict containing the forecasters
         instance_dictionaries["dataloggers"] = dict()  # dict containing the dataloggers
         instance_dictionaries["graph_options"] = dict()  # dict containing the graph options
-        instance_dictionaries["forecasters"] = dict()  # dict containing the forecasters
 
         self._catalog.add("dictionaries", instance_dictionaries)  # a sub-category of the catalog where are available all the elments constituting the model
 
