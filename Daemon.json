@@ -1,0 +1,169 @@
+{
+  "owned_by_aggregator_daemon": [
+    "PriceManagerDaemon",
+    1,
+    {
+      "nature": "LVE",
+      "buying_price": 0,
+      "selling_price": 0
+    }
+  ],
+  "RTP_pricesFrance": [
+    "PriceManagerRTPDaemon",
+    1,
+    {
+      "location": "France",
+      "coefficient": 1
+    }
+  ],
+  "TOU_prices_elec": [
+    "PriceManagerTOUDaemon",
+    1,
+    {
+      "nature": "LVE",
+      "buying_price": [
+        0.1,
+        0.2
+      ],
+      "selling_price": [
+        0.1,
+        0.2
+      ],
+      "on-peak_hours": [
+        [
+          12,
+          24
+        ]
+      ]
+    }
+  ],
+  "flat_prices_grid": [
+    "PriceManagerDaemon",
+    1,
+    {
+      "nature": "LVE",
+      "buying_price": 0.5,
+      "selling_price": 0.1
+    }
+  ],
+  "flat_prices_elec": [
+    "PriceManagerDaemon",
+    1,
+    {
+      "nature": "LVE",
+      "buying_price": 0.1,
+      "selling_price": 0.1
+    }
+  ],
+  "flat_prices_heat": [
+    "PriceManagerDaemon",
+    1,
+    {
+      "nature": "LTH",
+      "buying_price": 0.15,
+      "selling_price": 0.1
+    }
+  ],
+  "TOU_prices_heat": [
+    "PriceManagerTOUDaemon",
+    1,
+    {
+      "nature": "LTH",
+      "buying_price": [
+        0.1,
+        0.2
+      ],
+      "selling_price": [
+        0.1,
+        0.2
+      ],
+      "on-peak_hours": [
+        [
+          12,
+          24
+        ]
+      ]
+    }
+  ],
+  "grid_prices_manager_for_nature_LVE": [
+    "LimitPricesDaemon",
+    1,
+    {
+      "nature": "LVE",
+      "limit_buying_price": 1,
+      "limit_selling_price": 0
+    }
+  ],
+  "grid_prices_manager_for_nature_LTH": [
+    "LimitPricesDaemon",
+    1,
+    {
+      "nature": "LTH",
+      "limit_buying_price": 0.3,
+      "limit_selling_price": 0.0
+    }
+  ],
+  "grid_prices_manager_for_nature_LPG": [
+    "LimitPricesDaemon",
+    1,
+    {
+      "nature": "LPG",
+      "limit_buying_price": 0.3,
+      "limit_selling_price": 0.0
+    }
+  ],
+  "indoor_temperature_manager": [
+    "IndoorTemperatureDaemon",
+    1,
+    {}
+  ],
+  "outdoor_temperature_in_Zaragoza": [
+    "OutdoorTemperatureDaemon",
+    1,
+    {
+      "location": "Zaragoza"
+    }
+  ],
+  "cold_water_temperature_in_France": [
+    "ColdWaterTemperatureDaemon",
+    1,
+    {
+      "location": "France"
+    }
+  ],
+  "ground_temperature_in_France": [
+    "GroundTemperatureDaemon",
+    1,
+    {
+      "location": "France"
+    }
+  ],
+  "solar_irradiation_in_Pau": [
+    "IrradiationDaemon",
+    1,
+    {
+      "location": "Pau"
+    }
+  ],
+  "wind_speed_in_Pau": [
+    "WindSpeedDaemon",
+    1,
+    {
+      "location": "Pau"
+    }
+  ],
+  "water_flow_in_GavedePau_Pau": [
+    "WaterFlowDaemon",
+    1,
+    {
+      "location": "GavedePau_Pau"
+    }
+  ],
+  "sun_position_in_Pau": [
+    "SunPositionDaemon",
+    1,
+    {
+      "location": "Pau"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "light_autarky_strategy_get_emergency": [
+    "LightAutarkyFullButFew"
+  ],
+  "always_satisfied_strategy": [
+    "AlwaysSatisfied"
+  ],
+  "grid_strategy": [
+    "Grid"
+  ]
+}

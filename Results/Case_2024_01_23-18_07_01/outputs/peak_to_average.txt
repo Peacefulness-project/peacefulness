@@ -1,0 +1,12 @@
+for nature LVE
+	peak-to-average consumption: 0.04715650354507107
+	peak-to-average production: 0.5021438368467577
+
+for nature LTH
+	peak-to-average consumption: 0.21819318241021993
+	peak-to-average production: 0.999650067730769
+
+for nature LPG
+	peak-to-average consumption: None
+	peak-to-average production: 0.11636363636363639
+
