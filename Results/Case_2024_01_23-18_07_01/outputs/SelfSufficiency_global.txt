@@ -1,0 +1,48 @@
+for the key Enedis.self_consumption:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key Enedis.coverage_rate:
+	mean: 0
+	min: inf
+	max: -inf
+	sum: 0
+
+for the key general_aggregator.self_consumption:
+	mean: 0.0008563285924948801
+	min: 6.0220337772520134e-05
+	max: 0.020278774857051454
+	sum: 0.14129421776165527
+
+for the key general_aggregator.coverage_rate:
+	mean: 1.0
+	min: 1
+	max: 1
+	sum: 165
+
+for the key Local_DHN.self_consumption:
+	mean: 0.0002769428114168049
+	min: 0.0
+	max: 0.0012691326142543755
+	sum: 0.045695563883772834
+
+for the key Local_DHN.coverage_rate:
+	mean: 1.0
+	min: 1
+	max: 1
+	sum: 95
+
+for the key gas_aggregator.self_consumption:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key gas_aggregator.coverage_rate:
+	mean: 0
+	min: inf
+	max: -inf
+	sum: 0
+
