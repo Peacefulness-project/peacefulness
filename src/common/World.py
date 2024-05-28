@@ -345,6 +345,9 @@ class World:
 
             self._catalog.set("incompatibility", False)  # the flag indicating if a second round of decision is needed due to multi-energy devices
 
+            if exogen_instruction:  # facultative instruction needed for a specific need
+                exogen_instruction()
+
             # ###########################
             # Calculus phase
             # ###########################

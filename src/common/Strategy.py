@@ -1002,11 +1002,11 @@ class Strategy:
             self._catalog.set(f"{aggregator.superior.name}.energy_sold", energy_sold_dict)
 
             money_spent_dict = self._catalog.get(f"{aggregator.superior.name}.money_spent")
-            money_spent_dict["inside"] = money_spent_dict["inside"] + money_earned_outside
+            money_spent_dict["inside"] = money_spent_dict["inside"] + money_earned_inside
             self._catalog.set(f"{aggregator.superior.name}.money_spent", money_spent_dict)
 
             money_earned_dict = self._catalog.get(f"{aggregator.superior.name}.money_earned")
-            money_earned_dict["inside"] = money_earned_dict["inside"] + money_spent_outside
+            money_earned_dict["inside"] = money_earned_dict["inside"] + money_spent_inside
             self._catalog.set(f"{aggregator.superior.name}.money_earned", money_earned_dict)
 
     # ##########################################################################################
