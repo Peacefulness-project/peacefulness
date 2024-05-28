@@ -1,0 +1,240 @@
+for the key Enedis.energy_sold_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.energy_bought_inside:
+	mean: 7087.630093200317
+	min: 6869.630871498793
+	max: 7577.193236698156
+	sum: 1169458.9653780523
+
+for the key Enedis.energy_bought_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.energy_erased_consumption:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.energy_erased_production:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key Enedis.money_spent_inside:
+	mean: 708.7630093200318
+	min: 686.9630871498794
+	max: 757.7193236698157
+	sum: 116945.89653780522
+
+for the key Enedis.money_spent_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.money_earned_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Enedis.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key general_aggregator.energy_sold_inside:
+	mean: 2.63704427880673
+	min: 0.13234168768354518
+	max: 59.35057664266766
+	sum: 435.1123060031104
+
+for the key general_aggregator.energy_sold_outside:
+	mean: 7087.630093200317
+	min: 6869.630871498793
+	max: 7577.193236698156
+	sum: 1169458.9653780523
+
+for the key general_aggregator.energy_bought_inside:
+	mean: 7090.267137479121
+	min: 6870.439985370129
+	max: 7617.786259132076
+	sum: 1169894.0776840555
+
+for the key general_aggregator.energy_bought_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key general_aggregator.energy_erased_consumption:
+	mean: -5.887546342709162e-17
+	min: -7.105427357601002e-15
+	max: 3.552713678800501e-15
+	sum: -9.71445146547012e-15
+
+for the key general_aggregator.energy_erased_production:
+	mean: 1.543384948463151e-13
+	min: 0.0
+	max: 9.094947017729282e-13
+	sum: 2.546585164964199e-11
+
+for the key general_aggregator.money_spent_inside:
+	mean: 722.7533459002243
+	min: 685.8332909786776
+	max: 783.3874842737762
+	sum: 119254.30207353712
+
+for the key general_aggregator.money_spent_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key general_aggregator.money_earned_inside:
+	mean: 0.3555137719647859
+	min: 0.010472495985911257
+	max: 7.4472718671606355
+	sum: 58.659772374189615
+
+for the key general_aggregator.money_earned_outside:
+	mean: 708.7630093200318
+	min: 686.9630871498794
+	max: 757.7193236698157
+	sum: 116945.89653780522
+
+for the key Local_DHN.energy_sold_inside:
+	mean: 5.354587425725611
+	min: 0
+	max: 10.95
+	sum: 883.5069252447265
+
+for the key Local_DHN.energy_sold_outside:
+	mean: 6783.863501062509
+	min: 6778.05
+	max: 6790.276633601451
+	sum: 1119337.4776753131
+
+for the key Local_DHN.energy_bought_inside:
+	mean: 6789.21808848823
+	min: 6788.999999999999
+	max: 6790.293959989091
+	sum: 1120220.984600558
+
+for the key Local_DHN.energy_bought_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Local_DHN.energy_erased_consumption:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key Local_DHN.energy_erased_production:
+	mean: 1.6536267304962335e-13
+	min: 0.0
+	max: 9.094947017729282e-13
+	sum: 2.7284841053187847e-11
+
+for the key Local_DHN.money_spent_inside:
+	mean: 678.9218088488229
+	min: 678.9
+	max: 679.029395998909
+	sum: 112022.09846005558
+
+for the key Local_DHN.money_spent_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key Local_DHN.money_earned_inside:
+	mean: 0.803188113858843
+	min: 0
+	max: 1.6424999999999998
+	sum: 132.52603878670894
+
+for the key Local_DHN.money_earned_outside:
+	mean: 678.3863501062503
+	min: 677.8050000000001
+	max: 679.0276633601452
+	sum: 111933.74776753128
+
+for the key gas_aggregator.energy_sold_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.energy_sold_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.energy_bought_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.energy_bought_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.energy_erased_consumption:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.energy_erased_production:
+	mean: 2190.0
+	min: 2190.0
+	max: 2190.0
+	sum: 361350.0
+
+for the key gas_aggregator.money_spent_inside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.money_spent_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+
+for the key gas_aggregator.money_earned_inside:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key gas_aggregator.money_earned_outside:
+	mean: 0.0
+	min: 0
+	max: 0
+	sum: 0
+

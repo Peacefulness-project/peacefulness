@@ -1,0 +1,50 @@
+{
+  "Enedis": [
+    "LVE",
+    "grid_strategy",
+    "aggregator_manager",
+    null,
+    null,
+    1,
+    {
+      "buying": Infinity,
+      "selling": Infinity
+    }
+  ],
+  "general_aggregator": [
+    "LVE",
+    "light_autarky_strategy_get_emergency",
+    "aggregator_manager",
+    "Enedis",
+    "BAU_elec",
+    1,
+    {
+      "buying": Infinity,
+      "selling": Infinity
+    }
+  ],
+  "Local_DHN": [
+    "LTH",
+    "light_autarky_strategy_get_emergency",
+    "aggregator_manager",
+    "general_aggregator",
+    "BAU_elec",
+    1,
+    {
+      "buying": 7894456,
+      "selling": 45612
+    }
+  ],
+  "gas_aggregator": [
+    "LPG",
+    "light_autarky_strategy_get_emergency",
+    "aggregator_manager",
+    "general_aggregator",
+    "BAU_elec",
+    1,
+    {
+      "buying": Infinity,
+      "selling": Infinity
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+% LaTeX script
+%=================================
+
+
+\documentclass{standalone}
+%
+%
+%
+% Packages
+\usepackage{amsmath}
+\usepackage{eurosym}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{siunitx}
+
+\usepgfplotslibrary{dateplot}
+\pgfplotsset{compat = 1.16}
+%
+%
+% Main
+%
+\begin{document}
+
+\pgfplotstableread[col sep=semicolon]{C:\Users\y23hallo\PycharmProjects\peacefulness\Results\Case_2024_01_23-18_07_01\outputs\StorageData.csv}{\data}
+
+\begin{tikzpicture}
+\begin{axis}[
+	xmin = 2019-01-01 00:00:00, xmax = 2019-01-07 23:00:00, 
+	ymin = inf, ymax = -inf, 
+	xlabel = {X},
+	ylabel = {Y},
+	xlabel style = {xshift=0.0cm, yshift=0.0cm},
+	ylabel style = {xshift=0.0cm, yshift=0.0cm},
+	xticklabel style = {rotate=90, anchor=near xticklabel, xshift=0.0cm, yshift=0.0cm},
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	date coordinates in = x,
+	xticklabel = {\year-\month-\day \, \hour:\minute},
+	]
+\end{axis}
+\end{tikzpicture}
+
+\pgfplotstableclear\data
+
+
+\end{document}

@@ -1,0 +1,84 @@
+{
+  "BAU_elec": [
+    "EgoistContract",
+    "LVE",
+    "flat_prices_grid",
+    {}
+  ],
+  "BAU_gas": [
+    "EgoistContract",
+    "LPG",
+    "flat_prices_grid",
+    {}
+  ],
+  "BAU_heat": [
+    "EgoistContract",
+    "LTH",
+    "flat_prices_heat",
+    {}
+  ],
+  "cooperative_contract_heat": [
+    "CooperativeContract",
+    "LTH",
+    "flat_prices_heat",
+    {}
+  ],
+  "cooperative_contract_elec": [
+    "CooperativeContract",
+    "LVE",
+    "RTP_pricesFrance",
+    {}
+  ],
+  "cooperative_contract_gas": [
+    "CooperativeContract",
+    "LPG",
+    "RTP_pricesFrance",
+    {}
+  ],
+  "owned_by_aggregator_contract": [
+    "CooperativeContract",
+    "LVE",
+    "owned_by_aggregator_daemon",
+    {}
+  ],
+  "contract_storage_elec": [
+    "ThresholdPricesContract",
+    "LVE",
+    "TOU_prices_elec",
+    {
+      "buying_threshold": 0.1,
+      "selling_threshold": 0.2
+    }
+  ],
+  "contract_storage_heat": [
+    "ThresholdPricesContract",
+    "LTH",
+    "TOU_prices_heat",
+    {
+      "buying_threshold": 0.1,
+      "selling_threshold": 0.21
+    }
+  ],
+  "contract_ramp": [
+    "CurtailmentRampContract",
+    "LVE",
+    "TOU_prices_elec",
+    {
+      "bonus": 0.005,
+      "depreciation_time": 720,
+      "depreciation_residual": 0.01
+    }
+  ],
+  "dummy_complete_profile_LVE_BAU": [
+    "EgoistContract",
+    "LVE",
+    "RTP_pricesFrance",
+    {}
+  ],
+  "dummy_complete_profile_LTH_BAU": [
+    "EgoistContract",
+    "LTH",
+    "flat_prices_heat",
+    {}
+  ]
+}

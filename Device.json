@@ -1,0 +1,488 @@
+{
+  "background": [
+    "Background",
+    [
+      "contract_ramp"
+    ],
+    "dummy",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Background/Background.json",
+    {}
+  ],
+  "biomass_plant": [
+    "BiomassGasPlant",
+    [
+      "cooperative_contract_gas"
+    ],
+    "producer",
+    [
+      "gas_aggregator"
+    ],
+    "lib/Subclasses/Device/BiomassGasPlant/BiomassGasPlant.json",
+    {
+      "max_power": 1000,
+      "waste_recharge": 8000,
+      "recharge_period": 24,
+      "storage_capacity": 40000
+    }
+  ],
+  "dummy_complete_profile_0_Background_0": [
+    "Background",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Background/Background.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Charger_0": [
+    "Charger",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Charger/Charger.json",
+    {}
+  ],
+  "dummy_complete_profile_0_Charger_1": [
+    "Charger",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Charger/Charger.json",
+    {}
+  ],
+  "dummy_complete_profile_0_Charger_2": [
+    "Charger",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Charger/Charger.json",
+    {}
+  ],
+  "dummy_complete_profile_0_Cooling_0": [
+    "Cooling",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Cooling/Cooling.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_CylindroParabolicCSP_0": [
+    "ConcentratedSolarPowerPlantCylindroParabolic",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/ConcentratedSolarPowerPlantCylindroParabolic/ConcentratedSolarPowerPlantCylindroParabolic.json",
+    {
+      "surface": 100,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_SolarTower_0": [
+    "ConcentratedSolarPowerPlantFresnel",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/ConcentratedSolarPowerPlantFresnel/ConcentratedSolarPowerPlantFresnel.json",
+    {
+      "surface": 100,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_FresnelSolarPlant_0": [
+    "ConcentratedSolarPowerPlantTower",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/ConcentratedSolarPowerPlantTower/ConcentratedSolarPowerPlantTower.json",
+    {
+      "surface": 100,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Dishwasher_0": [
+    "Dishwasher",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Dishwasher/Dishwasher.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Dryer_0": [
+    "Dryer",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Dryer/Dryer.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_DummyProducer_0": [
+    "DummyProducer",
+    [
+      "dummy_complete_profile_LTH_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "Local_DHN"
+    ],
+    "lib/Subclasses/Device/DummyProducer/DummyProducer.json",
+    {
+      "max_power": 100,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_ElectricDam_0": [
+    "ElectricDam",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/ElectricDam/ElectricDam.json",
+    {
+      "height": 2,
+      "max_power": 1000,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Heating_0": [
+    "Heating",
+    [
+      "dummy_complete_profile_LTH_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "Local_DHN"
+    ],
+    "lib/Subclasses/Device/Heating/Heating.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_HotWaterTank_0": [
+    "HotWaterTank",
+    [
+      "dummy_complete_profile_LTH_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "Local_DHN"
+    ],
+    "lib/Subclasses/Device/HotWaterTank/HotWaterTank.json",
+    {}
+  ],
+  "dummy_complete_profile_0_Light_0": [
+    "Light",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Light/Light.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Methanizer_0": [
+    "Methanizer",
+    [
+      "dummy_complete_profile_LTH_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "Local_DHN"
+    ],
+    "lib/Subclasses/Device/Methanizer/Methanizer.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_PV_0": [
+    "Photovoltaics",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Photovoltaics/Photovoltaics.json",
+    {
+      "panels": 1,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_PV_advanced_0": [
+    "PhotovoltaicsAdvanced",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/PhotovoltaicsAdvanced/PhotovoltaicsAdvanced.json",
+    {
+      "panels": 1,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Refrigerator_0": [
+    "Refrigerator",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Refrigerator/Refrigerator.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_Freezer_0": [
+    "Refrigerator",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/Refrigerator/Refrigerator.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_SolarThermalCollector_0": [
+    "SolarThermalCollector",
+    [
+      "dummy_complete_profile_LTH_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "Local_DHN"
+    ],
+    "lib/Subclasses/Device/SolarThermalCollector/SolarThermalCollector.json",
+    {
+      "panels": 1,
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_WashingMachine_0": [
+    "WashingMachine",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/WashingMachine/WashingMachine.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_WaterHeater_0": [
+    "WaterHeater",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/WaterHeater/WaterHeater.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_WindTurbine_0": [
+    "WindTurbine",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/WindTurbine/WindTurbine.json",
+    {
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ],
+  "dummy_complete_profile_0_WindTurbine_advanced_0": [
+    "WindTurbineAdvanced",
+    [
+      "dummy_complete_profile_LVE_BAU"
+    ],
+    "dummy_complete_profile_0",
+    [
+      "general_aggregator"
+    ],
+    "lib/Subclasses/Device/WindTurbineAdvanced/WindTurbineAdvanced.json",
+    {
+      "rugosity": "flat",
+      "irradiation_daemon": "solar_irradiation_in_Pau",
+      "outdoor_temperature_daemon": "outdoor_temperature_in_Zaragoza",
+      "cold_water_temperature_daemon": "cold_water_temperature_in_France",
+      "wind_speed_daemon": "wind_speed_in_Pau",
+      "water_flow_daemon": "water_flow_in_GavedePau_Pau",
+      "sun_position_daemon": "sun_position_in_Pau"
+    }
+  ]
+}
