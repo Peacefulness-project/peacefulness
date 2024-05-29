@@ -6,7 +6,7 @@ from cases.Tutorial.BasicTutorial.AdditionalData.Correction_scripts import corre
 # Usual importations
 from datetime import datetime
 
-from src.common.World import World
+from src.tools.AgentGenerator import agent_generation
 
 from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
@@ -17,12 +17,10 @@ from src.common.Aggregator import Aggregator
 
 from src.common.Datalogger import Datalogger
 
+from src.tools.SubclassesDictionary import get_subclasses
+
 from src.tools.GraphAndTex import GraphOptions
 
-
-# ##############################################################################################
-# Importation of subclasses
-from src.tools.SubclassesDictionary import get_subclasses
 subclasses_dictionary = get_subclasses()
 
 

@@ -25,8 +25,6 @@ from time import process_time
 from src.tools.Utilities import adapt_path
 from src.tools.AgentGenerator import agent_generation
 
-from src.common.World import World
-
 from src.common.Strategy import *
 from lib.DefaultNatures.DefaultNatures import *
 
@@ -291,7 +289,7 @@ def noise_function(depth: int):
     return low_estimation, high_estimation, uncertainty
 
 
-subclasses_dictionary["Forecaster"]["FirstForecaster"]("debug_forecaster", aggregator_elec, noise_function, 5)
+subclasses_dictionary["Forecaster"]["BasicForecaster"]("debug_forecaster", aggregator_elec, noise_function, 5)
 
 
 # ##############################################################################################
