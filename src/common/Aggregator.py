@@ -248,4 +248,6 @@ class Aggregator:
     def subaggregators(self):  # shortcut for read-only
         return self._subaggregators
 
-
+    @property
+    def forecaster(self):  # shortcut for read-only
+        return self._forecaster

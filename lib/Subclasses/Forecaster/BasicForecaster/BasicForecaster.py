@@ -1,5 +1,5 @@
 # this _forecaster knows
-# it creates noise around the real value according to a function (in argment) for n tm steps (in argument too)
+# it creates noise around the real value according to a function (in argument) for n tm steps (in argument too)
 from src.common.Forecaster import *  # brings also some elements from the "typing" module
 from src.common.World import World
 
@@ -54,7 +54,7 @@ class BasicForecaster(Forecaster):
 
         def noised_predictor(t: int):
             # very precise prediction
-            precise_prediction = {"consumption": [0 for _ in range(self._depth)],
+            precise_prediction = {"consumption": [0 for _ in range(self._depth)],  # list of 0 depth times
                                   "production": [0 for _ in range(self._depth)]}
             for prediction_function in predictions_functions_list:
                 precise_prediction = prediction_function(precise_prediction, t)
@@ -182,6 +182,11 @@ class BasicForecaster(Forecaster):
             return production_prediction
 
         return WT_predictor
+
+
+
+
+
 
 
 

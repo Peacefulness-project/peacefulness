@@ -23,13 +23,13 @@ class DeepReinforcementLearning(Strategy):
         prediction = self.call_to_forecast(aggregator)
         [min_price, max_price] = self._limit_prices(aggregator)
         formalism = [{}]
-        device_wanted_energy = [{}]
+        # Getting the formalism message from the devices
         for device in aggregator.devices:
-            device_wanted_energy = self._catalog.get(f"{device}.{aggregator.nature.name}.energy_wanted")
-            formalism = device._create_message()
+            formalism.append(device._create_message())
 
-        self.interface[0](min_price, max_price, prediction, formalism, device_wanted_energy)
+        self.interface[0](min_price, max_price, prediction, formalism)  # communicating the formalism message, forecasting message and prices to the method
 
+        # The aggregator just publishes its needs
         quantities_and_prices = [aggregator.information_message()]
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
