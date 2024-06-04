@@ -347,9 +347,6 @@ class World:
 
             self._catalog.set("incompatibility", False)  # the flag indicating if a second round of decision is needed due to multi-energy devices
 
-            if exogen_instruction:  # facultative instruction needed for a specific need
-                exogen_instruction()
-
             # ###########################
             # Calculus phase
             # ###########################
@@ -358,6 +355,9 @@ class World:
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
                 aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
+
+            if exogen_instruction:  # facultative instruction needed for a specific need
+                exogen_instruction(self)
 
             # descendant phase: balances with remote energy
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
