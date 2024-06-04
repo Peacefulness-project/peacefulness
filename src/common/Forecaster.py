@@ -29,6 +29,8 @@ class Forecaster:
 
         world.register_forecaster(self)  # register the _forecaster into world dedicated dictionary
 
+        self._depth = int
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -43,7 +45,7 @@ class Forecaster:
     # Dynamic behavior
     # ##########################################################################################
 
-    def update_forecast(self, t: int):  # return actualised predictios when called
+    def update_forecast(self, t: int):  # return actualised predictions when called
         predictions = self._create_predictions()
 
         return predictions
@@ -63,4 +65,12 @@ class Forecaster:
     @property
     def aggregator(self):
         return self._aggregator
+
+    @property
+    def get_predictions(self):  # for reading the prediction values
+        return self._create_predictions
+
+    @property
+    def get_depth(self):
+        return self._depth
 
