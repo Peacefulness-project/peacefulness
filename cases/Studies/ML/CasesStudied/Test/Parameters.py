@@ -56,7 +56,7 @@ def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidem
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
 # tested_strategies = {
-#     "toto": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
+#     "Test": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
 #     "tutu": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
 #     "titi": {"consumption": random_order_priorities_conso(), "production": random_order_priorities_prod()},
 #     }  # Ici on teste un set prédéfini de stratégies

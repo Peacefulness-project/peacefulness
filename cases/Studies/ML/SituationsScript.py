@@ -77,9 +77,6 @@ situations_dataset.to_csv("./SituationsDataset.csv")
 # ######################################################################################################################
 # strategies set creation
 action_set = {"store_H2": None,
-              # "unstore_H2": None,  # pas utilisé dans ce cas-là
-              # "sell_H2": None,
-              # "buy_elec_grid": None,
               "sell_elec_grid": None,
               }
 

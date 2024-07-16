@@ -1,8 +1,6 @@
-from typing import *
-from numpy import sqrt
 from skopt import gp_minimize
 
-from cases.Studies.ML. SimulationScript import create_simulation
+from cases.Studies.ML.CasesStudied.Test.SimulationScript import create_simulation
 from cases.Studies.ML.Utilities import *
 
 
@@ -18,7 +16,6 @@ def training(simulation_length: int, cluster_center_start_dates: List, performan
     print("Done\n")
 
     print("\n\n")
-    # print(f"performance record: {performances_record.records}")
     print(f"best couples clusters/strategies: {best_strategies}")
     print("\n\n")
 
@@ -89,7 +86,7 @@ def bayesian_search(cluster_center_start_date: int, simulation_length: int, perf
 
     # bounds correspond to indices of arrangement
     bounds = [(0, consumption_options_number),  # consumption bounds
-              (0, production_options_number)]    # production bounds
+              (0, production_options_number)]  # production bounds
 
     results = gp_minimize(func=function_to_optimize,
                           dimensions=bounds,

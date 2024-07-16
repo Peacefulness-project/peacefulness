@@ -170,7 +170,7 @@ world.agent_generation(curtailment, "cases/Studies/LOCIE_1/AgentTemplates/Agent_
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  cluster
 
-graph_options = GraphOptions("toto", "LaTeX", "multiple_series")
+graph_options = GraphOptions("Test", "LaTeX", "multiple_series")
 
 
 def get_quantity(name):

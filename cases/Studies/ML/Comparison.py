@@ -1,7 +1,7 @@
-from typing import List, Dict, Tuple, Callable
+from typing import List, Dict, Callable
 import math
 
-from cases.Studies.ML. SimulationScript import create_simulation
+from cases.Studies.ML.CasesStudied.Test.SimulationScript import create_simulation
 
 
 def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics: List,

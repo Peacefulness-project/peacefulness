@@ -1,5 +1,5 @@
 # The reference run to be compared with ML-trained strategies
-from cases.Studies.ML. SimulationScript import create_simulation
+from cases.Studies.ML.CasesStudied.Test.SimulationScript import create_simulation
 import datetime
 
 reference_start_date = datetime.datetime(year=2018, month=1, day=1, hour=0)

@@ -144,7 +144,7 @@ def simulation(season, kind):
     # ##############################################################################################
     # Creation of dataloggers
 
-    export_graph_options_1 = GraphOptions("toto", "LaTeX")
+    export_graph_options_1 = GraphOptions("Test", "LaTeX")
 
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_balances", "DeviceBalances", ["heating", "background", "hot_water_tank", "dishwasher", "washing_machine", "dryer", "rooftop_PV"], 1, export_graph_options_1)
 

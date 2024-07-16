@@ -1,10 +1,8 @@
-import gc
-
 from cases.Studies.ML.Utilities import *
-from cases.Studies.ML.SimulationScript import create_simulation
+from cases.Studies.ML.CasesStudied.Test.SimulationScript import create_simulation
 
 import math
-from numpy import average, std, zeros
+from numpy import zeros, mean
 from typing import List
 from sklearn import cluster
 # lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
@@ -18,46 +16,32 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     for day in delay_days:
         print(f"situation starting at day {day}")
         metrics_datalogger = create_simulation(simulation_length, random_order_priorities_conso(),
-                                               random_order_priorities_prod(), f"clustering/sequence_{day}", clustering_metrics, delay_days=day)
+                                               random_order_priorities_prod(), f"clustering/sequence_{day}",
+                                               clustering_metrics, delay_days=day)
+        # récuérer moyennes pour normaliser métriques
         for key in clustering_metrics:
             raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
     print("Done\n")
 
-    # # approche centrage et réduction sur chaque variable, probablement pas bonne du lien entre variables
-    # refined_situations = {key: [] for key in metrics}
-    # for key in metrics:
-    #     mean = average(raw_situations[key])
-    #     maximum = max(raw_situations[key])
-    #     minimum = min(raw_situations[key])
-    #     refined_situations[key] = [(value - mean)/(maximum - minimum) for value in raw_situations[key]]
-    #     # print(f"{key}: {refined_situations[key]}")
-    #     # print(std(refined_situations[key]))
-
-    # approche centrage par rapport au minimum d'energie demandée en consommation
-    # qui de fait disparaît des métriques
     print(f"construction of the description of the situations")
-    refined_situations = zeros((len(delay_days), len(clustering_metrics)-1))
+    refined_situations = zeros((len(delay_days), len(clustering_metrics)))
     normalisation_values = []
-    for i in range(len(delay_days)):
-        min_cons = raw_situations["general_aggregator.minimum_energy_consumption"][i]
-        normalisation_values.append(min_cons)
-        refined_situations[i][0] = raw_situations["battery.energy_stored"][i] / min_cons  # energy stored
-
-        refined_situations[i][1] = raw_situations["general_aggregator.maximum_energy_consumption"][i] / min_cons  # max consumption
-
-        refined_situations[i][2] = raw_situations["general_aggregator.minimum_energy_production"][i] / min_cons  # min production
-        refined_situations[i][3] = raw_situations["general_aggregator.maximum_energy_production"][i] / min_cons  # max production
+    j = 0
+    for key, recorded_values in raw_situations.items():
+        key_mean = mean(recorded_values)
+        for i in range(len(delay_days)):
+            refined_situations[i][j] = recorded_values[i]/key_mean
+        j += 1
     print("Done\n")
 
     print(f"identification of clusters")
     clusters = cluster.KMeans(clusters_number).fit(refined_situations)
-    situations_list = [[] for _ in range(len(raw_situations["battery.energy_stored"]))]
+    situations_list = [[] for _ in range(len(raw_situations[0]))]
     for criterion in raw_situations:
         i = 0
-        if criterion != "general_aggregator.minimum_energy_consumption":
-            for value in raw_situations[criterion]:
-                situations_list[i].append(value)
-                i += 1
+        for value in raw_situations[criterion]:
+            situations_list[i].append(value)
+            i += 1
 
     cluster_centers = []
     for i in range(len(clusters.cluster_centers_)):

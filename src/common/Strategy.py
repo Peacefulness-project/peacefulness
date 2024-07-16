@@ -22,10 +22,6 @@ class Strategy:
         self._name = name  # the name of the supervisor  in the catalog
         self.description = description  # a description of the objective/choice/process of the supervisor
 
-        # self._messages = {"bottom-up": {"energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": None},
-        #                   "top-down": {"quantity": 0, "price": 0},
-        #                   "sorted_lists": {"emergency": 0, "quantity": 0, "price": 0, "name": "", "type": ""}}
-
         world = World.ref_world  # get the object world
         self._catalog = world.catalog  # the catalog in which some data are stored
 
@@ -34,19 +30,6 @@ class Strategy:
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-
-    # def complete_message(self, additional_elements):
-    #     """
-    #     When complementary information is added in the messages exchanged between devices and aggregators,
-    #     this method updates the self._message attribute.
-    #
-    #     Parameters
-    #     ----------
-    #     additional_elements: any parsable type of object
-    #     """
-    #     for message in self._messages:
-    #         old_message = self._messages[message]
-    #         self._messages[message] = {**old_message, **additional_elements}
     
     def _create_information_message(self):
         messages_dict = self.__class__.information_message()
