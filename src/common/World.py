@@ -11,7 +11,7 @@ from src.common.Catalog import Catalog
 from src.common.Messages import MessagesManager
 from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
-
+from interface_peacefulness import *
 
 # ##############################################################################################
 # ##############################################################################################
@@ -357,7 +357,9 @@ class World:
                 # the method is recursive
 
             if exogen_instruction:  # facultative instruction needed for a specific need
-                exogen_instruction(self)
+                ascending_interface(self)
+
+                descending_interface(self)
 
             # descendant phase: balances with remote energy
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
@@ -466,6 +468,20 @@ class World:
 
     def __str__(self):
         return big_separation + f'\nWORLD = {self._name} : {len(self._catalog.devices)} devices'
+
+    def is_superior(self, aggregator_name_1: str, aggregator_name_2: str) -> int:
+        """
+        This method is used to return a Boolean to check if a given aggregator is the superior to another one.
+        """
+        # Getting the aggregators from the catalog
+        aggregator_1 = self._catalog.aggregators[aggregator_name_1]
+        aggregator_2 = self._catalog.aggregators[aggregator_name_2]
+
+        # Checking the condition
+        if aggregator_1.superior == aggregator_2:
+            return 1
+        else:
+            return 0
 
 
 # Exception

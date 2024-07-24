@@ -718,6 +718,10 @@ class Converter(Device):
             nature_name = aggregator["nature"]
             self._catalog.set(f"{self.name}.{nature_name}.efficiency", self._efficiency[nature_name])
 
+    @property
+    def get_efficiency(self):
+        return self.messages_manager._specific_information_message["efficiency"]
+
 
 # ##############################################################################################
 class Storage(Device):

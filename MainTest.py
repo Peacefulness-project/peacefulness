@@ -369,5 +369,3 @@ file = open(filename, "a")  # creation of the file
 file.write(f"time taken by the calculation phase: {CPU_time}\n")
 file.close()
 
-
-

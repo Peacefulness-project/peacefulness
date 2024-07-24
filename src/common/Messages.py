@@ -82,3 +82,7 @@ class MessagesManager:
     def decision_keys(self):
         return self._specific_decision_message.keys()
 
+    @property
+    def get_information_message(self):
+        return self._specific_information_message
+
