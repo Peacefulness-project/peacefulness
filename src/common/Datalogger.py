@@ -334,8 +334,13 @@ class Datalogger:
     def name(self):  # shortcut for read-only
         return self._name
 
-    def get_values(self, key):
-        return self._values[key]
+    @property
+    def get_values(self):
+        return self._values
+
+    @property
+    def get_period(self):
+        return self._period
 
 
 # Exception
