@@ -730,6 +730,10 @@ class Converter(Device):
     def react(self):
         super().react()  # actions needed for all the devices
 
+    @property
+    def get_efficiency(self):
+        return self.messages_manager._specific_information_message["efficiency"]
+
 
 # ##############################################################################################
 class Storage(Device):
