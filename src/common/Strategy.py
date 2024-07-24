@@ -188,7 +188,11 @@ class Strategy:
     # ##########################################################################################
 
     def call_to_forecast(self, aggregator: "Aggregator"):
-        aggregator.forecaster.get_predictions()
+        if aggregator.forecaster:
+            return aggregator.forecaster.update_forecast()
+        else:
+            print("Attention, no forecaster has been defined for this study case !")
+            return None
 
     # ##########################################################################################
     # bottom-up phase functions

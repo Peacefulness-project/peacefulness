@@ -467,6 +467,17 @@ class Device:
     def __str__(self):
         return middle_separation + f"\nDevice {self.name} of type {self.__class__.__name__}"
 
+    @property
+    def get_type(self):
+        return self.messages_manager._specific_information_message["type"]
+
+    @property
+    def device_aggregators(self):
+        device_aggregators_list = []
+        for nature in self._natures.values():
+            device_aggregators_list.append(nature["aggregator"])
+        return device_aggregators_list
+
 
 # Exception
 class DeviceException(Exception):

@@ -720,6 +720,10 @@ class Converter(Device):
             self._catalog.set(f"{self.name}.{nature_name}.efficiency", self._efficiency[nature_name])
             # print(self._catalog.get(f"{self.name}.{nature_name}.energy_accorded"))
 
+    @property
+    def get_efficiency(self):
+        return self.messages_manager._specific_information_message["efficiency"]
+
 
 # ##############################################################################################
 class Storage(Device):
