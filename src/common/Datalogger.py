@@ -335,13 +335,15 @@ class Datalogger:
     def name(self):  # shortcut for read-only
         return self._name
 
-    @property
-    def get_values(self):
-        return self._values
+    def get_values(self, key):
+        return self._values[key]
 
     @property
-    def get_period(self):
-        return self._period
+    def get_keys(self) -> List:  # returns the list of the keys for which the datalogger exports the values
+        keys_list = []
+        for key in self._list.keys():
+            keys_list.append(key)
+        return keys_list
 
 
 # Exception
