@@ -29,15 +29,19 @@ def ascending_interface(world: "World", agent: "A3C_agent"):
     formalism_message = {}  # here we retrieve the values of the formalism variables
     prediction_message = {}  # here we retrieve the predictions on rigid energy consumption and production
     prices = {}  # here we retrieve the values of energy prices
+    conversions = {}
+    direct_exchanges = {}
 
     # Getting the state of the multi-energy grid
     for aggregator_name in world.catalog.aggregators.keys():
-        formalism_message[aggregator_name] = world._catalog.get(f"{aggregator_name}.DRL_Strategy.formalism_message")
-        prediction_message[aggregator_name] = world._catalog.get(f"{aggregator_name}.DRL_Strategy.forecasting_message")
-        prices[aggregator_name] = world._catalog.get(f"{aggregator_name}.DRL_Strategy.energy_prices")
+        formalism_message[aggregator_name] = world.catalog.get(f"{aggregator_name}.DRL_Strategy.formalism_message")
+        prediction_message[aggregator_name] = world.catalog.get(f"{aggregator_name}.DRL_Strategy.forecasting_message")
+        prices[aggregator_name] = world.catalog.get(f"{aggregator_name}.DRL_Strategy.energy_prices")
+        conversions[aggregator_name] = world.catalog.get(f"{aggregator_name}.DRL_Strategy.converter_message")
+        direct_exchanges[aggregator_name] = world.catalog.get(f"{aggregator_name}.DRL_Strategy.direct_energy_exchanges")
 
     # To be noted, that the topology of energy exchanges within the MEG is already determined
-    agent.update_state(formalism_message, prediction_message, prices)
+    agent.update_state(formalism_message, prediction_message, prices, direct_exchanges, conversions)
 
 
 def descending_interface(world: "World", agent: "A3C_agent"):
@@ -54,24 +58,3 @@ def descending_interface(world: "World", agent: "A3C_agent"):
     decision_message = from_tensor_to_dict(decision, aggregator_list, agent)
     # Storing the RL agent decision in the world's catalog
     world.catalog.add(f"DRL_Strategy.decision_message", decision_message)
-
-
-def getting_results(world: "World", agent: "A3C_agent"):
-    """
-    This method is used to send the results after each observation of the environment by the RL agent.
-    """
-    results = {}
-    # Getting the list of the dataloggers defined for the study_case.
-    # To be noted, these dataloggers are defined with respect of operational objectives.
-    dataloggers_list = []
-    for datalogger in world.catalog.dataloggers.values():
-        dataloggers_list.append(datalogger)
-
-    # Retrieving the values of each datalogger
-    for datalogger in dataloggers_list:
-        if datalogger.get_period() != "global":
-            results[datalogger.name] = datalogger.get_values()
-            #TODO for the global period dataloggers, to be added
-
-    # Sending the results to the RL agent
-    agent.calculate_reward(results)
