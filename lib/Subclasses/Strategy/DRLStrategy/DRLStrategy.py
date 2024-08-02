@@ -6,13 +6,16 @@
 from src.common.Strategy import Strategy
 from src.tools.DRL_Strategy_utilities import *
 from src.common.World import World
+from interface_peacefulness import *
 
 
 class DeepReinforcementLearning(Strategy):
     world = World.ref_world
 
-    def __init__(self):
+    def __init__(self, agent: "A3C_agent"):
         super().__init__("deep_reinforcement_learning_strategy", "The optimal energy management strategy that will be learned by the RL agent")
+        self.agent = agent
+        self.counter = 0  # will be used to send and receive information from the RL agent
 
     # ##################################################################################################################
     # Dynamic behavior
@@ -24,7 +27,7 @@ class DeepReinforcementLearning(Strategy):
         # Before publishing quantities and prices to the catalog, we gather relevant information to send to the RL agent
         # Namely, the data needed : energy prices, formalism variables representing the state of the MEG and forecasting
         quantities_and_prices = []
-        message = aggregator.information_message()
+        message = self._create_information_message()
 
         # Data on energy prices
         [min_price, max_price] = self._limit_prices(aggregator)  # thresholds of accepted energy prices
@@ -34,10 +37,16 @@ class DeepReinforcementLearning(Strategy):
 
         message["price"] = (buying_price + selling_price) / 2  # this value is the one published in the catalog
 
-        # Data related to the formalism variables
-        formalism_message = my_devices(self.world, aggregator)  # TODO à vérifier avec Timothé, le self.world ici !!!
+        # Data related to the formalism variables and energy exchanges (direct and with energy conversion systems)
+        direct_exchanges = {}
+        formalism_message, converter_message = my_devices(self.world, aggregator)  # TODO à vérifier avec Timothé, le self.world ici !!!
         formalism_message = mutualize_formalism_message(formalism_message)  # TODO sous l'hypothèse de prendre les valeurs moyennes
+        for subaggregator in aggregator.subaggregators:
+            direct_exchanges[aggregator.name][subaggregator.name] = self.world.catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+
         self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
+        self._catalog.add(f"{aggregator.name}.DRL_Strategy.converter_message", converter_message[aggregator.name])
+        self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.name])
 
         # Data on rigid energy consumption and production forecasting
         forecasting_message = self.call_to_forecast(aggregator)  # this dict is to be sent to the RL agent
@@ -60,47 +69,35 @@ class DeepReinforcementLearning(Strategy):
         quantities_and_prices.append(message)
         quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
+        # Counter to call ascending and descending interfaces with my code
+        if self.counter == len(self.world.catalog.aggregators) + 1:
+            self.counter = 1
+        else:
+            self.counter += 1
+
         return quantities_and_prices
 
-    def top_down_phase(self, aggregator: "Aggregator"):  # TODO pas besoin de récursion, car l'agrégateur s'en occupe ?
+    def top_down_phase(self, aggregator: "Aggregator"):
         # TODO voir comment traiter les conversions
-        energy_bought_outside = 0  # the absolute value of energy bought outside
-        energy_sold_outside = 0  # the absolute value of energy sold outside
-        energy_bought_inside = 0  # the absolute value of energy bought inside
-        energy_sold_inside = 0  # the absolute value of energy sold inside
+        # TODO confirmer la proposition de decision message avec Timothé
+        # TODO valider avec Timothé la manière de calculer les energy bought/sold inside/outside et money earned/spent inside/outside
 
-        money_earned_outside = 0  # the absolute value of money earned outside
-        money_spent_outside = 0  # the absolute value of money spent outside
-        money_earned_inside = 0  # the absolute value of money earned inside
-        money_spent_inside = 0  # the absolute value of money spent inside
+        energy_bought_outside = 0.0
+        money_spent_outside = 0.0
+        energy_sold_outside = 0.0
+        money_earned_outside = 0.0
+        maximum_energy_consumed = self._catalog.get(f"{aggregator.name}.maximum_energy_consumption")
+        maximum_energy_produced = self._catalog.get(f"{aggregator.name}.maximum_energy_production")
+
+        # Ensuring communication with the A3C_agent
+        if self.counter % len(self.world.catalog.aggregators) == 0:
+            ascending_interface(self.world, self.agent)  # communicating the information to the RL agent
+            descending_interface(self.world, self.agent)  # retrieving the decision taken by the RL agent
+            self.counter += 1
 
         # we retrieve the energy accorded to each aggregator with the decision taken by the RL agent
         [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage, energy_accorded_to_exchange] = extract_decision(self.world.catalog.get("DRL_Strategy.decision_message"), aggregator)
         buying_price, selling_price = self.world.catalog.get(f"{aggregator.name}.DRL_Strategy.energy_prices").values()
-
-        # Energy & prices balance of the aggregator
-        # Exchange with outside (even superior/sub aggregators)
-        energy_exchanges = sum(energy_accorded_to_exchange.values())
-        if energy_exchanges < 0:  # the aggregator sold the energy to outside
-            # if (energy_accorded_to_consumers + energy_accorded_to_producers + energy_accorded_to_storage) > 0:
-            #     raise Exception(f"Attention, this {aggregator.name} could not balance itself !")
-            energy_sold_outside = energy_exchanges
-            money_earned_outside = - selling_price * energy_sold_outside
-        else:  # the aggregator bought energy from outside
-            energy_bought_outside = energy_exchanges
-            money_spent_outside = buying_price * energy_bought_outside
-
-        # Managed inside (only energy systems/devices directly managed by the aggregator)
-        if energy_accorded_to_consumers > 0:  # energy is stored
-            energy_bought_inside = energy_accorded_to_consumers + energy_accorded_to_storage
-            energy_sold_inside = energy_accorded_to_producers
-            money_spent_inside = energy_bought_inside * buying_price
-            money_earned_inside = energy_sold_inside * selling_price
-        else:  # energy from storage devices is extracted
-            energy_bought_inside = energy_accorded_to_consumers
-            energy_sold_inside = energy_accorded_to_producers + energy_accorded_to_storage
-            money_spent_inside = energy_bought_inside * buying_price
-            money_earned_inside = energy_sold_inside * selling_price
 
         # Energy distribution and billing
         # First we have to get the list of devices according to their use
@@ -108,9 +105,10 @@ class DeepReinforcementLearning(Strategy):
         consumers_list = []
         producers_list = []
         storage_list = []
-        converters_list = []
+        converters_list = {}
         message = self.messages_manager.create_decision_message()
-        for device_name in aggregator.devices:  # getting the list of all the devices directly managed by the aggregator
+        # Getting the list of all the devices directly managed by the aggregator
+        for device_name in aggregator.devices:
             device_list.append(self.world.catalog.get(device_name))
 
         for device in device_list:
@@ -118,207 +116,46 @@ class DeepReinforcementLearning(Strategy):
             if specific_message["type"] == "standard":
                 Emax = self.world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
                 if Emax > 0:  # the energy system consumes energy
-                    consumers_list.append(device)
+                    consumers_list.append(device)  # the list of energy consumption systems
                 else:  # the energy system produces energy
-                    producers_list.append(device)
-            elif specific_message["type"] == "storage":
+                    producers_list.append(device)  # the list of energy production systems
+            elif specific_message["type"] == "storage":  # the list of energy storage systems
                 storage_list.append(device)
-            elif specific_message["type"] == "converter":
-                converters_list.append(device)
+            elif specific_message["type"] == "converter":  # the list of energy conversion systems
+                Emax = self.world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+                Enom = self.world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
+                Emin = self.world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+                converters_list[device.name] = {"energy_minimum": Emin, "energy_nominal": Enom, "energy_maximum": Emax}
 
         # The energy is then distributed to the devices directly managed by the aggregator
         # Energy consumption
-        consumption_difference = energy_accorded_to_consumers
-        urgent_consumers = []
-        non_urgent_consumers = []
-        for consumer in consumers_list:
-            Enom = self.world.catalog.get(f"{consumer.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
-            Emax = self.world.catalog.get(f"{consumer.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-            if Enom == Emax:  # the energy demand is urgent
-                urgent_consumers.append(consumer)
-            else:  # the energy demand is not a priority
-                non_urgent_consumers.append(consumer)
-        for consumer in urgent_consumers:  # the priority devices get served all their needs
-            Emax = self.world.catalog.get(f"{consumer.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-            Emin = self.world.catalog.get(f"{consumer.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-            if energy_accorded_to_consumers > Emax:
-                message['quantity'] = Emax
-                message["price"] = buying_price
-            elif Emax > energy_accorded_to_consumers > Emin:
-                message['quantity'] = Emin
-                message["price"] = buying_price
-            else:
-                message['quantity'] = 0
-                message["price"] = 0
-            self.world.catalog.set(f"{consumer.name}.{aggregator.nature.name}.energy_accorded", message)
-            energy_accorded_to_consumers -= message["quantity"]
-
-        if energy_accorded_to_consumers > 0:  # if there is energy remaining to be consumed
-            for consumer in non_urgent_consumers:  # the non-priority devices get to share the remaining energy
-                Emin = self.world.catalog.get(f"{consumer.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-                if energy_accorded_to_consumers > Emin:
-                    message['quantity'] = Emin
-                    message["price"] = buying_price
-                else:  # if the remaining energy is not enough
-                    message['quantity'] = 0
-                    message["price"] = 0
-                self.world.catalog.set(f"{consumer.name}.{aggregator.nature.name}.energy_accorded", message)
-                energy_accorded_to_consumers -= message["quantity"]
-        maximum_energy_consumed = consumption_difference - energy_accorded_to_consumers
+        energy_sold_inside, money_earned_inside = distribute_to_standard_devices(consumers_list, energy_accorded_to_consumers, buying_price, self.world, aggregator, message)
 
         # Energy production
-        production_difference = energy_accorded_to_producers
-        urgent_producers = []
-        non_urgent_producers = []
-        for producer in producers_list:
-            Enom = self.world.catalog.get(f"{producer.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
-            Emax = self.world.catalog.get(f"{producer.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-            if Enom == Emax:  # the energy demand is urgent
-                urgent_producers.append(producer)
-            else:  # the energy demand is not a priority
-                non_urgent_producers.append(producer)
-        for producer in urgent_producers:  # the priority devices get served all their needs
-            Emax = self.world.catalog.get(f"{producer.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-            Emin = self.world.catalog.get(f"{producer.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-            if energy_accorded_to_producers < Emax:  # because of the negative signs
-                message['quantity'] = Emax
-                message["price"] = selling_price
-            elif Emax < energy_accorded_to_producers < Emin:
-                message['quantity'] = Emin
-                message["price"] = selling_price
-            else:
-                message['quantity'] = 0
-                message["price"] = 0
-            self.world.catalog.set(f"{producer.name}.{aggregator.nature.name}.energy_accorded", message)
-            energy_accorded_to_producers -= message["quantity"]
-
-        if energy_accorded_to_producers < 0:  # if there is energy remaining to be consumed
-            for producer in non_urgent_producers:  # the non-priority devices get to share the remaining energy
-                Emin = self.world.catalog.get(f"{producer.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-                if energy_accorded_to_producers < Emin:
-                    message['quantity'] = Emin
-                    message["price"] = selling_price
-                else:  # if the remaining energy is not enough
-                    message['quantity'] = 0
-                    message["price"] = 0
-                self.world.catalog.set(f"{producer.name}.{aggregator.nature.name}.energy_accorded", message)
-                energy_accorded_to_producers -= message["quantity"]
-        maximum_energy_produced = production_difference - energy_accorded_to_producers
+        energy_bought_inside, money_spent_inside = distribute_to_standard_devices(producers_list, energy_accorded_to_producers, selling_price, self.world, aggregator, message)
 
         # Energy storage
-        if energy_accorded_to_storage < 0:  # on average the energy storage systems/devices want to sell energy
-            for storage in storage_list:
-                Emax = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-                Emin = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-                if Emax < 0:  # if the device wants to sell energy
-                    Enom = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
-                    if Enom == Emax:  # the energy demand is urgent
-                        if energy_accorded_to_storage < Emax:
-                            message["quantity"] = Emax
-                            message["price"] = selling_price
-                        elif Emax < energy_accorded_to_storage < Emin:
-                            message["quantity"] = Emin
-                            message["price"] = selling_price
-                        else:
-                            message["quantity"] = 0
-                            message["price"] = 0
-                    else:  # the energy demand is not urgent
-                        if energy_accorded_to_storage < Emin:
-                            message["quantity"] = Emin
-                            message["price"] = selling_price
-                        else:
-                            message["quantity"] = 0
-                            message["price"] = 0
-                else:  # the device wants to buy energy, it will remain idle
-                    message["quantity"] = 0
-                    message["price"] = 0
-                self.world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
-                energy_accorded_to_storage -= message["quantity"]
+        energy_bought, money_spent, energy_sold, money_earned = distribute_to_storage_devices(storage_list, energy_accorded_to_storage, buying_price, selling_price, self.world, aggregator, message)
 
-        else:  # on average the energy storage systems/devices want to buy energy
-            for storage in storage_list:
-                Emax = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-                Emin = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-                if Emax > 0:  # if the device wants to buy energy
-                    Enom = self.world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
-                    if Enom == Emax:  # the energy demand is urgent
-                        if energy_accorded_to_storage > Emax:
-                            message["quantity"] = Emax
-                            message["price"] = buying_price
-                        elif Emin < energy_accorded_to_storage < Emax:
-                            message["quantity"] = Emin
-                            message["price"] = buying_price
-                        else:
-                            message["quantity"] = 0
-                            message["price"] = 0
-                    else:  # the energy demand is not urgent
-                        if energy_accorded_to_storage > Emin:
-                            message["quantity"] = Emin
-                            message["price"] = buying_price
-                        else:
-                            message["quantity"] = 0
-                            message["price"] = 0
-                else:  # the device wants to sell energy, it will remain idle
-                    message["quantity"] = 0
-                    message["price"] = 0
-                self.world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
-                energy_accorded_to_storage -= message["quantity"]
+        # Energy & prices balance of the aggregator - Managed inside (only devices directly managed by the aggregator)
+        energy_bought_inside += energy_bought
+        money_spent_inside += money_spent
+        energy_sold_inside += energy_sold
+        money_earned_inside += money_earned
 
-        # Energy conversion
-        for converter in converters_list:
-            Emax = self.world.catalog.get(f"{converter.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-            Enom = self.world.catalog.get(f"{converter.name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
-            Emin = self.world.catalog.get(f"{converter.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-            converter_efficiency = converter.get_efficiency()
-            if converter_efficiency != 1:  # if the energy exchange is conducted with an energy conversion system/device
-                if np.sign(Emax) == np.sign(energy_exchanges):  # the device does what the average of devices want
-                    if Emax > 0:  # on average, the aggregator wants to buy energy from outside
-                        if Emax == Enom:  # if the energy demand is urgent
-                            if energy_exchanges > Emax:
-                                message["quantity"] = Emax
-                                message["price"] = buying_price
-                            elif Emin < energy_exchanges < Emax:
-                                message["quantity"] = Emin
-                                message["price"] = buying_price
-                            else:
-                                message["quantity"] = 0
-                                message["price"] = 0
-                        else:  # if the energy demand is not urgent
-                            if energy_exchanges > Emin:
-                                message["quantity"] = Emin
-                                message["price"] = buying_price
-                            else:
-                                message["quantity"] = 0
-                                message["price"] = 0
-                    else:  # on average, the aggregator wants to sell energy to outside
-                        if Emax == Enom:  # if the energy demand is urgent
-                            if energy_exchanges < Emax:
-                                message["quantity"] = Emax
-                                message["price"] = selling_price
-                            elif Emax < energy_exchanges < Emin:
-                                message["quantity"] = Emin
-                                message["price"] = selling_price
-                            else:
-                                message["quantity"] = 0
-                                message["price"] = 0
-                        else:  # if the energy demand is not urgent
-                            if energy_exchanges < Emin:
-                                message["quantity"] = Emin
-                                message["price"] = selling_price
-                            else:
-                                message["quantity"] = 0
-                                message["price"] = 0
-                else:  # the device does the opposite of what the average of devices want, it will remain idle
-                    message["quantity"] = 0
-                    message["price"] = 0
+        # Energy conversion and exchanges
+        grid_topology = self.agent.grid.get_topology
+        bought_inside, spent_inside, sold_inside, earned_inside, bought_outside, spent_outside, sold_outside, earned_outside = distribute_energy_exchanges(self.world, self._catalog, aggregator, energy_accorded_to_exchange, grid_topology, converters_list, buying_price, selling_price, message)
 
-                self.world.catalog.set(f"{converter.name}.{aggregator.nature.name}.energy_accorded", message)
-                energy_exchanges -= message["quantity"]
+        # Energy & prices balance of the aggregator - Energy exchange with outside (direct ones and with conversion)
+        energy_bought_inside += bought_inside
+        money_spent_inside += spent_inside
+        energy_sold_inside += sold_inside
+        money_earned_inside += earned_inside
 
-                converters_list.remove(converter)
+        energy_bought_outside += bought_outside
+        money_spent_outside += spent_outside
+        energy_sold_outside += sold_outside
+        money_earned_outside += earned_outside
 
-        energy_left = energy_accorded_to_consumers + energy_accorded_to_producers + energy_accorded_to_storage + energy_exchanges
-
-        # TODO confirmer la proposition de decision message avec Timothé
-        # TODO valider avec Timothé la manière de calculer les energy bought/sold inside/outside et money earned/spent inside/outside
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)

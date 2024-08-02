@@ -354,11 +354,6 @@ class World:
                 aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 # the method is recursive
 
-            if exogen_instruction:  # facultative instruction needed for a specific need
-                ascending_interface(self)
-
-                descending_interface(self)
-
             # descendant phase: balances with remote energy
             for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
                 aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
@@ -461,22 +456,12 @@ class World:
     def time_limit(self):  # shortcut for read-only
         return self._time_limit
 
+    @property
+    def get_independent_aggregators(self):
+        return self._identify_independent_aggregators()
+
     def __str__(self):
         return big_separation + f'\nWORLD = {self._name} : {len(self._catalog.devices)} devices'
-
-    def is_superior(self, aggregator_name_1: str, aggregator_name_2: str) -> int:
-        """
-        This method is used to return a Boolean to check if a given aggregator is the superior to another one.
-        """
-        # Getting the aggregators from the catalog
-        aggregator_1 = self._catalog.aggregators[aggregator_name_1]
-        aggregator_2 = self._catalog.aggregators[aggregator_name_2]
-
-        # Checking the condition
-        if aggregator_1.superior == aggregator_2:
-            return 1
-        else:
-            return 0
 
 
 # Exception
