@@ -4,9 +4,11 @@
 # As such, a superior aggregator is blind towards the devices managed by its subaggregators.
 # We also extract the forecasting predictions of each subaggregator.
 
+
 import numpy as np
 import pandas as pd
 from collections import Counter
+from typing import Tuple, Dict
 
 
 # ##########################################################################################
@@ -30,16 +32,16 @@ def determine_energy_prices(strategy: "Strategy", aggregator: "Aggregator", min_
             price = min(price, max_price)  # the maximum accepted energy price (€/kWh) for consumers
             buying_prices.append(price)
 
-    # Then, we retrieve the energy prices proposes by the sub-aggregators managed by the aggregator
+    # Then, we retrieve the energy prices proposed by the sub-aggregators managed by the aggregator
     for subaggregator in aggregator.subaggregators:
         wanted_energy = strategy._catalog.get(f"{subaggregator.name}{aggregator.nature.name}.energy_wanted")
         for element in wanted_energy:
             price = element["price"]
             Emax = element["energy_maximum"]
-            if Emax < 0:  # if the device wants to sell energy
+            if Emax < 0:  # if the subaggregator wants to sell energy
                 price = max(price, min_price)  # the minimum accepted energy price (€/kWh) for producers
                 selling_prices.append(price)
-            elif Emax > 0:  # if the device wants to buy energy
+            elif Emax > 0:  # if the subaggregator wants to buy energy
                 price = min(price, max_price)  # the maximum accepted energy price (€/kWh) for consumers
                 buying_prices.append(price)
 
@@ -49,12 +51,13 @@ def determine_energy_prices(strategy: "Strategy", aggregator: "Aggregator", min_
     return buying_price, selling_price
 
 
-def my_devices(world: "World", aggregator: "Aggregator") -> dict:
+def my_devices(world: "World", aggregator: "Aggregator") -> Tuple[Dict, Dict]:
     """
     This function is used to create the formalism message for each aggregator.
     Recursion is not needed. (needs confirmation from Timothé)
     """
     formalism_message = {}
+    converter_message = {}
     devices_list = []
 
     # Retrieving the list of devices managed by the aggregator
@@ -82,9 +85,9 @@ def my_devices(world: "World", aggregator: "Aggregator") -> dict:
         elif specific_message["type"] == "converter":  # if the device/energy system is for conversion
             intermediate_dict = specific_message
             intermediate_dict.pop("type")
-            formalism_message[aggregator.name]["Energy_Conversion"][device.name] = {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}
+            converter_message[aggregator.name]["Energy_Conversion"][device.name] = {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}
 
-    return formalism_message
+    return formalism_message, converter_message
 
 
 def mutualize_formalism_message(formalism_dict: dict) -> dict:
@@ -96,14 +99,10 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
     consumption_dict = {}
     production_dict = {}
     storage_dict = {}
-    conversion_dict = {}
     for aggregator_name in formalism_dict.keys():
-        inter_dict = {**formalism_dict[aggregator_name]}
-        for key in inter_dict.keys():
-            consumption_dict = {**consumption_dict, **inter_dict["Energy_Consumption"]}
-            production_dict = {**production_dict, **inter_dict["Energy_Production"]}
-            storage_dict = {**storage_dict, **inter_dict["Energy_Storage"]}
-            conversion_dict = {**conversion_dict, **inter_dict["Energy_Conversion"]}
+        consumption_dict = {**consumption_dict, **formalism_dict[aggregator_name]["Energy_Consumption"]}
+        production_dict = {**production_dict, **formalism_dict[aggregator_name]["Energy_Production"]}
+        storage_dict = {**storage_dict, **formalism_dict[aggregator_name]["Energy_Storage"]}
 
     # Energy consumption and production associated dict of values
     energy_min = []
@@ -126,10 +125,11 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
                 else:
                     coming_volume.append(element[key][subkey])
         if element == consumption_dict:
-            return_dict = {
+            return_dict = {**return_dict, **{
                 "Energy_Consumption": {'energy_minimum': sum(energy_min), 'energy_maximum': sum(energy_max),
                                        'flexibility': min(flexibility), 'interruptibility': min(interruptibility),
                                        'coming_volume': sum(coming_volume)}}
+                           }
             energy_min.clear()
             energy_max.clear()
             flexibility.clear()
@@ -171,27 +171,6 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
                            'self_discharge_rate': sum(self_discharge_rate) / len(self_discharge_rate),
                            'efficiency': sum(efficiency) / len(efficiency)}}
                    }
-    # Energy conversion associated dict of values
-    energy_min = []
-    energy_max = []
-    efficiency = []
-
-    for key in conversion_dict:
-        for subkey in conversion_dict[key]:
-            if subkey == 'energy_minimum':
-                energy_min.append(conversion_dict[key][subkey])
-            elif subkey == 'energy_maximum':
-                energy_max.append(conversion_dict[key][subkey])
-            else:
-                efficiency.append(conversion_dict[key][subkey])
-
-    return_dict = {**return_dict, **{"Energy_Conversion": {'energy_minimum': sum(energy_min),
-                                                           'energy_maximum': sum(energy_max)}}}
-    # with the following one can also get the average energy conversion efficiency (redundant for us)
-
-    # return_dict = {**return_dict, **{
-    #     "Energy_Conversion": {'energy_minimum': sum(energy_min), 'energy_maximum': sum(energy_max),
-    #                           'efficiency': sum(efficiency) / len(efficiency)}}}
 
     return return_dict
 
@@ -209,20 +188,20 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     number_of_aggregators, number_of_actions = actions.shape
 
     if number_of_aggregators != len(aggregators):
-        raise Exception("The number of actions taken by the RL does not correspond to the number of aggregators in the MEG")
+        raise Exception("The number of decisions by the RL does not correspond to the number of aggregators in the MEG")
 
     # Getting relevant info from the peacefulness_grid class considered for the RL agent
     agent_grid_topology = agent.grid.get_topology  # the return of the get_topology method
     agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
 
     # Finding the columns related to energy exchanges
+    exchange_list = []
     if len(agent_grid_topology) != 0:
-        exchange_options = Counter(item for tup in agent_grid_topology for item in tup[:2])
-        exchange_list = []
-        for index in range(exchange_options.most_common(1)[0][1]):
+        exchange_options = Counter(item for tup in agent_grid_topology for item in tup[:int((len(tup) - 1) / 2)])
+        number_of_exchanges = exchange_options.most_common(1)[0][1]
+        for index in range(number_of_exchanges):
             name = "Energy_Exchange_{}".format(index + 1)
             exchange_list.append(name)
-        number_of_exchanges = exchange_options.most_common(1)[0][1]
     else:
         number_of_exchanges = 0
 
@@ -234,7 +213,7 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
         if max(agent_storage_devices.values()) == 0:  # presence of only energy consumers & production
             list_of_columns.extend(["Energy_Consumption", "Energy_Production"])
         else:
-            if actions[0][0] < 0:  # presence of only energy production & storage
+            if np.all(actions[:, 0] <= 0):  # presence of only energy production & storage
                 list_of_columns.extend(["Energy_Production", "Energy_Storage"])
             else:  # presence of only energy consumers & storage
                 list_of_columns.extend(["Energy_Consumption", "Energy_Storage"])
@@ -242,12 +221,12 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
         if max(agent_storage_devices.values()) != 0:  # presence of only energy storage
             list_of_columns.extend(["Energy_Storage"])
         else:
-            if actions[0][0] < 0:  # presence of only energy production
+            if np.all(actions[:, 0] <= 0):  # presence of only energy production
                 list_of_columns.extend(["Energy_Production"])
             else:  # presence of only energy consumers
                 list_of_columns.extend(["Energy_Consumption"])
     elif condition == 0:  # we only manage the energy exchanges between aggregators
-        print("Attention, the MEG in question consists of only energy exchangers aggregators !")
+        print("Attention, the Multi-Energy Grid in question consists of only energy exchangers aggregators !")
 
     list_of_columns.extend(exchange_list)
 
@@ -277,19 +256,243 @@ def extract_decision(decision_message: dict, aggregator: "Aggregator") -> list:
     production = {}
     storage = {}
     exchange = {}
-
-    for element in decision_message.keys():  # TODO prices, at least for now, the RL agent needs the energy prices as input information, but its actions don't impact the prices
-        if element == aggregator.name:
-            dummy_dict = decision_message[element]
-            if "Energy_Consumption" in dummy_dict:
-                consumption = decision_message[element]["Energy_Consumption"]
-                dummy_dict.pop("Energy_Consumption")
-            if "Energy_Production" in dummy_dict:
-                production = decision_message[element]["Energy_Production"]
-                dummy_dict.pop("Energy_Production")
-            if "Energy_Storage" in dummy_dict:
-                storage = decision_message[element]["Energy_Storage"]
-                dummy_dict.pop("Energy_Storage")
-            exchange = dummy_dict.values()
+    # TODO prices, at least for now, the RL agent needs the energy prices as input information, but its actions don't impact the prices
+    if aggregator.name in decision_message.keys():
+        dummy_dict = decision_message[aggregator.name]
+        if "Energy_Consumption" in dummy_dict:
+            consumption = decision_message[aggregator.name]["Energy_Consumption"]
+            dummy_dict.pop("Energy_Consumption")
+        if "Energy_Production" in dummy_dict:
+            production = decision_message[aggregator.name]["Energy_Production"]
+            dummy_dict.pop("Energy_Production")
+        if "Energy_Storage" in dummy_dict:
+            storage = decision_message[aggregator.name]["Energy_Storage"]
+            dummy_dict.pop("Energy_Storage")
+        exchange = dummy_dict
 
     return [consumption, production, storage, exchange]
+
+
+def distribute_to_standard_devices(device_list: list, energy_accorded: float, energy_price: float, world: "World", aggregator: "Aggregator", message: dict) -> Tuple[float, float]:
+    """
+    This function is used for energy distribution and billing for standard devices managed by the aggregator.
+    It concerns the energy producers and consumers.
+    The minimum energy demands/offers are served first, the rest is then distributed equally over non-urgent devices.
+    """
+    # initializing
+    energy_inside = 0.0
+    money_inside = 0.0
+    distribution_decision = {}
+    non_urgent_devices = []
+
+    for device in device_list:
+        Emin = world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+        Emax = world.catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+
+        # the minimum energy demand/offer is served first
+        if abs(energy_accorded) > abs(Emin):  # to take into account both negative and positive signs
+            distribution_decision[device.name] = Emin
+            energy_accorded -= Emin
+        elif 0 < abs(energy_accorded) < abs(Emin):  # to take into account both negative and positive signs
+            distribution_decision[device.name] = energy_accorded
+            energy_accorded = 0
+
+        # the urgency of the demand/offer is determined
+        if Emin == Emax:  # the energy demand/offer is urgent
+            message['quantity'] = distribution_decision[device.name]
+            message["price"] = energy_price
+            world.catalog.set(f"{device.name}.{aggregator.nature.name}.energy_accorded", message)
+            energy_inside += abs(message['quantity'])
+            money_inside += abs(message['quantity'] * energy_price)
+        else:  # the energy demand/offer is not a priority
+            non_urgent_devices.append(device)
+
+    for device in non_urgent_devices:  # the remaining energy is equally distributed over the rest of the devices
+        message['quantity'] = distribution_decision[device.name] + energy_accorded / len(non_urgent_devices)
+        message["price"] = energy_price
+        world.catalog.set(f"{device.name}.{aggregator.nature.name}.energy_accorded", message)
+        energy_inside += abs(message['quantity'])
+        money_inside += abs(message['quantity'] * energy_price)
+
+    return energy_inside, money_inside
+
+
+def return_sign(a: float, b: float):
+    """
+    This utility function is used to check if two numbers are either both positive/negative or not.
+    """
+    result = (a >= 0) == (b >= 0)
+    return result
+
+
+def distribute_to_storage_devices(storage_list: list, energy_accorded_to_storage: float, buying_price: float, selling_price: float, world: "World", aggregator: "Aggregator", message: dict) -> Tuple[float, float, float, float]:
+    """
+    This function is used for energy distribution and billing for energy storage systems managed by the aggregator.
+    The devices who have needs that encounter the average needs are to stay idle.
+    The minimum energy demands/offers are served first, the rest is then distributed equally over non-urgent devices.
+    """
+    # initializing
+    distribution_decision = {}
+    non_urgent_storage = []
+    energy_bought_inside = 0.0
+    money_spent_inside = 0.0
+    energy_sold_inside = 0.0
+    money_earned_inside = 0.0
+
+    for storage in storage_list:
+        Emax = world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+        Emin = world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+        sign_min = return_sign(Emin, energy_accorded_to_storage)
+        if not sign_min:  # the device wants the opposite of the average want of the energy storage systems managed by the aggregator, thus it will be idle
+            message["quantity"] = 0
+            message["price"] = 0
+            world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
+        else:  # the device wants the same as the average want of the energy storage systems managed by the aggregator
+            if abs(energy_accorded_to_storage) > abs(Emin):  # to take into account both negative and positive signs
+                distribution_decision[storage.name] = Emin
+                energy_accorded_to_storage -= Emin
+            elif 0 < abs(energy_accorded_to_storage) < abs(Emin):  # to take into account both negative and positive signs
+                distribution_decision[storage.name] = energy_accorded_to_storage
+                energy_accorded_to_storage = 0
+            # the urgency is determined
+            if Emin == Emax:  # the energy storage system has urgency
+                message["quantity"] = distribution_decision[storage.name]
+                if Emin < 0:  # the energy storage system wants to sell its energy
+                    message["price"] = selling_price
+                    energy_bought_inside += abs(message["quantity"])
+                    money_spent_inside += abs(message['quantity'] * message["price"])
+                else:  # the energy storage system wants to buy energy
+                    message["price"] = buying_price
+                    energy_sold_inside += abs(message["quantity"])
+                    money_earned_inside += abs(message['quantity'] * message["price"])
+                world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
+            else:
+                sign_max = return_sign(Emax, energy_accorded_to_storage)
+                if not sign_max:
+                    message["quantity"] = distribution_decision[storage.name]
+                    if Emin < 0:  # the energy storage system wants to sell its energy
+                        message["price"] = selling_price
+                        energy_bought_inside += abs(message["quantity"])
+                        money_spent_inside += abs(message['quantity'] * message["price"])
+                    else:  # the energy storage system wants to buy energy
+                        message["price"] = buying_price
+                        energy_sold_inside += abs(message["quantity"])
+                        money_earned_inside += abs(message['quantity'] * message["price"])
+                    world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
+                else:
+                    non_urgent_storage.append(storage)
+
+    for storage in non_urgent_storage:  # the remaining energy is equally distributed over the rest of the devices
+        Emin = world.catalog.get(f"{storage.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+        message["quantity"] = distribution_decision[storage.name] + energy_accorded_to_storage / len(non_urgent_storage)
+        if Emin < 0:  # the energy storage system wants to sell its energy
+            message["price"] = selling_price
+            energy_bought_inside += abs(message["quantity"])
+            money_spent_inside += abs(message['quantity'] * message["price"])
+        else:  # the energy storage system wants to buy energy
+            message["price"] = buying_price
+            energy_sold_inside += abs(message["quantity"])
+            money_earned_inside += abs(message['quantity'] * message["price"])
+        world.catalog.set(f"{storage.name}.{aggregator.nature.name}.energy_accorded", message)
+
+    return energy_bought_inside, money_spent_inside, energy_sold_inside, money_earned_inside
+
+
+def distribute_energy_exchanges(world: "World", catalog: "Catalog", aggregator: "Aggregator", energy_accorded_to_exchange: dict, grid_topology: list, converter_list: dict, buying_price: float, selling_price: float, message: dict) -> Tuple[float, float, float, float, float, float, float, float]:
+    """
+    This function computes the energy exchanges (direct ones and with conversion systems).
+    Since we don't know how are which decision corresponds to which energy exchange, we first verify if the decision is bound by the min and max.
+    Then we look for the one closest to the nominal.
+    May be subject to change if finally we output the matrix of the grid's topology as in the input to the model.
+    """
+    # initializing
+    energy_bought_inside = 0.0
+    money_spent_inside = 0.0
+    energy_sold_inside = 0.0
+    money_earned_inside = 0.0
+    energy_bought_outside = 0.0
+    money_spent_outside = 0.0
+    energy_sold_outside = 0.0
+    money_earned_outside = 0.0
+
+    aggregator_energy_exchanges_from_grid_topology = []
+    for tup in grid_topology:
+        if aggregator.name in tup:
+            aggregator_energy_exchanges_from_grid_topology.append(tup)
+
+    aggregator_energy_exchanges_from_RL_decision = []
+    dummy_dict = {**energy_accorded_to_exchange}
+    for key, value in energy_accorded_to_exchange.items():
+        if value != 0:
+            aggregator_energy_exchanges_from_RL_decision.append(value)
+            dummy_dict.pop(key)
+    if len(dummy_dict) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
+        for key, value in dummy_dict.items():
+            aggregator_energy_exchanges_from_RL_decision.append(value)
+    else:
+        for i in range(len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision)):
+            aggregator_energy_exchanges_from_RL_decision.append(0)
+
+    if len(aggregator_energy_exchanges_from_grid_topology) != len(aggregator_energy_exchanges_from_RL_decision):
+        raise Exception(
+            f"The {aggregator.name}'s occurrences in energy exchanges don't match the corresponding number of decisions taken by the RL !")
+
+    # Quantities concerning energy conversion systems
+    decision_message = {}
+    print("The aggregator does not exchange with its subaggregators nor with its superior aggregator !")
+    for device in converter_list:
+        decision_message[device] = []
+        for element in aggregator_energy_exchanges_from_RL_decision[:]:
+            if converter_list[device]["energy_minimum"] < element < converter_list[device]["energy_maximum"]:
+                decision_message[device].append(element)
+        if len(decision_message[device]) > 1:
+            distance = {}
+            for element in decision_message[device]:
+                distance[element] = abs(element - converter_list[device]["energy_nominal"])
+            decision_message[device] = min(distance, key=distance.get)
+            aggregator_energy_exchanges_from_RL_decision.remove(decision_message[device])
+        else:
+            decision_message[device] = decision_message[device][0]
+            aggregator_energy_exchanges_from_RL_decision.remove(decision_message[device])
+
+        message["quantity"] = decision_message[device]
+        if decision_message[device] < 0:  # energy selling
+            message["price"] = selling_price
+            energy_sold_outside += abs(message["quantity"])
+            money_earned_outside += abs(message['quantity'] * message["price"])
+        else:  # energy buying
+            message["price"] = buying_price
+            energy_bought_outside += abs(message["quantity"])
+            money_spent_outside += abs(message['quantity'] * message["price"])
+        world.catalog.set(f"{device.name}.{aggregator.nature.name}.energy_accorded", message)
+
+    # Quantities concerning sub-aggregators
+    if aggregator_energy_exchanges_from_RL_decision:
+        for subaggregator in aggregator.subaggregators:
+            decision_message[subaggregator.name] = []
+            quantities_and_prices = catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+            for element in aggregator_energy_exchanges_from_RL_decision[:]:
+                if quantities_and_prices["energy_minimum"] < element < quantities_and_prices["energy_maximum"]:
+                    decision_message[subaggregator.name].append(element)
+                if len(decision_message[subaggregator.name]) > 1:
+                    distance = {}
+                    for element in decision_message[subaggregator.name]:
+                        distance[element] = abs(element - quantities_and_prices["energy_nominal"])
+                    decision_message[subaggregator.name] = min(distance, key=distance.get)
+                    aggregator_energy_exchanges_from_RL_decision.remove(decision_message[subaggregator.name])
+                else:
+                    decision_message[subaggregator.name] = decision_message[subaggregator.name][0]
+                    aggregator_energy_exchanges_from_RL_decision.remove(decision_message[subaggregator.name])
+
+            message["quantity"] = decision_message[subaggregator.name]
+            if decision_message[subaggregator.name] < 0:  # energy selling
+                message["price"] = selling_price
+                energy_bought_inside += abs(message["quantity"])
+                money_spent_inside += abs(message['quantity'] * message["price"])
+            else:  # energy buying
+                message["price"] = buying_price
+                energy_sold_inside += abs(message["quantity"])
+                money_earned_inside += abs(message['quantity'] * message["price"])
+            catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", message)
+
+    return energy_bought_inside, money_spent_inside, energy_sold_inside, money_earned_inside, energy_bought_outside, money_spent_outside, energy_sold_outside, money_earned_outside
