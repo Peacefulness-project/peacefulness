@@ -11,7 +11,6 @@ from src.common.Catalog import Catalog
 from src.common.Messages import MessagesManager
 from src.tools.Utilities import big_separation, adapt_path
 from src.tools.SubclassesDictionary import get_subclasses
-from interface_peacefulness import *
 
 # ##############################################################################################
 # ##############################################################################################
