@@ -12,7 +12,6 @@
 # Sending the results of each observation
 
 # Imports
-from src.common.World import World
 from src.tools.DRL_Strategy_utilities import *
 from os import path
 import sys
