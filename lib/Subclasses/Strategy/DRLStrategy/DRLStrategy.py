@@ -42,7 +42,8 @@ class DeepReinforcementLearning(Strategy):
         formalism_message, converter_message = my_devices(self.world, aggregator)  # TODO à vérifier avec Timothé, le self.world ici !!!
         formalism_message = mutualize_formalism_message(formalism_message)  # TODO sous l'hypothèse de prendre les valeurs moyennes
         for subaggregator in aggregator.subaggregators:
-            direct_exchanges[aggregator.name][subaggregator.name] = self.world.catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+            if subaggregator.nature == aggregator.nature:
+                direct_exchanges[aggregator.name][subaggregator.name] = self.world.catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
 
         self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
         self._catalog.add(f"{aggregator.name}.DRL_Strategy.converter_message", converter_message[aggregator.name])
