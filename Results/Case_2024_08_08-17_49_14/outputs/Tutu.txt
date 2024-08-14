@@ -1,0 +1,1 @@
+simulation_time	physical_time	dummy_complete_profile_0_ElectricDam_0.energy	dummy_complete_profile_0_ElectricDam_0.money	
