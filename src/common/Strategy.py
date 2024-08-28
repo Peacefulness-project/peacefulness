@@ -191,7 +191,7 @@ class Strategy:
         if aggregator.forecaster:
             return aggregator.forecaster.update_forecast()
         else:
-            print("Attention, no forecaster has been defined for this study case !")
+            # print("Attention, no forecaster has been defined for this study case !")
             return None
 
     # ##########################################################################################

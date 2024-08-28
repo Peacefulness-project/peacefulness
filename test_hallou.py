@@ -950,5 +950,205 @@
 #     return energy_bought_inside, money_spent_inside, energy_sold_inside, money_earned_inside, energy_bought_outside, money_spent_outside, energy_sold_outside, money_earned_outside
 #
 
+# Emin = - 15.0
+# energy_accorded_to_storage = 0.0
+# distribution_decision = {}
+# failed_to_satisfy = 0.0
+# storage_name = "S1"
+#
+# if abs(energy_accorded_to_storage) > abs(Emin):  # to take into account both negative and positive signs
+#     distribution_decision[storage_name] = Emin
+#     energy_accorded_to_storage -= Emin
+# elif 0 < abs(energy_accorded_to_storage) < abs(Emin):  # to take into account both negative and positive signs
+#     distribution_decision[storage_name] = energy_accorded_to_storage
+#     failed_to_satisfy += abs(abs(Emin) - abs(energy_accorded_to_storage))
+#     energy_accorded_to_storage = 0
+# else:
+#     distribution_decision[storage_name] = 0.0
+#     failed_to_satisfy += abs(Emin)
+#
+# print(energy_accorded_to_storage)
+# print(distribution_decision)
+# print(failed_to_satisfy)
+# import numpy as np
+# import pandas as pd
+# from collections import Counter
+
+
+# def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") -> List[dict, dict]:
+#     """
+#     This method is used to translate the actions taken by the A-C method into results understood by Peacefulness.
+#     The decision is to be stored.
+#     The return dict is under the format: {'Aggregator_1': {'Energy_Consumption': , 'Energy_Production': ...}, ...}
+#     The dict concerning energy exchanges is also returned.
+#     """
+#     list_of_columns = []
+#
+#     # Getting relevant info from the peacefulness_grid class considered for the RL agent
+#     agent_grid_topology = agent.grid.get_topology  # the return of the get_topology method
+#     agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
+#
+#     # Grouping actions into ones related to energy exchanges and ones related to management of energy consumption, production and storage inside the aggregators
+#     actions_related_to_aggregators = actions[:-len(agent_grid_topology)]
+#     actions_related_to_exchange = actions[-len(agent_grid_topology):]
+#
+#     # Getting the dimensions of the dataframe
+#     number_of_aggregators = len(aggregators)  # index of the dataframe
+#     number_of_actions = int(len(actions_related_to_aggregators) / number_of_aggregators)  # number of columns
+#     if number_of_actions == 3:  # presence of energy consumers, production and storage
+#         list_of_columns.extend(["Energy_Consumption", "Energy_Production", "Energy_Storage"])
+#     elif number_of_actions == 2:  # presence of either energy consumers/production, consumers/storage or production/storage
+#         if max(agent_storage_devices.values()) == 0:  # presence of only energy consumers & production
+#             list_of_columns.extend(["Energy_Consumption", "Energy_Production"])
+#         else:
+#             if np.all(actions_related_to_aggregators < 0):  # presence of only energy production & storage
+#                 list_of_columns.extend(["Energy_Production", "Energy_Storage"])
+#             else:  # presence of only energy consumers & storage
+#                 list_of_columns.extend(["Energy_Consumption", "Energy_Storage"])
+#     elif number_of_actions == 1:  # presence of either energy consumers or energy production or energy storage
+#         if max(agent_storage_devices.values()) != 0:  # presence of only energy storage
+#             list_of_columns.extend(["Energy_Storage"])
+#         else:
+#             if np.all(actions_related_to_aggregators < 0):  # presence of only energy production
+#                 list_of_columns.extend(["Energy_Production"])
+#             else:  # presence of only energy consumers
+#                 list_of_columns.extend(["Energy_Consumption"])
+#     elif number_of_actions == 0:  # we only manage the energy exchanges between aggregators
+#         print("Attention, the Multi-Energy Grid in question consists of only energy exchangers aggregators !")
+#
+#     # First we get a dataframe from the actions tensor or vector
+#     actions_related_to_aggregators.reshape(number_of_aggregators, number_of_actions)
+#     actions_to_dataframe = pd.DataFrame(
+#                                         data=actions_related_to_aggregators,
+#                                         index=aggregators,
+#                                         columns=list_of_columns
+#                                         )
+#     # We then get a dict from the dataframe
+#     actions_dict = actions_to_dataframe.to_dict()
+#
+#     # Inverting the dict - to get the aggregators.names as keys.
+#     resulting_dict = {
+#         key: {k: v[key] for k, v in actions_dict.items()}
+#         for key in actions_dict[next(iter(actions_dict))].keys()
+#     }  # this is the dict of the actions related to management of device typologies inside the concerned aggregators
+#
+#     # For energy exchanges
+#     exchange_dict = {}  # keys -> (('A1', 'A2'), ...) and values -> corresponding decision (energy exchange value)
+#     for index in range(len(agent_grid_topology)):
+#         exchange = agent_grid_topology[index]
+#         exchange_value = actions_related_to_exchange[index]
+#         number_of_concerned_aggregators = int((len(exchange) - 1) / 2)
+#         concerned_aggregators = exchange[:number_of_concerned_aggregators]
+#         exchange_dict[concerned_aggregators] = exchange_value
+#
+#     return resulting_dict, exchange_dict
+
+# def distribute_energy_exchanges(catalog: "Catalog", aggregator: "Aggregator", energy_accorded_to_exchange: dict, grid_topology: list, converter_list: dict, buying_price: float, selling_price: float, message: dict, scope: list):
+#     """
+#     This function computes the energy exchanges (direct ones and with conversion systems).
+#     May be subject to change.
+#     """
+#     # Initializing
+#     if f"{aggregator.name}.DRL_Strategy.failed_to_deliver" not in catalog.keys:
+#         failed_to_satisfy = 0.0
+#     else:
+#         failed_to_satisfy = catalog.get(f"{aggregator.name}.DRL_Strategy.failed_to_deliver")
+#     energy_bought_inside = 0.0
+#     money_spent_inside = 0.0
+#     energy_sold_inside = 0.0
+#     money_earned_inside = 0.0
+#     energy_bought_outside = 0.0
+#     money_spent_outside = 0.0
+#     energy_sold_outside = 0.0
+#     money_earned_outside = 0.0
+#
+#     # Solving hierarchical energy exchanges; those concerning superior aggregator and subaggregators, be it direct or through a device connecting just both of them
+#     # todo il y a aussi l'aspect du signe de l'echange + et - pour quel agregateur ?
+#     decision_message = {}
+#     fixed_prices_by_superior = {}
+#     energy_exchanges_left = {**energy_accorded_to_exchange}
+#     for exchange in grid_topology:
+#         if aggregator.name in exchange:
+#             # First, we check for superior aggregators, since they distribute first
+#             if aggregator.superior.name in exchange:
+#                 if aggregator.superior in scope:  # if the superior aggregator is also managed by the DRL strategy
+#                     if exchange[:2] in energy_accorded_to_exchange:
+#                         decision_message[aggregator.name] = energy_accorded_to_exchange[exchange[:2]]
+#                         if decision_message[aggregator.name] < 0:  # selling of energy
+#                             energy_sold_outside -= decision_message[aggregator.name]
+#                             money_earned_outside -= decision_message[aggregator.name] * selling_price
+#                         else:  # buying of energy
+#                             energy_bought_outside += decision_message[aggregator.name]
+#                             money_spent_outside += decision_message[aggregator.name] * buying_price
+#                         energy_exchanges_left.pop(exchange[:2])
+#                 else:  # if the superior aggregator is managed by another strategy
+#                     quantities_and_prices = catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
+#                     if not isinstance(quantities_and_prices, list):  # todo check with Timothé why it is a list in the first place
+#                         decision_message[aggregator.name] = quantities_and_prices["quantity"]
+#                         fixed_prices_by_superior[aggregator.name] = quantities_and_prices["price"]
+#                     if decision_message[aggregator.name] < 0:  # selling of energy
+#                         energy_sold_outside -= decision_message[aggregator.name]
+#                         money_earned_outside -= decision_message[aggregator.name] * fixed_prices_by_superior[aggregator.name]
+#                     else:  # buying of energy
+#                         energy_bought_outside += decision_message[aggregator.name]
+#                         money_spent_outside += decision_message[aggregator.name] * fixed_prices_by_superior[aggregator.name]
+#                     if exchange[:2] in energy_accorded_to_exchange:
+#                         failed_to_satisfy += abs(abs(energy_accorded_to_exchange[exchange[:2]]) - abs(decision_message[aggregator.name]))  # Penalty
+#                         energy_exchanges_left.pop(exchange[:2])
+#
+#             # Then, we check for subaggregators after that
+#             else:
+#                 for subaggregator in aggregator.subaggregators:
+#                     if subaggregator.name in exchange:
+#                         if exchange[:2] in energy_accorded_to_exchange:
+#                             decision_message[subaggregator.name] = energy_accorded_to_exchange[exchange[:2]]
+#                             message["quantity"] = decision_message[subaggregator.name]
+#                             if decision_message[subaggregator.name] < 0:  # selling of energy
+#                                 message["price"] = selling_price
+#                                 energy_bought_inside -= decision_message[aggregator.name]
+#                                 money_spent_inside -= decision_message[aggregator.name] * message["price"]
+#                             else:  # buying of energy
+#                                 message["price"] = buying_price
+#                                 energy_sold_inside += decision_message[aggregator.name]
+#                                 money_earned_inside += decision_message[aggregator.name] * message["price"]
+#                             energy_exchanges_left.pop(exchange[:2])
+#                             if not subaggregator in scope:
+#                                 quantities_and_prices = catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+#                                 if not isinstance(quantities_and_prices, list):  # todo check with Timothé why it is a list in the first place
+#                                     wanted_energy = quantities_and_prices["energy_maximum"]
+#                                     failed_to_satisfy += abs(abs(message["quantity"]) - abs(wanted_energy))  # Penalty
+#                             catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", message)
+#
+#     # The rest of energy exchanges
+#     copy_of_left_exchanges = {**energy_exchanges_left}
+#     for device in converter_list:
+#         for exchange in copy_of_left_exchanges:
+#             my_flag = False
+#             for my_aggregator in converter_list[device]:
+#                 if my_aggregator.name in exchange:
+#                     my_flag = True
+#                 else:
+#                     my_flag = False
+#                     break
+#             if my_flag:
+#                 decision_message[device.name] = energy_exchanges_left[exchange]
+#                 if decision_message[device.name] < 0:  # the aggregator sells energy through this energy conversion system
+#                     message["price"] = selling_price
+#                     energy_sold_outside -= decision_message[device.name]
+#                     money_earned_outside -= decision_message[device.name] * message["price"]
+#                 else:  # the aggregator buys energy through this energy conversion system
+#                     message["price"] = buying_price
+#                     energy_bought_outside += decision_message[device.name]
+#                     money_spent_outside += decision_message[device.name] * message["price"]
+#                 message["quantity"] = decision_message[device.name]
+#                 catalog.set(f"{device.name}.{aggregator.nature.name}.energy_accorded", message)
+#                 energy_exchanges_left.pop(exchange)
+#                 break
+#
+#     return energy_bought_inside, money_spent_inside, energy_sold_inside, money_earned_inside, energy_bought_outside, money_spent_outside, energy_sold_outside, money_earned_outside
+
+my_test ={"b": 1}
+if my_test:
+    print(True)
 
 
