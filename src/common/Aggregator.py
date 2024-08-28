@@ -151,7 +151,7 @@ class Aggregator:
 
         quantities_and_prices = self._strategy.bottom_up_phase(self)  # makes the balance between local producers and consumers and determines couples price/quantities regarding tariffs and penalties under it
 
-        if quantities_and_prices and self._contract:  #todo peut-etre à enlever contract.modification ici
+        if quantities_and_prices and self._contract:  # todo peut-etre à enlever contract.modification ici (non car au final dans le cas de Autarky e.g. j'aurai comme meme besoin de energy wanted)
             quantities_and_prices = [self._contract.contract_modification(element, self.name) for element in quantities_and_prices]
             self._catalog.set(f"{self.name}.{self.superior.nature.name}.energy_wanted", quantities_and_prices)  # publish its needs
             # the nature of the energy wanted is that of the superior
