@@ -297,9 +297,9 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     for index in range(len(agent_grid_topology)):
         exchange = agent_grid_topology[index]
         exchange_value = actions_related_to_exchange[index]
-        number_of_concerned_aggregators = int((len(exchange) - 1) / 2)
-        concerned_aggregators = exchange[:number_of_concerned_aggregators]
-        exchange_dict[concerned_aggregators] = exchange_value
+        number_of_concerned_aggregators = int((len(exchange) - 1) / 2)  # the format of each exchange is ('A1', 'A2', Emin, Emax, eta)
+        concerned_aggregators = exchange[:number_of_concerned_aggregators]  # or ('A1', 'A2', 'A3', Emin, Emax, eta1, eta2)
+        exchange_dict[concerned_aggregators] = exchange_value  # or ('A1', 'A2', 'A3', 'A4', Emin, Emax, eta1, eta2, eta3)
 
     return resulting_dict, exchange_dict
 
@@ -649,6 +649,20 @@ def distribute_energy_exchanges(catalog: "Catalog", aggregator: "Aggregator", en
                                 energy_bought_outside += decision_message[aggregator.name]
                                 money_spent_outside += decision_message[aggregator.name] * buying_price
                             energy_exchanges_left.pop(exchange[:2])
+                    elif aggregator.superior.strategy.name == "grid_strategy":  # if the superior is managed by the grid strategy
+                        if exchange[:2] in energy_accorded_to_exchange:
+                            decision_message[aggregator.name] = energy_accorded_to_exchange[exchange[:2]]
+                            message["quantity"] = decision_message[aggregator.name]
+                            if decision_message[aggregator.name] < 0:  # selling of energy
+                                message["price"] = selling_price
+                                energy_sold_outside -= decision_message[aggregator.name]
+                                money_earned_outside -= decision_message[aggregator.name] * message["price"]
+                            else:  # buying of energy
+                                message["price"] = buying_price
+                                energy_bought_outside += decision_message[aggregator.name]
+                                money_spent_outside += decision_message[aggregator.name] * message["price"]
+                            energy_exchanges_left.pop(exchange[:2])
+                            catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", message)
                     else:  # if the superior aggregator is managed by another strategy
                         quantities_and_prices = catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
                         if not isinstance(quantities_and_prices, list):  # todo check with Timothé why it is a list in the first place

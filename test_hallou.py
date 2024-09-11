@@ -1147,8 +1147,9 @@
 #
 #     return energy_bought_inside, money_spent_inside, energy_sold_inside, money_earned_inside, energy_bought_outside, money_spent_outside, energy_sold_outside, money_earned_outside
 
-my_test ={"b": 1}
-if my_test:
-    print(True)
-
-
+# my_test ={"b": 1}
+# if my_test:
+#     print(True)
+ep = 10
+a = "my  is {}episode".format(ep)
+print(a)
