@@ -31,7 +31,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "datalogger_requests"
 world = World(name_world)  # creation
 
 
@@ -149,9 +149,9 @@ expected_values_3 = {"physical_time": ["2000-01-01 00:00:00", "2000-01-01 03:00:
                      "background_owner.LVE.energy_bought.max": [0, 3., 6., 9., 12., 15., 18., 21., 23.],
                      "background_owner.LVE.energy_bought.sum": [0, 6., 15., 24., 33., 42., 51., 60., 69.]
                      }
-
-
 i = [0]
+
+
 def check_values():
     # frequency 1
     key_dict = test_datalogger_1.request_keys(["simulation_time", "physical_time", "background_owner.LVE.energy_bought"])

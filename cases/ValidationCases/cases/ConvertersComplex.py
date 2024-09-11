@@ -31,7 +31,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "converters_complex"
 world = World(name_world)  # creation
 
 
@@ -70,7 +70,7 @@ LTH = load_low_temperature_heat()
 # ##############################################################################################
 # Creation of daemons
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices_elec", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # sets prices for flat rate
-price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_heat", {"location": "France"})  # sets prices for flat rate
+price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_heat", {"location": "France", "buying_coefficient": 1, "selling_coefficient": 1})  # sets prices for flat rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 1, "limit_selling_price": -1})  # sets prices for the system operator

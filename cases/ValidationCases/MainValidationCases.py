@@ -28,7 +28,7 @@ file = open(f"cases/ValidationCases/Results/_Summary/Tests_{str(instant_date)}/s
 message = f"Summary of the test\n"
 print(f"{little_separation}\n"+message)
 file.write(f"{message}")
-if bool(problem_list):  # if a problem occured
+if bool(problem_list):  # if a problem occurred
     message = f"a problem occurred in the following tests:{problem_list}"
     print(message)
     file.write(f"{message}")

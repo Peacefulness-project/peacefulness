@@ -31,7 +31,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "user_profiles"
 world = World(name_world)  # creation
 
 
@@ -132,9 +132,9 @@ subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank_short_period", e
 subclasses_dictionary["Device"]["HotWaterTank"]("hot_water_tank_2_usages", elec_contract, two_usages_hot_water_tank_owner, local_aggregator, {"user": "dummy_user_2_usages", "device": "dummy_usage"}, {"cold_water_temperature_daemon": water_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/HotWaterTank.json")
 
 # heatings
-subclasses_dictionary["Device"]["Heating"]("heating_early", elec_contract, early_heating_owner, local_aggregator, {"user": "dummy_user_early", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
-subclasses_dictionary["Device"]["Heating"]("heating_hot", elec_contract, hot_heating_owner, local_aggregator, {"user": "dummy_user_hot", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
-subclasses_dictionary["Device"]["Heating"]("heating_short_usage", elec_contract, short_usage_heating_owner, local_aggregator, {"user": "dummy_user_short_usage", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
+subclasses_dictionary["Device"]["Heating"]("heating_early", elec_contract, early_heating_owner, local_aggregator, {"user": "dummy_user_early", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 17}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
+subclasses_dictionary["Device"]["Heating"]("heating_hot", elec_contract, hot_heating_owner, local_aggregator, {"user": "dummy_user_hot", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 17}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
+subclasses_dictionary["Device"]["Heating"]("heating_short_usage", elec_contract, short_usage_heating_owner, local_aggregator, {"user": "dummy_user_short_usage", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 17}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
 
 
 # ##############################################################################################

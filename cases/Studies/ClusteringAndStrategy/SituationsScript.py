@@ -1,5 +1,5 @@
 """
-Dataset creation to feed a ML algorithm.
+Dataset creation to feed a ClusteringAndStrategy algorithm.
 """
 from itertools import permutations
 import pandas as pd

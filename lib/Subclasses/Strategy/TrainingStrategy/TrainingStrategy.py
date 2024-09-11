@@ -6,12 +6,12 @@ from typing import List, Dict, Tuple, Callable
 class TrainingStrategy(Strategy):
 
     def __init__(self, priorities_consumption: Callable, priorities_production: Callable):
-        super().__init__("training_strategy", "strategy with parameters used to train a ML algorithm")
+        super().__init__("training_strategy", "strategy with parameters used to train a ClusteringAndStrategy algorithm")
         self._priorities_consumption = priorities_consumption
 
         self._priorities_production = priorities_production
 
-        self._sort_function = get_emergency  # laisser le choix: à déterminer par l'algo de ML, je pense
+        self._sort_function = get_emergency  # laisser le choix: à déterminer par l'algo de ClusteringAndStrategy, je pense
 
         self._options_consumption: Callable = None
         self._options_production: Callable = None
@@ -102,16 +102,5 @@ class TrainingStrategy(Strategy):
         # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
-
-    # ##########################################################################################
-    # Utilities
-    # ##########################################################################################
-
-    # def _device_is_storage(self, device_name):
-    #     device_type = self._catalog.get("dictionaries")['devices'][device_name].type
-    #     if device_type == "storage":
-    #         return True
-    #     else:
-    #         return False
 
 

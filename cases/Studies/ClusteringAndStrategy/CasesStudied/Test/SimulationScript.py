@@ -14,7 +14,7 @@ from src.common.Datalogger import Datalogger
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
 
-from cases.Studies.ML.CasesStudied.Test.OptionsManagementFunctions import options_consumption, options_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.Test.OptionsManagementFunctions import options_consumption, options_production
 
 
 def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
@@ -28,7 +28,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Importation of subclasses
     # all the subclasses are imported in the following dictionary
     subclasses_dictionary = get_subclasses()
-    from cases.Studies.ML.MLStrategy import MLStrategy
+    from cases.Studies.ClusteringAndStrategy.MLStrategy import MLStrategy
 
     # ##############################################################################################
     # Creation of the world
@@ -39,7 +39,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ML/TestCase/" + step_name + "Results/"
+    pathExport = "cases/Studies/ClusteringAndStrategy/TestCase/" + step_name + "Results/"
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -72,7 +72,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "coefficient": 1/3}, "cases/Studies/ML/AdditionalData/data/prices.json")  # sets prices for TOU rate
+    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "coefficient": 1/3}, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/prices.json")  # sets prices for TOU rate
 
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
@@ -84,7 +84,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # Outdoor temperature
     # this daemon is responsible for the value of outside temperature in the catalog
-    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": location}, filename="cases/Studies/ML/AdditionalData/data/temperature.json", exergy=False)
+    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": location}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/temperature.json", exergy=False)
 
     # Water temperature
     # this daemon is responsible for the value of the water temperature in the catalog
@@ -92,11 +92,11 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # Irradiation
     # this daemon is responsible for updating the value of raw solar irradiation
-    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": location}, filename="cases/Studies/ML/AdditionalData/data/irradiation.json", direct_normal_irradiation=False)
+    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": location}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/irradiation.json", direct_normal_irradiation=False)
 
     # Wind
     # this daemon is responsible for updating the value of raw solar Wind
-    wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": location}, filename="cases/Studies/ML/AdditionalData/data/wind_speed.json")
+    wind_daemon = subclasses_dictionary["Daemon"]["WindSpeedDaemon"]({"location": location}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/wind_speed.json")
 
     # Water flow
     # this daemon is responsible for updating the value of the flow of water for an electric dam
@@ -158,19 +158,19 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Automated generation of complete agents (i.e. with devices and contracts)
 
     # BAU contracts
-    agent_generation("M5BAU", 200, "cases/Studies/ML/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5BAU", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # DLC contracts
-    agent_generation("M5Coop", 200, "cases/Studies/ML/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Coop", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # Curtailment contracts
-    agent_generation("M5Curt", 200, "cases/Studies/ML/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Curt", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )

@@ -30,7 +30,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "devices"
 world = World(name_world)  # creation
 
 
@@ -129,7 +129,7 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 # Manual creation of devices
 subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
-subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
+subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 17}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
 
 subclasses_dictionary["Device"]["Dishwasher"]("dishwasher", BAU_contract_elec, dishwasher_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage_devices_test"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Dishwasher.json")
 

@@ -1,0 +1,21 @@
+{
+  "technical_data": {
+    "domestic_storage": {
+      "charge": {"nature": "LTH", "efficiency": 1},
+      "discharge": {"nature": "LTH", "efficiency": 1},
+
+      "storage_volumic_thermal_capacity": 0.61,
+      "heat_transfer_fluid_capacity": 120,
+      "volume": 100,
+      "minimum_temperature": 60,
+      "maximum_temperature": 90,
+
+      "exchanger_conductance": 1,
+      "ground_conductivity": 0.0024,
+      "heat_loss_factor": 0.212,
+      "storage_depth": 53.4,
+
+      "network_temperature": 50
+    }
+  }
+}

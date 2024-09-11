@@ -10,7 +10,7 @@ from src.common.Messages import MessagesManager
 # ##############################################################################################
 class NonControllableDevice(Device):
     messages_manager = MessagesManager()
-    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent consumption or production
     messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
     messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
     messages_manager.set_type("standard")
@@ -619,6 +619,10 @@ class Converter(Device):
         time_step = self._catalog.get("time_step")
         self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": parameters["max_power"] * time_step}
 
+        for aggregator in self._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            self._catalog.add(f"{self.name}.{nature_name}.efficiency", None)
+
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -641,6 +645,8 @@ class Converter(Device):
             energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
+            # print(energy_wanted[nature_name])
 
         # upstream side
         for aggregator in self._upstream_aggregators_list:
@@ -648,6 +654,9 @@ class Converter(Device):
             energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
+            # print("plup", energy_wanted[nature_name])
+            # print()
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -662,10 +671,10 @@ class Converter(Device):
             energy_wanted_downstream.append(-self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency[nature_name])  # the energy asked by the downstream aggregator
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
-            energy_available_upstream.append(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] * self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
+            energy_available_upstream.append(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
 
         limit_energy_upstream = min(energy_available_upstream)
-        limit_energy_downstream = energy_wanted_downstream[0]
+        limit_energy_downstream = min(energy_wanted_downstream)
         raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
 
         # downstream side
@@ -675,9 +684,10 @@ class Converter(Device):
             # resetting the demand
             energy_wanted[nature_name]["energy_minimum"] = - raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_nominal"] = - raw_energy_transformed * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = - raw_energy_transformed * self._efficiency[nature_name] # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["energy_maximum"] = - raw_energy_transformed * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
+            energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
 
             # forcing the energy accorded
             energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
@@ -694,6 +704,7 @@ class Converter(Device):
             energy_wanted[nature_name]["energy_maximum"] = raw_energy_transformed * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
+            energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
 
             # forcing the energy accorded
             energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
@@ -702,6 +713,11 @@ class Converter(Device):
 
     def react(self):
         super().react()  # actions needed for all the devices
+
+        for aggregator in self._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            self._catalog.set(f"{self.name}.{nature_name}.efficiency", self._efficiency[nature_name])
+            # print(self._catalog.get(f"{self.name}.{nature_name}.energy_accorded"))
 
 
 # ##############################################################################################
@@ -751,6 +767,11 @@ class Storage(Device):
         self._charge_nature = data_device["charge"]["nature"]
         self._discharge_nature = data_device["discharge"]["nature"]
 
+        charging_efficiency = data_device["charge"]["efficiency"]
+        discharging_efficiency = data_device["discharge"]["efficiency"]
+        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step,
+                                         "discharge": lambda: data_device["discharge"]["power"] * time_step}
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -763,8 +784,13 @@ class Storage(Device):
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
-        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"], max((energy_stored - self._min_energy) * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
-        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"], (self._capacity - energy_stored) / self._efficiency["charge"])  # the charge mode, where energy is "consumed"
+        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"](), max(energy_stored * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
+        energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"](), (self._capacity - energy_stored) / self._efficiency["charge"])  # the charge mode, where energy is "consumed"
+
+        energy_wanted[self._charge_nature]["efficiency"] = self._efficiency
+        # energy_wanted[self._charge_nature]["self_discharge_rate"] = self._degradation_of_energy_stored  # TODO: à faire bien
+        energy_wanted[self._charge_nature]["capacity"] = self._capacity
+        # energy_wanted[self._charge_nature]["state_of_charge"] = self._state_of_charge  # TODO: à faire bien
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 

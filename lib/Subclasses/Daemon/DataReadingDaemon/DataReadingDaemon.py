@@ -13,7 +13,7 @@ class DataReadingDaemon(Daemon):
     def __init__(self, name: str, period: int, parameters: Dict, filename: str):
         self._location = parameters["location"]  # the location corresponding to the data
 
-        name += self._location
+        name += "." + self._location
         super().__init__(name, period, parameters, filename)
 
         # getting the data for the chosen location

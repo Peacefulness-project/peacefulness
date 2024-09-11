@@ -31,7 +31,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "contracts_tariffs"
 world = World(name_world)  # creation
 
 
@@ -69,7 +69,7 @@ LVE = load_low_voltage_electricity()
 # Creation of daemons
 price_manager_elec_flat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0})  # sets prices for flat rate
 price_manager_elec_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0, 0], "on-peak_hours": [[6, 22]]})  # sets prices for flat rate
-price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"nature": LVE.name, "location":"France"})  # sets prices for RTP rate
+price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"nature": LVE.name, "location": "France", "buying_coefficient": 1, "selling_coefficient": 1}, )  # sets prices for RTP rate
 
 subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": -1})  # sets prices for the system operator
 

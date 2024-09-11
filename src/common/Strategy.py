@@ -118,12 +118,22 @@ class Strategy:
     def _limit_quantities(self, aggregator: "Aggregator", minimum_energy_consumed: float, maximum_energy_consumed: float, minimum_energy_produced: float, maximum_energy_produced: float):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
         # quantities concerning devices
         for device_name in aggregator.devices:
-            energy_minimum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]  # the minimum quantity of energy asked
-            energy_nominal = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]  # the nominal quantity of energy asked
-            energy_maximum = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]  # the maximum quantity of energy asked
+            message = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")
+            energy_minimum = message["energy_minimum"]  # the minimum quantity of energy asked
+            energy_nominal = message["energy_nominal"]  # the nominal quantity of energy asked
+            energy_maximum = message["energy_maximum"]  # the maximum quantity of energy asked
 
             # balances
-            if energy_maximum > 0:  # the device wants to consume energy
+            if message["type"] == "storage":
+                # storage
+                if energy_nominal == energy_maximum:  # if it is urgent
+                    minimum_energy_consumed += energy_maximum
+                maximum_energy_consumed += energy_maximum
+                # unstorage
+                if energy_nominal == energy_minimum:  # if it is urgent
+                    minimum_energy_produced -= energy_minimum
+                maximum_energy_produced -= energy_minimum
+            elif energy_maximum > 0:  # the device wants to consume energy
                 if energy_nominal == energy_maximum:  # if it is urgent
                     minimum_energy_consumed += energy_maximum
 
@@ -523,28 +533,29 @@ class Strategy:
         return quantities_and_prices
 
     def _publish_needs(self, aggregator: "Aggregator", quantities_and_prices: List[Dict]):  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
-        energy_pullable = aggregator.capacity["buying"]  # total energy obtainable from the superior through the connection
-        energy_pushable = aggregator.capacity["selling"]  # total energy givable from the superior through the connection
+        if aggregator.superior:
+            energy_pullable = aggregator.capacity["buying"]  # total energy obtainable from the superior through the connection
+            energy_pushable = aggregator.capacity["selling"]  # total energy givable from the superior through the connection
 
-        # capacity and efficiency management
-        # at this point, couples are formulated from this aggregator point of view (without the effect of capacity and of efficiency)
-        # here, capacity and efficiency are managed
-        for element in quantities_and_prices:
-            if element["energy_maximum"] > 0:  # if it is a demand of energy
-                element["energy_minimum"] = min(element["energy_minimum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
-                element["energy_nominal"] = min(element["energy_nominal"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
-                element["energy_maximum"] = min(element["energy_maximum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
-                element = aggregator._contract.contract_modification(element, self.name)
+            # capacity and efficiency management
+            # at this point, couples are formulated from this aggregator point of view (without the effect of capacity and of efficiency)
+            # here, capacity and efficiency are managed
+            for element in quantities_and_prices:
+                if element["energy_maximum"] > 0:  # if it is a demand of energy
+                    element["energy_minimum"] = min(element["energy_minimum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
+                    element["energy_nominal"] = min(element["energy_nominal"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
+                    element["energy_maximum"] = min(element["energy_maximum"], energy_pullable) / aggregator.efficiency  # the minimum between the need and the remaining quantity
+                    element = aggregator._contract.contract_modification(element, self.name)
 
-                energy_pullable -= element["energy_maximum"] * aggregator.efficiency
+                    energy_pullable -= element["energy_maximum"] * aggregator.efficiency
 
-            else:  # if it is an offer of energy
-                element["energy_minimum"] = max(element["energy_minimum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
-                element["energy_nominal"] = max(element["energy_nominal"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
-                element["energy_maximum"] = max(element["energy_maximum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
-                element = aggregator._contract.contract_modification(element, self.name)
+                else:  # if it is an offer of energy
+                    element["energy_minimum"] = max(element["energy_minimum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
+                    element["energy_nominal"] = max(element["energy_nominal"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
+                    element["energy_maximum"] = max(element["energy_maximum"], - energy_pushable) / aggregator.efficiency  # the minimum between the need and the remaining quantity, but values are negative
+                    element = aggregator._contract.contract_modification(element, self.name)
 
-                energy_pushable += element["energy_maximum"] * aggregator.efficiency
+                    energy_pushable += element["energy_maximum"] * aggregator.efficiency
 
         return quantities_and_prices
 
@@ -576,7 +587,26 @@ class Strategy:
             else:
                 emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
 
-            if Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+            device_type = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["type"]
+            if device_type == "storage":  # it is both consumer and producer
+                message = self._create_empty_sorted_lists()
+                message["emergency"] = emergency
+                message["quantity"] = Emax
+                message["quantity_min"] = 0
+                message["price"] = price
+                message["name"] = device_name
+                # print(message)
+                sorted_demands.append(message)
+
+                message = self._create_empty_sorted_lists()
+                message["emergency"] = emergency
+                message["quantity"] = Emin
+                message["quantity_min"] = 0
+                message["price"] = price
+                message["name"] = device_name
+                # print(message)
+                sorted_offers.append(message)
+            elif Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
                 message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax

@@ -29,7 +29,8 @@ class LatentHeatStorage(Storage):
 
         # setting
         self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
-        self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
+        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step,
+                                         "discharge": lambda: data_device["discharge"]["power"] * time_step}
 
         self._charge_nature = data_device["charge"]["nature"]
         self._discharge_nature = data_device["discharge"]["nature"]

@@ -15,7 +15,7 @@ class MLStrategy(TrainingStrategy):
 
         index = ["min"]
         columns = ["assess", "exchange", "distribute"]
-        data = [[assess_min_prod, exchanges_min_conso, distribution_min_prod]
+        data = [[assess_min_prod, exchanges_min_prod, distribution_min_prod]
                 ]
         self._options_production = pd.DataFrame(index=index, columns=columns, data=data)
 
@@ -31,7 +31,7 @@ class MLStrategy(TrainingStrategy):
         - the data is composed of functions managing the options
         """
 
-        self._options_consumption = self._options_consumption.append(consumption_dataframe)
+        self._options_consumption = pd.concat([self._options_consumption, consumption_dataframe])
 
     def add_production_options(self, production_dataframe: pd.DataFrame):
         """
@@ -45,7 +45,7 @@ class MLStrategy(TrainingStrategy):
         - the data is composed of functions managing the options
         """
 
-        self._options_production = self._options_production.append(production_dataframe)
+        self._options_production = pd.concat([self._options_production, production_dataframe])
 
     # ##########################################################################################
     # Priorities functions
@@ -59,8 +59,12 @@ class MLStrategy(TrainingStrategy):
 
         for priority in priorities_consumption:
             quantity_per_option["consumption"][priority] = self._options_consumption.loc[priority]["assess"](self, aggregator, demands)
+            if priority == "nothing":
+                break
         for priority in priorities_production:
             quantity_per_option["production"][priority] = self._options_production.loc[priority]["assess"](self, aggregator, offers)
+            if priority == "nothing":
+                break
 
         # balances update
         min_cons = quantity_per_option["consumption"]["min"]
@@ -87,6 +91,9 @@ class MLStrategy(TrainingStrategy):
                                                                                                           quantity_available,
                                                                                                           quantities_and_price)
             quantity_to_affect -= quantity_affected
+            if priority == "nothing":
+                break
+
         for priority in priorities_production:
             quantity_available = quantity_available_per_option["production"][priority]
             quantity_affected, quantities_and_price = self._options_production.loc[priority]["exchange"](self, aggregator,
@@ -94,13 +101,14 @@ class MLStrategy(TrainingStrategy):
                                                                                                          quantity_available,
                                                                                                          quantities_and_price)
             quantity_to_affect -= quantity_affected
+            if priority == "nothing":
+                break
 
         return quantities_and_price
 
     def _apply_priorities_distribution(self, aggregator: "Aggregator", min_price: float, max_price: float,
-                                       sorted_demands,
-                                       sorted_offers, energy_available_consumption: float,
-                                       energy_available_production: float) -> Tuple:
+                                       sorted_demands, sorted_offers,
+                                       energy_available_consumption: float, energy_available_production: float) -> Tuple:
         energy_bought_inside = 0  # the absolute value of energy bought inside
         energy_sold_inside = 0  # the absolute value of energy sold inside
         money_earned_inside = 0  # the absolute value of money earned inside
@@ -109,9 +117,9 @@ class MLStrategy(TrainingStrategy):
         priorities_production = self._get_priorities_production()
 
         for priority in priorities_consumption:
-            [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_production, money_spent_inside, energy_bought_inside)
+            [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_consumption, money_spent_inside, energy_bought_inside)
         for priority in priorities_production:
-            [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](self, aggregator, max_price, sorted_offers, energy_available_consumption, money_earned_inside, energy_sold_inside)
+            [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](self, aggregator, max_price, sorted_offers, energy_available_production, money_earned_inside, energy_sold_inside)
         return energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside
 
 # ################################################################################################################
