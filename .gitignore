@@ -109,3 +109,5 @@ venv.bak/
 /Drawings/
 /Tests/
 
+# .idea
+.idea
