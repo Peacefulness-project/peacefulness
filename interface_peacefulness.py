@@ -56,7 +56,8 @@ def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):
     for aggregator in catalog.get(f"DRL_Strategy.strategy_scope"):
         aggregator_list.append(aggregator.name)
 
-    decision = agent.act()
+    device_dict = catalog.devices
+    decision = agent.act(device_dict)
 
     # Translating the RL agent actions into a decision that can be understood by Peacefulness (a dict format)
     decision_message, exchanges_message = from_tensor_to_dict(decision, aggregator_list, agent)

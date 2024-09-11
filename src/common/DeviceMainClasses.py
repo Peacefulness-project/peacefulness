@@ -779,6 +779,10 @@ class Converter(Device):
     def get_efficiency(self):
         return self.messages_manager._specific_information_message["efficiency"]
 
+    @property
+    def get_capacity_max(self):
+        return self._energy_physical_limits["maximum_energy"]
+
 
 # ##############################################################################################
 class Storage(Device):

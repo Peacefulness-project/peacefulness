@@ -78,6 +78,9 @@ class DeepReinforcementLearning(Strategy):
         # TODO verify this proposal with Timothé
         if aggregator.superior:
             if aggregator.nature.name == aggregator.superior.nature.name:
+                message["energy_minimum"] = message["energy_minimum"] * aggregator.efficiency
+                message["energy_nominal"] = message["energy_nominal"] * aggregator.efficiency
+                message["energy_maximum"] = message["energy_maximum"] * aggregator.efficiency
                 if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
                     self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", message)
                 else:
