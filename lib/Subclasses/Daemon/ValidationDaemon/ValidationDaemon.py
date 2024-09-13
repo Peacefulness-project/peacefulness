@@ -54,7 +54,6 @@ class ValidationDaemon(Daemon):
 
         for key in self._reference_values.keys():  # put all the data to check in one dictionary
             data_to_check[key] = self._catalog.get(key)
-            #self._x_values["iteration"].append(self._catalog.get("simulation_time"))
             self._y_values[f"{key}_simulation"].append(self._catalog.get(key))
 
             if abs(data_to_check[key] - self._reference_values[key][iteration]) < self._tolerance:  # if the key are the same

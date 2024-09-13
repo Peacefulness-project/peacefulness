@@ -31,7 +31,7 @@ subclasses_dictionary = get_subclasses()
 # Creation of the world
 # a world contains all the other elements of the model
 # a world needs just a name
-name_world = "validation"
+name_world = "exchange_strategy_2"
 world = World(name_world)  # creation
 
 

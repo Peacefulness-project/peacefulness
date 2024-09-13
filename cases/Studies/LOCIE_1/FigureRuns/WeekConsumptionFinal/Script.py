@@ -185,7 +185,7 @@ def simulation(strategy, DSM_proportion, sizing, panels_and_LCOE):
     # ##############################################################################################
     # Dataloggers
 
-    graph_options = GraphOptions("toto", "LaTeX", "multiple_series")
+    graph_options = GraphOptions("Test", "LaTeX", "multiple_series")
 
     def get_quantity(name):
         return world.catalog.get(name)["quantity"]

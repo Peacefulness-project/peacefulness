@@ -288,6 +288,17 @@ class World:
         gc.collect()
 
     def start(self, verbose=True, exogen_instruction: Callable = None):
+        """
+
+        Parameters
+        ----------
+        verbose: Bool, if True, gives indications on the progress of a run
+        exogen_instruction: Callable,
+
+        Returns
+        -------
+
+        """
         self._check()  # check if everything is fine in world definition
 
         if verbose:

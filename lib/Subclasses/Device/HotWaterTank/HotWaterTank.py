@@ -179,7 +179,7 @@ class HotWaterTank(ChargerDevice, Device):
 
             remaining_demand = volume_heated / ( self._month_dependency[month] *
                            (wanted_water_temperature - cold_water_temperature) /
-                           (   hot_water_temperature - cold_water_temperature)  )
+                           (   hot_water_temperature - cold_water_temperature))
 
             self._demand[nature.name] += - remaining_demand   # the energy in excess or in default
 

@@ -415,7 +415,7 @@ producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", peri
 # subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
 # figures
-export_graph_options_3 = GraphOptions("toto", ["LaTeX", "matplotlib"], "multiple_series")
+export_graph_options_3 = GraphOptions("Test", ["LaTeX", "matplotlib"], "multiple_series")
 # subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", 24, export_graph_options_3)
 
 

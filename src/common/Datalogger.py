@@ -298,7 +298,6 @@ class Datalogger:
 
         elif self._type == "month":
             for key in self._list:
-
                 value = self._list[key](key)
 
                 # values saving for the figures
@@ -313,7 +312,6 @@ class Datalogger:
                                f"{self._buffer[key]['max']}\t"  # saves the max
                                f"{self._buffer[key]['sum']}\t"
                                )
-
                     self._buffer[key] = {"mean": 0, "min": inf, "max": -inf, "sum": 0, "active_rounds": 1}
                 else:
                     file.write(f"{value}\t")

@@ -288,7 +288,7 @@ class Device:
             self.set_energy_accorded(nature, energy_accorded)
 
             # update of the data at the level of the device
-            self._catalog.set(f"{self.name}.{nature.name}.energy_erased", energy_erased)
+            self._catalog.set(f"{self.name}.{nature.name}.energy_erased", energy_erased)  # TODO: à faire comptabiliser par les contrats
             self._catalog.set(f"{self.name}.{nature.name}.energy_bought", energy_bought)
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", energy_sold)
             self._catalog.set(f"{self.name}.{nature.name}.money_earned", money_earned)
@@ -316,9 +316,7 @@ class Device:
             money_earned[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_earned")
             money_spent[nature.name] = self._catalog.get(f"{self.name}.{nature.name}.money_spent")
 
-            # print(keys_dict[nature.name])
             for key in keys_dict[nature.name]:
-                # print(self._catalog.get(f"{self.name}.{nature.name}.energy_accorded"))
                 keys_dict[nature.name][key] = self._catalog.get(f"{self.name}.{nature.name}.energy_accorded")[key]
 
             # balance for different natures
