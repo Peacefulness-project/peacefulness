@@ -23,64 +23,14 @@ class NonControllableDevice(Device):
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
-    def _small_time_steps_management(self, consumption_profile, time_step, nature):
-        for i in range(len(consumption_profile)):
-            current_moment = int(i // time_step)  # the moment when the device will be turned on
-
-            # creation of the user profile, where there are hours associated with the use of the device
-            # first time step
-
-            ratio = (self._moment % time_step - i % time_step) * time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
-            if ratio <= 0:  # in case beginning - start is negative
-                ratio += time_step
-            self._technical_profile[nature].append(ratio * consumption_profile[i])  # adding the first time step when it will be turned on
-
-            # intermediate time steps
-            duration_residue = (1 - ratio) / time_step  # the residue of the duration is the remnant time during which the device is operating
-            while duration_residue > 1:  # as long as there is at least 1 full time step of functioning...
-                current_moment += 1
-                duration_residue -= 1
-                self._technical_profile[nature].append(time_step * consumption_profile[i])  # ...a new entry is created with a ratio of 1 (full use)
-
-            # final time step
-            current_moment += 1
-            ratio = duration_residue * time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
-            self._technical_profile[nature].append(ratio * consumption_profile[i])  # adding the final time step before it wil be turned off
-
-    def _long_time_steps_management(self, consumption_profile, time_step, nature):
-        # test block
-        year = self._catalog.get("physical_time").year  # the year at the beginning of the simulation
-        beginning = self._catalog.get("physical_time") - datetime(year=year, month=1, day=1)  # number of hours elapsed since the beginning of the year
-        beginning = beginning.total_seconds() / 3600  # hours -> seconds
-        duration_residue = (beginning - self._offset) / time_step % self._period % 1 * time_step  # the time proportion of the first round coming form the previous
-
-        current_moment = self._moment * time_step  # the moment when the device will be turned on
-        consumption_residue = consumption_profile[current_moment - 1] * duration_residue
-        for i in range(self._period):
-            # creation of the user profile, where there are hours associated with the use of the device
-            # first time step
-            current_moment = current_moment % (self._period * time_step)
-
-            # intermediate time steps
-            duration_residue = time_step - duration_residue  # the residue of the duration is the remnant time during which the device is operating
-            quantity = consumption_residue
-            while duration_residue > 1:  # as long as there is at least 1 full time step of functioning...
-                duration_residue -= 1
-                quantity += consumption_profile[current_moment]
-                current_moment = (current_moment + 1) % (self._period * time_step)
-
-            # final time step
-            quantity += duration_residue * consumption_profile[current_moment]
-            self._technical_profile[nature].append(quantity)
-            consumption_residue = (1 - duration_residue) * consumption_profile[current_moment]
-            duration_residue -= 1
-            current_moment = (current_moment + 1) % (self._period * time_step)
 
     def _read_data_profiles(self, profiles):
         data_user = self._read_consumer_data(profiles["user"])  # parsing the data
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._data_user_creation(data_user)  # creation of an empty user profile
+
+        # self._randomize_multiplication_dict(data_device["usage_profile"], data_device["consumption_variation"])
 
         # we randomize a bit in order to represent reality better
         consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
@@ -93,26 +43,50 @@ class NonControllableDevice(Device):
         self._randomize_start_variation(data_user)
 
         # adaptation of the data to the time step
-        # we need to reshape the data in order to make it fit with the time step chosen for the simulation
+        # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
         time_step = self._catalog.get("time_step")
 
         for nature in data_device["usage_profile"]:
             consumption_profile = 5 * data_device["usage_profile"][nature]["weekday"] + \
                                   2 * data_device["usage_profile"][nature]["weekend"]
-            self._technical_profile = dict()
-            self._technical_profile[nature] = []
 
             # user profile
-            if time_step < 1:
-                self._small_time_steps_management(consumption_profile, time_step, nature)
-            elif time_step > 1:
-                self._long_time_steps_management(consumption_profile, time_step, nature)
+            for line in consumption_profile:
+                current_moment = int(line // time_step)  # the moment when the device will be turned on
+
+                # creation of the user profile, where there are hours associated with the use of the device
+                # first time step
+
+                ratio = (self._moment % time_step - line % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+                if ratio <= 0:  # in case beginning - start is negative
+                    ratio += 1
+                self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
+
+                # intermediate time steps
+                duration_residue = 1 - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
+                while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                    current_moment += 1
+                    duration_residue -= 1
+                    self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
+
+                # final time step
+                current_moment += 1
+                ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
+                self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
+
+        # usage profile
+        self._technical_profile = []  # creation of an empty usage_profile with all cases ready
+
+        self._technical_profile = dict()
+        for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
+            self._technical_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                              2 * data_device["usage_profile"][nature]["weekend"]
 
         self._unused_nature_removal()  # remove unused natures
 
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile
-        self._moment = int(self._moment + start_time_variation // self._catalog.get("time_step") % self._period)
+        self._moment = int((self._moment + start_time_variation) // self._catalog.get("time_step") % self._period)
 
     def _randomize_duration(self, data):
         duration_variation = self._catalog.get("gaussian")(1, data["duration_variation"])  # modification of the duration

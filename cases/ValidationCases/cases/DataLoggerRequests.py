@@ -152,7 +152,7 @@ expected_values_3 = {"physical_time": ["2000-01-01 00:00:00", "2000-01-01 03:00:
 i = [0]
 
 
-def check_values():
+def check_values(environment: World):
     # frequency 1
     key_dict = test_datalogger_1.request_keys(["simulation_time", "physical_time", "background_owner.LVE.energy_bought"])
     simulation_time = key_dict["simulation_time"]
