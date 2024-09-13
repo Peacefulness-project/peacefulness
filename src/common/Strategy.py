@@ -588,14 +588,13 @@ class Strategy:
                 emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
 
             device_type = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["type"]
-            if device_type == "storage":  # it is both consumer and producer
+            if device_type == "storage" and Emin < 0 < Emax:  # it is both consumer and producer
                 message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax
                 message["quantity_min"] = 0
                 message["price"] = price
                 message["name"] = device_name
-                # print(message)
                 sorted_demands.append(message)
 
                 message = self._create_empty_sorted_lists()

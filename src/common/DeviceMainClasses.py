@@ -759,7 +759,7 @@ class Storage(Device):
 
         # setting
         self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
-        self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
+        # self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
 
         self._catalog.add(f"{self.name}.energy_stored", self._capacity * 0.5)  # the energy stored at a given time, considered as half charged at the beginning
         self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
@@ -767,8 +767,6 @@ class Storage(Device):
         self._charge_nature = data_device["charge"]["nature"]
         self._discharge_nature = data_device["discharge"]["nature"]
 
-        charging_efficiency = data_device["charge"]["efficiency"]
-        discharging_efficiency = data_device["discharge"]["efficiency"]
         self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step,
                                          "discharge": lambda: data_device["discharge"]["power"] * time_step}
 
@@ -784,7 +782,7 @@ class Storage(Device):
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         energy_stored = self._catalog.get(f"{self.name}.energy_stored")
 
-        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"](), max(energy_stored * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
+        energy_wanted[self._discharge_nature]["energy_minimum"] = - min(self._max_transferable_energy["discharge"](), max((energy_stored - self._min_energy) * self._efficiency["discharge"], 0))  # the discharge mode, where energy is "produced"
         energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"](), (self._capacity - energy_stored) / self._efficiency["charge"])  # the charge mode, where energy is "consumed"
 
         energy_wanted[self._charge_nature]["efficiency"] = self._efficiency
