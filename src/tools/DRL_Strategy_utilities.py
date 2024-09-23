@@ -135,9 +135,16 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
     return formalism_message, converter_message
 
 
-def if_it_exists(my_data, my_func: Callable):
+def if_it_exists(my_data, my_func: Callable, additional_data_1=None, additional_data_2=None):
     if my_data:
-        return my_func(my_data)
+        if not additional_data_1 and not additional_data_2:
+            return my_func(my_data)
+        elif additional_data_1 and not additional_data_2:
+            return my_func(my_data, additional_data_1)
+        elif additional_data_2 and not additional_data_1:
+            return my_func(my_data, additional_data_2)
+        else:
+            return my_func(my_data, additional_data_1, additional_data_2)
     else:
         return 0.0
 
@@ -145,6 +152,11 @@ def if_it_exists(my_data, my_func: Callable):
 def my_basic_mean(my_data):
     if len(my_data) != 0:
         return sum(my_data) / len(my_data)
+
+
+def my_basic_share(my_data, max_value, min_value):
+    if my_data and max_value and min_value:
+        return sum(my_data) / ((sum(max_value) + sum(min_value)) / 2)
 
 
 def mutualize_formalism_message(formalism_dict: dict) -> dict:
@@ -184,7 +196,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
         if element == consumption_dict:
             return_dict = {**return_dict, **{
                 "Energy_Consumption": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                                       'flexibility': if_it_exists(flexibility, min), 'interruptibility': if_it_exists(interruptibility, min),
+                                       'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min), 'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
                                        'coming_volume': if_it_exists(coming_volume, sum)}}
                            }
             energy_min.clear()
@@ -195,7 +207,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
         else:
             return_dict = {**return_dict, **{
                 "Energy_Production": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                                      'flexibility': if_it_exists(flexibility, min), 'interruptibility': if_it_exists(interruptibility, min),
+                                      'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min), 'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
                                       'coming_volume': if_it_exists(coming_volume, sum)}}
                            }
     # Energy storage associated dict of values
@@ -224,7 +236,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
     return_dict = {**return_dict, **{
         "Energy_Storage": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
                            'state_of_charge': if_it_exists(state_of_charge, my_basic_mean),
-                           'capacity': if_it_exists(capacity, my_basic_mean),
+                           'capacity': if_it_exists(capacity, sum),
                            'self_discharge_rate': if_it_exists(self_discharge_rate, my_basic_mean),
                            'efficiency': if_it_exists(efficiency, my_basic_mean)}}
                    }
