@@ -199,6 +199,14 @@ class Heating(AdjustableDevice):
                     energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_maximum"] = max(0, energy_wanted[nature]["energy_maximum"])
 
+                    # print(self._user_profile)
+                    # print(self._technical_profile)  # pas de technical profile
+                    start_moment = self._moment - self._user_profile[0][0]
+                    energy_wanted[nature]["flexibility"] = [1 for j in range(start_moment, len(self._user_profile))]
+                    energy_wanted[nature]["interruptibility"] = 1
+                    # self._coming_volume[nature] = sum()  # nrj pour passer du min au nominal ?
+                    # energy_wanted[nature]["coming_volume"] = self._coming_volume[nature]
+
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):  # method updating the device according to the decisions taken by the supervisor

@@ -152,7 +152,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of devices
 
-    storage = subclasses_dictionary["Device"]["UndergroundThermalStorage"]("heat_storage", heat_contract, house_owner, aggregator_heat, {"device": "domestic_storage"}, {"ground_temperature_daemon": ground_temperature_daemon.name, "initial_storage_temperature": 70})
+    storage = subclasses_dictionary["Device"]["UndergroundThermalStorage"]("heat_storage", heat_contract, house_owner, aggregator_heat, {"device": "domestic_storage"}, {"ground_temperature_daemon": ground_temperature_daemon.name, "initial_storage_temperature": 70, "initial_SOC": 0.5})
     heating = subclasses_dictionary["Device"]["Heating"]("heating", heat_contract, house_owner, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 5},
                                                          "cases/Studies/ClusteringAndStrategy/CasesStudied/MaisonGeothermie/AdditionalData/Heating.json")
     heatpump = subclasses_dictionary["Device"]["AdvancedHeatPump"]("heat_pump", [heat_contract, BAU_elec], house_owner, aggregator_elec, aggregator_heat,

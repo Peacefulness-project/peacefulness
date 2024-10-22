@@ -52,7 +52,7 @@ class SensibleHeatStorage(Storage):
         # energy equivalence
         self._min_energy = (273.15 + self._min_temperature) * self._density * self._volume * self._thermal_capacity  # energy corresponding to the min temperature
         self._capacity = (273.15 + self._max_temperature) * self._density * self._volume * self._thermal_capacity  # energy corresponding to the max temperature
-        self._catalog.add(f"{self.name}.energy_stored", self._min_energy + (self._capacity - self._min_energy) / 2)  # the energy stored at a given time, considered as half charged at the beginning
+        self._catalog.add(f"{self.name}.energy_stored", self._capacity * self._state_of_charge)  # the energy stored at the starting point
 
     def _energy_to_temperature(self, energy):  # conversion from energy to temperature
         temperature = (energy - self._min_energy) / (self._capacity - self._min_energy) * (self._max_temperature - self._min_temperature) + self._min_temperature

@@ -3,15 +3,16 @@
 from datetime import datetime
 # Current packages
 from src.common.Device import Device
-
 from src.tools.Utilities import into_list
 from src.common.Messages import MessagesManager
+
+from math import ceil
 
 
 # ##############################################################################################
 class NonControllableDevice(Device):
     messages_manager = MessagesManager()
-    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent consumption or production
+    messages_manager.complete_information_message("flexibility", [0])  # -, indicates the level of flexibility on the latent consumption or production
     messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
     messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
     messages_manager.set_type("standard")
@@ -118,7 +119,7 @@ class NonControllableDevice(Device):
 # ##############################################################################################
 class ShiftableDevice(Device):  # a consumption which is shiftable
     messages_manager = MessagesManager()
-    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent concumption or production
+    messages_manager.complete_information_message("flexibility", [])  # -, indicates the level of flexibility on the latent consumption or production
     messages_manager.complete_information_message("interruptibility", 0)  # -, indicates if the device is interruptible
     messages_manager.complete_information_message("coming_volume", 0)  # kWh, gives an indication on the latent consumption or production
     messages_manager.set_type("standard")
@@ -136,6 +137,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._interruption_data = [False,  # if the device has been interrupted
                                    0,  # last time step to launch the device initially
                                    0]  # duration during which the device has functioned
+        self._coming_volume = {nature.name: 0 for nature in self._natures}  # kWh, the remnant energy consumption to finish a cycle
 
     # ##########################################################################################
     # Initialization
@@ -160,7 +162,7 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         self._user_profile = [[i * time_step, 0, 0] for i in range(self._period)]  # creation of an empty user_profile with all cases ready
 
         # adding a null priority at the beginning and the end of the period
-        # the beginning and the end are chosen outside of the period in order to avoid possible confusions
+        # the beginning and the end are chosen outside the period in order to avoid possible confusions
         data_user["profile"].reverse()
         data_user["profile"].append([-1, 0])
         data_user["profile"].reverse()
@@ -172,11 +174,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
         usage_number = 0
 
         for line in self._user_profile:  # filling the user profile with priority
-
             line[2] = usage_number  # adding the id of the usage
 
             while True:  # the loop is shut down when all the data on the line has been recorded
-
                 next_point_reached = False  # a flag indicating when the next time step is beyond the scope of the "line"
                 if next_point[0] < line[0] + time_step:  # when "next_point" is reached, it becomes "previous_point"
                     next_point_reached = True
@@ -211,27 +211,22 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         # usage_profile
         self._technical_profile = []  # creation of an empty usage_profile with all cases ready
-
         duration = 0
         consumption = {nature: 0 for nature in data_device["usage_profile"][0][1]}  # consumption is a dictionary containing the consumption for each nature
         priority = 0
 
         for i in range(len(data_device["usage_profile"])):
-
             buffer = duration % time_step  # the time already taken by the line i-1 of data in the current time_step
             duration += data_device["usage_profile"][i][0]  # duration represents the time not affected yet in a line of data of usage profile
 
             if duration < time_step:  # as long as the next time step is not reached, consumption and duration are summed
-
                 for nature in data_device["usage_profile"][i][1]:  # consumption is added for each nature present
                     consumption[nature] = consumption[nature] + data_device["usage_profile"][i][1][nature]
                 priority = data_device["usage_profile"][i][2]
 
-            else:  # we add a part of the energy consumption on the current step and we report the other part and we store the values into the self
-
+            else:  # we add a part of the energy consumption on the current step, we report the other part and we store the values into the self
                 # fulling the usage_profile
                 while duration // time_step:  # here we manage a constant consumption over several time steps
-
                     self._technical_profile.append([{}, 0])  # creation of the entry, with a dictionary for the different natures
                     time_left = time_step - buffer  # the time available on the current time-step for the current consumption line i in data
                     ratio = min(time_left / data_device["usage_profile"][i][0], 1)  # the min() ensures that a duration which doesn't reach the next time step is not overestimated
@@ -293,20 +288,22 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
     # ##########################################################################################
 
     def update(self):
-
         if not self._moment:  # if a new period is starting
             self._is_done = []  # the list of achieved appliances is reinitialized
-
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         if not self._remaining_time:  # if the device is not running then it's the user_profile who is taken into account
-
             for i in range(len(self._user_profile)):
                 line = self._user_profile[i]
                 if line[0] == self._moment and line[2] not in self._is_done:  # if a consumption has been scheduled and if it has not been fulfilled yet
                     for nature in energy_wanted:
                         energy_wanted[nature]["energy_maximum"] = self._technical_profile[0][0][nature]  # the energy needed by the device during the first hour of utilization
                         energy_wanted[nature]["energy_nominal"] = line[1] * self._technical_profile[0][0][nature]  # it modelizes the emergency
+                        start_moment = self._moment - line[2]
+                        energy_wanted[nature]["flexibility"] = [1 for j in range(start_moment, len(self._user_profile))]
+                        energy_wanted[nature]["interruptibility"] = 0  # such devices are not interruptible once their cycle hast started
+                        self._coming_volume[nature] = sum([self._technical_profile[j][0][nature] for j in range(len(self._technical_profile))])
+                        energy_wanted[nature]["coming_volume"] = self._coming_volume[nature]  # kWh, the energy consumed on the whole cycle
 
                     self._is_done.append(line[2])  # adding the usage to the list of already satisfied usages
                     # reinitialisation of the interruption data
@@ -325,6 +322,9 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
                 energy_wanted[nature]["energy_minimum"] = 0
                 energy_wanted[nature]["energy_maximum"] = self._technical_profile[-self._remaining_time][0][nature]  # energy needed
                 energy_wanted[nature]["energy_nominal"] = ratio * energy_wanted[nature]["energy_maximum"]
+                energy_wanted[nature]["flexibility"] = []
+                energy_wanted[nature]["interruptibility"] = 0  # such devices are not interruptible once their cycle hast started
+                energy_wanted[nature]["coming_volume"] = self._coming_volume[nature]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -333,18 +333,17 @@ class ShiftableDevice(Device):  # a consumption which is shiftable
 
         energy_wanted = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # total energy wanted by the device
         energy_accorded = sum([self.get_energy_accorded_quantity(nature) for nature in self.natures])  # total energy accorded to the device
+        for nature in self._natures:
+            self._coming_volume[nature.name] -= self.get_energy_accorded_quantity(nature)
 
         if self._remaining_time and energy_accorded < energy_wanted:  # if the device has started and not been served, then it has been interrupted
             self._interruption_data[0] = True  # it is flagged as "interrupted"
-
         elif energy_wanted:  # if the device is active
-
             if energy_accorded:  # if it has been served
                 if self._remaining_time:  # if it has started
                     self._remaining_time -= 1  # decrementing the remaining time of use
                 else:  # if it has not started yet
                     self._remaining_time = len(self._technical_profile) - 1
-
                 self._interruption_data[2] += 1  # it has been working for one more time step
             else:  # if it has not started
                 self._is_done.pop()
@@ -538,6 +537,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         # usage_profile
         self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
+        print(self._technical_profile)
         self._demand = self._technical_profile  # if the simulation begins during an usage, the demand has to be initialized
 
         self._unused_nature_removal()  # remove unused natures
@@ -574,6 +574,9 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                 energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
                 # but it needs to be between the min and the max value
                 energy_wanted[nature]["energy_maximum"] = self._max_power[nature]
+                energy_wanted[nature]["flexibility"] = [1 - self._min_power[nature]/self._max_power[nature] for _ in range(ceil(self._demand[nature]/self._max_power[nature]))]
+                energy_wanted[nature]["interruptibility"] = 1 - int(self._min_power[nature] is True)
+                energy_wanted[nature]["coming_volume"] = self._demand[nature]  # kWh, the energy consumed on the whole cycle
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -647,7 +650,6 @@ class Converter(Device):
             energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
-            # print(energy_wanted[nature_name])
 
         # upstream side
         for aggregator in self._upstream_aggregators_list:
@@ -656,8 +658,6 @@ class Converter(Device):
             energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency[nature_name]  # the physical minimum of energy this converter has to consume
             energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency[nature_name]  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
-            # print("plup", energy_wanted[nature_name])
-            # print()
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -718,7 +718,6 @@ class Converter(Device):
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
             self._catalog.set(f"{self.name}.{nature_name}.efficiency", self._efficiency[nature_name])
-            # print(self._catalog.get(f"{self.name}.{nature_name}.energy_accorded"))
 
 
 # ##############################################################################################
@@ -737,6 +736,7 @@ class Storage(Device):
     def __init__(self, name, contracts, agent, filename, aggregators, profiles, parameters):
 
         self._capacity = parameters["capacity"]
+        self._state_of_charge = parameters["initial_SOC"]
 
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
@@ -762,7 +762,7 @@ class Storage(Device):
         self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
         # self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
 
-        self._catalog.add(f"{self.name}.energy_stored", self._capacity * 0.5)  # the energy stored at a given time, considered as half charged at the beginning
+        self._catalog.add(f"{self.name}.energy_stored", self._capacity * self._state_of_charge)  # the energy stored at the starting point
         self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
 
         self._charge_nature = data_device["charge"]["nature"]
@@ -776,7 +776,7 @@ class Storage(Device):
     # ##########################################################################################
 
     def update(self):  # method updating needs of the devices before the supervision
-        self._catalog.get(f"{self.name}.energy_stored")
+        old_energy_stored = self._catalog.get(f"{self.name}.energy_stored")
         energy_stored = self._degradation_of_energy_stored()  # reduction of the energy stored over time
         self._catalog.set(f"{self.name}.energy_stored", energy_stored)
 
@@ -787,9 +787,9 @@ class Storage(Device):
         energy_wanted[self._charge_nature]["energy_maximum"] = min(self._max_transferable_energy["charge"](), (self._capacity - energy_stored) / self._efficiency["charge"])  # the charge mode, where energy is "consumed"
 
         energy_wanted[self._charge_nature]["efficiency"] = self._efficiency
-        # energy_wanted[self._charge_nature]["self_discharge_rate"] = self._degradation_of_energy_stored  # TODO: à faire bien
+        energy_wanted[self._charge_nature]["self_discharge_rate"] = 1 - old_energy_stored/energy_stored
         energy_wanted[self._charge_nature]["capacity"] = self._capacity
-        # energy_wanted[self._charge_nature]["state_of_charge"] = self._state_of_charge  # TODO: à faire bien
+        energy_wanted[self._charge_nature]["state_of_charge"] = self._state_of_charge
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -806,6 +806,7 @@ class Storage(Device):
                 energy_stored += energy_accorded["quantity"] * self._efficiency["charge"]
 
         self._catalog.set(f"{self.name}.energy_stored", energy_stored)
+        self._state_of_charge = (energy_stored - self._min_energy) / self._capacity
 
     def _degradation_of_energy_stored(self):  # a class-specific function reducing the energy stored over time
         pass
