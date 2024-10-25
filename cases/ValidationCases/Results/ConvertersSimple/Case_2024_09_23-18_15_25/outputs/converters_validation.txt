@@ -1,0 +1,9 @@
+simple_converter_test: This script checks that converters are working well.
+The following keys are checked: dict_keys(['background_owner.LTH.energy_bought', 'converter_owner.LVE.energy_bought', 'converter_owner.LTH.energy_sold'])
+
+
+Resume of the test:
+no problem encountered for key background_owner.LTH.energy_bought
+no problem encountered for key converter_owner.LVE.energy_bought
+no problem encountered for key converter_owner.LTH.energy_sold
+

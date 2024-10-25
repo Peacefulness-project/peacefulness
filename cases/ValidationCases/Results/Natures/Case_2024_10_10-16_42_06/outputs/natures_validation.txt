@@ -1,0 +1,9 @@
+natures_test: This script checks that natures have no influences on the calculation
+The following keys are checked: dict_keys(['devices_owner.LVE.energy_bought', 'devices_owner.LTH.energy_bought', 'devices_owner.LPG.energy_bought'])
+
+
+Resume of the test:
+no problem encountered for key devices_owner.LVE.energy_bought
+no problem encountered for key devices_owner.LTH.energy_bought
+no problem encountered for key devices_owner.LPG.energy_bought
+

@@ -1,0 +1,10 @@
+subaggregators_test: This script check that aggregators do not make a difference between devices and sub-aggregators
+The following keys are checked: dict_keys(['device_owner_sup.LVE.energy_bought', 'device_owner_inf.LVE.energy_bought', 'aggregators_sup_manager.LVE.energy_bought', 'aggregators_inf_manager.LVE.energy_bought'])
+
+
+Resume of the test:
+no problem encountered for key device_owner_sup.LVE.energy_bought
+no problem encountered for key device_owner_inf.LVE.energy_bought
+no problem encountered for key aggregators_sup_manager.LVE.energy_bought
+no problem encountered for key aggregators_inf_manager.LVE.energy_bought
+

@@ -1,0 +1,79 @@
+% LaTeX script
+%=================================
+
+
+\documentclass{standalone}
+%
+%
+%
+% Packages
+\usepackage{amsmath}
+\usepackage{eurosym}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{siunitx}
+
+\usepgfplotslibrary{dateplot}
+\pgfplotsset{compat = 1.16}
+%
+%
+% Main
+%
+\begin{document}
+
+\pgfplotstableread[col sep=semicolon]{C:\Users\y23hallo\PycharmProjects\peacefulness\cases\ValidationCases\Results\Devices\Case_2024_10_24-10_33_17\outputs\export_LVE_total_energy_sold.csv}{\data}
+
+\begin{tikzpicture}
+\begin{axis}[
+	xmin = 2000-01-01 01:00:00, xmax = 2000-01-02 00:00:00, 
+	ymin = 0, ymax = 23.405, 
+	xlabel = {$t \, [\si{\hour}]$},
+	ylabel = {$\textrm{B}_{\textrm{Photovoltaics}} \, [$\euro{}$]$},
+	xlabel style = {xshift=0.0cm, yshift=0.0cm},
+	ylabel style = {xshift=0.0cm, yshift=0.0cm},
+	xticklabel style = {rotate=90, anchor=near xticklabel, xshift=0.0cm, yshift=0.0cm},
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	date coordinates in = x,
+	xticklabel = {\year-\month-\day \, \hour:\minute},
+	%
+	legend pos = north west,
+	legend style = {draw=none, fill=none},
+	legend cell align = left,
+	legend columns={1},
+	legend image post style={scale=1},
+	]
+	\addplot+[only marks, mark size=1.25] table[ x = physical_time, y = PV_owner.LVE.energy_sold_reference]{\data};
+	\addplot+[mark=none, line width=1.25] table[ x = physical_time, y = PV_owner.LVE.energy_sold_simulation]{\data};
+	\legend{ ref., num.}
+\end{axis}
+\begin{axis}[
+	hide x axis,
+	axis y line* = right,
+	xmin = 2000-01-01 01:00:00, xmax = 2000-01-02 00:00:00, 
+	ymin = 0, ymax = 17.794237499999998, 
+	ylabel = {$\textrm{B}_{\textrm{WT}} \, [$\euro{}$]$},
+	ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm},
+	ylabel near ticks,
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	date coordinates in = x,
+	xticklabel = {\year-\month-\day \, \hour:\minute},
+	%
+	legend pos = north east,
+	legend style = {draw=none, fill=none},
+	legend cell align = left,
+	legend columns={1},
+	legend image post style={scale=1},
+	]
+	\addplot+[only marks, mark size=1.25, densely dashed] table[ x = physical_time, y = wind_turbine_owner.LVE.energy_sold_reference]{\data};
+	\addplot+[mark=none, line width=1.25, densely dashed] table[ x = physical_time, y = wind_turbine_owner.LVE.energy_sold_simulation]{\data};
+	\legend{ ref., num.}
+\end{axis}
+\end{tikzpicture}
+
+\pgfplotstableclear\data
+
+
+\end{document}

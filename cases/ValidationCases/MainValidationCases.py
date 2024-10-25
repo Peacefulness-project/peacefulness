@@ -5,7 +5,7 @@ from datetime import datetime
 from src.tools.Utilities import little_separation
 from lib.Subclasses.Daemon.ValidationDaemon.GlobalProblem import get_problem, set_problem
 
-chdir("../../")  # set the relative path to the project root
+# chdir("../../")  # set the relative path to the project root
 
 root_path = "cases/ValidationCases/cases/"  # the path to the cases
 
@@ -13,6 +13,7 @@ simulation_mains = listdir(root_path)  # the main corresponding to each case we 
 problem_list = list()  # a list of all the tests where a problem occured
 
 for file_path in simulation_mains:
+    print(file_path)
     exec(open(root_path + file_path).read(), globals())  # to execute the different simulations
     if get_problem():  # if a problem occurred
         problem_list.append(file_path)

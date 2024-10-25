@@ -43,7 +43,11 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
             direct_exchanges[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges")
         if aggregator.superior:
             direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges")
-
+        # print(formalism_message)
+        # print(prediction_message)
+        # print(prices)
+        # print(direct_exchanges)
+        # print(conversions)
     # To be noted, that the topology of energy exchanges within the MEG is already determined
     agent.update_state(formalism_message, prediction_message, prices, direct_exchanges, conversions)
 
