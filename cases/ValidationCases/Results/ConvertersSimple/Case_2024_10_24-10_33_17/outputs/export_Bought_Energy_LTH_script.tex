@@ -1,0 +1,56 @@
+% LaTeX script
+%=================================
+
+
+\documentclass{standalone}
+%
+%
+%
+% Packages
+\usepackage{amsmath}
+\usepackage{eurosym}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{siunitx}
+
+\usepgfplotslibrary{dateplot}
+\pgfplotsset{compat = 1.16}
+%
+%
+% Main
+%
+\begin{document}
+
+\pgfplotstableread[col sep=semicolon]{C:\Users\y23hallo\PycharmProjects\peacefulness\cases\ValidationCases\Results\ConvertersSimple\Case_2024_10_24-10_33_17\outputs\export_Bought_Energy_LTH.csv}{\data}
+
+\begin{tikzpicture}
+\begin{axis}[
+	xmin = 2000-01-01 01:00:00, xmax = 2000-01-02 00:00:00, 
+	ymin = 0, ymax = 22, 
+	xlabel = {$t \, [\si{\hour}]$},
+	ylabel = {$\mathcal{C} \, [$\euro{}$]$},
+	xlabel style = {xshift=0.0cm, yshift=0.0cm},
+	ylabel style = {xshift=0.0cm, yshift=0.0cm},
+	xticklabel style = {rotate=90, anchor=near xticklabel, xshift=0.0cm, yshift=0.0cm},
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	date coordinates in = x,
+	xticklabel = {\year-\month-\day \, \hour:\minute},
+	%
+	legend pos = north west,
+	legend style = {draw=none, fill=none},
+	legend cell align = left,
+	legend columns={1},
+	legend image post style={scale=1},
+	]
+	\addplot+[only marks, mark size=1.25] table[ x = physical_time, y = background_owner.LTH.energy_bought_reference]{\data};
+	\addplot+[mark=none, line width=1.25] table[ x = physical_time, y = background_owner.LTH.energy_bought_simulation]{\data};
+	\legend{ ref., num.}
+\end{axis}
+\end{tikzpicture}
+
+\pgfplotstableclear\data
+
+
+\end{document}

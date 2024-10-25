@@ -62,7 +62,10 @@ class DeepReinforcementLearning(Strategy):
             else:
                 self._catalog.set(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
 
-        # We define the min/max energy produced/consumed
+        # We define the min/max energy produced/consumed (todo - voir si ça marche)
+        # message["energy_minimum"] = - aggregator.capacity["selling"]
+        # message["energy_nominal"] = 0.0
+        # message["energy_maximum"] = aggregator.capacity["buying"]
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
@@ -112,6 +115,7 @@ class DeepReinforcementLearning(Strategy):
 
         # Publishing the needs
         if aggregator.contract:
+
             quantities_and_prices.append(message)
             quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
@@ -172,7 +176,10 @@ class DeepReinforcementLearning(Strategy):
                 converters_list[device.name] = device.device_aggregators
 
         # Energy conversion and exchanges
-        grid_topology = self.agent.grid.get_topology
+        if not self.agent.inference_flag:  # if we are training the model
+            grid_topology = self.agent.grid.get_topology
+        else:
+            grid_topology = self.agent.grid_topology
         bought_inside, spent_inside, sold_inside, earned_inside, bought_outside, spent_outside, sold_outside, earned_outside = distribute_energy_exchanges(self._catalog, aggregator, energy_accorded_to_exchange, grid_topology, converters_list, buying_price, selling_price, message, self.scope)
 
         # The energy is then distributed to the devices directly managed by the aggregator

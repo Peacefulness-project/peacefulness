@@ -1,0 +1,9 @@
+contracts_tariffs_test: This script checks that the billing works well for contracts.
+The following keys are checked: dict_keys(['flat_owner.money_spent', 'TOU_owner.money_spent', 'RTP_owner.money_spent'])
+
+
+Resume of the test:
+no problem encountered for key flat_owner.money_spent
+no problem encountered for key TOU_owner.money_spent
+no problem encountered for key RTP_owner.money_spent
+

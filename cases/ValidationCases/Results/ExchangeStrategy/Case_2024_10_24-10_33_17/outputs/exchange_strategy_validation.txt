@@ -1,0 +1,14 @@
+exchange_strategy_test: This script checks that exchange strategies work
+The following keys are checked: dict_keys(['light_autarky_owner.LVE.energy_bought', 'light_autarky_owner.LVE.energy_sold', 'autarky_owner.LVE.energy_bought', 'autarky_owner.LVE.energy_sold', 'always_satisfied_owner.LVE.energy_bought', 'always_satisfied_owner.LVE.energy_sold', 'exchanges_owner.LVE.energy_bought', 'exchanges_owner.LVE.energy_sold'])
+
+
+Resume of the test:
+no problem encountered for key light_autarky_owner.LVE.energy_bought
+no problem encountered for key light_autarky_owner.LVE.energy_sold
+no problem encountered for key autarky_owner.LVE.energy_bought
+no problem encountered for key autarky_owner.LVE.energy_sold
+no problem encountered for key always_satisfied_owner.LVE.energy_bought
+no problem encountered for key always_satisfied_owner.LVE.energy_sold
+no problem encountered for key exchanges_owner.LVE.energy_bought
+no problem encountered for key exchanges_owner.LVE.energy_sold
+

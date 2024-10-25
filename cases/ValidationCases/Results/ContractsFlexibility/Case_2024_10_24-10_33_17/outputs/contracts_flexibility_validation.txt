@@ -1,0 +1,9 @@
+contracts_flexibility_test: This script checks that the flexibility works well for contracts.
+The following keys are checked: dict_keys(['BAU_owner.LVE.energy_bought', 'cooperative_owner.LVE.energy_bought', 'curtailment_owner.LVE.energy_bought'])
+
+
+Resume of the test:
+no problem encountered for key BAU_owner.LVE.energy_bought
+no problem encountered for key cooperative_owner.LVE.energy_bought
+no problem encountered for key curtailment_owner.LVE.energy_bought
+

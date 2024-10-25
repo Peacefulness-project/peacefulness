@@ -1,0 +1,74 @@
+% LaTeX script
+%=================================
+
+
+\documentclass{standalone}
+%
+%
+%
+% Packages
+\usepackage{amsmath}
+\usepackage{eurosym}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{siunitx}
+
+\usepgfplotslibrary{dateplot}
+\pgfplotsset{compat = 1.16}
+%
+%
+% Main
+%
+\begin{document}
+
+\pgfplotstableread[col sep=semicolon]{C:\Users\y23hallo\PycharmProjects\peacefulness\cases\ValidationCases\Results\DistributionStrategy\Case_2024_10_24-10_33_17\outputs\export_LVE_partial_energy_bought.csv}{\data}
+
+\begin{tikzpicture}
+\begin{axis}[
+	xmin = 1, xmax = 24, 
+	ymin = 0, ymax = 0.017416666666666667, 
+	xlabel = {$t \, [\si{\hour}]$},
+	ylabel = {$\mathcal{C}_{ref.} \, [$\euro{}$]$},
+	xlabel style = {xshift=0.0cm, yshift=0.0cm},
+	ylabel style = {xshift=0.0cm, yshift=0.0cm},
+	xticklabel style = {rotate=0, anchor=near xticklabel, xshift=0.0cm, yshift=0.0cm},
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	legend pos = north west,
+	legend style = {draw=none, fill=none},
+	legend cell align = left,
+	legend columns={1},
+	legend image post style={scale=1},
+	]
+	\addplot+[only marks, mark size=1.25] table[ x = iteration, y = early_partial_owner.LVE.energy_bought_reference]{\data};
+	\addplot+[only marks, mark size=1.25] table[ x = iteration, y = expensive_partial_owner.LVE.energy_bought_reference]{\data};
+	\addplot+[only marks, mark size=1.25] table[ x = iteration, y = consuming_partial_owner.LVE.energy_bought_reference]{\data};
+	\legend{ early, expens., consum.}
+\end{axis}
+\begin{axis}[
+	hide x axis,
+	axis y line* = right,
+	xmin = 1, xmax = 24, 
+	ymin = 0.0, ymax = 0.01741665, 
+	ylabel = {$\mathcal{C}_{num.} \, [$\euro{}$]$},
+	ylabel style = {font=\small, xshift=0.0cm, yshift=0.0cm},
+	ylabel near ticks,
+	yticklabel style = {rotate=0, anchor=near yticklabel, xshift=0.0cm, yshift=0.0cm},
+	%
+	legend pos = north east,
+	legend style = {draw=none, fill=none},
+	legend cell align = left,
+	legend columns={1},
+	legend image post style={scale=1},
+	]
+	\addplot+[mark=none, line width=1.25, densely dashed] table[ x = iteration, y = early_partial_owner.LVE.energy_bought_simulation]{\data};
+	\addplot+[mark=none, line width=1.25, densely dashed] table[ x = iteration, y = expensive_partial_owner.LVE.energy_bought_simulation]{\data};
+	\addplot+[mark=none, line width=1.25, densely dashed] table[ x = iteration, y = consuming_partial_owner.LVE.energy_bought_simulation]{\data};
+\end{axis}
+\end{tikzpicture}
+
+\pgfplotstableclear\data
+
+
+\end{document}

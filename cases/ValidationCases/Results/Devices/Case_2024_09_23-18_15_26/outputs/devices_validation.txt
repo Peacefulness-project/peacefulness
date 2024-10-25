@@ -1,0 +1,12 @@
+devices_test: This script checks that devices are working well.
+The following keys are checked: dict_keys(['background_owner.LVE.energy_bought', 'heating_owner.LVE.energy_bought', 'dishwasher_owner.LVE.energy_bought', 'PV_owner.LVE.energy_sold', 'hot_water_tank_owner.LVE.energy_bought', 'wind_turbine_owner.LVE.energy_sold'])
+
+
+Resume of the test:
+no problem encountered for key background_owner.LVE.energy_bought
+no problem encountered for key heating_owner.LVE.energy_bought
+no problem encountered for key dishwasher_owner.LVE.energy_bought
+no problem encountered for key PV_owner.LVE.energy_sold
+no problem encountered for key hot_water_tank_owner.LVE.energy_bought
+no problem encountered for key wind_turbine_owner.LVE.energy_sold
+

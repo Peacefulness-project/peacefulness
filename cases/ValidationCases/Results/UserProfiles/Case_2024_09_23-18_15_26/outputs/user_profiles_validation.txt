@@ -1,0 +1,13 @@
+user_profiles_test: This script checks that the user profiles work well
+The following keys are checked: dict_keys(['early_hot_water_tank_owner.LVE.energy_bought', 'month_dependency_hot_water_tank_owner.LVE.energy_bought', 'short_period_hot_water_tank_owner.LVE.energy_bought', 'two_usages_hot_water_tank_owner.LVE.energy_bought', 'early_heating_owner.LVE.energy_bought', 'hot_heating_owner.LVE.energy_bought', 'short_usage_heating_owner.LVE.energy_bought'])
+
+
+Resume of the test:
+no problem encountered for key early_hot_water_tank_owner.LVE.energy_bought
+no problem encountered for key month_dependency_hot_water_tank_owner.LVE.energy_bought
+no problem encountered for key short_period_hot_water_tank_owner.LVE.energy_bought
+no problem encountered for key two_usages_hot_water_tank_owner.LVE.energy_bought
+no problem encountered for key early_heating_owner.LVE.energy_bought
+no problem encountered for key hot_heating_owner.LVE.energy_bought
+no problem encountered for key short_usage_heating_owner.LVE.energy_bought
+

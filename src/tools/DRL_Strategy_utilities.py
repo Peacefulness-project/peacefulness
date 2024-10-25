@@ -36,9 +36,9 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
             managed_devices_buying_energies.append(Emax)
     # these prices are weighted by the energy proportion
     for index in range(len(managed_devices_selling_prices)):
-        managed_devices_selling_prices[index] = max(min_price, managed_devices_selling_energies[index] * managed_devices_selling_prices[index] / sum(managed_devices_selling_energies))
+        managed_devices_selling_prices[index] = managed_devices_selling_energies[index] * managed_devices_selling_prices[index] / sum(managed_devices_selling_energies)
     for index in range(len(managed_devices_buying_energies)):
-        managed_devices_buying_prices[index] = min(max_price, managed_devices_buying_energies[index] * managed_devices_buying_prices[index] / sum(managed_devices_buying_energies))
+        managed_devices_buying_prices[index] = managed_devices_buying_energies[index] * managed_devices_buying_prices[index] / sum(managed_devices_buying_energies)
 
     # Then, we retrieve the energy prices proposed by the sub-aggregators managed by the aggregator
     subaggregators_buying_prices = []
@@ -62,18 +62,19 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
             subaggregators_buying_energies.append(Emax)
     # these prices are weighted by the energy proportion
     for index in range(len(subaggregators_selling_prices)):
-        subaggregators_selling_prices[index] = max(min_price, subaggregators_selling_energies[index] * subaggregators_selling_prices[index] / sum(subaggregators_selling_energies))
+        subaggregators_selling_prices[index] = subaggregators_selling_energies[index] * subaggregators_selling_prices[index] / sum(subaggregators_selling_energies)
     for index in range(len(subaggregators_buying_energies)):
-        subaggregators_buying_prices[index] = min(max_price, subaggregators_buying_energies[index] * subaggregators_buying_prices[index] / sum(subaggregators_buying_energies))
+        subaggregators_buying_prices[index] = subaggregators_buying_energies[index] * subaggregators_buying_prices[index] / sum(subaggregators_buying_energies)
 
     buying_prices = [*managed_devices_buying_prices, *subaggregators_buying_prices]
     selling_prices = [*managed_devices_selling_prices, *subaggregators_selling_prices]
+
     if buying_prices:
-        buying_price = min(buying_prices)
+        buying_price = min(max(buying_prices), max_price)
     else:
         buying_price = 0.0
     if selling_prices:
-        selling_price = max(selling_prices)
+        selling_price = max(min(selling_prices), min_price)
     else:
         selling_price = 0.0
 
@@ -255,10 +256,13 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     The dict concerning energy exchanges is also returned.
     """
     list_of_columns = []
-
-    # Getting relevant info from the peacefulness_grid class considered for the RL agent
-    agent_grid_topology = agent.grid.get_topology  # the return of the get_topology method
-    agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
+    if not agent.inference_flag:  # when training the model
+        # Getting relevant info from the peacefulness_grid class considered for the RL agent
+        agent_grid_topology = agent.grid.get_topology  # the return of the get_topology method
+        agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
+    else:  # while exploiting the model (inference)
+        agent_grid_topology = agent.grid_topology
+        agent_storage_devices = {"dummy_key": 6}  # todo just a patchwork solution
 
     # Grouping actions into ones related to energy exchanges and ones related to management of energy consumption, production and storage inside the aggregators
     actions_related_to_aggregators = actions[:-len(agent_grid_topology)]
@@ -308,7 +312,7 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     exchange_dict = {}  # keys -> (('A1', 'A2'), ...) and values -> corresponding decision (energy exchange value)
     for index in range(len(agent_grid_topology)):
         exchange = agent_grid_topology[index]
-        exchange_value = actions_related_to_exchange[index]
+        exchange_value = - actions_related_to_exchange[index]
         number_of_concerned_aggregators = int((len(exchange) - 1) / 2)  # the format of each exchange is ('A1', 'A2', Emin, Emax, eta)
         concerned_aggregators = exchange[:number_of_concerned_aggregators]  # or ('A1', 'A2', 'A3', Emin, Emax, eta1, eta2)
         exchange_dict[concerned_aggregators] = exchange_value  # or ('A1', 'A2', 'A3', 'A4', Emin, Emax, eta1, eta2, eta3)

@@ -1,0 +1,9 @@
+complex_contracts_test: This script checks the complex contracts.
+The following keys are checked: dict_keys(['curtailment_ramp_no_degradation.money_spent', 'curtailment_ramp_no_degradation.money_earned', 'curtailment_ramp_degradation.money_earned'])
+
+
+Resume of the test:
+no problem encountered for key curtailment_ramp_no_degradation.money_spent
+no problem encountered for key curtailment_ramp_no_degradation.money_earned
+no problem encountered for key curtailment_ramp_degradation.money_earned
+

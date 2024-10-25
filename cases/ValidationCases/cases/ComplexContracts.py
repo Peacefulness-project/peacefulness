@@ -12,7 +12,7 @@ from src.common.Strategy import *
 from src.common.World import World
 
 from src.tools.SubclassesDictionary import get_subclasses
-
+from math import inf
 
 # ##############################################################################################
 # Minimum
