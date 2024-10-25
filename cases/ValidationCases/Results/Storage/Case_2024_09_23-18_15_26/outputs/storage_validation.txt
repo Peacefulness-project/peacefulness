@@ -1,0 +1,18 @@
+storage_test: This script checks that storage devices are working well.
+The following keys are checked: dict_keys(['battery_owner_no_degradation.LVE.energy_bought', 'battery_owner_no_degradation.LVE.energy_sold', 'battery_charge_and_discharge.energy_stored', 'battery_owner_degradation.LVE.energy_bought', 'battery_owner_degradation.LVE.energy_sold', 'battery_degradation.energy_stored', 'sensible_owner_no_degradation.LTH.energy_bought', 'sensible_owner_no_degradation.LTH.energy_sold', 'sensible_charge_and_discharge.energy_stored', 'sensible_owner_degradation.LTH.energy_bought', 'sensible_owner_degradation.LTH.energy_sold', 'sensible_degradation.energy_stored'])
+
+
+Resume of the test:
+no problem encountered for key battery_owner_no_degradation.LVE.energy_bought
+no problem encountered for key battery_owner_no_degradation.LVE.energy_sold
+no problem encountered for key battery_charge_and_discharge.energy_stored
+no problem encountered for key battery_owner_degradation.LVE.energy_bought
+no problem encountered for key battery_owner_degradation.LVE.energy_sold
+no problem encountered for key battery_degradation.energy_stored
+no problem encountered for key sensible_owner_no_degradation.LTH.energy_bought
+no problem encountered for key sensible_owner_no_degradation.LTH.energy_sold
+no problem encountered for key sensible_charge_and_discharge.energy_stored
+no problem encountered for key sensible_owner_degradation.LTH.energy_bought
+no problem encountered for key sensible_owner_degradation.LTH.energy_sold
+no problem encountered for key sensible_degradation.energy_stored
+

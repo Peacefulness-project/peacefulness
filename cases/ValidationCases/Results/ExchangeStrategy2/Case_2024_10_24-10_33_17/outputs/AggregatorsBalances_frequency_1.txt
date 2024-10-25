@@ -1,0 +1,26 @@
+simulation_time	physical_time	national_grid.energy_sold_inside	national_grid.energy_sold_outside	national_grid.energy_bought_inside	national_grid.energy_bought_outside	national_grid.energy_erased_consumption	national_grid.energy_erased_production	national_grid.money_spent_inside	national_grid.money_spent_outside	national_grid.money_earned_inside	national_grid.money_earned_outside	local_grid_emergency.energy_sold_inside	local_grid_emergency.energy_sold_outside	local_grid_emergency.energy_bought_inside	local_grid_emergency.energy_bought_outside	local_grid_emergency.energy_erased_consumption	local_grid_emergency.energy_erased_production	local_grid_emergency.money_spent_inside	local_grid_emergency.money_spent_outside	local_grid_emergency.money_earned_inside	local_grid_emergency.money_earned_outside	local_grid_quantity.energy_sold_inside	local_grid_quantity.energy_sold_outside	local_grid_quantity.energy_bought_inside	local_grid_quantity.energy_bought_outside	local_grid_quantity.energy_erased_consumption	local_grid_quantity.energy_erased_production	local_grid_quantity.money_spent_inside	local_grid_quantity.money_spent_outside	local_grid_quantity.money_earned_inside	local_grid_quantity.money_earned_outside	
+0	0001-01-01 00:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+1	0001-01-01 01:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+2	0001-01-01 02:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+3	0001-01-01 03:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+4	0001-01-01 04:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+5	0001-01-01 05:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+6	0001-01-01 06:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+7	0001-01-01 07:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+8	0001-01-01 08:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+9	0001-01-01 09:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+10	0001-01-01 10:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+11	0001-01-01 11:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+12	0001-01-01 12:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+13	0001-01-01 13:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+14	0001-01-01 14:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+15	0001-01-01 15:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+16	0001-01-01 16:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+17	0001-01-01 17:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+18	0001-01-01 18:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+19	0001-01-01 19:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+20	0001-01-01 20:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+21	0001-01-01 21:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+22	0001-01-01 22:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+23	0001-01-01 23:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	
+24	0001-01-02 00:00:00	0	0	0	0	0	0	5.5	0	5.0	0	5.0	0	5.0	0	1.0	1.0	5.0	0	5.5	0	0	0	0	0	0	0	0	0	0	0	

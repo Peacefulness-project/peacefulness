@@ -1,0 +1,18 @@
+Summary of the test
+The test run was checking the following elements:
+	=> ComplexContracts.py 
+	=> ContractsFlexibility.py 
+	=> ContractsTariffs.py 
+	=> ConvertersComplex.py 
+	=> ConvertersSimple.py 
+	=> DataLoggerRequests.py 
+	=> Devices.py 
+	=> DistributionStrategy.py 
+	=> ExchangeStrategy.py 
+	=> ExchangeStrategy2.py 
+	=> Natures.py 
+	=> Storage.py 
+	=> Subaggregators.py 
+	=> UserProfiles.py 
+Finally, no problem occurred
+

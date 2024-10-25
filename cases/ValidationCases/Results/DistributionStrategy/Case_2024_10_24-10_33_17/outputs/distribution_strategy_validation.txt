@@ -1,0 +1,18 @@
+distribution_strategy_test: This script checks that distribution strategies work
+The following keys are checked: dict_keys(['early_emergency_owner.LVE.energy_bought', 'expensive_emergency_owner.LVE.energy_bought', 'consuming_emergency_owner.LVE.energy_bought', 'early_price_owner.LVE.energy_bought', 'expensive_price_owner.LVE.energy_bought', 'consuming_price_owner.LVE.energy_bought', 'early_quantity_owner.LVE.energy_bought', 'expensive_quantity_owner.LVE.energy_bought', 'consuming_quantity_owner.LVE.energy_bought', 'early_partial_owner.LVE.energy_bought', 'expensive_partial_owner.LVE.energy_bought', 'consuming_partial_owner.LVE.energy_bought'])
+
+
+Resume of the test:
+no problem encountered for key early_emergency_owner.LVE.energy_bought
+no problem encountered for key expensive_emergency_owner.LVE.energy_bought
+no problem encountered for key consuming_emergency_owner.LVE.energy_bought
+no problem encountered for key early_price_owner.LVE.energy_bought
+no problem encountered for key expensive_price_owner.LVE.energy_bought
+no problem encountered for key consuming_price_owner.LVE.energy_bought
+no problem encountered for key early_quantity_owner.LVE.energy_bought
+no problem encountered for key expensive_quantity_owner.LVE.energy_bought
+no problem encountered for key consuming_quantity_owner.LVE.energy_bought
+no problem encountered for key early_partial_owner.LVE.energy_bought
+no problem encountered for key expensive_partial_owner.LVE.energy_bought
+no problem encountered for key consuming_partial_owner.LVE.energy_bought
+

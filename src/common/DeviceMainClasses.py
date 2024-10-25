@@ -775,8 +775,8 @@ class Storage(Device):
         self._charge_nature = data_device["charge"]["nature"]
         self._discharge_nature = data_device["discharge"]["nature"]
 
-        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step,
-                                         "discharge": lambda: data_device["discharge"]["power"] * time_step}
+        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step * self._capacity,
+                                         "discharge": lambda: data_device["discharge"]["power"] * time_step * self._capacity}
 
     # ##########################################################################################
     # Dynamic behavior
