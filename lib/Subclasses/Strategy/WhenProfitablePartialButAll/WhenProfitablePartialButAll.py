@@ -19,10 +19,12 @@ class WhenProfitablePartialButAll(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
+        maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
 
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
@@ -30,12 +32,12 @@ class WhenProfitablePartialButAll(Strategy):
         sort_function = get_price  # we choose a sort criteria
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers, sorted_storage] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
         [buying_price, selling_price, final_price] = self._calculate_prices(sorted_demands, sorted_offers, max_price, min_price)  # initialization of prices
 
@@ -62,19 +64,23 @@ class WhenProfitablePartialButAll(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
+        maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
         # formulation of needs
-        [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
+        [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
+
+        # TODO: manage storage
 
         # ##########################################################################################
         # balance of energy available

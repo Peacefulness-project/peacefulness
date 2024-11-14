@@ -7,6 +7,8 @@ class SensibleHeatStorage(Storage):
 
     def __init__(self, name, contracts, agent, aggregator, profiles, parameters, filename="lib/Subclasses/Device/SensibleHeatStorage/SensibleHeatStorage.json"):
         parameters["capacity"] = 0
+        parameters["initial_SOC"] = 0
+        self._initial_temperature = parameters["initial_temperature"]
         super().__init__(name, contracts, agent, filename, aggregator, profiles, parameters)
 
         temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
@@ -52,7 +54,7 @@ class SensibleHeatStorage(Storage):
         # energy equivalence
         self._min_energy = (273.15 + self._min_temperature) * self._density * self._volume * self._thermal_capacity  # energy corresponding to the min temperature
         self._capacity = (273.15 + self._max_temperature) * self._density * self._volume * self._thermal_capacity  # energy corresponding to the max temperature
-        self._catalog.add(f"{self.name}.energy_stored", self._capacity * self._state_of_charge)  # the energy stored at the starting point
+        self._catalog.add(f"{self.name}.energy_stored", self._temperature_to_energy(self._initial_temperature))  # the energy stored at the starting point
 
     def _energy_to_temperature(self, energy):  # conversion from energy to temperature
         temperature = (energy - self._min_energy) / (self._capacity - self._min_energy) * (self._max_temperature - self._min_temperature) + self._min_temperature

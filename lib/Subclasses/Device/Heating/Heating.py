@@ -24,9 +24,9 @@ class Heating(AdjustableDevice):
             location.append(self._location)  # add the location of the device to the list of locations
 
         # managing the temperature at the level of the agent
+        outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
         try:  # there can be only one temperature in the catalog for each agent
             # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
-            outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
             self._catalog.add(f"{self.agent.name}.current_indoor_temperature", parameters["initial_temperature"])
             self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", parameters["initial_temperature"])
 

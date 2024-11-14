@@ -122,7 +122,7 @@ LPG = load_low_pressure_gas()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France", "coefficient": 1})  # sets prices for flat rate
+price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France", "buying_coefficient": 1, "selling_coefficient": 1})  # sets prices for flat rate
 price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0.1, 0.2], "on-peak_hours": [[12, 24]]})  # sets prices for TOU rate
 price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_grid", {"nature": LVE.name, "buying_price": 0.5, "selling_price": 0.1})  # sets prices for flat rate
 price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0.1})  # sets prices for flat rate
@@ -301,58 +301,15 @@ export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
 
 test_contract_datalogger = Datalogger("test_contract_datalogger", "StorageData", graph_options=export_graph_options_1)
 test_contract_datalogger.add("physical_time", graph_status="X")
-# test_contract_datalogger.add(f"dummy.LVE.energy_bought")
-# test_contract_datalogger.add(f"dummy.LVE.energy_erased")
-
-
-
-# producer_datalogger.add(f"{price_manager_TOU_heat.name}.buying_price")
-# producer_datalogger.add(f"{price_manager_TOU_heat.name}.selling_price")
-# producer_datalogger.add(f"{outdoor_temperature_daemon.location}.current_outdoor_temperature")
-
-# producer_datalogger.add(f"heat_storage_1.LTH.energy_wanted")
-# producer_datalogger.add(f"heat_storage_1.LTH.energy_accorded")
-# producer_datalogger.add(f"heat_storage_1.energy_stored")
-#
-# producer_datalogger.add(f"heat_storage_2.LTH.energy_wanted")
-# producer_datalogger.add(f"heat_storage_2.LTH.energy_accorded")
-# producer_datalogger.add(f"heat_storage_2.energy_stored")
-#
-# producer_datalogger.add(f"heat_storage_3.LTH.energy_wanted")
-# producer_datalogger.add(f"heat_storage_3.LTH.energy_accorded")
-# producer_datalogger.add(f"heat_storage_3.energy_stored")
-#
-# producer_datalogger.add(f"{price_manager_TOU_elec.name}.buying_price")
-# producer_datalogger.add(f"{price_manager_TOU_elec.name}.selling_price")
-#
-# producer_datalogger.add(f"battery.LVE.energy_wanted")
-# producer_datalogger.add(f"battery.LVE.energy_accorded")
-# producer_datalogger.add(f"battery.energy_stored")
-
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  aggregator
-# subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period="global")
 
-# subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["AggregatorProfitsDatalogger"](period="global")
-
-# subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["ContractBalancesDatalogger"](period="global")
-
-# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period="global")
-
 subclasses_dictionary["Datalogger"]["PeakToAverageDatalogger"]()
-# subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="month")
 subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"](period="global")
-
-# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["WeightedSelfSufficiencyDatalogger"](period="global")
 
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period=2)
 subclasses_dictionary["Datalogger"]["CurtailmentDatalogger"](period="global")
@@ -362,57 +319,8 @@ subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("tutu", "Tutu", 
 subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["WeightedCurtailmentDatalogger"](period="global")
 
-# subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period=1)
-# subclasses_dictionary["Datalogger"]["MismatchDatalogger"](period="global")
-
-# # datalogger used to get back producer outputs
-# export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
-#
 producer_datalogger = Datalogger("producer_datalogger", "ProducerBalances", period="global")
-#
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_bought")
-#
-# producer_datalogger.add(f"{producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{producer.name}.LVE.energy_bought")
-#
-# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{WT_producer.name}.LVE.energy_bought")
-# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_erased")
-# producer_datalogger.add(f"{DHN_producer.name}.LTH.energy_sold")
 
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_erased")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.LTH.energy_erased")
-# producer_datalogger.add(f"{PV_producer.name}.LVE.energy_sold")
-# producer_datalogger.add(f"{solar_thermal_collector_producer.name}.LTH.energy_sold")
-#
-# producer_datalogger.add(f"{PV_field.name}.exergy_in")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}.exergy_in")
-# producer_datalogger.add(f"{PV_field.name}.exergy_out")
-# producer_datalogger.add(f"{solar_thermal_collector_field.name}.exergy_out")
-# producer_datalogger.add("Pau.reference_temperature")
-# producer_datalogger.add("Pau.irradiation_value")
-#
-# test_datalogger = Datalogger("test_datalogger", "test")
-# test_datalogger.add("egoist_single_0.LVE.energy_bought")
-# test_datalogger.add("egoist_single_0.LTH.energy_bought")
-# test_datalogger.add("egoist_single_0.money_spent")
-#
-# test_datalogger.add("egoist_family_0.LVE.energy_bought")
-# test_datalogger.add("egoist_family_0.LTH.energy_bought")
-# test_datalogger.add("egoist_family_0.money_spent")
-#
-# test_datalogger.add("egoist_single_0_Heating_0.LVE.energy_accorded")
-# test_datalogger.add("egoist_single_0_HotWaterTank_0.LVE.energy_accorded")
-
-# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating")
-# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("Heating", "global")
-#
-# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank")
-# subclasses_dictionary["Datalogger"]["DeviceSubclassBalancesDatalogger"]("HotWaterTank", "global")
 
 # figures
 export_graph_options_3 = GraphOptions("Test", ["LaTeX", "matplotlib"], "multiple_series")

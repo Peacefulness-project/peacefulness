@@ -7,6 +7,8 @@ class LatentHeatStorage(Storage):
 
     def __init__(self, name, contracts, agent, aggregator, profiles, parameters, filename="lib/Subclasses/Device/LatentHeatStorage/LatentHeatStorage.json"):
         parameters["capacity"] = 0
+        parameters["initial_SOC"] = 0
+        self._initial_temperature = parameters["initial_temperature"]
         super().__init__(name, contracts, agent, filename, aggregator, profiles, parameters)
 
         temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
@@ -55,7 +57,7 @@ class LatentHeatStorage(Storage):
         # energy equivalence
         self._min_energy = (273.15 + self._min_temperature) * self._mass * self._thermal_capacity_solid  # energy corresponding to the min temperature, when the material is solid
         self._capacity = ((273.15 + self._T_solidus) * self._thermal_capacity_solid + self._latent_heat + (self._T_liquidus + self._max_temperature) * self._thermal_capacity_liquid) * self._mass  # energy corresponding to the max temperature, when the material is liquid
-        self._catalog.add(f"{self.name}.energy_stored", self._min_energy + (self._capacity - self._min_energy) / 2)  # the energy stored at a given time, considered as half charged at the beginning
+        self._catalog.add(f"{self.name}.energy_stored", self._temperature_to_energy(self._initial_temperature))  # the energy stored at the starting point
         middle_temperature = (self._max_temperature + self._min_temperature) / 2  # temperature corresponding to the initial half-charge
         self._solidus_fraction = max(min((middle_temperature - self._T_solidus) / (self._T_liquidus - self._T_solidus), 0), 1)  # the initial liquid fraction in the storage (if any)
 

@@ -6,7 +6,7 @@
     "Background": [{"name": "Background", "data_profiles": {"user": "ECOS", "device": "ECOS_1"}, "quantity": [1,1], "contract": "LVE_BAU"}],
     "WashingMachine": [{"name": "WashingMachine", "data_profiles": {"user": "ECOS_1", "device": "ECOS"}, "quantity": [1,1], "contract": "LVE_BAU"}],
 
-    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "apartment_elec"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "apartment_elec"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"initial_temperature": 20}}],
     "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_elec"}, "quantity": [1,1], "contract": "LVE_BAU"}]
   },
 
