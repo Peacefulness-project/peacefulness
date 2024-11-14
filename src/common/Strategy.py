@@ -797,24 +797,31 @@ class Strategy:
                          sorted_demands: List[Dict], sorted_storage: List[Dict]):
         energy_available_consumption += maximum_energy_charge
         for message in sorted_storage:  # transforming the storage message in a production one
-            Emax = message["quantity"]
-            message["quantity"] = Emax
-            message["quantity_min"] = 0
+            message = self._transform_storage_into_consumption(message)
             sorted_demands.append(message)
 
         return energy_available_consumption, sorted_demands
+
+    def _transform_storage_into_consumption(self, message: Dict):
+        message["quantity_min"] = 0
+
+        return message
 
     def _allocate_storage_to_discharge(self, energy_available_production: float, maximum_energy_discharge: float,
                          sorted_offers: List[Dict], sorted_storage: List[Dict]):
         energy_available_production += maximum_energy_discharge
         for message in sorted_storage:  # transforming the storage message in a production one
-            Emin = message["quantity_min"]
-            message["quantity"] = Emin
-            message["quantity_min"] = 0
+            message = self._transform_storage_into_production(message)
             sorted_offers.append(message)
 
         return energy_available_production, sorted_offers
 
+    def _transform_storage_into_production(self, message: Dict):
+        Emin = message["quantity_min"]
+        message["quantity"] = Emin
+        message["quantity_min"] = 0
+
+        return message
     def _distribute_consumption_full_service(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
         i = 0
 
