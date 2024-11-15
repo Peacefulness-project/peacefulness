@@ -63,20 +63,20 @@ class DeepReinforcementLearning(Strategy):
                 self._catalog.set(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
 
         # We define the min/max energy produced/consumed (todo - voir si ça marche)
-        # message["energy_minimum"] = - aggregator.capacity["selling"]
-        # message["energy_nominal"] = 0.0
-        # message["energy_maximum"] = aggregator.capacity["buying"]
-        minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
-        minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
-        maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
-        maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
-
-        # The aggregator publishes its needs
-        energy_difference = maximum_energy_consumed - maximum_energy_produced
-        message["energy_minimum"] = energy_difference
-        message["energy_nominal"] = energy_difference
-        message["energy_maximum"] = energy_difference
+        message["energy_minimum"] = - aggregator.capacity["selling"]
+        message["energy_nominal"] = 0.0
+        message["energy_maximum"] = aggregator.capacity["buying"]
+        # minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
+        # minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
+        # maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
+        # maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        # [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        #
+        # # The aggregator publishes its needs
+        # energy_difference = maximum_energy_consumed - maximum_energy_produced
+        # message["energy_minimum"] = energy_difference
+        # message["energy_nominal"] = energy_difference
+        # message["energy_maximum"] = energy_difference
 
         # TODO verify this proposal with Timothé
         if aggregator.superior:
