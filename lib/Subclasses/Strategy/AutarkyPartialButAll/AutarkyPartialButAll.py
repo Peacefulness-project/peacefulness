@@ -28,13 +28,15 @@ class AutarkyPartialButAll(Strategy):
         minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
         maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
         maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
+        maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed
 
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
-        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
         # ##########################################################################################
         # distribution of energy
@@ -50,7 +52,15 @@ class AutarkyPartialButAll(Strategy):
 
         else:  # if there is some possibility to balance the grid
             # formulation of needs
-            [sorted_demands, sorted_offers] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
+            [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)  # sort the quantities according to their prices
+
+            # determination of storage usage
+            if minimum_energy_consumed > minimum_energy_produced:  # if there is a lack of local production...
+                self._allocate_storage_to_discharge(maximum_energy_produced, maximum_energy_discharge,
+                                                    sorted_offers, sorted_storage)
+            elif minimum_energy_produced > minimum_energy_consumed:  # if there is a lack of local consumption...
+                self._allocate_storage_to_charge(maximum_energy_consumed, maximum_energy_charge,
+                                                 sorted_demands, sorted_storage)
 
             # first we ensure the urgent quantities will be satisfied
             # demand side

@@ -88,6 +88,8 @@ BAU_strategy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
+# strategy managing storage
+strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
 
 # ##############################################################################################
 # Manual creation of agents
@@ -102,11 +104,15 @@ latent_owner_degradation = Agent("latent_owner_degradation")
 
 aggregators_manager = Agent("aggregators_manager")
 
+battery_owner_testing_strategy = Agent("battery_owner_testing_strategy")
+dummy_consumer = Agent("consumer")
 
 # ##############################################################################################
 # Manual creation of contracts
 threshold_contract_elec = subclasses_dictionary["Contract"]["StorageThresholdPricesContract"]("threshold_contract_elec", LVE, price_manager_TOU_elec, {"buying_threshold": 0.1, "selling_threshold": 0.2})
 threshold_contract_heat = subclasses_dictionary["Contract"]["StorageThresholdPricesContract"]("threshold_contract_heat", LTH, price_manager_TOU_heat, {"buying_threshold": 0.1, "selling_threshold": 0.2})
+cooperative_elec_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_elec_contract", LVE, price_manager_TOU_elec)
+BAU_elec_contract = subclasses_dictionary["Contract"]["EgoistContract"]("egoist_elec_contract", LVE, price_manager_TOU_elec)
 
 
 # ##############################################################################################
@@ -117,17 +123,23 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 
 aggregator_heat = Aggregator("aggregator_heat", LTH, BAU_strategy, aggregators_manager, aggregator_grid, threshold_contract_heat)
 
+second_aggregator = Aggregator("second_aggregator", LVE, strategy_elec, aggregators_manager, aggregator_grid, threshold_contract_elec)
 
 # ##############################################################################################
 # Manual creation of devices
-subclasses_dictionary["Device"]["ElectricalBattery"]("battery_charge_and_discharge", threshold_contract_elec, battery_owner_no_degradation, aggregator_elec, {"device": "battery_no_degradation"},  {"capacity": 10}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
-subclasses_dictionary["Device"]["ElectricalBattery"]("battery_degradation", threshold_contract_elec, battery_owner_degradation, aggregator_elec, {"device": "battery_degradation"},  {"capacity": 10}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery_charge_and_discharge", threshold_contract_elec, battery_owner_no_degradation, aggregator_elec, {"device": "battery_no_degradation"},  {"capacity": 10, "initial_SOC": 0.5}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery_degradation", threshold_contract_elec, battery_owner_degradation, aggregator_elec, {"device": "battery_degradation"},  {"capacity": 10, "initial_SOC": 0.5}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
 
-subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_charge_and_discharge", threshold_contract_heat, sensible_owner_no_degradation, aggregator_heat, {"device": "water_tank_no_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
-subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_degradation", threshold_contract_heat, sensible_owner_degradation, aggregator_heat, {"device": "water_tank_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
+subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_charge_and_discharge", threshold_contract_heat, sensible_owner_no_degradation, aggregator_heat, {"device": "water_tank_no_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 50}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
+subclasses_dictionary["Device"]["SensibleHeatStorage"]("sensible_degradation", threshold_contract_heat, sensible_owner_degradation, aggregator_heat, {"device": "water_tank_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 50}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
 
-subclasses_dictionary["Device"]["LatentHeatStorage"]("latent_charge_and_discharge", threshold_contract_heat, latent_owner_no_degradation, aggregator_heat, {"device": "tank_no_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/LatentHeatStorage.json")
-subclasses_dictionary["Device"]["LatentHeatStorage"]("latent_degradation", threshold_contract_heat, latent_owner_degradation, aggregator_heat, {"device": "tank_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/LatentHeatStorage.json")
+subclasses_dictionary["Device"]["LatentHeatStorage"]("latent_charge_and_discharge", threshold_contract_heat, latent_owner_no_degradation, aggregator_heat, {"device": "tank_no_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 50}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/LatentHeatStorage.json")
+subclasses_dictionary["Device"]["LatentHeatStorage"]("latent_degradation", threshold_contract_heat, latent_owner_degradation, aggregator_heat, {"device": "tank_degradation"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 50}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/LatentHeatStorage.json")
+
+# storage strategy management
+subclasses_dictionary["Device"]["ElectricalBattery"]("battery_either_charge_or_discharge", cooperative_elec_contract, battery_owner_testing_strategy, second_aggregator, {"device": "test_storage_management"},  {"capacity": 10, "initial_SOC": 0.5}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/ElectricalBattery.json")
+subclasses_dictionary["Device"]["Background"]("background", BAU_elec_contract, dummy_consumer, second_aggregator, {"user": "dummy_user", "device": "test_storage_management"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+
 
 # ##############################################################################################
 # Creation of the validation daemon
@@ -150,6 +162,10 @@ reference_values = {"battery_owner_no_degradation.LVE.energy_bought": [1, 1, 1, 
                     "sensible_owner_degradation.LTH.energy_bought": [4, 4, 4, 4, 4, 3.403675625, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     "sensible_owner_degradation.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1.640284375, 0, 0, 0, 0, 0, 0, 0],
                     "sensible_degradation.energy_stored": [325.15, 327.05, 328.855, 330.56975, 332.1987625, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 333.15, 328.65, 324.375, 320.31375, 316.4555625, 313.15, 311.65, 310.225, 308.87125, 307.5851875, 306.363428125, 305.20275671875, 304.10011888281247],
+
+                    "battery_either_charge_or_discharge.LVE.energy_bought": [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+                    "battery_either_charge_or_discharge.LVE.energy_sold": [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+                    "battery_either_charge_or_discharge.energy_stored": [6, 6, 5, 6, 6, 5, 6, 6, 5, 6, 6, 5, 6, 6, 5, 6, 6, 5, 6, 6, 5, 6, 6, 5],
 
                     # "latent_owner_no_degradation.LTH.energy_bought": [1, 1, 1, 1, 1, 1, 2/3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     # "latent_owner_no_degradation.LTH.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

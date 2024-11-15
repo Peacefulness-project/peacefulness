@@ -20,6 +20,17 @@
       "efficiency_variation": 0,
       "power_variation": 0,
       "capacity_variation": 0
+    },
+
+    "test_storage_management": {
+      "charge": {"nature": "LVE", "power": 2, "efficiency":  1},
+      "discharge": {"nature": "LVE", "power": 2, "efficiency": 1},
+      "minimum_energy": 3,
+      "degradation_rate": 0,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "capacity_variation": 0
     }
   }
 }

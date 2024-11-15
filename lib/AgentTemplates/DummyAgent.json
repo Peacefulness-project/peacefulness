@@ -5,7 +5,7 @@
     "Background": [{"name": "Background", "data_profiles": {"user": "single", "device": "single"}, "quantity": [1,1], "contract": "LVE_BAU"}],
 
     "Charger": [{"name": "Charger", "data_profiles": {"user": "default", "device": "laptop_charger"}, "quantity": [1,4], "contract": "LVE_BAU"}],
-    "Cooling": [{"name": "Cooling", "data_profiles": {"user": "residential", "device": "house_elec"}, "quantity": [1,1], "contract": "LVE_BAU"}],
+    "Cooling": [{"name": "Cooling", "data_profiles": {"user": "residential", "device": "house_elec"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"initial_temperature": 20}}],
     "ConcentratedSolarPowerPlantCylindroParabolic": [{"name": "CylindroParabolicCSP", "data_profiles": {"device": "oil"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
     "ConcentratedSolarPowerPlantFresnel": [{"name": "SolarTower", "data_profiles": {"device": "molten_salt"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
     "ConcentratedSolarPowerPlantTower": [{"name": "FresnelSolarPlant", "data_profiles": {"device": "molten_salt"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"surface": 100}}],
@@ -16,7 +16,7 @@
 
     "ElectricDam": [{"name": "ElectricDam", "data_profiles": {"device": "Pelton"}, "quantity": [1,1], "contract": "LVE_BAU", "parameters": {"height": 2, "max_power": 1000}}],
 
-    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
+    "Heating": [{"name": "Heating", "data_profiles": {"user": "residential", "device": "house_heat"}, "quantity": [1,1], "contract": "LTH_BAU", "parameters": {"initial_temperature": 20}}],
     "HotWaterTank": [{"name": "HotWaterTank", "data_profiles": {"user": "ECOS_1", "device": "1_people_heat"}, "quantity": [1,1], "contract": "LTH_BAU"}],
 
     "Light": [{"name": "Light", "data_profiles": {"user": "residential", "device": "house"}, "quantity": [1,1], "contract": "LVE_BAU"}],

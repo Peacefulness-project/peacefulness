@@ -1,5 +1,6 @@
 from src.common.DeviceMainClasses import ChargerDevice
 from src.common.Device import Device
+from math import ceil
 
 
 class HotWaterTank(ChargerDevice, Device):
@@ -38,7 +39,7 @@ class HotWaterTank(ChargerDevice, Device):
         self._location = data_user["location"]
 
         # adding a null priority at the beginning and the end of the period
-        # the beginning and the end are chosen outside of the period in order to avoid possible confusions
+        # the beginning and the end are chosen outside the period in order to avoid possible confusions
         data_user["profile"].reverse()
         data_user["profile"].append([-1, 0])
         data_user["profile"].reverse()
@@ -48,16 +49,13 @@ class HotWaterTank(ChargerDevice, Device):
         next_point = data_user["profile"][j+1]  # the next point of data that will be encountered
 
         for line in self._user_profile:  # filling the user profile with priority
-
             while True:  # the loop is shut down when all the data on the line has been recorded
-
                 next_point_reached = False  # a flag indicating when the next time step is beyond the scope of the "line"
                 if next_point[0] < line[0] + time_step:  # when "next_point" is reached, it becomes "previous_point"
                     next_point_reached = True
                     j += 1
                     next_point = data_user["profile"][j + 1]
                     line[1] = data_user["profile"][j][1]
-
                 if next_point[0] > line[0] + time_step or not next_point_reached:
                     break
 
@@ -137,14 +135,9 @@ class HotWaterTank(ChargerDevice, Device):
             energy_wanted[nature]["energy_minimum"] = 0  # the energy needed to heat the water, in kWh
             energy_wanted[nature]["energy_nominal"] = max(min(energy_to_heat / (self._remaining_time + 1), self._max_power[nature]), 0)  # the energy needed to heat the water, in kWh
             energy_wanted[nature]["energy_maximum"] = max(min(energy_to_heat, self._max_power[nature]), 0)  # the energy needed to heat the water, in kWh
-
-        # if self._remaining_time:  # if the device is active
-        #     for nature in energy_wanted:
-        #         energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
-        #         energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
-        #         # but it needs to be between the min and the max value
-        #         energy_wanted[nature]["energy_maximum"] = min(self._max_power[nature], self._demand[nature])
-        # print(energy_to_heat)
+            energy_wanted[nature]["flexibility"] = [1 for _ in range(ceil(energy_to_heat/self._max_power[nature]))]
+            energy_wanted[nature]["interruptibility"] = 1
+            energy_wanted[nature]["coming_volume"] = energy_to_heat  # kWh, the energy consumed on the whole cycle
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -171,9 +164,6 @@ class HotWaterTank(ChargerDevice, Device):
             if energy_wanted[nature] > energy_accorded[nature]:  # if it is less than the nominal wanted energy, then it creates effort
                 energy_wanted_min = self.get_energy_wanted_min(nature)  # minimum quantity of energy
                 energy_wanted_max = self.get_energy_wanted_nom(nature)  # maximum quantity of energy
-
-                # effort = min(abs(energy_wanted_min - energy_accorded[nature]), abs(energy_wanted_max - energy_accorded[nature])) / energy_wanted[nature]  # effort increases
-                # self.agent.add_effort(effort, nature)  # effort increments
 
             volume_heated = energy_accorded[nature] / (rho * Cp * (hot_water_temperature - cold_water_temperature) / (3.6 * 10 ** 6))
 

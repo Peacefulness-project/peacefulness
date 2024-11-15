@@ -91,7 +91,6 @@ class Device:
                 self._catalog.add(f"{self.agent.name}.{nature.name}.effort", {"current_round_effort": 0, "cumulated_effort": 0})  # effort accounts for the energy not delivered accordingly to the needs expressed by the agent
             except:
                 pass
-
             try:  # creates an entry useful for results
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_erased", 0)
                 self._catalog.add(f"{self.agent.name}.{nature.name}.energy_bought", 0)

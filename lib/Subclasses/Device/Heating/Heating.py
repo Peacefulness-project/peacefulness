@@ -24,9 +24,9 @@ class Heating(AdjustableDevice):
             location.append(self._location)  # add the location of the device to the list of locations
 
         # managing the temperature at the level of the agent
+        outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
         try:  # there can be only one temperature in the catalog for each agent
             # then, using "try" allows only one device to create these entries and avoids to give these tasks to the agent
-            outdoor_temperature = self._catalog.get(f"{self._location}.current_outdoor_temperature")
             self._catalog.add(f"{self.agent.name}.current_indoor_temperature", parameters["initial_temperature"])
             self._catalog.add(f"{self.agent.name}.previous_indoor_temperature", parameters["initial_temperature"])
 
@@ -198,6 +198,14 @@ class Heating(AdjustableDevice):
                     energy_wanted[nature]["energy_maximum"] = time_step / self._thermal_inertia * self._G * (deltaTmax - deltaT0 * exp(-time_step/self._thermal_inertia))
                     energy_wanted[nature]["energy_maximum"] = min(energy_wanted[nature]["energy_maximum"] * self._repartition[nature], self._max_power[nature])  # the real energy asked can't be superior to the maximum power
                     energy_wanted[nature]["energy_maximum"] = max(0, energy_wanted[nature]["energy_maximum"])
+
+                    # print(self._user_profile)
+                    # print(self._technical_profile)  # pas de technical profile
+                    start_moment = self._moment - self._user_profile[0][0]
+                    energy_wanted[nature]["flexibility"] = [1 for j in range(start_moment, len(self._user_profile))]
+                    energy_wanted[nature]["interruptibility"] = 1
+                    # self._coming_volume[nature] = sum()  # nrj pour passer du min au nominal ?
+                    # energy_wanted[nature]["coming_volume"] = self._coming_volume[nature]
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
