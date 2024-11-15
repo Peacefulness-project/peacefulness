@@ -109,3 +109,6 @@ venv.bak/
 /Drawings/
 /Tests/
 
+# local settings
+.idea/
+
