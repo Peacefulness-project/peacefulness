@@ -3,7 +3,7 @@
 # We assume that devices are only visible to the aggregator which is directly managing them.
 # As such, a superior aggregator is blind towards the devices managed by its subaggregators.
 # We also extract the forecasting predictions of each subaggregator.
-
+import copy
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ from typing import Tuple, Dict, Callable
 # ##########################################################################################
 # Ascending interface/bottom_up_phase utilities
 # ##########################################################################################
-def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_price: float, max_price: float):
+def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_price: float, max_price: float):  # todo à revoir
     """
     This method is used to compute and return both the prices for energy selling and buying.
     """
@@ -26,6 +26,7 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
     for device_name in aggregator.devices:
         price = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["price"]
         Emax = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+        # print(f"i am the device {device_name}, i want to buy/sell {Emax}kWh with {price}€")
         if Emax < 0:  # if the device wants to sell energy
             # price = max(price, min_price)  # the minimum accepted energy price (€/kWh) for producers
             managed_devices_selling_prices.append(price)
@@ -67,7 +68,9 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
         subaggregators_buying_prices[index] = subaggregators_buying_energies[index] * subaggregators_buying_prices[index] / sum(subaggregators_buying_energies)
 
     buying_prices = [*managed_devices_buying_prices, *subaggregators_buying_prices]
+    # print(f"i am the list of all proposed buying prices by both devices and subaggregators : {buying_prices}")
     selling_prices = [*managed_devices_selling_prices, *subaggregators_selling_prices]
+    # print(f"i am the list of all proposed selling prices by both devices and subaggregators : {selling_prices}")
 
     if buying_prices:
         buying_price = min(max(buying_prices), max_price)
@@ -96,38 +99,79 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
 
     # Getting the specific message from the devices
     for device in devices_list:
-        Emax = catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
-        Emin = catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
-        specific_message = {**device.messages_manager.get_information_message}
+        specific_message = copy.deepcopy(catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted"))
+        # print(f"i am the new message : {specific_message}")
+        Emax = specific_message["energy_maximum"]
+        Enom = specific_message["energy_nominal"]
+        Emin = specific_message["energy_minimum"]
+        if Enom == Emax:  # if the demand (consumption or production) is urgent
+            Emin = Emax
+        # specific_message = {**device.messages_manager.get_information_message}
+        # print(f"i am the old message: {specific_message}")
         if specific_message["type"] == "standard":  # if the device/energy system is either for consumption/production
             if Emax < 0:  # the energy system/device produces energy
                 intermediate_dict = {**specific_message}
+                intermediate_dict.pop('type')
+                intermediate_dict.pop('aggregator')
+                intermediate_dict.pop('energy_minimum')
+                intermediate_dict.pop('energy_nominal')
+                intermediate_dict.pop('energy_maximum')
+                intermediate_dict.pop('price')
+                intermediate_dict.pop('CO2')  # todo voir après comment trtaiter les other data related to operational objectives
                 # print(intermediate_dict)
-                intermediate_dict.pop("type")
+                # intermediate_dict.pop("type")
+                # print(f"i am the intermediate_dict : {intermediate_dict}")
                 # print(intermediate_dict)
                 formalism_message[aggregator.name]["Energy_Production"] = {**formalism_message[aggregator.name]["Energy_Production"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
                 # print(formalism_message)
                 specific_message.clear()
             elif Emax > 0:  # the energy system/device consumes energy
                 intermediate_dict = {**specific_message}
+                intermediate_dict.pop('type')
+                intermediate_dict.pop('aggregator')
+                intermediate_dict.pop('energy_minimum')
+                intermediate_dict.pop('energy_nominal')
+                intermediate_dict.pop('energy_maximum')
+                intermediate_dict.pop('price')
+                intermediate_dict.pop('CO2')  # todo voir après comment trtaiter les other data related to operational objectives
                 # print(intermediate_dict)
-                intermediate_dict.pop("type")
+                # intermediate_dict.pop("type")
+                # print(f"i am the intermediate_dict : {intermediate_dict}")
                 # print(intermediate_dict)
                 formalism_message[aggregator.name]["Energy_Consumption"] = {**formalism_message[aggregator.name]["Energy_Consumption"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
                 # print(formalism_message)
                 specific_message.clear()
         elif specific_message["type"] == "storage":  # if the device/energy system is for storage
             intermediate_dict = {**specific_message}
+            intermediate_dict.pop('type')
+            intermediate_dict.pop('aggregator')
+            intermediate_dict.pop('energy_minimum')
+            intermediate_dict.pop('energy_nominal')
+            intermediate_dict.pop('energy_maximum')
+            intermediate_dict.pop('price')
+            intermediate_dict.pop('CO2')  # todo voir après comment trtaiter les other data related to operational objectives
+            # Calculating the total efficiency of the storage cycle
+            my_charging_efficiency, my_discharging_efficiency = intermediate_dict["efficiency"].values()
+            intermediate_dict["efficiency"] = my_charging_efficiency * my_discharging_efficiency
             # print(intermediate_dict)
-            intermediate_dict.pop("type")
+            # intermediate_dict.pop("type")
+            # print(f"i am the intermediate_dict : {intermediate_dict}")
             # print(intermediate_dict)
             formalism_message[aggregator.name]["Energy_Storage"] = {**formalism_message[aggregator.name]["Energy_Storage"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             # print(formalism_message)
             specific_message.clear()
         elif specific_message["type"] == "converter":  # if the device/energy system is for conversion
-            intermediate_dict = {**specific_message}
+            intermediate_dict = {**specific_message}  # todo voir comment traiter les systèmes de conversion si efficiency est donnée de la meme maniere que le stockage
+            intermediate_dict.pop('type')
+            intermediate_dict.pop('aggregator')
+            intermediate_dict.pop('energy_minimum')
+            intermediate_dict.pop('energy_nominal')
+            intermediate_dict.pop('energy_maximum')
+            intermediate_dict.pop('price')
+            intermediate_dict.pop('CO2')  # todo voir après comment trtaiter les other data related to operational objectives
             # print(intermediate_dict)
-            intermediate_dict.pop("type")
+            # intermediate_dict.pop("type")
+            # print(f"i am the intermediate_dict : {intermediate_dict}")
             # print(intermediate_dict)
             converter_message[aggregator.name]["Energy_Conversion"] = {**converter_message[aggregator.name]["Energy_Conversion"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             # print(converter_message)
@@ -189,9 +233,23 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
                 elif subkey == 'energy_maximum':
                     energy_max.append(element[key][subkey])
                 elif subkey == 'flexibility':
-                    flexibility.extend(element[key][subkey])
+                    # flexibility.extend(element[key][subkey])
+                    if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
+                        flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
+                    elif isinstance(element[key][subkey], list):
+                        for flexi in element[key][subkey]:
+                            if flexi != 0:
+                                flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
+                                break
                 elif subkey == 'interruptibility':
-                    interruptibility.append(element[key][subkey])
+                    # interruptibility.append(element[key][subkey])
+                    if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
+                        interruptibility.append((energy_min[-1] + energy_max[-1]) / 2)
+                    elif isinstance(element[key][subkey], list):
+                        for inter in element[key][subkey]:
+                            if inter != 0:
+                                interruptibility.append((energy_min[-1] + energy_max[-1]) / 2)
+                                break
                 else:
                     coming_volume.append(element[key][subkey])
         if element == consumption_dict:

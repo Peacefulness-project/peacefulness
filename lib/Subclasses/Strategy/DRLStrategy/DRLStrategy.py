@@ -26,24 +26,35 @@ class DeepReinforcementLearning(Strategy):
         # Before publishing quantities and prices to the catalog, we gather relevant information to send to the RL agent
         # Namely, the data needed : energy prices, formalism variables representing the state of the MEG and forecasting
         self.scope = self._catalog.get(f"DRL_Strategy.strategy_scope")
+        # print(f"i am the scope : {self.scope}")
         quantities_and_prices = []
-        message = {**self._create_information_message()}
+        # message = {**self._create_information_message()}
+        message = aggregator.information_message()
+        # print(f"\ni am the message created from self.create_information_message : {message}")
 
         # Data on energy prices
         [min_price, max_price] = self._limit_prices(aggregator)  # thresholds of accepted energy prices
+        # print(f"\ni am the min price from self.limit_prices : {min_price}")
+        # print(f"\ni am the max price from self.limit_prices : {max_price}")
         # these two values are to be sent to the RL agent (part of the MEG state)
         buying_price, selling_price = determine_energy_prices(self._catalog, aggregator, min_price, max_price)
+        # print(f"\ni am the buy price from determine_energy_prices : {buying_price}")
+        # print(f"\ni am the sell price from determine_energy_prices : {selling_price}")
         if f"{aggregator.name}.DRL_Strategy.energy_prices" not in self._catalog.keys:
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": buying_price, "selling_price": selling_price})
         else:
             self._catalog.set(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": buying_price, "selling_price": selling_price})
 
         message["price"] = (buying_price + selling_price) / 2  # this value is the one published in the catalog
+        # print(f"\ni am the price that message stores : {message}")
 
         # Data related to the formalism variables and lateral energy exchanges (with energy conversion systems)
         direct_exchanges = {}
         formalism_message, converter_message = my_devices(self._catalog, aggregator)
-        formalism_message = mutualize_formalism_message(formalism_message)  # TODO sous l'hypothèse de prendre les valeurs moyennes
+        # print(f"\ni am the information message of each system : {formalism_message}")
+        # print(f"\ni am the information message of conversion systems : {converter_message}")
+        formalism_message = mutualize_formalism_message(formalism_message)  # TODO sous l'hypothèse de prendre les valeurs moyennes & ratios pour flex/inter
+        # print(f"\ni am the formalism message : {formalism_message}")
 
         if f"{aggregator.name}.DRL_Strategy.formalism_message" not in self._catalog.keys:
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
@@ -56,22 +67,47 @@ class DeepReinforcementLearning(Strategy):
 
         # Data on rigid energy consumption and production forecasting
         forecasting_message = self.call_to_forecast(aggregator)  # this dict is to be sent to the RL agent
+        # print(f"\ni am the forecasting message : {forecasting_message}")
         if forecasting_message is not None:
             if f"{aggregator.name}.DRL_Strategy.forecasting_message" not in self._catalog.keys:
                 self._catalog.add(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
             else:
                 self._catalog.set(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
 
-        # We define the min/max energy produced/consumed (todo - voir si ça marche)
-        message["energy_minimum"] = - aggregator.capacity["selling"]
-        message["energy_nominal"] = 0.0
-        message["energy_maximum"] = aggregator.capacity["buying"]
-        # minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
-        # minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
-        # maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
-        # maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
-        # [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced)
-        #
+        # Verification of the energy quantities - todo check the signs
+        # todo (verification with the self.limit_quantities doesn't work because the storage is only considered when its Emin and Emax have different signs)
+        minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
+        minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
+        maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
+        maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
+        maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
+        # todo these two values can be the floating bounds to my reward function if penalizing with Timothé's idea about having just three actions
+        min_exchange_energy = - (minimum_energy_consumed + maximum_energy_charge - minimum_energy_produced)  # todo à confirmer
+        max_exchange_energy = - (maximum_energy_consumed - maximum_energy_discharge - maximum_energy_produced) # todo à confirmer
+        # if abs(minimum_energy_consumed) != abs(formalism_message['Energy_Consumption']["energy_minimum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> min_consumption')
+        # if abs(maximum_energy_consumed) != abs(formalism_message['Energy_Consumption']["energy_maximum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> max_consumption')
+        # if abs(minimum_energy_produced) != abs(formalism_message['Energy_Production']["energy_minimum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> min_production')
+        # if abs(maximum_energy_produced) != abs(formalism_message['Energy_Production']["energy_maximum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> max_production')
+        # if abs(maximum_energy_charge) != abs(formalism_message['Energy_Storage']["energy_maximum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> min_storage')
+        # if abs(maximum_energy_discharge) != abs(formalism_message['Energy_Storage']["energy_minimum"]):
+        #     raise Exception('Grouping the systems typologies does not yield correct results ; hint -> max_storage')
+        # print(f"i am the min energy to be consumed : {minimum_energy_consumed}")
+        # print(f"i am the max energy to be consumed : {maximum_energy_consumed}")
+        # print(f"i am the min energy to be produced : {minimum_energy_produced}")
+        # print(f"i am the max energy to be produced : {maximum_energy_produced}")
+        # print(f"i am the energy to be charged : {maximum_energy_charge}")
+        # print(f"i am the energy to be discharged : {maximum_energy_discharge}")
+        # storable = self._catalog.get(f"{aggregator.name}.energy_storable")
+        # stored = self._catalog.get(f"{aggregator.name}.energy_stored")
+        # print(f"i am the energy stored: {stored}")
+        # print(f"i am the energy storable : {storable}")
         # # The aggregator publishes its needs
         # energy_difference = maximum_energy_consumed - maximum_energy_produced
         # message["energy_minimum"] = energy_difference
@@ -79,15 +115,31 @@ class DeepReinforcementLearning(Strategy):
         # message["energy_maximum"] = energy_difference
 
         # TODO verify this proposal with Timothé
+        # We define the min/max energy produced/consumed (todo - voir si ça marche)
+        message["energy_minimum"] = - aggregator.capacity["selling"]
+        message["energy_nominal"] = 0.0
+        message["energy_maximum"] = aggregator.capacity["buying"]
+        # Publishing the needs (before sending direct energy exchanges data to the RL agent to take the contract into account)
+        if aggregator.contract:
+            quantities_and_prices.append(message)
+            # print(f"\n I am the quantities_and_prices message before contract modification : {quantities_and_prices}")
+            quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
+            # print(f"\n I am the quantities_and_prices message after contract modification : {quantities_and_prices}")
+
+        # The aggregator publishes its need to the aggregator superior
         if aggregator.superior:
             if aggregator.nature.name == aggregator.superior.nature.name:
-                message["energy_minimum"] = message["energy_minimum"] * aggregator.efficiency
-                message["energy_nominal"] = message["energy_nominal"] * aggregator.efficiency
-                message["energy_maximum"] = message["energy_maximum"] * aggregator.efficiency
-                if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
-                    self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", message)
+                if len(quantities_and_prices) == 1:
+                    if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
+                        self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", quantities_and_prices[0])
+                    else:
+                        self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", quantities_and_prices[0])
                 else:
-                    self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", message)
+                    raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
+                # message["energy_minimum"] = message["energy_minimum"] * aggregator.efficiency
+                # message["energy_nominal"] = message["energy_nominal"] * aggregator.efficiency
+                # message["energy_maximum"] = message["energy_maximum"] * aggregator.efficiency
+                # print(f"\ni am the message sent to my aggregator superior regarding my needs : {message}")
 
         # Data related to the hierarchical energy exchanges (between subaggregators and superior)
         for subaggregator in aggregator.subaggregators:
@@ -102,6 +154,7 @@ class DeepReinforcementLearning(Strategy):
             if aggregator.nature.name == aggregator.superior.nature.name:
                 direct_exchanges[aggregator.superior.name][aggregator.name] = self._catalog.get(f"Energy asked from {aggregator.name} to {aggregator.superior.name}")
         if direct_exchanges:
+            # print(f"\ni am the direct energy exchanges message : {direct_exchanges}")
             if aggregator.name in direct_exchanges:
                 if f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges" not in self._catalog.keys:
                     self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.name])
@@ -112,12 +165,6 @@ class DeepReinforcementLearning(Strategy):
                     self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.superior.name])
                 else:
                     self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.superior.name])
-
-        # Publishing the needs
-        if aggregator.contract:
-
-            quantities_and_prices.append(message)
-            quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
         # Counter to call ascending and descending interfaces with my code
         if self.counter == len(self.scope) + 1:
