@@ -152,14 +152,6 @@ class Strategy:
                     minimum_energy_produced -= energy_minimum
                 maximum_energy_produced -= energy_maximum
 
-        # decision-making values recording
-        self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", minimum_energy_consumed)
-        self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", maximum_energy_consumed)
-        self._catalog.set(f"{aggregator.name}.minimum_energy_production", minimum_energy_produced)
-        self._catalog.set(f"{aggregator.name}.maximum_energy_production", maximum_energy_produced)
-        self._catalog.set(f"{aggregator.name}.energy_stored", energy_stored)
-        self._catalog.set(f"{aggregator.name}.energy_storable", energy_storable)
-
         # quantities concerning subaggregators
         for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
             quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
@@ -184,6 +176,14 @@ class Strategy:
                     else:
                         minimum_energy_produced -= energy_minimum
                     maximum_energy_produced -= energy_maximum
+
+        # decision-making values recording
+        self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", minimum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", maximum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.minimum_energy_production", minimum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_production", maximum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.energy_stored", energy_stored)
+        self._catalog.set(f"{aggregator.name}.energy_storable", energy_storable)
 
         return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge]
 

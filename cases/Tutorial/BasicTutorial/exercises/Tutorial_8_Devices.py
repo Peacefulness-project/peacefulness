@@ -195,6 +195,7 @@ aggregator_heat = Aggregator("aggregator_heat", LTH, heat_strategy, aggregator_o
 #       4/ user profile is "residential"
 #       5/ technical profile is "house_heat"
 #       6/ location is "Pau"
+#       7/ its initial temperature is 15°C
 
 
 # ##############################################################################################
