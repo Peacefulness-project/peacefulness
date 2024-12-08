@@ -4,7 +4,7 @@ from src.common.DeviceMainClasses import Converter
 
 class CombinedHeatAndPower(Converter):
 
-    def __init__(self, name, contracts, agent, upstream_aggregator, downstream_aggregators, profiles, parameters, filename="lib/Subclasses/Device/CombinedHeatAndPower/AdvancedCombinedHeatAndPower.json"):
+    def __init__(self, name, contracts, agent, upstream_aggregator, downstream_aggregators, profiles, parameters, filename="lib/Subclasses/Device/CombinedHeatAndPower/CombinedHeatAndPower.json"):
         super().__init__(name, contracts, agent, filename, upstream_aggregator, downstream_aggregators, profiles, parameters)
 
 

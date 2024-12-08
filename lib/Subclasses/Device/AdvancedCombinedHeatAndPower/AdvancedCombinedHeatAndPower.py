@@ -21,6 +21,7 @@ class AdvancedCombinedHeatAndPower(Converter):
         time_step = self._catalog.get("time_step")
         # TODO: mettre les paramètres adéquats
         self._energy_physical_limits = {"minimum_energy": 0, "maximum_energy": parameters["max_power"] * time_step}
+        self._efficiency_elec = parameters["nominal_efficiency_elec"]
 
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
@@ -31,7 +32,6 @@ class AdvancedCombinedHeatAndPower(Converter):
     # ##########################################################################################
 
     def _read_data_profiles(self, profiles):
-        # TODO: mettre les bons paramètres
         data_device = self._read_technical_data(profiles["device"])  # parsing the data
 
         self._efficiency = data_device["efficiency"]  # the efficiency of the converter for each nature of energy
@@ -41,18 +41,25 @@ class AdvancedCombinedHeatAndPower(Converter):
     # ##########################################################################################
 
     # TODO: implémenter le calcul
-    def _efficiency(self, ):
+    def _efficiency(self, nature, energy):
+        if nature == "LPG":
+            return 1
+        elif nature == "LTH":  # chaleur
+            pass
+        elif nature == "LVE":  # elec
+            pass
 
     def update(self):  # method updating needs of the devices before the supervision
         # TODO: adapter les arguments du self._efficiency
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         # downstream side
+        # côté amont donc gaz (efficacité=1)
         for aggregator in self ._downstream_aggregators_list:
             nature_name = aggregator["nature"]
-            energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency()  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency()  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency()  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency(nature_name)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency(nature_name)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency(nature_name)  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["efficiency"] = self._efficiency()
 
         # upstream side
