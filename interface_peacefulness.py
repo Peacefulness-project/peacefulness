@@ -38,10 +38,10 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
         if aggregator.forecaster:
             prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.forecasting_message")
         prices[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.energy_prices")
-        conversions[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.converter_message")
-        if aggregator.subaggregators:
+        conversions[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.converter_message")  # todo rajouter la possibilité de vérifier si le systeme de conversion est deja pris en compte ou non
+        if aggregator.subaggregators:  # todo pareil, il faut vérifier si on remonte l'info une seule fois
             direct_exchanges[aggregator.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges")
-        if aggregator.superior:
+        if aggregator.superior:  # todo pareil, il faut vérifier si on remonte l'info une seule fois
             direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges")
         # print(formalism_message)
         # print(prediction_message)
@@ -49,6 +49,11 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
         # print(direct_exchanges)
         # print(conversions)
     # To be noted, that the topology of energy exchanges within the MEG is already determined
+    # print(f"\ni am the formalism message during the ascending interface/call to DRL_Strategy: {formalism_message}")
+    # print(f"\ni am the prediction message during the ascending interface/call to DRL_Strategy: {prediction_message}")
+    # print(f"\ni am the prices message during the ascending interface/call to DRL_Strategy: {prices}")
+    # print(f"\ni am the direct energy exchanges message during the ascending interface/call to DRL_Strategy: {direct_exchanges}")
+    # print(f"\ni am the energy exchanges through conversion systems message during the ascending interface/call to DRL_Strategy: {conversions}")
     agent.update_state(formalism_message, prediction_message, prices, direct_exchanges, conversions)
 
 
@@ -65,6 +70,8 @@ def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):
 
     # Translating the RL agent actions into a decision that can be understood by Peacefulness (a dict format)
     decision_message, exchanges_message = from_tensor_to_dict(decision, aggregator_list, agent)
+    # print(f"I am the decisions of what happens inside during the descending interface/call from DRL_Strategy : {decision_message}")
+    # print(f"I am the decisions related to the outside during the descending interface/call from DRL_Strategy : {exchanges_message}")
     # Storing the RL agent decision in the world's catalog
     if f"DRL_Strategy.decision_message" not in catalog.keys:
         catalog.add(f"DRL_Strategy.decision_message", decision_message)
