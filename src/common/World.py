@@ -4,7 +4,7 @@
 import gc
 from datetime import datetime, timedelta
 from os import makedirs
-from random import random, seed as random_generator_seed, randint, gauss
+from random import random, seed as random_generator_seed, randint, gauss, getstate, setstate
 from typing import List, Callable
 # Current packages
 from src.common.Catalog import Catalog
@@ -30,6 +30,8 @@ class World:
             self._name = f"Unnamed ({datetime.now()})"
 
         self._catalog = Catalog()  # data catalog which gathers all data
+
+        self._random_state = getstate()
 
         # Time management
         self._timestep_value = None  # value of the timestep used during the simulation (in hours)
@@ -426,6 +428,9 @@ class World:
             print("Done")
 
         self._clean_up()
+
+        # reinitialize random state
+        setstate(self._random_state)
 
     # ##########################################################################################
     # Dynamic behavior

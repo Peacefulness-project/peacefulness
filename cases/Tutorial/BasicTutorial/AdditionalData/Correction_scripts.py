@@ -641,6 +641,10 @@ def correction_8_devices():
         print("The location of the heating is not the correct one.")
         exit()
 
+    if world._catalog.get(f"heating.current_indoor_temperature") != 15:
+        print("The initial temperature of the heating is not the correct one.")
+        exit()
+
     print("Congratulations, everything is working well.")
 
 

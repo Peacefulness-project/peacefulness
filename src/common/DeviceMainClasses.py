@@ -537,7 +537,6 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         # usage_profile
         self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
-        print(self._technical_profile)
         self._demand = self._technical_profile  # if the simulation begins during an usage, the demand has to be initialized
 
         self._unused_nature_removal()  # remove unused natures
