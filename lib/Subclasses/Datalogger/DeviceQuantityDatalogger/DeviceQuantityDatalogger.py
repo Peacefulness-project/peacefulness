@@ -1,13 +1,14 @@
 # These dataloggers exports the balances for several devices
 from src.common.Datalogger import Datalogger
 from src.tools.Utilities import into_list
+from typing import List
 
 # from src.tools.GraphAndTex import __default_graph_options__
 
 
 class DeviceQuantityDatalogger(Datalogger):  # a sub-class of dataloggers designed to export the balances
 
-    def __init__(self, name, filename, devices_list, period=1, graph_options="default"):
+    def __init__(self, name: str, filename: str, devices_list: List[str], period=1, graph_options="default"):
         self._devices_list = {}
         devices_list = into_list(devices_list)
 

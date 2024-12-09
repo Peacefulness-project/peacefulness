@@ -983,6 +983,7 @@ class Strategy:
 
                 money_spent_inside -= energy * price  # money spent by buying energy from the device
                 energy_bought_inside -= energy  # the absolute value of energy bought inside
+                energy_available_production += energy
 
         return [energy_available_production, money_spent_inside, energy_bought_inside]
 

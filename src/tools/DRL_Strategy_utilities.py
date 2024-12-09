@@ -18,28 +18,58 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
     """
     This method is used to compute and return both the prices for energy selling and buying.
     """
+    # print(f'i am the limit_selling_price from self.limit_prices : {min_price}')
+    # print(f'i am the limit_buying_price from self.limit_prices : {max_price}')
     # First, we retrieve the energy prices proposed by the devices managed by the aggregator
     managed_devices_buying_prices = []
     managed_devices_buying_energies = []
     managed_devices_selling_prices = []
     managed_devices_selling_energies = []
     for device_name in aggregator.devices:
-        price = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["price"]
-        Emax = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+        message = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")
+        price = message["price"]
+        Emax = message["energy_maximum"]
+        Emin = message["energy_minimum"]
+        # print(f"i am {device_name} and the price i propose is: {price}")
         # print(f"i am the device {device_name}, i want to buy/sell {Emax}kWh with {price}€")
-        if Emax < 0:  # if the device wants to sell energy
-            # price = max(price, min_price)  # the minimum accepted energy price (€/kWh) for producers
-            managed_devices_selling_prices.append(price)
-            managed_devices_selling_energies.append(Emax)
-        elif Emax > 0:  # if the device wants to buy energy
-            # price = min(price, max_price)  # the maximum accepted energy price (€/kWh) for consumers
-            managed_devices_buying_prices.append(price)
-            managed_devices_buying_energies.append(Emax)
+        if message["type"] != "storage":
+            if Emax < 0:  # if the device wants to sell energy
+                # price = max(price, min_price)  # the minimum accepted energy price (€/kWh) for producers
+                managed_devices_selling_prices.append(price)
+                if Emax != Emin:
+                    managed_devices_selling_energies.append(abs(Emax - Emin))
+                else:
+                    managed_devices_selling_energies.append(abs(Emax))
+            elif Emax > 0:  # if the device wants to buy energy
+                # price = min(price, max_price)  # the maximum accepted energy price (€/kWh) for consumers
+                managed_devices_buying_prices.append(price)
+                if Emax != Emin:
+                    managed_devices_buying_energies.append(abs(Emax - Emin))
+                else:
+                    managed_devices_buying_energies.append(abs(Emax))
+        else:
+            if Emin < 0 < Emax:  # if the storage device is flexible
+                managed_devices_selling_prices.append(price)
+                managed_devices_buying_prices.append(price)
+                managed_devices_selling_energies.append(abs(Emin))
+                managed_devices_buying_energies.append(abs(Emax))
+            elif Emin > 0:  # if the storage device only want to charge
+                if Emax != Emin:
+                    managed_devices_buying_energies.append(abs(Emax - Emin))
+                else:
+                    managed_devices_buying_energies.append(abs(Emax))
+            elif Emax < 0:  # if the storage device only want to discharge
+                managed_devices_selling_prices.append(price)
+                if Emax != Emin:
+                    managed_devices_selling_energies.append(abs(Emax - Emin))
+                else:
+                    managed_devices_selling_energies.append(abs(Emax))
+
     # these prices are weighted by the energy proportion
-    for index in range(len(managed_devices_selling_prices)):
-        managed_devices_selling_prices[index] = managed_devices_selling_energies[index] * managed_devices_selling_prices[index] / sum(managed_devices_selling_energies)
-    for index in range(len(managed_devices_buying_energies)):
-        managed_devices_buying_prices[index] = managed_devices_buying_energies[index] * managed_devices_buying_prices[index] / sum(managed_devices_buying_energies)
+    # for index in range(len(managed_devices_selling_prices)):
+    #     managed_devices_selling_prices[index] = managed_devices_selling_energies[index] * managed_devices_selling_prices[index] / sum(managed_devices_selling_energies)
+    # for index in range(len(managed_devices_buying_energies)):
+    #     managed_devices_buying_prices[index] = managed_devices_buying_energies[index] * managed_devices_buying_prices[index] / sum(managed_devices_buying_energies)
 
     # Then, we retrieve the energy prices proposed by the sub-aggregators managed by the aggregator
     subaggregators_buying_prices = []
@@ -53,34 +83,56 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
             wanted_energy = catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
         price = wanted_energy["price"]
         Emax = wanted_energy["energy_maximum"]
+        Emin = wanted_energy["energy_minimum"]
+        # print(f"i am the aggregator {subaggregator.name} and the price i propose is {price}")
         if Emax < 0:  # if the subaggregator wants to sell energy
             # price = max(price, min_price)  # the minimum accepted energy price (€/kWh) for producers
             subaggregators_selling_prices.append(price)
-            subaggregators_selling_energies.append(Emax)
+            if Emax != Emin:
+                subaggregators_selling_energies.append(Emax - Emin)
+            else:
+                subaggregators_selling_energies.append(Emax)
         elif Emax > 0:  # if the subaggregator wants to buy energy
             # price = min(price, max_price)  # the maximum accepted energy price (€/kWh) for consumers
             subaggregators_buying_prices.append(price)
-            subaggregators_buying_energies.append(Emax)
+            if Emax != Emin:
+                subaggregators_buying_energies.append(Emax - Emin)
+            else:
+                subaggregators_buying_energies.append(Emax)
     # these prices are weighted by the energy proportion
-    for index in range(len(subaggregators_selling_prices)):
-        subaggregators_selling_prices[index] = subaggregators_selling_energies[index] * subaggregators_selling_prices[index] / sum(subaggregators_selling_energies)
-    for index in range(len(subaggregators_buying_energies)):
-        subaggregators_buying_prices[index] = subaggregators_buying_energies[index] * subaggregators_buying_prices[index] / sum(subaggregators_buying_energies)
+    # for index in range(len(subaggregators_selling_prices)):
+    #     subaggregators_selling_prices[index] = subaggregators_selling_energies[index] * subaggregators_selling_prices[index] / sum(subaggregators_selling_energies)
+    # for index in range(len(subaggregators_buying_energies)):
+    #     subaggregators_buying_prices[index] = subaggregators_buying_energies[index] * subaggregators_buying_prices[index] / sum(subaggregators_buying_energies)
 
-    buying_prices = [*managed_devices_buying_prices, *subaggregators_buying_prices]
-    # print(f"i am the list of all proposed buying prices by both devices and subaggregators : {buying_prices}")
-    selling_prices = [*managed_devices_selling_prices, *subaggregators_selling_prices]
+    buying_prices = managed_devices_buying_prices + subaggregators_buying_prices
+    buying_energies = managed_devices_buying_energies + subaggregators_buying_energies
+    # print(f"\ni am the list of all proposed buying prices by both devices and subaggregators : {buying_prices}")
+    # print(f"\ni am the list of all proposed buying energies by both devices and subaggregators : {buying_energies}")
+    selling_prices = managed_devices_selling_prices + subaggregators_selling_prices
+    selling_energies = managed_devices_selling_energies + subaggregators_selling_energies
     # print(f"i am the list of all proposed selling prices by both devices and subaggregators : {selling_prices}")
-
+    # print(f"i am the list of all proposed selling energies by both devices and subaggregators : {selling_energies}")
+    for index in range(len(buying_prices)):  # contribution or proportion of each device/subaggregator to the internal buying price
+        buying_prices[index] = buying_prices[index] * buying_energies[index] / sum(buying_energies)
+    for index in range(len(selling_prices)):  # contribution or proportion of each device/subaggregator to the internal selling price
+        selling_prices[index] = selling_prices[index] * selling_energies[index] / sum(selling_energies)
+    # buying_prices = [*managed_devices_buying_prices, *subaggregators_buying_prices]
+    # selling_prices = [*managed_devices_selling_prices, *subaggregators_selling_prices]
+    # print(f"i am the buying prices with energy proportions : {buying_prices}")
+    # print(f"i am the selling prices with energy proportions : {selling_prices}")
     if buying_prices:
-        buying_price = min(max(buying_prices), max_price)
+        # print(f"i am the buying_prices: {buying_prices}")
+        buying_price = min(sum(buying_prices), max_price)
     else:
         buying_price = 0.0
     if selling_prices:
-        selling_price = max(min(selling_prices), min_price)
+        # print(f"i am the selling_prices: {selling_prices}")
+        selling_price = max(sum(selling_prices), min_price)
     else:
         selling_price = 0.0
-
+    # print(f"i am the max buying_price: {buying_price}")
+    # print(f"i am the min selling_price: {selling_price}")
     return buying_price, selling_price
 
 
@@ -232,7 +284,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
                     energy_min.append(element[key][subkey])
                 elif subkey == 'energy_maximum':
                     energy_max.append(element[key][subkey])
-                elif subkey == 'flexibility':
+                elif subkey == 'flexibility':  # todo removed break, to take into account the length/number of steps where my device is flexible (A CHECKER AVEC TIMOTHE ET BRUNO)
                     # flexibility.extend(element[key][subkey])
                     if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
                         flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
@@ -241,7 +293,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
                             if flexi != 0:
                                 flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
                                 break
-                elif subkey == 'interruptibility':
+                elif subkey == 'interruptibility':  # todo removed break, to take into account the length/number of steps where my device is interruptible (A CHECKER AVEC TIMOTHE ET BRUNO)
                     # interruptibility.append(element[key][subkey])
                     if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
                         interruptibility.append((energy_min[-1] + energy_max[-1]) / 2)
@@ -284,20 +336,20 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
             elif subkey == 'energy_maximum':
                 energy_max.append(storage_dict[key][subkey])
             elif subkey == 'state_of_charge':
-                state_of_charge.append(storage_dict[key][subkey])
+                state_of_charge.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
             elif subkey == 'capacity':
                 capacity.append(storage_dict[key][subkey])
             elif subkey == 'self_discharge_rate':
-                self_discharge_rate.append(storage_dict[key][subkey])
+                self_discharge_rate.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
             else:
-                efficiency.append(storage_dict[key][subkey])
+                efficiency.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
 
     return_dict = {**return_dict, **{
         "Energy_Storage": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                           'state_of_charge': if_it_exists(state_of_charge, my_basic_mean),
+                           'state_of_charge': if_it_exists(state_of_charge, my_basic_share, energy_max, energy_min),
                            'capacity': if_it_exists(capacity, sum),
-                           'self_discharge_rate': if_it_exists(self_discharge_rate, my_basic_mean),
-                           'efficiency': if_it_exists(efficiency, my_basic_mean)}}
+                           'self_discharge_rate': if_it_exists(self_discharge_rate, my_basic_share, energy_max, energy_min),
+                           'efficiency': if_it_exists(efficiency, my_basic_share, energy_max, energy_min)}}
                    }
 
     return return_dict
@@ -370,7 +422,7 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     exchange_dict = {}  # keys -> (('A1', 'A2'), ...) and values -> corresponding decision (energy exchange value)
     for index in range(len(agent_grid_topology)):
         exchange = agent_grid_topology[index]
-        exchange_value = - actions_related_to_exchange[index]
+        exchange_value = actions_related_to_exchange[index]  # todo à vérifier si c'est le bon sens ou non
         number_of_concerned_aggregators = int((len(exchange) - 1) / 2)  # the format of each exchange is ('A1', 'A2', Emin, Emax, eta)
         concerned_aggregators = exchange[:number_of_concerned_aggregators]  # or ('A1', 'A2', 'A3', Emin, Emax, eta1, eta2)
         exchange_dict[concerned_aggregators] = exchange_value  # or ('A1', 'A2', 'A3', 'A4', Emin, Emax, eta1, eta2, eta3)
@@ -407,9 +459,9 @@ def retrieve_concerned_energy_exchanges(exchanges_message: dict, aggregator: "Ag
     """
     resulting_dict = {}
     for tup in exchanges_message:
-        if aggregator.name in tup:
+        if aggregator.name in tup:  # todo un check à faire pour vérifier qu'on fait le traitement ue seule fois
             resulting_dict = {**resulting_dict, **{tup: exchanges_message[tup]}}
-
+    # print(f"\nI am the dict reated to energy exchanges for the distribution decision : {resulting_dict}")
     return resulting_dict
 
 
