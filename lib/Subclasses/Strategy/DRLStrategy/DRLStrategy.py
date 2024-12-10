@@ -88,12 +88,16 @@ class DeepReinforcementLearning(Strategy):
             self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": maximum_energy_consumed, "production": maximum_energy_produced})
         # Storage energy systems are only considered if they provide flexibility
         if maximum_energy_charge == 0 and maximum_energy_discharge == 0:
-            for my_key in formalism_message['Energy_Storage'].keys():
-                formalism_message['Energy_Storage'][my_key] = 0
+            # print(f"I am the energy storage formalism message if storage doesn't provide flexibility: {formalism_message['Energy_Storage']}")
+            # for my_key in formalism_message['Energy_Storage'].keys():
+            #     formalism_message['Energy_Storage'][my_key] = 0
+                # print(f"I am the energy storage formalism message if storage doesn't provide flexibility after modification: {formalism_message['Energy_Storage']}")
             formalism_message['Energy_Consumption']["energy_minimum"] = minimum_energy_consumed
             formalism_message['Energy_Consumption']["energy_maximum"] = maximum_energy_consumed
             formalism_message['Energy_Production']["energy_minimum"] = - minimum_energy_produced
             formalism_message['Energy_Production']["energy_maximum"] = - maximum_energy_produced
+            formalism_message['Energy_Storage']["energy_minimum"] = 0
+            formalism_message['Energy_Storage']["energy_maximum"] = 0
             # print(f"\ni am the formalism message corrected by self._limit_quantities: {formalism_message}")
 
         if f"{aggregator.name}.DRL_Strategy.formalism_message" not in self._catalog.keys:
