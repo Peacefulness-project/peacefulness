@@ -3,7 +3,7 @@
 from src.common.Strategy import *
 
 
-class ExchangesPartialButAll(Strategy):
+class MaxSellPartialButAll(Strategy):
 
     def __init__(self):
         super().__init__("exchanges_partial_strategy", "Always tries to buy the maximum energy possible outside. During distribution, serves partially everybody.")
@@ -28,7 +28,7 @@ class ExchangesPartialButAll(Strategy):
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
-        quantities_and_prices = self._prepare_quantities_max_exchanges(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
+        quantities_and_prices = self._prepare_quantities_max_sell(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 

@@ -348,7 +348,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
         "Energy_Storage": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
                            'state_of_charge': if_it_exists(state_of_charge, my_basic_share, energy_max, energy_min),
                            'capacity': if_it_exists(capacity, sum),
-                           'self_discharge_rate': if_it_exists(self_discharge_rate, my_basic_share, energy_max, energy_min),
+                           'self_discharge_rate': abs(if_it_exists(self_discharge_rate, my_basic_share, energy_max, energy_min)),  # todo added the abs here in order to oly get positive values in the input state (normalization between 0 and 1)
                            'efficiency': if_it_exists(efficiency, my_basic_share, energy_max, energy_min)}}
                    }
 
