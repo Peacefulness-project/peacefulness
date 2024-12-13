@@ -49,12 +49,16 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
         # print(direct_exchanges)
         # print(conversions)
     # To be noted, that the topology of energy exchanges within the MEG is already determined
+    current_time = catalog.get("simulation_time")
+    last_time = catalog.get("time_limit")
+    relevant_time = [last_time, current_time]
+    # print(f"i am the current time: {my_current_time}")
     # print(f"\ni am the formalism message during the ascending interface/call to DRL_Strategy: {formalism_message}")
     # print(f"\ni am the prediction message during the ascending interface/call to DRL_Strategy: {prediction_message}")
     # print(f"\ni am the prices message during the ascending interface/call to DRL_Strategy: {prices}")
     # print(f"\ni am the direct energy exchanges message during the ascending interface/call to DRL_Strategy: {direct_exchanges}")
     # print(f"\ni am the energy exchanges through conversion systems message during the ascending interface/call to DRL_Strategy: {conversions}")
-    agent.update_state(formalism_message, prediction_message, prices, direct_exchanges, conversions)
+    agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions)
 
 
 def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):
