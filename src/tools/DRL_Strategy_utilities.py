@@ -425,7 +425,7 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
         exchange_value = actions_related_to_exchange[index]  # todo à vérifier si c'est le bon sens ou non
         number_of_concerned_aggregators = int((len(exchange) - 1) / 2)  # the format of each exchange is ('A1', 'A2', Emin, Emax, eta)
         concerned_aggregators = exchange[:number_of_concerned_aggregators]  # or ('A1', 'A2', 'A3', Emin, Emax, eta1, eta2)
-        exchange_dict[concerned_aggregators] = exchange_value  # or ('A1', 'A2', 'A3', 'A4', Emin, Emax, eta1, eta2, eta3)
+        exchange_dict[concerned_aggregators] = float(exchange_value)  # or ('A1', 'A2', 'A3', 'A4', Emin, Emax, eta1, eta2, eta3)
 
     return resulting_dict, exchange_dict
 
