@@ -9,6 +9,17 @@
       "efficiency_variation": 0,
       "power_variation": 0,
       "capacity_variation": 0
+    },
+
+    "industrial_battery": {
+      "charge": {"nature": "LVE", "power": 0.2, "efficiency":  0.8},
+      "discharge": {"nature": "LVE", "power": 0.3, "efficiency":  0.8},
+      "minimum_energy": 0.2,
+      "degradation_rate": 0.002,
+
+      "efficiency_variation": 0,
+      "power_variation": 0,
+      "capacity_variation": 0
     }
   }
 }

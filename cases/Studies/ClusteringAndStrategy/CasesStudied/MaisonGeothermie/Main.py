@@ -8,11 +8,9 @@ from cases.Studies.ClusteringAndStrategy.Comparison import comparison
 print("--- CLUSTERING PHASE ---")
 cluster_centers, center_sequences = clustering(training_simulation_length, cluster_number, clustering_metrics, sequences_number, gap, create_simulation, consumption_options, production_options)
 
-
 # training
 print("--- TRAINING PHASE ---")
 best_strategies = training(training_simulation_length, center_sequences, training_performance_norm, performance_metrics, assessed_priorities, create_simulation)
-
 
 # comparison
 print("--- COMPARISON PHASE ---")
