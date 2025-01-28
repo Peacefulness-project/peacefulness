@@ -39,7 +39,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ClusteringAndStrategy/Results/MaisonGeothermie/" + step_name
+    pathExport = "cases/Studies/ClusteringAndStrategy/Results/LimitedResource/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -122,7 +122,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # producers
     BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
 
-    curtailment_contract = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("industrial_contract", LVE, price_manager_elec)  # a contract
+    curtailment_contract = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("industrial_contract", LVE, price_manager_elec, {"curtailment_hours": 10, "rotation_duration": 168})  # a contract
 
     contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_elec)  # this contract is the one between the local electrical grid and the national one
 
@@ -135,28 +135,25 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
     aggregator_name = "industrial_area"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": XXX, "selling": XXX})  # creation of an aggregator
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 1000, "selling": 1000})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
 
     # base plant
-    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": XXX})  # creation of a heat production unit
+    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1000})  # creation of a heat production unit
 
     # storage
-    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": XXX, "initial_SOC": XXX})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 1000, "initial_SOC": 1})
 
     # consumption
+    agent_generation("residential_consumers", 1, "cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/SingleDeviceDwelling.json", aggregator_elec, {"LVE": price_manager_elec})
 
     # ##############################################################################################
     # Creation of dataloggers
 
-    # datalogger used to get back producer outputs
-    # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
-
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    # subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)
     exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     exhaustive_datalogger.add_all()  # add all keys
 

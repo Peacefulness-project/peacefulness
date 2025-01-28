@@ -1,5 +1,5 @@
-from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.Parameters import *
-from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.SimulationScript import create_simulation
+from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
+from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
 from cases.Studies.ClusteringAndStrategy.Clustering import clustering
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import comparison
