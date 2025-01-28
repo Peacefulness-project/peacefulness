@@ -1,0 +1,48 @@
+for the key Enedis.weighed_curtailment_rate_consumption:
+	mean: 0.0
+	min: inf
+	max: -inf
+	sum: 0.0
+
+for the key Enedis.weighed_curtailment_rate_production:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key general_aggregator.weighed_curtailment_rate_consumption:
+	mean: 3.1138995804877654e-15
+	min: 0.0
+	max: 1.0248349898290145e-14
+	sum: 5.137934307804813e-13
+
+for the key general_aggregator.weighed_curtailment_rate_production:
+	mean: 1.255463514597282e-17
+	min: 0.0
+	max: 1.8013172165960993e-16
+	sum: 2.071514799085514e-15
+
+for the key Local_DHN.weighed_curtailment_rate_consumption:
+	mean: 0.0
+	min: 0.0
+	max: 0.0
+	sum: 0.0
+
+for the key Local_DHN.weighed_curtailment_rate_production:
+	mean: 1.8668722285401415e-17
+	min: 0.0
+	max: 2.9336563591345076e-16
+	sum: 3.0803391770912332e-15
+
+for the key gas_aggregator.weighed_curtailment_rate_consumption:
+	mean: 0.0
+	min: inf
+	max: -inf
+	sum: 0.0
+
+for the key gas_aggregator.weighed_curtailment_rate_production:
+	mean: 0.8836363636363637
+	min: 0.0
+	max: 1.0
+	sum: 145.8
+
