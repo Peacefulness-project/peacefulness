@@ -1,10 +1,12 @@
 # ##############################################################################################
 # Native packages
-from datetime import datetime
+from datetime import datetime, timedelta
 # Current packages
 from src.common.Device import Device
 from src.tools.Utilities import into_list
 from src.common.Messages import MessagesManager
+from src.tools.ReadingFunctions import reading_functions
+from typing import Dict
 
 from math import ceil
 
@@ -31,59 +33,114 @@ class NonControllableDevice(Device):
 
         self._data_user_creation(data_user)  # creation of an empty user profile
 
-        # self._randomize_multiplication_dict(data_device["usage_profile"], data_device["consumption_variation"])
+        if data_device["format"] == "week":
+            # we randomize a bit in order to represent reality better
+            consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
+            for nature in data_device["usage_profile"]:
+                for i in range(len(data_device["usage_profile"][nature]["weekday"])):
+                    data_device["usage_profile"][nature]["weekday"][i] *= consumption_variation
+                for i in range(len(data_device["usage_profile"][nature]["weekend"])):
+                    data_device["usage_profile"][nature]["weekend"][i] *= consumption_variation
 
-        # we randomize a bit in order to represent reality better
-        consumption_variation = self._catalog.get("gaussian")(1, data_device["consumption_variation"])  # modification of the consumption
-        for nature in data_device["usage_profile"]:
-            for i in range(len(data_device["usage_profile"][nature]["weekday"])):
-                data_device["usage_profile"][nature]["weekday"][i] *= consumption_variation
-            for i in range(len(data_device["usage_profile"][nature]["weekend"])):
-                data_device["usage_profile"][nature]["weekend"][i] *= consumption_variation
+            self._randomize_start_variation(data_user)
 
-        self._randomize_start_variation(data_user)
+            # adaptation of the data to the time step
+            # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
+            time_step = self._catalog.get("time_step")
 
-        # adaptation of the data to the time step
-        # we need to reshape the data in order to make it fitable with the time step chosen for the simulation
-        time_step = self._catalog.get("time_step")
+            for nature in data_device["usage_profile"]:
+                consumption_profile = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                      2 * data_device["usage_profile"][nature]["weekend"]
 
-        for nature in data_device["usage_profile"]:
-            consumption_profile = 5 * data_device["usage_profile"][nature]["weekday"] + \
-                                  2 * data_device["usage_profile"][nature]["weekend"]
+                # user profile
+                for line in consumption_profile:
+                    current_moment = int(line // time_step)  # the moment when the device will be turned on
 
-            # user profile
-            for line in consumption_profile:
-                current_moment = int(line // time_step)  # the moment when the device will be turned on
+                    # creation of the user profile, where there are hours associated with the use of the device
+                    # first time step
 
-                # creation of the user profile, where there are hours associated with the use of the device
-                # first time step
+                    ratio = (self._moment % time_step - line % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
+                    if ratio <= 0:  # in case beginning - start is negative
+                        ratio += 1
+                    self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
 
-                ratio = (self._moment % time_step - line % time_step) / time_step  # the percentage of use at the beginning (e.g for a device starting at 7h45 with an hourly time step, it will be 0.25)
-                if ratio <= 0:  # in case beginning - start is negative
-                    ratio += 1
-                self._user_profile.append([current_moment, ratio])  # adding the first time step when it will be turned on
+                    # intermediate time steps
+                    duration_residue = 1 - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
+                    while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                        current_moment += 1
+                        duration_residue -= 1
+                        self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
 
-                # intermediate time steps
-                duration_residue = 1 - (ratio * time_step)  # the residue of the duration is the remnant time during which the device is operating
-                while duration_residue >= 1:  # as long as there is at least 1 full time step of functioning...
+                    # final time step
                     current_moment += 1
-                    duration_residue -= 1
-                    self._user_profile.append([current_moment, 1])  # ...a new entry is created with a ratio of 1 (full use)
+                    ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
+                    self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
 
-                # final time step
-                current_moment += 1
-                ratio = duration_residue/time_step  # the percentage of use at the end (e.g for a device ending at 11h45 with an hourly time step, it will be 0.75)
-                self._user_profile.append([current_moment, ratio])  # adding the final time step before it wil be turned off
+            # usage profile
+            self._technical_profile = []  # creation of an empty usage_profile with all cases ready
 
-        # usage profile
-        self._technical_profile = []  # creation of an empty usage_profile with all cases ready
+            self._technical_profile = dict()
+            for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
+                self._technical_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
+                                                  2 * data_device["usage_profile"][nature]["weekend"]
 
-        self._technical_profile = dict()
-        for nature in data_device["usage_profile"]:  # data_usage is then added for each nature used by the device
-            self._technical_profile[nature] = 5 * data_device["usage_profile"][nature]["weekday"] + \
-                                              2 * data_device["usage_profile"][nature]["weekend"]
+        else:
+            self._technical_profile = {nature.name: [] for nature in self.natures}
+            for nature in self._natures:
+                for i in range(8760):
+                    self._technical_profile[nature.name].append(self._manage_non_weekly_data(data_device, i, nature.name))
 
         self._unused_nature_removal()  # remove unused natures
+
+    def _manage_non_weekly_data(self, data_device: Dict, hour: int, nature_name: str):
+        self._get_data = reading_functions[data_device["format"]]  # the format acts a tag returning the relevant reading function
+        time_step_value = self._catalog.get("time_step")
+        time_step_length = self._catalog.get("time_step")
+
+        # relevant datetime identification
+        real_physical_time_start = datetime(year=2000, month=1, day=1, hour=0) + timedelta(hours=hour)
+
+        # ##########################################################################################
+        # start management
+        rounded_physical_time_start = datetime(
+            year=real_physical_time_start.year,
+            month=real_physical_time_start.month,
+            day=real_physical_time_start.day,
+            hour=real_physical_time_start.hour
+        )  # datetime rounded to the hour, for coherence with data format
+        first_hour_fraction = 1 - (real_physical_time_start - rounded_physical_time_start).days / 24
+
+        # ##########################################################################################
+        # end management
+        real_physical_time_end = real_physical_time_start + timedelta(hours=time_step_value * time_step_length)
+        rounded_physical_time_end = datetime(
+            year=real_physical_time_end.year,
+            month=real_physical_time_end.month,
+            day=real_physical_time_end.day,
+            hour=real_physical_time_end.hour
+        )  # datetime rounded to the hour, for coherence with data format
+        last_hour_fraction = (real_physical_time_end - rounded_physical_time_end).days / 24
+
+        # start date
+        needed_hours = list()  # relevant hours to read, with a coefficient for the first and last hours
+        needed_hours.append((0, first_hour_fraction))  # first hour management
+
+        # central hours
+        time = rounded_physical_time_start + timedelta(hours=1)
+        offset = 1
+        while (time - rounded_physical_time_end).days > 0:  # while the last hour is not reached
+            needed_hours.append((-offset, 1))
+            time += timedelta(hours=1)
+            offset += 1
+
+        # end date
+        needed_hours.append((-self._period, last_hour_fraction))  # last hour management
+
+        value = 0
+        for i in range(len(needed_hours)):
+            value += self._get_data(data_device[nature_name], real_physical_time_start, needed_hours[i][0]) * needed_hours[i][1]
+
+        return value
 
     def _randomize_start_variation(self, data):
         start_time_variation = self._catalog.get("gaussian")(0, data["start_time_variation"])  # creation of a displacement in the user_profile

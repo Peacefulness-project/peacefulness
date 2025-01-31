@@ -512,26 +512,78 @@ class Strategy:
 
         return quantities_and_prices
 
-    def _prepare_quantities_max_exchanges(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked to the superior aggregator
+    def _prepare_quantities_max_exchanges(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked the superior aggregator
         message = self._create_information_message()
 
+        Pmax_Cmin = maximum_energy_produced - minimum_energy_consumed
+        Cmax_Pmin = maximum_energy_consumed - minimum_energy_produced
         if minimum_energy_produced > minimum_energy_consumed:  # if minimum consumption is not sufficient to absorb minimum production
             if minimum_energy_produced > maximum_energy_consumed:  # if maximum consumption is not sufficient to absorb minimum production
-                energy_difference = maximum_energy_consumed - minimum_energy_produced
-                energy_minimum = energy_difference  # the minimum required to balance the grid
-                energy_nominal = energy_difference  # the nominal required to balance the grid
-                energy_maximum = energy_difference  # the minimum required to balance the grid
-            else:
-                energy_difference = maximum_energy_consumed - minimum_energy_produced
+                energy_minimum = - Cmax_Pmin  # the minimum required to balance the grid
+                energy_nominal = - Cmax_Pmin  # the nominal required to balance the grid
+
+                energy_maximum = Pmax_Cmin   # the maximum energy wanted to be sold
+            elif Pmax_Cmin > Cmax_Pmin:  # if the maximum energy purchasable is superior to the maximum energy saleable
                 energy_minimum = 0  # the minimum required to balance the grid
                 energy_nominal = 0  # the nominal required to balance the grid
-                energy_maximum = energy_difference  # the minimum required to balance the grid
+                energy_maximum = - Pmax_Cmin  # the maximum wanted
+            else:
+                energy_minimum = 0  # the minimum required to balance the grid
+                energy_nominal = 0  # the nominal required to balance the grid
+                energy_maximum = Cmax_Pmin  # the maximum wanted
         else:  # if minimum production is inferior to minimum consumption
-            energy_difference_minimum = minimum_energy_consumed - minimum_energy_produced
-            energy_difference_maximum = maximum_energy_consumed - minimum_energy_consumed
-            energy_minimum = energy_difference_minimum  # the minimum required to balance the grid
-            energy_nominal = energy_difference_minimum  # the nominal required to balance the grid
-            energy_maximum = energy_difference_minimum + energy_difference_maximum  # the minimum required to balance the grid
+            if minimum_energy_consumed > maximum_energy_produced:  # if maximum production is not sufficient to satisfy the minimum consumption
+                energy_minimum = - Pmax_Cmin  # the minimum required to balance the grid
+                energy_nominal = - Pmax_Cmin  # the nominal required to balance the grid
+                energy_maximum = Cmax_Pmin  # the maximum wanted
+            elif Cmax_Pmin > Pmax_Cmin:  # if the maximum energy purchasable is superior to the maximum energy saleable
+                energy_minimum = 0  # the minimum required to balance the grid
+                energy_nominal = 0  # the nominal required to balance the grid
+                energy_maximum = Cmax_Pmin  # the maximum wanted
+            else:
+                energy_minimum = 0  # the minimum required to balance the grid
+                energy_nominal = 0  # the nominal required to balance the grid
+                energy_maximum = - Pmax_Cmin  # the maximum wanted
+
+        message["energy_minimum"] = energy_minimum
+        message["energy_nominal"] = energy_nominal
+        message["energy_maximum"] = energy_maximum
+        quantities_and_prices.append(message)
+
+        return quantities_and_prices
+
+    def _prepare_quantities_max_buy(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked the superior aggregator
+        message = self._create_information_message()
+        Pmax_Cmin = maximum_energy_produced - minimum_energy_consumed
+        Cmax_Pmin = maximum_energy_consumed - minimum_energy_produced
+        if minimum_energy_produced > maximum_energy_consumed:  # if there is necessity to sell energy
+            energy_minimum = Cmax_Pmin
+            energy_nominal = Cmax_Pmin
+            energy_maximum = Cmax_Pmin
+        else:  # if it is possible to buy something
+            energy_minimum = max(0., -Pmax_Cmin)
+            energy_nominal = max(0., -Pmax_Cmin)
+            energy_maximum = Cmax_Pmin
+
+        message["energy_minimum"] = energy_minimum
+        message["energy_nominal"] = energy_nominal
+        message["energy_maximum"] = energy_maximum
+        quantities_and_prices.append(message)
+
+        return quantities_and_prices
+
+    def _prepare_quantities_max_sell(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # put all the urgent needs in the quantities and prices asked the superior aggregator
+        message = self._create_information_message()
+        Pmax_Cmin = maximum_energy_produced - minimum_energy_consumed
+        Cmax_Pmin = maximum_energy_consumed - minimum_energy_produced
+        if minimum_energy_consumed > maximum_energy_produced:  # if there is necessity to buy energy
+            energy_minimum = - Pmax_Cmin
+            energy_nominal = - Pmax_Cmin
+            energy_maximum = - Pmax_Cmin
+        else:  # if it is possible to sell something
+            energy_minimum = max(0., Cmax_Pmin)
+            energy_nominal = max(0., Cmax_Pmin)
+            energy_maximum = - Pmax_Cmin
 
         message["energy_minimum"] = energy_minimum
         message["energy_nominal"] = energy_nominal

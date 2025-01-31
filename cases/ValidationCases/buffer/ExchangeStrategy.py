@@ -79,6 +79,8 @@ strategy_light_autarky = subclasses_dictionary["Strategy"]["LightAutarkyFullButF
 strategy_autarky = subclasses_dictionary["Strategy"]["AutarkyFullButFew"](get_emergency)
 strategy_always_satisfied = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 strategy_max_exchanges = subclasses_dictionary["Strategy"]["ExchangesFullButFew"](get_emergency)
+strategy_max_buy = subclasses_dictionary["Strategy"]["MaxBuyFullButFew"](get_emergency)
+strategy_max_sell = subclasses_dictionary["Strategy"]["MaxSellFullButFew"](get_emergency)
 
 # strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -93,6 +95,10 @@ autarky_owner = Agent("autarky_owner")
 always_satisfied_owner = Agent("always_satisfied_owner")
 
 exchanges_owner = Agent("exchanges_owner")
+
+buy_owner = Agent("buy_owner")
+
+sell_owner = Agent("sell_owner")
 
 aggregators_manager = Agent("aggregators_manager")
 
@@ -114,6 +120,8 @@ aggregator_light_autarky = Aggregator("local_grid_emergency", LVE, strategy_ligh
 aggregator_autarky = Aggregator("local_grid_price", LVE, strategy_autarky, aggregators_manager, aggregator_grid, BAU_contract)
 aggregator_always_satisfied = Aggregator("local_grid_quantity", LVE, strategy_always_satisfied, aggregators_manager, aggregator_grid, BAU_contract)
 aggregator_max_exchanges = Aggregator("local_grid_exchanges", LVE, strategy_max_exchanges, aggregators_manager, aggregator_grid, BAU_contract, capacity={"buying": 12, "selling": inf})
+aggregator_max_buy = Aggregator("local_grid_buy", LVE, strategy_max_buy, aggregators_manager, aggregator_grid, BAU_contract, capacity={"buying": inf, "selling": inf})
+aggregator_max_sell = Aggregator("local_grid_sell", LVE, strategy_max_sell, aggregators_manager, aggregator_grid, BAU_contract, capacity={"buying": inf, "selling": inf})
 
 
 # ##############################################################################################
@@ -140,6 +148,16 @@ device_BAU_exchanges = subclasses_dictionary["Device"]["Background"]("device_BAU
 device_curtailment_exchanges = subclasses_dictionary["Device"]["Background"]("device_curtailment_exchanges", curtailment_contract, exchanges_owner, aggregator_max_exchanges, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 production_exchanges = subclasses_dictionary["Device"]["DummyProducer"]("production_exchanges", cooperative_contract, exchanges_owner, aggregator_max_exchanges, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
 
+# max buy strategy
+device_BAU_buy = subclasses_dictionary["Device"]["Background"]("device_BAU_buy", BAU_contract, buy_owner, aggregator_max_buy, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_curtailment_buy = subclasses_dictionary["Device"]["Background"]("device_curtailment_buy", curtailment_contract, buy_owner, aggregator_max_buy, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_buy = subclasses_dictionary["Device"]["DummyProducer"]("production_buy", cooperative_contract, buy_owner, aggregator_max_buy, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+
+# max sell strategy
+device_BAU_sell = subclasses_dictionary["Device"]["Background"]("device_BAU_sell", BAU_contract, sell_owner, aggregator_max_sell, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+device_curtailment_sell = subclasses_dictionary["Device"]["Background"]("device_curtailment_sell", curtailment_contract, sell_owner, aggregator_max_sell, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+production_sell = subclasses_dictionary["Device"]["DummyProducer"]("production_sell", cooperative_contract, sell_owner, aggregator_max_sell, {"device": "dummy_usage"}, {"max_power": 12}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/DummyProducer.json")
+
 # ##############################################################################################
 # Creation of the validation daemon
 description = "This script checks that exchange strategies work"
@@ -155,8 +173,14 @@ reference_values = {"light_autarky_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10,
                     "always_satisfied_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
                     "always_satisfied_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
 
-                    "exchanges_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-                    "exchanges_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                    "exchanges_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 10, 12, 12, 12, 12, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    "exchanges_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+
+                    "buy_owner.LVE.energy_bought": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46],
+                    "buy_owner.LVE.energy_sold": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+
+                    "sell_owner.LVE.energy_bought": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    "sell_owner.LVE.energy_sold": [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
                     }
 
 name = "LVE_light_autarky"

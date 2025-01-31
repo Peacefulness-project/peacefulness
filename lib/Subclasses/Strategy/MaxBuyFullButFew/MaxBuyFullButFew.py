@@ -4,10 +4,10 @@ from src.common.Strategy import Strategy
 from typing import Callable
 
 
-class ExchangesFullButFew(Strategy):
+class MaxBuyFullButFew(Strategy):
 
     def __init__(self, distribution_ranking_function: Callable):
-        super().__init__(f"exchanges_strategy_{distribution_ranking_function.__name__}", "Always tries to buy the maximum energy possible outside. During distribution, serves totaaly a restricted number of devices, according to the distribution ranking function.")
+        super().__init__(f"emax_buy_strategy_{distribution_ranking_function.__name__}", "Always tries to buy the maximum energy possible outside. During distribution, serves totaaly a restricted number of devices, according to the distribution ranking function.")
 
         self._distribution_ranking_function = distribution_ranking_function
 
@@ -31,7 +31,7 @@ class ExchangesFullButFew(Strategy):
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
-        quantities_and_prices = self._prepare_quantities_max_exchanges(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
+        quantities_and_prices = self._prepare_quantities_max_buy(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed, quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
 
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
