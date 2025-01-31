@@ -127,7 +127,7 @@ aggregator_elec = Aggregator("aggregator_elec", LVE, BAU_strategy, aggregators_m
 
 # ##############################################################################################
 # Manual creation of devices
-subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "toto"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
+subclasses_dictionary["Device"]["Background"]("background", BAU_contract_elec, background_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_usage"}, filename="cases/ValidationCases/AdditionalData/DevicesProfiles/Background.json")
 
 subclasses_dictionary["Device"]["Heating"]("heating", BAU_contract_elec, heating_owner, aggregator_elec, {"user": "dummy_user", "device": "dummy_elec"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 17}, "cases/ValidationCases/AdditionalData/DevicesProfiles/Heating.json")
 
