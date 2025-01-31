@@ -16,7 +16,8 @@ class OutdoorTemperatureDaemon(DataReadingDaemon):
 
         # previous temperature mangement
         self._data["previous_temperatures"] = []
-        self._catalog.add(f"{self._location}.previous_outdoor_temperature", self._get_data(self.data["temperatures"], self._catalog))  # setting the initial value of previous temperature
+        physical_time = self._catalog.get("physical_time")
+        self._catalog.add(f"{self._location}.previous_outdoor_temperature", self._get_data(self.data["temperatures"], physical_time))  # setting the initial value of previous temperature
 
         # exergy mangement
         self._exergy = exergy
