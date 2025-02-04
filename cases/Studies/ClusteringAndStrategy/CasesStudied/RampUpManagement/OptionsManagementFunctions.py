@@ -231,18 +231,20 @@ def distribution_discharging_storage(strategy: "Strategy", aggregator: "Aggregat
     return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
 
-index = ["heat_loads", "charging_storage", "nothing"]
+# index = ["heat_loads", "charging_storage", "nothing"]
+index = ["heat_loads", "nothing"]
 columns = ["assess", "exchange", "distribute"]
 data = [[assess_demand, exchanges_demand, distribution_demand],
-        [assess_charging_storage, exchanges_charging_storage, distribution_charging_storage],
+        # [assess_charging_storage, exchanges_charging_storage, distribution_charging_storage],
         [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
         ]
 options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["heat_baseload", "heat_peakload", "discharging_storage"]
+# index = ["heat_baseload", "heat_peakload", "discharging_storage"]
+index = ["heat_baseload", "heat_peakload"]
 columns = ["assess", "exchange", "distribute"]
 data = [[assess_base_load, exchanges_base_load, distribution_base_load],
-        [assess_peak_load, exchanges_peak_load, distribution_peak_load],
-        [assess_discharging_storage, exchanges_discharging_storage, distribution_discharging_storage],
+        [assess_peak_load, exchanges_peak_load, distribution_peak_load]
+        # , [assess_discharging_storage, exchanges_discharging_storage, distribution_discharging_storage],
         ]
 options_production = pd.DataFrame(index=index, columns=columns, data=data)
