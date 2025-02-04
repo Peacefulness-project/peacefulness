@@ -1,0 +1,19 @@
+{
+  "technical_data": {
+    "Waste_2_ThP": {
+      "usage_profile": {"nature": "LTH"},
+      "efficiency": 0.85,
+      "min_PCI": 2.22,
+      "max_PCI": 4.45,
+      "cold_startup_time": 4
+    },
+
+    "Biomass_2_ThP": {
+      "usage_profile": {"nature": "LTH"},
+      "efficiency": 0.9,
+      "min_PCI": 3.5,
+      "max_PCI": 4.6,
+      "cold_startup_time": 4
+    }
+  }
+}

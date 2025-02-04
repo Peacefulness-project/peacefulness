@@ -1150,6 +1150,178 @@
 # my_test ={"b": 1}
 # if my_test:
 #     print(True)
-ep = 10
-a = "my  is {}episode".format(ep)
-print(a)
+# ep = 10
+# a = "my  is {}episode".format(ep)
+# print(a)
+
+# #####################################################################################################################
+# TODO creating thermal consumption profiles for the ramp-up management study case
+#######################################################################################################################
+
+# Imports
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from copy import deepcopy
+
+
+my_year = np.arange(1, 8761)
+
+# Reading data from excel file
+my_df1 = pd.read_excel('Data.xlsx', sheet_name="Sheet1", engine='openpyxl')
+my_df2 = pd.read_excel('Data.xlsx', sheet_name="Sheet2", engine='openpyxl')
+my_data = my_df1.to_dict(orient='list')
+setpoints = my_df2.to_dict(orient='list')
+
+# Constructing my setpoints evolution over the year - starts in sunday
+house_setpoints = []
+office_setpoints = []
+for week in range(len(my_year) // (24 * 7)):
+    for weekday in range(5):  # temperature setpoints during the week-days
+        office_setpoints.extend(setpoints["setpoint_office_week"])
+        house_setpoints.extend(setpoints["setpoint_house_week"])
+    for weekday in range(2):  # temperature setpoints during the week-days
+        office_setpoints.extend(setpoints["setpoint_office_weekend"])
+        house_setpoints.extend(setpoints["setpoint_house_weekend"])
+
+remaining_time = len(my_year) % (24 * 7)
+
+if remaining_time != 0 and remaining_time % 24 == 0:
+    for day in range(remaining_time // 24):
+        office_setpoints.extend(setpoints["setpoint_office_week"])
+        house_setpoints.extend(setpoints["setpoint_house_week"])
+elif remaining_time % 24 != 0:
+    number_of_hours = remaining_time % 24
+    office_hours = []
+    house_hours = []
+    for hour in range(number_of_hours):
+        office_hours.append(setpoints["setpoint_office_week"][hour])
+        house_hours.append(setpoints["setpoint_house_week"][hour])
+    office_setpoints.extend(office_hours)
+    house_setpoints.extend(house_hours)
+
+# Delta Temperature values through the year
+office_deltas = []
+house_deltas = []
+first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
+second_set_of_data = deepcopy(my_data['OutdoorTemperature'][:2616])
+yearly_exterior_temperature = deepcopy(first_set_of_data)
+yearly_exterior_temperature.extend(np.zeros(3432))
+yearly_exterior_temperature.extend(second_set_of_data)
+
+
+for index in range(len(first_set_of_data)):
+    if office_setpoints[index] > yearly_exterior_temperature[index]:
+        office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+    else:
+        office_deltas.append(0.0)
+for index in range(len(first_set_of_data)):
+    if house_setpoints[index] > yearly_exterior_temperature[index]:
+        house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+    else:
+        house_deltas.append(0.0)
+
+office_deltas.extend(np.zeros(3432))
+house_deltas.extend(np.zeros(3432))
+
+for index in range(len(second_set_of_data)):
+    if office_setpoints[index] > yearly_exterior_temperature[index]:
+        office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+    else:
+        office_deltas.append(0.0)
+for index in range(len(second_set_of_data)):
+    if house_setpoints[index] > yearly_exterior_temperature[index]:
+        house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+    else:
+        house_deltas.append(0.0)
+
+# plt.plot(my_year, yearly_exterior_temperature)  # Plotting the Exterior Temperature values through the year
+# plt.show()
+
+# plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
+# plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
+# plt.show()
+
+# Total consumption data (kWh)
+old_house_total_space_heating_consumption = 1232000.5
+new_house_total_space_heating_consumption = 673000.03
+office_total_space_heating_consumption = 2730000.948
+
+# Retrieving Cp values for each building type
+old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
+new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
+office_Cp = office_total_space_heating_consumption / sum(office_deltas)
+
+# Consumption profiles
+old_house_profile = []
+new_house_profile = []
+office_profile = []
+for index in range(len(house_deltas)):
+    old_house_profile.append(old_house_Cp * house_deltas[index])
+    new_house_profile.append(new_house_Cp * house_deltas[index])
+for index in range(len(office_deltas)):
+    office_profile.append(office_Cp * office_deltas[index])
+
+# Plotting the consumption profiles
+# my_fig = plt.figure()
+# plt.plot(my_year, old_house_profile, label="Old house consumption profile")
+# plt.plot(my_year, new_house_profile, label="New house consumption profile")
+# plt.plot(my_year, office_profile, label="Office consumption profile")
+# plt.show()
+
+# Writing data on a file for the new background subclass
+my_total_consumption = []
+for index in range(len(old_house_profile)):
+    old_house_profile[index] = float(old_house_profile[index])
+    new_house_profile[index] = float(new_house_profile[index])
+    office_profile[index] = float(office_profile[index])
+    my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
+
+# with open('new_background.txt', "w") as my_file:
+#     my_file.write(f"Thermal consumption of old houses : {old_house_profile}")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"Thermal consumption of new houses : {new_house_profile}")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"\n")
+#     my_file.write(f"Thermal consumption of offices : {office_profile}")
+# my_file.close()
+
+#
+# old_house_profile = list(filter((0.0).__ne__, old_house_profile))  # removing the zero values
+# print(len(old_house_profile))
+# x1_axis = np.arange(1, len(old_house_profile) + 1)
+# old_house_profile.sort(reverse=True)
+# my_fig = plt.figure()
+# plt.plot(x1_axis, old_house_profile, label="Old house consumption profile")
+# plt.show()
+#
+# new_house_profile = list(filter((0.0).__ne__, new_house_profile))  # removing the zero values
+# print(len(new_house_profile))
+# x2_axis = np.arange(1, len(new_house_profile) + 1)
+# new_house_profile.sort(reverse=True)
+# plt.plot(x2_axis, new_house_profile, label="New house consumption profile")
+# plt.show()
+#
+# office_profile = list(filter((0.0).__ne__, office_profile))  # removing the zero values
+# print(len(office_profile))
+# x3_axis = np.arange(1, len(office_profile) + 1)
+# office_profile.sort(reverse=True)
+# plt.plot(x3_axis, office_profile, label="Office consumption profile")
+# plt.show()
+
+my_total_consumption = list(filter((0.0).__ne__, my_total_consumption))  # removing the zero values
+print(len(my_total_consumption))
+print(max(my_total_consumption))
+x4_axis = np.arange(1, len(my_total_consumption) + 1)
+threshold = np.empty(len(x4_axis))
+threshold.fill(1166)
+my_total_consumption.sort(reverse=True)
+plt.plot(x4_axis, my_total_consumption, label="my_total_consumption profile")
+plt.plot(x4_axis, threshold, label="sizing of the base load technology", linestyle='--')
+plt.show()
+
