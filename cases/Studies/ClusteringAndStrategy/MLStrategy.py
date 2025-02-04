@@ -52,7 +52,7 @@ class MLStrategy(TrainingStrategy):
     # ##########################################################################################
 
     def _asses_quantities_for_each_option(self, aggregator: "Aggregator") -> Dict:
-        [demands, offers] = self._sort_quantities(aggregator, self._sort_function)
+        [demands, offers, storage] = self._sort_quantities(aggregator, self._sort_function)
         quantity_per_option = {"consumption": {}, "production": {}}
         priorities_consumption = self._get_priorities_consumption()
         priorities_production = self._get_priorities_production()

@@ -39,7 +39,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ClusteringAndStrategy/Results/MaisonGeothermie/" + step_name
+    pathExport = "cases/Studies/ClusteringAndStrategy/Results/LimitedResource/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -66,24 +66,17 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # low voltage electricity
     LVE = load_low_voltage_electricity()
 
-    # domestic heat
-    LTH = load_low_temperature_heat()
-
     # ##############################################################################################
     # Creation of daemons
     location = "Nantes"
 
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "coefficient": 1/3}, "cases/Studies/ClusteringAndStrategy/CasesStudied/MaisonGeothermie/AdditionalData/prices.json")  # sets prices for TOU rate
-    price_manager_elec_sell = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("selling_rate", {"buying_price": 0, "selling_price": 0.13})   # sets prices for TOU rate
-
-    price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_price", {"buying_price": 0, "selling_price": 0})  # sets prices for TOU rate
+    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"buying_price": 0.2, "selling_price": 0.1})   # sets prices for TOU rate
 
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
     limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.05})  # sets limit price accepted
-    limit_prices_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0, "limit_selling_price": 0})  # sets limit price accepted
 
     # Indoor temperature
     # this daemon is responsible for the value of indoor temperatures in the catalog
@@ -127,13 +120,13 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Manual creation of contracts
 
     # producers
-    BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec_sell)
+    BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
 
-    cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec_RTP)  # a contract
+    curtailment_contract = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("industrial_contract", LVE, price_manager_elec, {"curtailment_hours": 10, "rotation_duration": 168})  # a contract
 
-    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_elec_RTP)  # this contract is the one between the local electrical grid and the national one
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_elec)  # this contract is the one between the local electrical grid and the national one
 
-    heat_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)  # a contract
+    cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
 
     # ##############################################################################################
     # Creation of aggregators
@@ -141,31 +134,26 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_name = "grid"  # external grid
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
-    aggregator_name = "house_thermal"  # thermal part of the house
-    aggregator_heat = Aggregator(aggregator_name, LTH, strategy_heat, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 1500, "selling": 1500})  # creation of a aggregator
-
-    aggregator_name = "house_elec"  # elec part of the house
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_elec, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 1500, "selling": 1500})  # creation of a aggregator
+    aggregator_name = "industrial_area"  # area with industrials
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 1000, "selling": 1000})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
 
-    storage = subclasses_dictionary["Device"]["UndergroundThermalStorage"]("heat_storage", heat_contract, grid_manager, aggregator_heat, {"device": "domestic_storage"}, {"ground_temperature_daemon": ground_temperature_daemon.name})
-    heating = subclasses_dictionary["Device"]["Heating"]("heating", heat_contract, grid_manager, aggregator_heat, {"user": "residential", "device": "house_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name},
-                                                         "cases/Studies/ClusteringAndStrategy/CasesStudied/MaisonGeothermie/AdditionalData/Heating.json")
-    heatpump = subclasses_dictionary["Device"]["AdvancedHeatPump"]("heat_pump", [heat_contract, cooperative_contract_elec], grid_manager, aggregator_elec, aggregator_heat,
-                                                                   {"device": "dummy_heat_pump"}, {"capacity": 15, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name, "max_power": 15})
-    PV = subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV", BAU_elec, grid_manager, aggregator_elec, {"device": "standard_field"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name, "panels": 10})
+    # base plant
+    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1000})  # creation of a heat production unit
+
+    # storage
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 1000, "initial_SOC": 1})
+
+    # consumption
+    agent_generation("residential_consumers", 1, "cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/SingleDeviceDwelling.json", aggregator_elec, {"LVE": price_manager_elec})
 
     # ##############################################################################################
     # Creation of dataloggers
 
-    # datalogger used to get back producer outputs
-    # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
-
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
-    # subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)
     exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     exhaustive_datalogger.add_all()  # add all keys
 

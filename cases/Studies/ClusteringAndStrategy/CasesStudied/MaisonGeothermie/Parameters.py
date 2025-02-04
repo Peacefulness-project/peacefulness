@@ -32,7 +32,7 @@ clustering_metrics = [  # prices are not taken into account for now
     "prices_elec.France.buying_price",
     # production
     "PV.LVE.energy_sold",
-    "heat_pump.LTH.efficiency",
+    # "heat_pump.LTH.efficiency",
     # + demande en attente ?
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
@@ -43,21 +43,21 @@ performance_metrics = [
     "heat_storage.LTH.energy_bought",
     "heat_storage.LTH.energy_sold",
 
-    "heat_pump.LVE.energy_bought",
-    "heat_pump.LTH.energy_sold",
-
-    "heating.LTH.energy_bought",
-    "heating.LTH.energy_sold",
-
-    "house_owner.LTH.energy_bought",
-    "house_owner.LTH.energy_sold",
-    "house_owner.LVE.energy_sold",
-    "house_owner.LVE.energy_bought",
-
-    "PV.LVE.energy_sold",
-
-    "house_elec.energy_sold",
-    "house_elec.energy_bought",
+    # "heat_pump.LVE.energy_bought",
+    # "heat_pump.LTH.energy_sold",
+    #
+    # "heating.LTH.energy_bought",
+    # "heating.LTH.energy_sold",
+    #
+    # "house_owner.LTH.energy_bought",
+    # "house_owner.LTH.energy_sold",
+    # "house_owner.LVE.energy_sold",
+    # "house_owner.LVE.energy_bought",
+    #
+    # "PV.LVE.energy_sold",
+    #
+    # "house_elec.energy_sold",
+    # "house_elec.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
 money_coef = 1  # money costs around 10 C€/kWh and energy flows are around 1-10 kWH
