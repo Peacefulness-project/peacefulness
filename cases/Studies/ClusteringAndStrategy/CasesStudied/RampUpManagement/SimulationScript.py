@@ -18,8 +18,8 @@ from src.common.Datalogger import Datalogger
 from src.tools.SubclassesDictionary import get_subclasses
 
 from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.OptionsManagementFunctions import options_consumption, options_production
-from os import chdir
-chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+# from os import chdir
+# chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
 
 def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
     # ##############################################################################################
@@ -79,7 +79,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
-    limit_prices_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]( {"nature": LTH.name, "limit_buying_price": 0.8, "limit_selling_price": 0.1})  # sets limit price accepted
+    limit_prices_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.8, "limit_selling_price": 0.1})  # sets limit price accepted
 
     # Outdoor temperature
     # this daemon is responsible for the value of outside temperature in the catalog
@@ -109,14 +109,20 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of devices
     # Thermal loads
-    old_houses = subclasses_dictionary["Device"]["BackgroundAlternative"]("old_house", heat_contract, DHN_manager, aggregator_grid, {"user": "old_house", "device": "old_house"})
-    new_houses = subclasses_dictionary["Device"]["BackgroundAlternative"]("new_house", heat_contract, DHN_manager, aggregator_grid, {"user": "new_house", "device": "new_house"})
-    offices = subclasses_dictionary["Device"]["BackgroundAlternative"]("office", heat_contract_TOU, DHN_manager, aggregator_grid, {"user": "office", "device": "office"})
+    old_houses = subclasses_dictionary["Device"]["Background"]("old_house", heat_contract, DHN_manager, aggregator_grid,
+                                                                {"user": "old_house", "device": "old_house"},
+                                                                filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
+    new_houses = subclasses_dictionary["Device"]["Background"]("new_house", heat_contract, DHN_manager, aggregator_grid,
+                                                               {"user": "new_house", "device": "new_house"},
+                                                               filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
+    offices = subclasses_dictionary["Device"]["Background"]("office", heat_contract_TOU, DHN_manager, aggregator_grid,
+                                                            {"user": "office", "device": "office"},
+                                                            filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal energy producers
     base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("incinerator", heat_contract, DHN_manager, aggregator_grid, {"device": "Biomass_2_ThP"}, {"max_power": 1166, "recharge_quantity": 1500, "autonomy": 8})
     peak_load = subclasses_dictionary["Device"]["DummyProducer"]("fast_gas_boiler", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "heat"}, {"max_power": 1000})
     # Thermal energy storage
-    network_pipes = subclasses_dictionary["Device"]["LatentHeatStorage"]("DHN_pipelines", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
+    # network_pipes = subclasses_dictionary["Device"]["LatentHeatStorage"]("DHN_pipelines", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
     # ##############################################################################################
     # Creation of dataloggers

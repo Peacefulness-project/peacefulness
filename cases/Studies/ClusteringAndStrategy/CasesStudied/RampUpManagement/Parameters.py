@@ -26,7 +26,7 @@ comparison_simulation_length = 8760  # length of the final run aimed at evaluati
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
     # storage
-    "DHN_pipelines.energy_stored",
+    # "DHN_pipelines.energy_stored",
     # consumption
     "old_house.LTH.energy_bought",
     "new_house.LTH.energy_bought",
@@ -40,8 +40,8 @@ performance_metrics = [
     "DHN_manager.money_earned",
     "DHN_manager.money_spent",
 
-    "DHN_pipelines.LTH.energy_bought",
-    "DHN_pipelines.LTH.energy_sold",
+    # "DHN_pipelines.LTH.energy_bought",
+    # "DHN_pipelines.LTH.energy_sold",
 
     "old_house.LTH.energy_bought",
     "old_house.LTH.energy_sold",
@@ -72,8 +72,10 @@ def performance_norm(performance_vector: Dict) -> float:
 # strategies, defined as an ordered list of the available levers - todo à confirmer avec Timothé
 # ######################################################################################################################
 
-consumption_options = ["heat_loads", "charging_storage", "nothing"]
-production_options = ["heat_baseload", "heat_peakload", "discharging_storage"]
+# consumption_options = ["heat_loads", "charging_storage", "nothing"]
+# production_options = ["heat_baseload", "heat_peakload", "discharging_storage"]
+consumption_options = ["heat_loads", "nothing"]
+production_options = ["heat_baseload", "heat_peakload"]
 assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
 assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
 assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
@@ -81,8 +83,10 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
-    return ["heat_loads", "charging_storage", "nothing"]
+    # return ["heat_loads", "charging_storage", "nothing"]
+    return ["heat_loads", "nothing"]
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    return ["heat_baseload", "discharging_storage", "heat_peakload"]
+    # return ["heat_baseload", "discharging_storage", "heat_peakload"]
+    return ["heat_baseload", "heat_peakload"]
