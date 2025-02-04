@@ -42,10 +42,8 @@ def agent_generation(name, quantity, filename, aggregators, price_manager_daemon
         for device_data in data["composition"]:
             for profile in data["composition"][device_data]:
                 if profile["quantity"][0] > profile["quantity"][1]:
-                    raise Exception(
-                        f"The minimum number of devices {profile['name']} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
-                number_of_devices = world._catalog.get("int")(profile["quantity"][0], profile["quantity"][
-                    1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
+                    raise Exception(f"The minimum number of devices {profile['name']} allowed must be inferior to the maximum number allowed in the profile {data['template name']}.")
+                number_of_devices = world._catalog.get("int")(profile["quantity"][0], profile["quantity"][1])  # the number of devices is chosen randomly inside the limits defined in the agent profile
                 for j in range(number_of_devices):
                     device_name = f"{agent_name}_{profile['name']}_{j}"  # name of the device, "Profile X"_5_Light_0
                     device_class = world._subclasses_dictionary["Device"][device_data]
@@ -63,8 +61,10 @@ def agent_generation(name, quantity, filename, aggregators, price_manager_daemon
                     else:
                         parameters = data_daemons
 
-                    device_class(device_name, contracts, agent, aggregators, profile["data_profiles"],
-                                 parameters)  # creation of the device
+                    if "profile_filename" in profile:  # management of non default files for devices profiles
+                        device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters, profile["profile_filename"])  # creation of the device
+                    else:
+                        device_class(device_name, contracts, agent, aggregators, profile["data_profiles"], parameters)  # creation of the device
 
     if verbose:
         print("Done\n")

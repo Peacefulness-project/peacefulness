@@ -19,8 +19,8 @@ class DataReadingDaemon(Daemon):
         # getting the data for the chosen location
         with open(filename, "r") as file:
             temp = items(file, f"{self._location}", use_float=True)  # the data corresponding to the specified location
-            for truc in temp:
-                self._data = truc
+            for item in temp:
+                self._data = item
 
         self._format = self._data["format"]
         self._get_data = reading_functions[self._format]  # the format acts a tag returning the relevant reading function
@@ -85,7 +85,8 @@ class DataReadingDaemon(Daemon):
         time_step_value = self._catalog.get("time_step")
 
         # relevant datetime identification
-        real_physical_time_start = self.catalog.get("physical_time") + timedelta(hours=time_step_value * offset_bis)
+        physical_time = self.catalog.get("physical_time")
+        real_physical_time_start = physical_time + timedelta(hours=time_step_value * offset_bis)
 
         # ##########################################################################################
         # start management
@@ -128,13 +129,13 @@ class DataReadingDaemon(Daemon):
             if quantity_type == "extensive":  # ... values are divided if the quantity is extensive
                 value = 0
                 for i in range(len(needed_hours)):
-                    value += self._get_data(self._data[data_key], self.catalog, needed_hours[i][0]) * needed_hours[i][1]
+                    value += self._get_data(self._data[data_key], physical_time, needed_hours[i][0]) * needed_hours[i][1]
                 values_dict[catalog_key] = value
             elif quantity_type == "intensive":  # ... values are the same if the quantity is intensive
                 values = []
                 coefs = []
                 for i in range(len(needed_hours)):
-                    values.append(self._get_data(self._data[data_key], self.catalog, needed_hours[i][0]) * needed_hours[i][1])
+                    values.append(self._get_data(self._data[data_key], physical_time, needed_hours[i][0]) * needed_hours[i][1])
                     coefs.append(needed_hours[i][1])
                 mean_values = sum(values) / sum(coefs)
                 values_dict[catalog_key] = mean_values
