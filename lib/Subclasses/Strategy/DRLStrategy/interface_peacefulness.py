@@ -12,7 +12,7 @@
 # Sending the results of each observation
 
 # Imports
-from DRL_Strategy_utilities import *
+from lib.Subclasses.Strategy.DRLStrategy.DRL_Strategy_utilities import *
 from os import path
 import sys
 

@@ -4,7 +4,7 @@
 
 # Imports
 from src.common.Strategy import Strategy
-from interface_peacefulness import *
+from lib.Subclasses.Strategy.DRLStrategy.interface_peacefulness import *
 
 
 class DeepReinforcementLearning(Strategy):
