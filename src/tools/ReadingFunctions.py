@@ -14,7 +14,6 @@ def get_365_days(values, physical_time: datetime, time_offset=0):
     year = physical_time.year
     duration = physical_time - datetime(year=year, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
     current_hour = duration.days * 24 + duration.seconds // 3600  # conversion of the duration in hours spent since the beginning of the year
-
     return values[current_hour]
 
 
