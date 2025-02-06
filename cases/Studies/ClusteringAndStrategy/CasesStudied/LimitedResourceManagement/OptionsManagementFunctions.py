@@ -8,28 +8,28 @@ import pandas as pd
 # consumption
 # ################################################################################################################
 
-# short term storage (spatial heating)
-def assess_short_term_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
+# storage
+def assess_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
     quantity_for_this_option = 0
 
     for demand in demands:
-        if demand["name"] == "heating":
+        if demand["name"] == "storage":
             quantity_for_this_option += demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
 
 
-def exchanges_short_term_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
     quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
-def distribution_short_term_storage(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
+def distribution_storage(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     i = 0
 
     if len(sorted_demands) >= 1:  # if there are offers
         while energy_available_consumption > sorted_demands[i]["quantity"] and i < len(sorted_demands) - 1:  # as long as there is energy available
-            if sorted_demands[i]["name"] == "heating":
+            if sorted_demands[i]["name"] == "storage":
                 name = sorted_demands[i]["name"]
                 energy = sorted_demands[i]["quantity"]  # the quantity of energy needed
                 price = sorted_demands[i]["price"]  # the price of energy
@@ -55,7 +55,7 @@ def distribution_short_term_storage(strategy: "Strategy", aggregator: "Aggregato
             i += 1
 
         # this block gives the remaining energy to the last unserved device
-        if sorted_demands[i]["quantity"] and sorted_demands[i]["name"] != "heating":  # if the demand really exists
+        if sorted_demands[i]["quantity"] and sorted_demands[i]["name"] != "storage":  # if the demand really exists
             name = sorted_demands[i]["name"]
             energy = min(sorted_demands[i]["quantity"], energy_available_consumption)  # the quantity of energy needed
             price = sorted_demands[i]["price"]  # the price of energy
@@ -80,28 +80,28 @@ def distribution_short_term_storage(strategy: "Strategy", aggregator: "Aggregato
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
 
-# long term storage (geothermy)
-def assess_long_term_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
+# industrial
+def assess_industrial(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
     quantity_for_this_option = 0
 
     for demand in demands:
-        if demand["name"] == "heat_storage":
+        if demand["name"] == "industrial_process":
             quantity_for_this_option += demand["quantity"]
 
     return quantity_for_this_option
 
 
-def exchanges_long_term_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_industrial(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
     quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
-def distribution_long_term_storage(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
+def distribution_industrial(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     i = 0
 
     if len(sorted_demands) >= 1:  # if there are offers
         while energy_available_consumption > sorted_demands[i]["quantity"] and i < len(sorted_demands) - 1:  # as long as there is energy available
-            if sorted_demands[i]["name"] == "heat_storage":
+            if sorted_demands[i]["name"] == "industrial_process":
                 name = sorted_demands[i]["name"]
                 energy = sorted_demands[i]["quantity"]  # the quantity of energy needed
                 price = sorted_demands[i]["price"]  # the price of energy
@@ -127,7 +127,7 @@ def distribution_long_term_storage(strategy: "Strategy", aggregator: "Aggregator
             i += 1
 
         # this block gives the remaining energy to the last unserved device
-        if sorted_demands[i]["quantity"] and sorted_demands[i]["name"] != "heat_storage":  # if the demand really exists
+        if sorted_demands[i]["quantity"] and sorted_demands[i]["name"] != "industrial_process":  # if the demand really exists
             name = sorted_demands[i]["name"]
             energy = min(sorted_demands[i]["quantity"], energy_available_consumption)  # the quantity of energy needed
             price = sorted_demands[i]["price"]  # the price of energy
@@ -152,7 +152,7 @@ def distribution_long_term_storage(strategy: "Strategy", aggregator: "Aggregator
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
 
-# nothing (no storage is made and the heat pump is less used)
+# nothing (no storage is made and the industrial is curtailed)
 def assess_nothing_option(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
     quantity_for_this_option = 0
 
@@ -173,8 +173,8 @@ def distribution_nothing_option(strategy: "Strategy", aggregator: "Aggregator", 
 # production
 # min
 
-# heat pump
-def assess_heat_pump(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
+# production
+def assess_prod(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
     quantity_for_this_option = 0
 
     for demand in offers:
@@ -184,12 +184,12 @@ def assess_heat_pump(strategy: "Strategy", aggregator: "Aggregator", offers: Lis
     return quantity_for_this_option
 
 
-def exchanges_heat_pump(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
     quantity_to_affect = - max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
-def distribution_heat_pump(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
+def distribution_prod(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
 
     if len(sorted_offers) >= 1:  # if there are offers
@@ -250,7 +250,7 @@ def assess_unstorage(strategy: "Strategy", aggregator: "Aggregator", offers: Lis
     quantity_for_this_option = 0
 
     for demand in offers:
-        if demand["name"] == "heat_storage":
+        if demand["name"] == "storage":
             quantity_for_this_option -= demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
@@ -266,7 +266,7 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
 
     if len(sorted_offers) >= 1:  # if there are offers
         while energy_available_production >= - sorted_offers[i]["quantity"] and i < len(sorted_offers) - 1:  # as long as there is energy available
-            if sorted_offers[i]["name"] == "heat_storage":
+            if sorted_offers[i]["name"] == "storage":
                 name = sorted_offers[i]["name"]
                 energy = sorted_offers[i]["quantity"]  # the quantity of energy needed
                 price = sorted_offers[i]["price"]  # the price of energy
@@ -292,7 +292,7 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
             i += 1
 
         # this line gives the remnant of energy to the last unserved device
-        if sorted_offers[i]["quantity"] and sorted_offers[i]["name"] == "heat_storage":  # if the demand really exists
+        if sorted_offers[i]["quantity"] and sorted_offers[i]["name"] == "storage":  # if the demand really exists
             name = sorted_offers[i]["name"]
             energy = max(sorted_offers[i]["quantity"], - energy_available_production)  # the quantity of energy needed
             price = sorted_offers[i]["price"]  # the price of energy
@@ -316,18 +316,43 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
 
     return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
+# outside energy
+def assess_buy_outside(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
+    quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
 
-index = ["spatial_heating", "long_term_storage", "nothing"]
+    return quantity_for_this_option
+
+
+def exchanges_buy_outside(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+    # message = {element: strategy._messages["bottom-up"][element] for element in strategy._messages["bottom-up"]}
+    message = strategy.__class__.information_message()
+    quantity_remaining = max(0, quantity_to_affect - quantity_available_for_this_option)
+    quantity_bought = quantity_to_affect - quantity_remaining
+
+    message["energy_minimum"] = quantity_bought
+    message["energy_nominal"] = quantity_bought
+    message["energy_maximum"] = quantity_bought
+
+    quantities_and_prices.append(message)
+
+    return quantity_remaining, quantities_and_prices
+
+
+def distribution_buy_outside(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
+    return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
+
+
+index = ["storage", "industrial", "nothing"]
 columns = ["assess", "exchange", "distribute"]
-data = [[assess_short_term_storage, exchanges_short_term_storage, distribution_short_term_storage],
-        [assess_long_term_storage, exchanges_long_term_storage, distribution_long_term_storage],
+data = [[assess_storage, exchanges_storage, distribution_storage],
+        [assess_industrial, exchanges_industrial, distribution_industrial],
         [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
         ]
 options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["heat_pump", "long_term_unstorage"]
-columns = ["assess", "exchange", "distribute"]
-data = [[assess_heat_pump, exchanges_heat_pump, distribution_heat_pump],
+index = ["production", "unstorage", "grid"]
+data = [[assess_prod, exchanges_prod, distribution_prod],
         [assess_unstorage, exchanges_unstorage, distribution_unstorage],
+        [assess_buy_outside, exchanges_buy_outside, distribution_buy_outside],
         ]
 options_production = pd.DataFrame(index=index, columns=columns, data=data)
