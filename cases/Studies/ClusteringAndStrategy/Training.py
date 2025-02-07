@@ -40,7 +40,7 @@ def systematic_test(cluster_center_start_date: int, simulation_length: int, perf
 
             print(f"test of strategy {assessed_priorities_consumption[i]}/{assessed_priorities_production[j]}")
             datalogger = create_simulation(simulation_length, priorities_consumption,  priorities_production, f"training/{i}_{j}", performance_metrics, delay_days=cluster_center_start_date)
-            shutil.rmtree("cases/Studies/ClusteringAndStrategy/Results/MaisonGeothermie/training/", ignore_errors=False,
+            shutil.rmtree("cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/training/", ignore_errors=False,
                           onerror=None)
 
             # metering
@@ -78,7 +78,7 @@ def bayesian_search(cluster_center_start_date: int, simulation_length: int, perf
             return assessed_priorities_production[priorities_indices[1]]
         datalogger = create_simulation(simulation_length, priorities_consumption, priorities_production,
                                        f"training/", performance_metrics, delay_days=cluster_center_start_date)
-        shutil.rmtree("cases/Studies/ClusteringAndStrategy/Results/MaisonGeothermie/training/", ignore_errors=False, onerror=None)
+        shutil.rmtree("cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/training/", ignore_errors=False, onerror=None)
         raw_outputs = {}
         for key in performance_metrics:
             raw_outputs[key] = datalogger.get_values(key)

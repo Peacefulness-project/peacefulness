@@ -1,0 +1,1 @@
+simulation_time	physical_time	old_house.energy	old_house.money	new_house.energy	new_house.money	office.energy	office.money	incinerator.energy	incinerator.money	fast_gas_boiler.energy	fast_gas_boiler.money	

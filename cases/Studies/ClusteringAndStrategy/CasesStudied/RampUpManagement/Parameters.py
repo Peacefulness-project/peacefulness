@@ -52,8 +52,6 @@ performance_metrics = [
 
     "DHN_manager.LTH.energy_bought",
     "DHN_manager.LTH.energy_sold",
-    "DHN_manager.LVE.energy_sold",
-    "DHN_manager.LVE.energy_bought",
 
     "incinerator.LTH.energy_sold",
     "fast_gas_boiler.LTH.energy_sold",
