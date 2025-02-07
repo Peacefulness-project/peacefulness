@@ -1262,12 +1262,16 @@ for index in range(len(house_deltas)):
 for index in range(len(office_deltas)):
     office_profile.append(office_Cp * office_deltas[index])
 
+heat_sink = np.empty(len(my_year))
+heat_sink.fill(200.0)
+
 # Plotting the consumption profiles
-# my_fig = plt.figure()
+my_fig = plt.figure()
 # plt.plot(my_year, old_house_profile, label="Old house consumption profile")
 # plt.plot(my_year, new_house_profile, label="New house consumption profile")
-# plt.plot(my_year, office_profile, label="Office consumption profile")
-# plt.show()
+plt.plot(my_year, office_profile, label="Office consumption profile")
+plt.plot(my_year, heat_sink, label="Office consumption profile")
+plt.show()
 
 # Writing data on a file for the new background subclass
 my_total_consumption = []
@@ -1275,21 +1279,27 @@ for index in range(len(old_house_profile)):
     old_house_profile[index] = float(old_house_profile[index])
     new_house_profile[index] = float(new_house_profile[index])
     office_profile[index] = float(office_profile[index])
+    heat_sink[index] = float(heat_sink[index])
     my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
 
-# with open('new_background.txt', "w") as my_file:
-#     my_file.write(f"Thermal consumption of old houses : {old_house_profile}")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"Thermal consumption of new houses : {new_house_profile}")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"\n")
-#     my_file.write(f"Thermal consumption of offices : {office_profile}")
-# my_file.close()
+with open('new_background.txt', "w") as my_file:
+    my_file.write(f"Thermal consumption of old houses : {old_house_profile}")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"Thermal consumption of new houses : {new_house_profile}")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"Thermal consumption of offices : {office_profile}")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"\n")
+    my_file.write(f"Thermal consumption of offices : {heat_sink.tolist()}")
+my_file.close()
 
 #
 # old_house_profile = list(filter((0.0).__ne__, old_house_profile))  # removing the zero values
@@ -1314,14 +1324,14 @@ for index in range(len(old_house_profile)):
 # plt.plot(x3_axis, office_profile, label="Office consumption profile")
 # plt.show()
 
-my_total_consumption = list(filter((0.0).__ne__, my_total_consumption))  # removing the zero values
-print(len(my_total_consumption))
-print(max(my_total_consumption))
-x4_axis = np.arange(1, len(my_total_consumption) + 1)
-threshold = np.empty(len(x4_axis))
-threshold.fill(1166)
-my_total_consumption.sort(reverse=True)
-plt.plot(x4_axis, my_total_consumption, label="my_total_consumption profile")
-plt.plot(x4_axis, threshold, label="sizing of the base load technology", linestyle='--')
-plt.show()
+# my_total_consumption = list(filter((0.0).__ne__, my_total_consumption))  # removing the zero values
+# print(len(my_total_consumption))
+# print(max(my_total_consumption))
+# x4_axis = np.arange(1, len(my_total_consumption) + 1)
+# threshold = np.empty(len(x4_axis))
+# threshold.fill(1166)
+# my_total_consumption.sort(reverse=True)
+# plt.plot(x4_axis, my_total_consumption, label="my_total_consumption profile")
+# plt.plot(x4_axis, threshold, label="sizing of the base load technology", linestyle='--')
+# plt.show()
 
