@@ -69,6 +69,8 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
             wanted_energy = catalog.get(f"Energy asked from {subaggregator.name} to {aggregator.name}")
         else:
             wanted_energy = catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+        if isinstance(wanted_energy, list):  # into_list is not automatically used because of the if condition
+            wanted_energy = wanted_energy[0]
         price = wanted_energy["price"]
         Emax = wanted_energy["energy_maximum"]
         Emin = wanted_energy["energy_minimum"]
@@ -85,6 +87,7 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
             else:
                 subaggregators_buying_energies.append(Emax)
 
+    # extending the lists into each corresponding list
     buying_prices = managed_devices_buying_prices + subaggregators_buying_prices
     buying_energies = managed_devices_buying_energies + subaggregators_buying_energies
     selling_prices = managed_devices_selling_prices + subaggregators_selling_prices
@@ -98,11 +101,11 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
     if buying_prices:
         buying_price = min(sum(buying_prices), max_price)
     else:
-        buying_price = 0.0
+        buying_price = max_price
     if selling_prices:
         selling_price = max(sum(selling_prices), min_price)
     else:
-        selling_price = 0.0
+        selling_price = min_price
 
     return buying_price, selling_price
 
@@ -135,7 +138,7 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
         intermediate_dict.pop('energy_nominal')
         intermediate_dict.pop('energy_maximum')
         intermediate_dict.pop('price')
-        intermediate_dict.pop('CO2')  # todo voir après comment traiter les other data related to operational objectives
+        # intermediate_dict.pop('CO2')  # todo voir après comment traiter les other data related to operational objectives
 
         if specific_message["type"] == "standard":  # if the device/energy system is either for consumption/production
             if Emax < 0:  # the energy system/device produces energy
@@ -190,7 +193,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
     This function regroups the formalism dict around the typology of energy systems.
     """
     # Preparing the dict
-    return_dict = {}
+    return_dict = {"Energy_Consumption": {}, "Energy_Production": {}, "Energy_Storage": {}}
     consumption_dict = {}
     production_dict = {}
     storage_dict = {}
@@ -206,48 +209,49 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
     interruptibility = []
     coming_volume = []
 
-    for element in [consumption_dict, production_dict]:
-        for key in element:
-            for subkey in element[key]:
-                if subkey == 'energy_minimum':
-                    energy_min.append(element[key][subkey])
-                elif subkey == 'energy_maximum':
-                    energy_max.append(element[key][subkey])
-                elif subkey == 'flexibility':  # todo removed break, to take into account the length/number of steps where my device is flexible (A CHECKER AVEC TIMOTHE ET BRUNO)
-                    if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
+    for typology in [consumption_dict, production_dict]:
+        for device_name in typology:
+            for element in typology[device_name]:
+                if element == 'energy_minimum':
+                    energy_min.append(typology[device_name][element])
+                elif element == 'energy_maximum':
+                    energy_max.append(typology[device_name][element])
+                elif element == 'flexibility':  # todo removed break, to take into account the length/number of steps where my device is flexible (A CHECKER AVEC TIMOTHE ET BRUNO)
+                    if not isinstance(typology[device_name][element], list) and typology[device_name][element] != 0:
                         flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
-                    elif isinstance(element[key][subkey], list):
-                        for flexi in element[key][subkey]:
+                    elif isinstance(typology[device_name][element], list):
+                        for flexi in typology[device_name][element]:
                             if flexi != 0:
                                 flexibility.append((energy_min[-1] + energy_max[-1]) / 2)
                                 break
-                elif subkey == 'interruptibility':  # todo removed break, to take into account the length/number of steps where my device is interruptible (A CHECKER AVEC TIMOTHE ET BRUNO)
-                    if not isinstance(element[key][subkey], list) and element[key][subkey] != 0:
+                elif element == 'interruptibility':  # todo removed break, to take into account the length/number of steps where my device is interruptible (A CHECKER AVEC TIMOTHE ET BRUNO)
+                    if not isinstance(typology[device_name][element], list) and typology[device_name][element] != 0:
                         interruptibility.append((energy_min[-1] + energy_max[-1]) / 2)
-                    elif isinstance(element[key][subkey], list):
-                        for inter in element[key][subkey]:
+                    elif isinstance(typology[device_name][element], list):
+                        for inter in typology[device_name][element]:
                             if inter != 0:
                                 interruptibility.append((energy_min[-1] + energy_max[-1]) / 2)
                                 break
                 else:
-                    coming_volume.append(element[key][subkey])
-        if element == consumption_dict:
-            return_dict = {**return_dict, **{
-                "Energy_Consumption": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                                       'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min), 'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
-                                       'coming_volume': if_it_exists(coming_volume, sum)}}
-                           }
+                    coming_volume.append(typology[device_name][element])
+
+        if typology == consumption_dict and len(energy_min) != 0:  # at least one consumer device is managed by the aggregator
+            return_dict["Energy_Consumption"] = {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
+                                                 'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min),
+                                                 'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
+                                                 'coming_volume': if_it_exists(coming_volume, sum)}
             energy_min.clear()
             energy_max.clear()
             flexibility.clear()
             interruptibility.clear()
             coming_volume.clear()
-        else:
-            return_dict = {**return_dict, **{
-                "Energy_Production": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                                      'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min), 'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
-                                      'coming_volume': if_it_exists(coming_volume, sum)}}
-                           }
+
+        elif typology == production_dict and len(energy_min) != 0:  # at least one producer device is managed by the aggregator
+            return_dict["Energy_Production"] = {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
+                                                'flexibility': if_it_exists(flexibility, my_basic_share, energy_max, energy_min),
+                                                'interruptibility': if_it_exists(interruptibility, my_basic_share, energy_max, energy_min),
+                                                'coming_volume': if_it_exists(coming_volume, sum)}
+
     # Energy storage associated dict of values
     energy_min = []
     energy_max = []
@@ -256,28 +260,27 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
     self_discharge_rate = []
     efficiency = []
 
-    for key in storage_dict:
-        for subkey in storage_dict[key]:
-            if subkey == 'energy_minimum':
-                energy_min.append(storage_dict[key][subkey])
-            elif subkey == 'energy_maximum':
-                energy_max.append(storage_dict[key][subkey])
-            elif subkey == 'state_of_charge':
-                state_of_charge.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
-            elif subkey == 'capacity':
-                capacity.append(storage_dict[key][subkey])
-            elif subkey == 'self_discharge_rate':
-                self_discharge_rate.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
+    for device_name in storage_dict:
+        for element in storage_dict[device_name]:
+            if element == 'energy_minimum':
+                energy_min.append(storage_dict[device_name][element])
+            elif element == 'energy_maximum':
+                energy_max.append(storage_dict[device_name][element])
+            elif element == 'state_of_charge':
+                state_of_charge.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
+            elif element == 'capacity':
+                capacity.append(storage_dict[device_name][element])
+            elif element == 'self_discharge_rate':
+                self_discharge_rate.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
             else:
-                efficiency.append(storage_dict[key][subkey] * ((energy_min[-1] + energy_max[-1]) / 2))
+                efficiency.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
 
-    return_dict = {**return_dict, **{
-        "Energy_Storage": {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
-                           'state_of_charge': if_it_exists(state_of_charge, my_basic_share, energy_max, energy_min),
-                           'capacity': if_it_exists(capacity, sum),
-                           'self_discharge_rate': abs(if_it_exists(self_discharge_rate, my_basic_share, energy_max, energy_min)),  # todo added the abs here in order to oly get positive values in the input state (normalization between 0 and 1)
-                           'efficiency': if_it_exists(efficiency, my_basic_share, energy_max, energy_min)}}
-                   }
+    if len(energy_min) != 0:  # at least one storage device is managed by the aggregator
+        return_dict["Energy_Storage"] = {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),
+                                         'state_of_charge': if_it_exists(state_of_charge, my_basic_share, energy_max, energy_min),
+                                         'capacity': if_it_exists(capacity, sum),
+                                         'self_discharge_rate': abs(if_it_exists(self_discharge_rate, my_basic_share, energy_max, energy_min)),  # todo added the abs here in order to only get positive values in the input state (normalization between 0 and 1)
+                                         'efficiency': if_it_exists(efficiency, my_basic_share, energy_max, energy_min)}
 
     return return_dict
 
@@ -299,11 +302,12 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
         agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
     else:  # while exploiting the model (inference)
         agent_grid_topology = agent.grid_topology
-        agent_storage_devices = {"dummy_key": 6}  # todo just a patchwork solution
+        agent_storage_devices = {"dummy_key": 6}  # todo to be manually changed to 0 if needed during inference
+    number_of_energy_exchanges_actions = actions_related_to_energy_exchange(agent_grid_topology)
 
     # Grouping actions into ones related to energy exchanges and ones related to management of energy consumption, production and storage inside the aggregators
-    actions_related_to_aggregators = actions[:-len(agent_grid_topology)]
-    actions_related_to_exchange = actions[-len(agent_grid_topology):]
+    actions_related_to_aggregators = actions[:-sum(number_of_energy_exchanges_actions)]
+    actions_related_to_exchange = actions[-sum(number_of_energy_exchanges_actions):]
 
     # Getting the dimensions of the dataframe
     number_of_aggregators = len(aggregators)  # index of the dataframe
@@ -334,10 +338,10 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
     # First we get a dataframe from the actions tensor or vector
     actions_related_to_aggregators = actions_related_to_aggregators.reshape(number_of_aggregators, number_of_actions)
     actions_to_dataframe = pd.DataFrame(
-                                        data=actions_related_to_aggregators,
-                                        index=aggregators,
-                                        columns=list_of_columns
-                                        )
+        data=actions_related_to_aggregators,
+        index=aggregators,
+        columns=list_of_columns
+    )
     # We then get a dict from the dataframe
     actions_dict = actions_to_dataframe.to_dict()
 
@@ -349,7 +353,7 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
 
     # For energy exchanges
     exchange_dict = {}  # keys -> (('A1', 'A2'), ...) and values -> corresponding decision (energy exchange value)
-    for index in range(len(agent_grid_topology)):
+    for index in range(sum(number_of_energy_exchanges_actions)):
         exchange = agent_grid_topology[index]
         exchange_value = actions_related_to_exchange[index]  # todo à vérifier si c'est le bon sens ou non
         number_of_concerned_aggregators = int((len(exchange) - 1) / 2)  # the format of each exchange is ('A1', 'A2', Emin, Emax, eta)
@@ -379,6 +383,15 @@ def extract_decision(decision_message: dict, aggregator: "Aggregator") -> list:
             storage = decision_message[aggregator.name]["Energy_Storage"]
             dummy_dict.pop("Energy_Storage")
 
+    if isinstance(consumption, dict) and len(consumption) == 0:
+        consumption = 0.0
+
+    if isinstance(production, dict) and len(production) == 0:
+        production = 0.0
+
+    if isinstance(storage, dict) and len(storage) == 0:
+        storage = 0.0
+
     return [consumption, production, storage]
 
 
@@ -392,3 +405,21 @@ def retrieve_concerned_energy_exchanges(exchanges_message: dict, aggregator: "Ag
             resulting_dict = {**resulting_dict, **{tup: exchanges_message[tup]}}
 
     return resulting_dict
+
+
+def actions_related_to_energy_exchange(exchange_list: list) -> list:
+    """
+    This function is used to determine how many decisions to take per each energy exchange in the MEG.
+    """
+    aggregators_names = []
+    numerical_values = []
+    number_of_actions_per_exchange = []  # each value corresponds to an energy exchange in the topology vector
+    for exchange in exchange_list:  # each tuple in the topology
+        for element in exchange:
+            if isinstance(element, str):
+                aggregators_names.append(element)  # aggregator names
+            else:
+                numerical_values.append(element)  # Emin, Emax and efficiency
+        number_of_actions_per_exchange.append(int((len(numerical_values) - len(aggregators_names) + 1) / 2))
+
+    return number_of_actions_per_exchange

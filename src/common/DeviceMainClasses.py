@@ -777,11 +777,15 @@ class Converter(Device):
 
     @property
     def get_efficiency(self):
-        return self.messages_manager._specific_information_message["efficiency"]
+        return self._efficiency
 
     @property
     def get_capacity_max(self):
         return self._energy_physical_limits["maximum_energy"]
+
+    @property
+    def get_capacity_min(self):
+        return self._energy_physical_limits["minimum_energy"]
 
 
 # ##############################################################################################

@@ -20,7 +20,7 @@ class DeepReinforcementLearning(Strategy):
     ####################################################################################################################
 
     def bottom_up_phase(self, aggregator):
-        # TODO - at the moment the other information related to operational objectives except of economic, are not considered yet
+        # TODO - at the moment the other information related to operational objectives except of energy prices, are not considered yet
         # TODO - Proposition 1 - on publie tout le besoin en énergie des agrégateurs a.k.a AlwaysSatisfied dans un seul message
         # Before publishing quantities and prices to the catalog, we gather relevant information to send to the RL agent
         # Namely, the data needed : energy prices, formalism variables representing the state of the MEG and forecasting
@@ -70,8 +70,9 @@ class DeepReinforcementLearning(Strategy):
             formalism_message['Energy_Consumption']["energy_maximum"] = maximum_energy_consumed
             formalism_message['Energy_Production']["energy_minimum"] = - minimum_energy_produced
             formalism_message['Energy_Production']["energy_maximum"] = - maximum_energy_produced
-            formalism_message['Energy_Storage']["energy_minimum"] = 0
-            formalism_message['Energy_Storage']["energy_maximum"] = 0
+            if len(formalism_message['Energy_Storage']) > 0:
+                formalism_message['Energy_Storage']["energy_minimum"] = 0.0
+                formalism_message['Energy_Storage']["energy_maximum"] = 0.0
 
         if f"{aggregator.name}.DRL_Strategy.formalism_message" not in self._catalog.keys:
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
@@ -82,16 +83,19 @@ class DeepReinforcementLearning(Strategy):
         else:
             self._catalog.set(f"{aggregator.name}.DRL_Strategy.converter_message", converter_message[aggregator.name])
 
-        # We define the min/max energy produced/consumed
-        message["energy_minimum"] = - aggregator.capacity["selling"]
+        # Publishing the needs (before sending direct energy exchanges data to the RL agent to take the contract into account)
+        # We define the min/max energy produced/consumed - todo checker les signes
+        message["energy_minimum"] = aggregator.capacity["selling"]
         message["energy_nominal"] = 0.0
         message["energy_maximum"] = aggregator.capacity["buying"]
-        # Publishing the needs (before sending direct energy exchanges data to the RL agent to take the contract into account)
         if aggregator.contract:
             quantities_and_prices.append(message)
             quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
 
         # The aggregator publishes its need to the aggregator superior
+        # To correct the signs - only for the RL agent
+        quantities_and_prices[0]["energy_minimum"] = - aggregator.capacity["buying"]
+        quantities_and_prices[0]["energy_maximum"] = aggregator.capacity["selling"]
         if aggregator.superior:  # todo voir comment se passer de cette limite
             if aggregator.nature.name == aggregator.superior.nature.name:
                 if len(quantities_and_prices) == 1:
@@ -102,19 +106,23 @@ class DeepReinforcementLearning(Strategy):
                 else:
                     raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
 
-        # Data related to the hierarchical energy exchanges (between subaggregators and superior)
+        # Data related to the hierarchical energy exchanges (between subaggregators and superior) - todo need to check the case where subaggregators/superior is also managed by DRL_Strategy (redundancy)
         direct_exchanges = {}
         for subaggregator in aggregator.subaggregators:
-            direct_exchanges = {aggregator.name: {subaggregator.name: {}}}
             if subaggregator.nature.name == aggregator.nature.name:
+                direct_exchanges = {aggregator.name: {subaggregator.name: {}}}
                 if f"Energy asked from {subaggregator.name} to {aggregator.name}" in self._catalog.keys:
                     direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"Energy asked from {subaggregator.name} to {aggregator.name}")
                 else:
                     direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+                if isinstance(direct_exchanges[aggregator.name][subaggregator.name], list):
+                    direct_exchanges[aggregator.name][subaggregator.name] = direct_exchanges[aggregator.name][subaggregator.name][0]
+                direct_exchanges[aggregator.name][subaggregator.name]["efficiency"] = subaggregator.efficiency
         if aggregator.superior:
-            direct_exchanges = {**direct_exchanges, **{aggregator.superior.name: {aggregator.name: {}}}}
             if aggregator.nature.name == aggregator.superior.nature.name:
+                direct_exchanges = {**direct_exchanges, **{aggregator.superior.name: {aggregator.name: {}}}}
                 direct_exchanges[aggregator.superior.name][aggregator.name] = self._catalog.get(f"Energy asked from {aggregator.name} to {aggregator.superior.name}")
+                direct_exchanges[aggregator.superior.name][aggregator.name]["efficiency"] = aggregator.efficiency
         if direct_exchanges:
             if aggregator.name in direct_exchanges:
                 if f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges" not in self._catalog.keys:

@@ -28,8 +28,8 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
     formalism_message = {}  # here we retrieve the values of the formalism variables
     prediction_message = {}  # here we retrieve the predictions on rigid energy consumption and production
     prices = {}  # here we retrieve the values of energy prices
-    conversions = {}
-    direct_exchanges = {}
+    conversions = {}  # here we retrieve the energy exchanges through energy conversion systems
+    direct_exchanges = {}  # here we retrieve the energy exchanges without energy conversion systems
 
     # Getting the state of the multi-energy grid
     for aggregator in catalog.get(f"DRL_Strategy.strategy_scope"):

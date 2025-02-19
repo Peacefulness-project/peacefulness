@@ -183,10 +183,11 @@ class Strategy:
 
     def call_to_forecast(self, aggregator: "Aggregator"):
         if aggregator.forecaster:
-            return aggregator.forecaster.update_forecast()
+            forecasting_message = aggregator.forecaster.update_forecast()
+            forecasting_message = {**forecasting_message, **{"depth": aggregator.forecaster.get_depth}}
         else:
-            # print("Attention, no forecaster has been defined for this study case !")
-            return None
+            forecasting_message = None
+        return forecasting_message
 
     # ##########################################################################################
     # bottom-up phase functions

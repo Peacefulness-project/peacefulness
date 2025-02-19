@@ -101,7 +101,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Manual creation of contracts
-    heat_contract_curtailment = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("heat_well", LTH, price_manager_heat, {"curtailment_hours": 10, "rotation_duration": 168})
+    # heat_contract_curtailment = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("heat_well", LTH, price_manager_heat, {"curtailment_hours": 10, "rotation_duration": 168})
     heat_contract_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
     heat_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_heat", LTH, price_manager_heat)
     heat_contract_TOU = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_heat_TOU", LTH, price_manager_heat_TOU)
@@ -116,7 +116,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of devices
     # dissipation
-    heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_curtailment, DHN_manager, aggregator_dissip,
+    heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_BAU, DHN_manager, aggregator_dissip,
                                                               {"user": "artificial_sink", "device": "artificial_sink"},
                                                               filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal loads
