@@ -477,6 +477,13 @@ class Device:
             device_aggregators_list.append(nature["aggregator"])
         return device_aggregators_list
 
+    @property
+    def device_aggregators_names(self):
+        device_aggregators_list = []
+        for nature in self._natures.values():
+            device_aggregators_list.append(nature["aggregator"].name)
+        return device_aggregators_list
+
 
 # Exception
 class DeviceException(Exception):
