@@ -39,7 +39,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ClusteringAndStrategy/TestCase/" + step_name + "Results/"
+    pathExport = "cases/Studies/ClusteringAndStrategy/Results/TestCase/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -72,7 +72,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "coefficient": 1/3}, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/prices.json")  # sets prices for TOU rate
+    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "buying_coefficient": 1/3, "selling_coefficient": 1}, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/prices.json")  # sets prices for TOU rate
 
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
@@ -150,7 +150,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of devices
 
-    battery = subclasses_dictionary["Device"]["ElectricalBattery"]("battery", cooperative_contract_elec, battery_owner, aggregator_elec, {"device": "domestic_battery"}, {"capacity": 1000})  # creation of a wind turbine
+    battery = subclasses_dictionary["Device"]["ElectricalBattery"]("battery", cooperative_contract_elec, battery_owner, aggregator_elec, {"device": "domestic_battery"}, {"capacity": 1000, "initial_SOC": 0.5})  # creation of a battery
     subclasses_dictionary["Device"]["ElectricDam"]("electric_dam", cooperative_contract_elec, producer, aggregator_elec, {"device": "Pelton"}, {"height": 5, "max_power": 3000, "water_flow_daemon": water_flow_daemon.name})  # creation of an electric dam
     subclasses_dictionary["Device"]["WindTurbine"]("wind_turbine_1", BAU_elec, producer, aggregator_elec, {"device": "little"}, {"wind_speed_daemon": wind_daemon.name})  # creation of a wind turbine
 
@@ -158,19 +158,19 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Automated generation of complete agents (i.e. with devices and contracts)
 
     # BAU contracts
-    agent_generation("M5BAU", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5BAU", 2, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/agent_templates/Agent_5_BAU.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # DLC contracts
-    agent_generation("M5Coop", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Coop", 2, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/agent_templates/Agent_5_DLC.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )
 
     # Curtailment contracts
-    agent_generation("M5Curt", 200, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
+    agent_generation("M5Curt", 2, "cases/Studies/ClusteringAndStrategy/CasesStudied/Test/AdditionalData/agent_templates/Agent_5_curtailment.json", aggregator_elec, {"LVE": price_manager_elec},
                            {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": water_temperature_daemon},
                            verbose=False
                            )

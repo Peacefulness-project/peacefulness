@@ -8,11 +8,11 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 # ######################################################################################################################
 #
 # ######################################################################################################################
-training_simulation_length = 4  # length of sequences used for clustering.
-days_number = 2  # number of sequences simulated
-gap = 7  # gap (given in iterations) between 2 sequences simulated
+training_simulation_length = 3  # length of sequences used for clustering.
+days_number = 20  # number of sequences simulated
+gap = 6  # gap (given in iterations) between 2 sequences simulated
 
-cluster_number = 1  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
+cluster_number = 3  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
 
 
 random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
@@ -26,7 +26,6 @@ comparison_simulation_length = 8760 // 24  # length of the final run aimed at ev
 # metrics
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
-    # meteo ?
     # storage
     "battery.energy_stored",
     # consumption

@@ -1,3 +1,5 @@
+import copy
+
 from cases.Studies.ClusteringAndStrategy.Utilities import *
 
 import math
@@ -26,11 +28,13 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
     refined_situations = zeros((len(delay), len(clustering_metrics)))
     normalisation_values = []
     j = 0
+    new_raw_situations = zeros((len(delay), len(clustering_metrics)))
     for key, recorded_values in raw_situations.items():
         key_mean = mean(recorded_values)
         normalisation_values.append(key_mean)
         for i in range(len(delay)):
             refined_situations[i][j] = recorded_values[i]/key_mean
+            new_raw_situations[i][j] = recorded_values[i]
         j += 1
     print("Done\n")
 
@@ -63,8 +67,32 @@ def clustering(simulation_length: int, clusters_number: int, clustering_metrics:
         cluster_days.append(indice)
     print("Done\n")
 
+    # ordonner les cluster dans l'ordre croissant du nombre de séquences qui y sont incluses
+    print("sorting of cluster by size")
+    # number of sequences by cluster
+    sequences_count = [0 for i in range(clusters_number)]
+    for sequence in new_raw_situations:
+        distance_min = math.inf
+        for i in range(len(cluster_centers)):
+            center = cluster_centers[i]
+            distance = sum([(center[j] - sequence[j]) ** 2 for j in range(len(center))])
+            if distance < distance_min:
+                distance_min = distance
+                cluster_id = i
+        sequences_count[cluster_id] += 1
+    # sorting of clusters
+    cluster_rank = [0 for i in range(clusters_number)]
+    for i in range(clusters_number):
+        count = 0
+        for j in range(clusters_number):
+            if sequences_count[j] < sequences_count[i]:
+                count += 1
+        cluster_rank[count] = i
+    sorted_cluster_centers = [cluster_centers[i] for i in cluster_rank]
+    sorted_cluster_days = [cluster_days[i] for i in cluster_rank]
+    print("Done\n")
+
     print(f"cluster centers: {cluster_centers}")
     print(f"cluster days: {cluster_days}")
     print("\n\n")
-
-    return cluster_centers, cluster_days
+    return sorted_cluster_centers, sorted_cluster_days

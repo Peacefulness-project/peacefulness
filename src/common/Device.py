@@ -335,27 +335,6 @@ class Device:
                 old_value = self._catalog.get(f"{nature.name}.{key}")
                 self._catalog.set(f"{nature.name}.{key}", old_value + keys_dict[nature.name][key])
 
-            # balance at the aggregator level
-            aggregator = self._natures[nature]["aggregator"]
-
-            energy_bought_inside = self._catalog.get(f"{aggregator.name}.energy_bought")["inside"]  # the device updates the values regarding the inside situation
-            energy_bought_outside = self._catalog.get(f"{aggregator.name}.energy_bought")["outside"]  # outside values are left unchanged
-
-            energy_sold_inside = self._catalog.get(f"{aggregator.name}.energy_sold")["inside"]  # the device updates the values regarding the inside situation
-            energy_sold_outside = self._catalog.get(f"{aggregator.name}.energy_sold")["outside"]  # outside values are left unchanged
-
-            money_spent_inside = self._catalog.get(f"{aggregator.name}.money_spent")["inside"]  # the device updates the values regarding the inside situation
-            money_spent_outside = self._catalog.get(f"{aggregator.name}.money_spent")["outside"]  # outside values are left unchanged
-
-            money_earned_inside = self._catalog.get(f"{aggregator.name}.money_earned")["inside"]  # the device updates the values regarding the inside situation
-            money_earned_outside = self._catalog.get(f"{aggregator.name}.money_earned")["outside"]  # outside values are left unchanged
-
-            self._catalog.set(f"{aggregator.name}.energy_bought", {"inside": energy_bought_inside + energy_sold[nature.name], "outside": energy_bought_outside})
-            self._catalog.set(f"{aggregator.name}.energy_sold", {"inside": energy_sold_inside + energy_bought[nature.name], "outside": energy_sold_outside})
-
-            self._catalog.set(f"{aggregator.name}.money_spent", {"inside": money_spent_inside + money_earned[nature.name], "outside": money_spent_outside})
-            self._catalog.set(f"{aggregator.name}.money_earned", {"inside": money_earned_inside + money_spent[nature.name], "outside": money_earned_outside})
-
             # balance at the contract level
             energy_sold_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_sold")
             energy_bought_contract = self._catalog.get(f"{self.natures[nature]['contract'].name}.energy_bought")

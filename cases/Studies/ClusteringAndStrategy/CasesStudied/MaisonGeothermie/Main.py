@@ -10,7 +10,7 @@ cluster_centers, center_sequences = clustering(training_simulation_length, clust
 
 # training
 print("--- TRAINING PHASE ---")
-best_strategies = training(training_simulation_length, center_sequences, training_performance_norm, performance_metrics, assessed_priorities, create_simulation)
+best_strategies = training(training_simulation_length, center_sequences, training_performance_norm, performance_metrics, assessed_priorities, create_simulation, "MaisonGeothermie")
 
 # comparison
 print("--- COMPARISON PHASE ---")

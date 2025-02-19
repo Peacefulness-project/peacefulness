@@ -228,7 +228,7 @@ def distribution_hard_DSM_conso(strategy: "Strategy", aggregator: "Aggregator", 
             price = min(price, max_price)
 
             Emin = sorted_demands[i]["quantity_min"]  # we get back the minimum, which has already been served
-            message = {element: strategy._messages["top-down"][element] for element in strategy._messages["top-down"]}
+            message = {element: strategy.__class__.decision_message()[element] for element in strategy.__class__.decision_message()}
             message["quantity"] = Emin + energy
             message["price"] = price
             if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator

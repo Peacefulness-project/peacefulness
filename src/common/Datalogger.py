@@ -6,7 +6,6 @@ from math import inf
 from typing import List, Dict
 from numbers import Number
 
-from src.tools.FilesExtensions import __text_extension__
 from src.tools.Utilities import into_list
 
 from src.tools.GraphAndTex import GraphOptions, export
@@ -138,7 +137,7 @@ class Datalogger:
         Method used in world at the beginning of a run to create the files where datalogger export data.
         """
         if self._type != "global":
-            file = open(self._path+self._filename+__text_extension__, 'a+')
+            file = open(self._path+self._filename+".csv", 'a+')
 
             for name in self._list:
                 if name in self._buffer:
@@ -238,7 +237,7 @@ class Datalogger:
             self._data_processing(key)
 
         if self._month != self._catalog.get("physical_time").month:  # if it is a new month
-            file = open(self._path + self._filename + __text_extension__, "a+")
+            file = open(self._path + self._filename + ".csv", "a+")
             self._month += 1
             for key in self._list:
 
@@ -285,7 +284,7 @@ class Datalogger:
     # ##########################################################################################
 
     def final_process(self):
-        file = open(self._path + self._filename + __text_extension__, "a+")
+        file = open(self._path + self._filename + ".csv", "a+")
         if self._type == "global":  # if global values are wanted
 
             for key in self._buffer:

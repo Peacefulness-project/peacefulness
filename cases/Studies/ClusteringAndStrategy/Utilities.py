@@ -2,10 +2,10 @@ from random import shuffle
 from typing import *
 
 
-def random_order_priorities(priorities_list):
+def random_order_priorities(priorities_list: List) -> Callable:
     shuffle(priorities_list)
 
-    def random_priorities(strategy: "Strategy"):
+    def random_priorities(strategy: "Strategy") -> List:
         return priorities_list
     return random_priorities
 

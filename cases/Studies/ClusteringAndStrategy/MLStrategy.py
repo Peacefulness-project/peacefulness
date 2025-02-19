@@ -56,6 +56,8 @@ class MLStrategy(TrainingStrategy):
         quantity_per_option = {"consumption": {}, "production": {}}
         priorities_consumption = self._get_priorities_consumption()
         priorities_production = self._get_priorities_production()
+        demands = demands + storage
+        offers = offers + storage
 
         for priority in priorities_consumption:
             quantity_per_option["consumption"][priority] = self._options_consumption.loc[priority]["assess"](self, aggregator, demands)
@@ -79,30 +81,29 @@ class MLStrategy(TrainingStrategy):
         return quantity_per_option
 
     def _apply_priorities_exchanges(self, aggregator: "Aggregator", quantity_to_affect: float,
-                                    quantity_available_per_option: Dict) -> List[Dict]:
+                                    quantity_available_per_option: Dict, cons_or_prod: str) -> List[Dict]:
         quantities_and_price = []
         priorities_consumption = self._get_priorities_consumption()
         priorities_production = self._get_priorities_production()
 
-        for priority in priorities_consumption:
-            quantity_available = quantity_available_per_option["consumption"][priority]
-            quantity_affected, quantities_and_price = self._options_consumption.loc[priority]["exchange"](self, aggregator,
-                                                                                                          quantity_to_affect,
-                                                                                                          quantity_available,
-                                                                                                          quantities_and_price)
-            quantity_to_affect -= quantity_affected
-            if priority == "nothing":
-                break
-
-        for priority in priorities_production:
-            quantity_available = quantity_available_per_option["production"][priority]
-            quantity_affected, quantities_and_price = self._options_production.loc[priority]["exchange"](self, aggregator,
-                                                                                                         quantity_to_affect,
-                                                                                                         quantity_available,
-                                                                                                         quantities_and_price)
-            quantity_to_affect -= quantity_affected
-            if priority == "nothing":
-                break
+        if cons_or_prod == "consumption":
+            for priority in priorities_consumption:
+                quantity_available = quantity_available_per_option["consumption"][priority]
+                quantity_to_affect, quantities_and_price = self._options_consumption.loc[priority]["exchange"](self, aggregator,
+                                                                                                              quantity_to_affect,
+                                                                                                              quantity_available,
+                                                                                                              quantities_and_price)
+                if priority == "nothing":
+                    break
+        else:
+            for priority in priorities_production:
+                quantity_available = quantity_available_per_option["production"][priority]
+                quantity_to_affect, quantities_and_price = self._options_production.loc[priority]["exchange"](self, aggregator,
+                                                                                                             quantity_to_affect,
+                                                                                                             quantity_available,
+                                                                                                             quantities_and_price)
+                if priority == "nothing":
+                    break
 
         return quantities_and_price
 
@@ -117,9 +118,14 @@ class MLStrategy(TrainingStrategy):
         priorities_production = self._get_priorities_production()
 
         for priority in priorities_consumption:
-            [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_consumption, money_spent_inside, energy_bought_inside)
+            [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+            if priority == "nothing":
+                break
         for priority in priorities_production:
-            [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](self, aggregator, max_price, sorted_offers, energy_available_production, money_earned_inside, energy_sold_inside)
+            [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](self, aggregator, max_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
+            if priority == "nothing":
+                break
+
         return energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside
 
 # ################################################################################################################
@@ -131,29 +137,91 @@ class MLStrategy(TrainingStrategy):
 def assess_min_prod(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
     quantity_for_this_option = 0
 
-    for demand in offers:
-        quantity_for_this_option -= demand["quantity_min"]
+    for offer in offers:
+        if offer["type"] != "storage":
+            quantity_for_this_option -= offer["quantity_min"]
 
     return quantity_for_this_option
 
 
 def exchanges_min_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float,
                        quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = - max(0, quantity_to_affect - quantity_available_for_this_option)
+    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
 # no specific function for distribution, the canonical one is used
-def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
-    return strategy._serve_emergency_offers(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
+    lines_to_remove = []  # a list containing the number of lines having to be removed
+    for i in range(len(sorted_offers)):  # offers
+        energy = sorted_offers[i]["quantity"]
 
+        if energy < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
+            energy = - energy_available_production  # it is served partially, even if it is urgent
+
+        price = sorted_offers[i]["price"]
+        price = max(price, min_price)
+        name = sorted_offers[i]["name"]
+
+        if sorted_offers[i]["type"] != "storage":
+            if sorted_offers[i]["emergency"] == 1:  # if it is urgent
+                lines_to_remove.append(i)
+
+                message = strategy._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                else:  # if it is a device
+                    quantities_given = message
+
+                strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
+                energy_bought_inside -= energy  # the absolute value of energy bought inside
+                energy_available_production += energy  # the difference between the max and the min is consumed
+
+            else:  # if there is a demand for a min of energy too
+                energy_minimum = sorted_offers[i]["quantity_min"]  # the minimum quantity of energy asked
+                energy_maximum = sorted_offers[i]["quantity"]  # the maximum quantity of energy asked
+
+                if energy_minimum < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
+                    energy = - energy_available_production  # it is served partially, even if it is urgent
+                else:
+                    energy = energy_minimum
+
+                message = strategy._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                    sorted_offers[i]["quantity_min"] = 0
+                    sorted_offers[i]["quantity"] = energy_maximum - energy_minimum  # the need is updated
+                else:  # if it is a device
+                    quantities_given = message
+
+                money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
+                energy_bought_inside -= energy  # the absolute value of energy bought inside
+                energy_available_production += energy  # the difference between the max and the min is consumed
+                sorted_offers[i]["quantity"] = energy_maximum - energy
+
+    lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
+
+    for line_index in lines_to_remove:  # removing the already served elements
+        sorted_offers.pop(line_index)
+
+    return [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside]
 
 # min consumption
 def assess_min_conso(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
     quantity_for_this_option = 0
 
     for demand in demands:
-        quantity_for_this_option += demand["quantity_min"]
+        if demand["type"] != "storage":
+            quantity_for_this_option += demand["quantity_min"]
 
     return quantity_for_this_option
 
@@ -165,5 +233,67 @@ def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity
 
 # no specific function for distribution, the canonical one is used
 def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
-    return strategy._serve_emergency_demands(aggregator, max_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
+    lines_to_remove = []  # a list containing the number of lines having to be removed
+    for i in range(len(sorted_demands)):  # demands
+        energy = sorted_demands[i]["quantity"]
 
+        name = sorted_demands[i]["name"]
+        price = sorted_demands[i]["price"]
+        price = min(price, max_price)
+
+        if sorted_demands[i]["type"] != "storage":
+            if sorted_demands[i]["emergency"] == 1:  # if it is urgent
+                lines_to_remove.append(i)
+
+                if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    energy = energy_available_consumption  # it is served partially, even if it is urgent
+
+                message = strategy._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                else:  # if it is a device
+                    quantities_given = message
+
+                strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                energy_available_consumption -= energy
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+
+            else:
+                energy_minimum = sorted_demands[i]["quantity_min"]  # the minimum quantity of energy asked
+                energy_maximum = sorted_demands[i]["quantity"]  # the maximum quantity of energy asked
+
+                if energy_minimum > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    energy = energy_available_consumption  # it is served partially, even if it is urgent
+                else:
+                    energy = energy_minimum
+
+                message = strategy._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                    sorted_demands[i]["quantity_min"] = 0
+                    sorted_demands[i]["quantity"] = energy_maximum - energy_minimum  # the need is updated
+                else:  # if it is a device
+                    quantities_given = message
+
+                strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                energy_available_consumption -= energy
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+                sorted_demands[i]["quantity"] = energy_maximum - energy
+
+    lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
+    for line_index in lines_to_remove:  # removing the already served elements
+        sorted_demands.pop(line_index)
+
+    return [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside]

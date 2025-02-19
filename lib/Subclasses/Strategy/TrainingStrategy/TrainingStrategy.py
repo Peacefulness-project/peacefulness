@@ -32,12 +32,11 @@ class TrainingStrategy(Strategy):
         pass
 
     def _apply_priorities_exchanges(self, aggregaor: "Aggregator", quantity_to_affect: float,
-                                    quantity_available_per_option: Dict) -> List[Dict]:
+                                    quantity_available_per_option: Dict, cons_or_prod: str) -> List[Dict]:
         pass
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
-        quantities_and_prices = []  # a list containing couples energy/prices
 
         # assess quantity for consumption and prod
         quantity_available_per_option = self._asses_quantities_for_each_option(aggregator)
@@ -46,9 +45,16 @@ class TrainingStrategy(Strategy):
             sum(quantity_available_per_option["consumption"].values()),
             sum(quantity_available_per_option["production"].values())
         )
+        # print(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values()),quantity_to_affect)
 
         # affect available quantities
-        quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option)
+        if sum(quantity_available_per_option["consumption"].values()) < sum(quantity_available_per_option["production"].values()):  # if consumption is limiting
+            quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, "production")
+        else:
+            quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, "consumption")
+        # print(quantities_and_prices)
+
+        # send the demand to the other aggregator
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 
         return quantities_and_prices
@@ -85,19 +91,23 @@ class TrainingStrategy(Strategy):
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
+        # assess quantity for consumption and prod
+        quantity_available_per_option = self._asses_quantities_for_each_option(aggregator)
+
         # ##########################################################################################
         # balance of energy available
 
-        # calculating the energy available
-        energy_available_consumption = maximum_energy_produced + energy_bought_outside  # the total energy available for consumptions
-        energy_available_production = maximum_energy_consumed + energy_sold_outside  # the total energy available for productions
-        # print(energy_available_consumption, energy_available_production)
+        energy_available_consumption = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) - energy_sold_outside
+        energy_available_production = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) - energy_bought_outside
 
         # ##########################################################################################
         # distribution of energy
 
         # formulation of needs
         [sorted_demands, sorted_offers, sorted_storage] = self._sort_quantities(aggregator, sort_function)  # sort the quantities according to their prices
+        # storage management
+        sorted_demands = sorted_demands + sorted_storage
+        sorted_offers = sorted_offers + sorted_storage
 
         energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside = self._apply_priorities_distribution(aggregator, min_price, max_price, sorted_demands, sorted_offers, energy_available_consumption, energy_available_production)
 

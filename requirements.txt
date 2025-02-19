@@ -3,3 +3,4 @@ pandas
 gym
 ijson
 scikit-optimize
+pygad

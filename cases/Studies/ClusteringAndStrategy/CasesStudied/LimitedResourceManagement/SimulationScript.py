@@ -112,15 +112,13 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     industrial_consumer = Agent("industrial_consumer")
 
-    # other_consumers = Agent("other_consumers")
-
-    # TSO = Agent("TSO")  #
+    residential_consumers = Agent("residential_consumers")
 
     # ##############################################################################################
     # Manual creation of contracts
 
     # producers
-    # BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
+    BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
 
     curtailment_contract = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("industrial_contract", LVE, price_manager_elec, {"curtailment_hours": 10, "rotation_duration": 168})  # a contract
 
@@ -135,25 +133,26 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
     aggregator_name = "local_network"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 1000, "selling": 1000})  # creation of an aggregator
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 100, "selling": 100})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
 
     # base plant
-    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1000})  # creation of a heat production unit
+    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 100})  # creation of a heat production unit
 
     # storage
-    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 1000, "initial_SOC": 0.5})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 250, "initial_SOC": 0.5})
 
     # consumption
-    agent_generation("", 1, "cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/SingleDeviceDwelling.json", aggregator_elec, {"LVE": price_manager_elec})  # residential consumers
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, residential_consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 100})
 
-    subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract, industrial_consumer, aggregator_elec, {"user": "yearly_consumer", "device": "manufacturing_industrial"}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/Background.json")
+    subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract, industrial_consumer, aggregator_elec, {"user": "yearly_consumer", "device": "industrial_ELMAS_dataset"}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/Background.json")
 
     # ##############################################################################################
     # Creation of dataloggers
     subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"]()
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster

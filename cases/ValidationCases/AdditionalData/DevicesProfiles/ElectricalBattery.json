@@ -1,9 +1,9 @@
 {
   "technical_data": {
     "battery_no_degradation": {
-      "charge": {"nature": "LVE", "power": 1, "efficiency":  0.75},
-      "discharge": {"nature": "LVE", "power": 2, "efficiency": 0.5},
-      "minimum_energy": 3,
+      "charge": {"nature": "LVE", "power": 0.1, "efficiency":  0.75},
+      "discharge": {"nature": "LVE", "power": 0.2, "efficiency": 0.5},
+      "minimum_energy": 0.3,
       "degradation_rate": 0,
 
       "efficiency_variation": 0,
@@ -12,9 +12,9 @@
     },
 
     "battery_degradation": {
-      "charge": {"nature": "LVE", "power": 2, "efficiency":  1},
-      "discharge": {"nature": "LVE", "power": 2, "efficiency": 1},
-      "minimum_energy": 3,
+      "charge": {"nature": "LVE", "power": 0.2, "efficiency":  1},
+      "discharge": {"nature": "LVE", "power": 0.2, "efficiency": 1},
+      "minimum_energy": 0.3,
       "degradation_rate": 0.1,
 
       "efficiency_variation": 0,
@@ -23,9 +23,9 @@
     },
 
     "test_storage_management": {
-      "charge": {"nature": "LVE", "power": 2, "efficiency":  1},
-      "discharge": {"nature": "LVE", "power": 2, "efficiency": 1},
-      "minimum_energy": 3,
+      "charge": {"nature": "LVE", "power": 0.2, "efficiency":  1},
+      "discharge": {"nature": "LVE", "power": 0.2, "efficiency": 1},
+      "minimum_energy": 0.3,
       "degradation_rate": 0,
 
       "efficiency_variation": 0,

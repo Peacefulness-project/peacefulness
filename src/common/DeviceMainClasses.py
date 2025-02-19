@@ -816,16 +816,15 @@ class Storage(Device):
 
         # setting
         self._efficiency = {"charge": data_device["charge"]["efficiency"], "discharge": data_device["discharge"]["efficiency"]}  # efficiency
-        # self._max_transferable_energy = {"charge": data_device["charge"]["power"] * time_step, "discharge": data_device["discharge"]["power"] * time_step}
 
         self._catalog.add(f"{self.name}.energy_stored", self._capacity * self._state_of_charge)  # the energy stored at the starting point
-        self._min_energy = data_device["minimum_energy"]  # the minimum of energy needed in the device below which it cannot unload energy
+        self._min_energy = data_device["minimum_energy"] * self._capacity  # the minimum of energy needed in the device below which it cannot unload energy
 
         self._charge_nature = data_device["charge"]["nature"]
         self._discharge_nature = data_device["discharge"]["nature"]
 
-        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step,
-                                         "discharge": lambda: data_device["discharge"]["power"] * time_step}
+        self._max_transferable_energy = {"charge": lambda: data_device["charge"]["power"] * time_step * self._capacity,
+                                         "discharge": lambda: data_device["discharge"]["power"] * time_step * self._capacity}
 
     # ##########################################################################################
     # Dynamic behavior

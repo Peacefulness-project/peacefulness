@@ -83,25 +83,15 @@ class Strategy:
         aggregator: Aggregator: the aggregator checked
         """
 
-        [demands, offers] = self._make_energy_balances(aggregator)
+        energy_bought_dict = self._catalog.get(f"{aggregator.name}.energy_bought")
+        energy_bought_outside = energy_bought_dict["outside"]
+        energy_bought_inside = energy_bought_dict["inside"]
 
-        demands_total = 0
-        offers_total = 0
-        for element in demands:
-            demands_total += element["quantity"]
-        for element in offers:
-            offers_total += element["quantity"]
+        energy_sold_dict = self._catalog.get(f"{aggregator.name}.energy_sold")
+        energy_sold_outside = energy_sold_dict["outside"]
+        energy_sold_inside = energy_sold_dict["inside"]
 
-        energy_bought_outside = 0  # the absolute value of energy bought outside
-        energy_sold_outside = 0  # the absolute value of energy sold outside
-        money_earned_outside = 0  # the absolute value of money earned outside
-        money_spent_outside = 0  # the absolute value of money spent outside
-
-        [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
-        demands_total += energy_sold_outside
-        offers_total -= energy_bought_outside
-
-        if abs(demands_total + offers_total) >= 1e-6:  # if balances do not match, a second round of distribution is performed
+        if abs(energy_bought_outside + energy_bought_inside - (energy_sold_outside + energy_sold_inside)) >= 1e-6:  # if balances do not match, a second round of distribution is performed
             self._catalog.set("incompatibility", True)
             self._reinitialise_decisions(aggregator)
 
@@ -623,7 +613,7 @@ class Strategy:
     # sort functions
     # ##########################################################################################
 
-    def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable):  # a function calculating the emergency associated, with a sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
+    def _sort_quantities(self, aggregator: "Aggregator", sort_function: Callable) -> List[List]:  # a function calculating the emergency associated, with a sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
 
         [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)
 
@@ -1060,38 +1050,25 @@ class Strategy:
     def _update_balances(self, aggregator: "Aggregator", energy_bought_inside: float, energy_bought_outside: float, energy_sold_inside: float, energy_sold_outside: float, money_spent_inside: float, money_spent_outside: float, money_earned_inside: float, money_earned_outside: float, maximum_energy_consumed: float, maximum_energy_produced: float):
         energy_bought_dict = self._catalog.get(f"{aggregator.name}.energy_bought")
         energy_bought_dict["outside"] = energy_bought_outside
+        energy_bought_dict["inside"] = energy_bought_inside
         self._catalog.set(f"{aggregator.name}.energy_bought", energy_bought_dict)
 
         energy_sold_dict = self._catalog.get(f"{aggregator.name}.energy_sold")
         energy_sold_dict["outside"] = energy_sold_outside
+        energy_sold_dict["inside"] = energy_sold_inside
         self._catalog.set(f"{aggregator.name}.energy_sold", energy_sold_dict)
 
         money_spent_dict = self._catalog.get(f"{aggregator.name}.money_spent")
         money_spent_dict["outside"] = money_spent_outside
+        money_spent_dict["inside"] = money_spent_inside
         self._catalog.set(f"{aggregator.name}.money_spent", money_spent_dict)
 
         money_earned_dict = self._catalog.get(f"{aggregator.name}.money_earned")
         money_earned_dict["outside"] = money_earned_outside
+        money_earned_dict["inside"] = money_earned_inside
         self._catalog.set(f"{aggregator.name}.money_earned", money_earned_dict)
 
         self._catalog.set(f"{aggregator.name}.energy_erased", {"production": maximum_energy_produced - energy_bought_inside, "consumption": maximum_energy_consumed - energy_sold_inside})
-
-        if aggregator.superior:
-            energy_bought_dict = self._catalog.get(f"{aggregator.superior.name}.energy_bought")
-            energy_bought_dict["inside"] = energy_bought_dict["inside"] + energy_sold_outside
-            self._catalog.set(f"{aggregator.superior.name}.energy_bought", energy_bought_dict)
-
-            energy_sold_dict = self._catalog.get(f"{aggregator.superior.name}.energy_sold")
-            energy_sold_dict["inside"] = energy_sold_dict["inside"] + energy_bought_outside
-            self._catalog.set(f"{aggregator.superior.name}.energy_sold", energy_sold_dict)
-
-            money_spent_dict = self._catalog.get(f"{aggregator.superior.name}.money_spent")
-            money_spent_dict["inside"] = money_spent_dict["inside"] + money_earned_outside
-            self._catalog.set(f"{aggregator.superior.name}.money_spent", money_spent_dict)
-
-            money_earned_dict = self._catalog.get(f"{aggregator.superior.name}.money_earned")
-            money_earned_dict["inside"] = money_earned_dict["inside"] + money_spent_outside
-            self._catalog.set(f"{aggregator.superior.name}.money_earned", money_earned_dict)
 
     # ##########################################################################################
     # Utility
