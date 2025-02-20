@@ -103,7 +103,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
             energy_wanted[nature.name]["coming_volume"] = coming_volume
             energy_wanted[nature.name]["flexibility"] = [1, 1, 1, 1, 1]
             energy_wanted[nature.name]["interruptibility"] = 1
-
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def react(self):
@@ -153,5 +152,6 @@ def get_data_at_timestep(df: dict, timestep: int):
 
         # Perform linear interpolation
         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+        interpolated_value /= 100
         return interpolated_value
 
