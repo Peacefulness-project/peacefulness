@@ -1341,7 +1341,7 @@
 # # ###################################################################################################################
 # the figures of evolution that we have correspond to a steam generator/turbine group of a 600MW generation capacity
 # hyp.1 -> the efficiency considered is 35% thus, the nominal thermal power is 600 / 0.35 = 1714.28571428571 MWth
-# hyp.2 -> the inlet temperature is around 25°C
+# hyp.2 -> the inlet temperature is around 60°C
 # hyp.3 -> the evolution figures don't depend on the thermal power
 
 # import pandas as pd
@@ -1438,7 +1438,7 @@
 # cold_Cp = PropsSI('C', 'P', cold_pressure, 'T', cold_temperature, fluid)
 # warm_Cp = PropsSI('C', 'P', warm_pressure, 'T', warm_temperature, fluid)
 # nominal_thermal_power = (600 / 0.35) * 1e6
-# input_Temp = 25 + 273.15
+# input_Temp = 60 + 273.15
 # nominal_mass_flow = nominal_thermal_power / (((cold_Cp + warm_Cp) / 2) * (((cold_temperature + warm_temperature) / 2) - input_Temp))
 #
 #
