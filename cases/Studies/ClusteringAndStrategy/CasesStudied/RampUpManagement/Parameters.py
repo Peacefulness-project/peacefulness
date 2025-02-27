@@ -70,10 +70,8 @@ def performance_norm(performance_vector: Dict) -> float:
 # strategies, defined as an ordered list of the available levers - todo à confirmer avec Timothé
 # ######################################################################################################################
 
-# consumption_options = ["heat_loads", "charging_storage", "nothing"]
-# production_options = ["heat_baseload", "heat_peakload", "discharging_storage"]
-consumption_options = ["heat_loads", "nothing"]
-production_options = ["heat_baseload", "heat_peakload"]
+consumption_options = ["dissipation", "nothing"]
+production_options = ["biomass", "gas"]
 assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
 assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
 assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
@@ -81,10 +79,20 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
+    real_consumption = 0.0
+    biomass_max_power = 1300  # kWh
+    real_consumption += strategy._catalog.get("old_house.LTH.energy_wanted")["energy_maximum"]
+    real_consumption += strategy._catalog.get("new_house.LTH.energy_wanted")["energy_maximum"]
+    real_consumption += strategy._catalog.get("office.LTH.energy_wanted")["energy_maximum"]
     # return ["heat_loads", "charging_storage", "nothing"]
-    return ["heat_loads", "nothing"]
+    if real_consumption > biomass_max_power or real_consumption == 0.0:
+        return ["nothing", "dissipation"]
+    else:
+        if real_consumption <= 0.75 * biomass_max_power:
+            return ["nothing", "dissipation"]
+        else:
+            return ["dissipation", "nothing"]
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    # return ["heat_baseload", "discharging_storage", "heat_peakload"]
-    return ["heat_baseload", "heat_peakload"]
+    return ["biomass", "gas"]
