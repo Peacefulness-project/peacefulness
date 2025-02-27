@@ -178,11 +178,6 @@ def if_it_exists(my_data, my_func: Callable, additional_data_1=None, additional_
         return 0.0
 
 
-def my_basic_mean(my_data):
-    if len(my_data) != 0:
-        return sum(my_data) / len(my_data)
-
-
 def my_basic_share(my_data, max_value, min_value):
     if my_data and max_value and min_value:
         return sum(my_data) / ((sum(max_value) + sum(min_value)) / 2)

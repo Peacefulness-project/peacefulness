@@ -47,10 +47,10 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         min_bound = self._max_power * self._autonomy / (self._max_PCI * self._efficiency)
         if self._recharge_quantity < min_bound:
             self._recharge_quantity = min_bound
-            print(f"The sizing of the Biomass is not correct, the new fuel recharge quantity is: {self._recharge_quantity}")
+            # print(f"The sizing of the Biomass is not correct, the new fuel recharge quantity is: {self._recharge_quantity}")
         elif self._recharge_quantity > max_bound:
             self._recharge_quantity = max_bound
-            print(f"The sizing of the Biomass is not correct, the new fuel recharge quantity is: {self._recharge_quantity}")
+            # print(f"The sizing of the Biomass is not correct, the new fuel recharge quantity is: {self._recharge_quantity}")
         self._fuel_mass_flow_rate = self._recharge_quantity / self._autonomy
 
     # ##########################################################################################
@@ -61,10 +61,9 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         current_time = self._catalog.get("simulation_time")
 
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
-
+        min_production = 0.0
         if self.cold_startup_flag:
             startup_time = self._buffer["cold_startup"]
-            min_production = 0.0
             if current_time == startup_time + 1:
                 max_production = - get_data_at_timestep(self._coldStartUp, 1) * self._max_power
                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 1) + get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 1) * self._max_power
@@ -83,7 +82,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
         elif self.warm_startup_flag:
             startup_time = self._buffer["warm_startup"]
-            min_production = 0.0
             if current_time == startup_time + 1:
                 max_production = - get_data_at_timestep(self._warmStartUp, 1) * self._max_power
                 coming_volume = - (get_data_at_timestep(self._warmStartUp, 1) + 4) * self._max_power
@@ -92,7 +90,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                 coming_volume = - 5 * self._max_power
 
         else:  # idle
-            min_production = 0.0
             max_production = - 0.01 * self._max_power
             coming_volume = - 0.01 * self._max_power
 
@@ -111,13 +108,15 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         for nature in self.natures:
             energy_accorded = self.get_energy_accorded_quantity(nature)
             if energy_accorded != 0:
-                if current_time - self._buffer["last_stopped"] <= 1 or (self.cold_startup_flag and self._buffer["last_stopped"] != 0):
+                if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
                     self.warm_startup_flag = True
-                    self._buffer["warm_startup"] = current_time
+                    if not "warm_startup" in self._buffer:
+                        self._buffer["warm_startup"] = current_time
                 else:
                     self.cold_startup_flag = True
-                    self._buffer["cold_startup"] = current_time
-                self._buffer["last_stopped"] = 0
+                    if not "cold_startup" in self._buffer:
+                        self._buffer["cold_startup"] = current_time
+                    self._buffer["last_stopped"] = 0
             else:
                 if "cold_startup" in self._buffer:
                     self.cold_startup_flag = False
