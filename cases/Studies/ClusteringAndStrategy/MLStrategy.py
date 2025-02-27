@@ -51,7 +51,7 @@ class MLStrategy(TrainingStrategy):
     # Priorities functions
     # ##########################################################################################
 
-    def _asses_quantities_for_each_option(self, aggregator: "Aggregator") -> Dict:
+    def _assess_quantities_for_each_option(self, aggregator: "Aggregator") -> Dict:
         [demands, offers, storage] = self._sort_quantities(aggregator, self._sort_function)
         quantity_per_option = {"consumption": {}, "production": {}}
         priorities_consumption = self._get_priorities_consumption()
@@ -73,10 +73,10 @@ class MLStrategy(TrainingStrategy):
         min_prod = quantity_per_option["production"]["min"]
         max_cons = sum(quantity_per_option["consumption"].values()) - min_cons
         max_prod = sum(quantity_per_option["production"].values()) - min_prod
-        self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", min_cons)
-        self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", max_cons)
-        self._catalog.set(f"{aggregator.name}.minimum_energy_production", min_prod)
-        self._catalog.set(f"{aggregator.name}.maximum_energy_production", max_prod)
+        # self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", min_cons)
+        # self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", max_cons)
+        # self._catalog.set(f"{aggregator.name}.minimum_energy_production", min_prod)
+        # self._catalog.set(f"{aggregator.name}.maximum_energy_production", max_prod)
 
         return quantity_per_option
 
@@ -154,40 +154,43 @@ def exchanges_min_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_
 def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     lines_to_remove = []  # a list containing the number of lines having to be removed
     for i in range(len(sorted_offers)):  # offers
-        energy = sorted_offers[i]["quantity"]
-
-        if energy < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
-            energy = - energy_available_production  # it is served partially, even if it is urgent
-
-        price = sorted_offers[i]["price"]
-        price = max(price, min_price)
-        name = sorted_offers[i]["name"]
-
         if sorted_offers[i]["type"] != "storage":
+            energy = sorted_offers[i]["quantity"]
+            price = sorted_offers[i]["price"]
+            price = max(price, min_price)
+            name = sorted_offers[i]["name"]
+
             if sorted_offers[i]["emergency"] == 1:  # if it is urgent
                 lines_to_remove.append(i)
 
-                message = strategy._create_decision_message()
-                message["quantity"] = energy
-                message["price"] = price
+                if energy < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
+                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
+                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy - energy_available_production)
+                    energy = - energy_available_production  # it is served partially, even if it is urgent
 
-                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
-                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
-                    quantities_given.append(message)
-                else:  # if it is a device
-                    quantities_given = message
+                    message = strategy._create_decision_message()
+                    message["quantity"] = energy
+                    message["price"] = price
 
-                strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+                    if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                        quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                        quantities_given.append(message)
+                    else:  # if it is a device
+                        quantities_given = message
 
-                money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
-                energy_bought_inside -= energy  # the absolute value of energy bought inside
-                energy_available_production += energy  # the difference between the max and the min is consumed
+                    strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                    money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
+                    energy_bought_inside -= energy  # the absolute value of energy bought inside
+                    energy_available_production += energy  # the difference between the max and the min is consumed
 
             else:  # if there is a demand for a min of energy too
                 energy_minimum = sorted_offers[i]["quantity_min"]  # the minimum quantity of energy asked
                 energy_maximum = sorted_offers[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
+                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
+                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy_minimum - energy_available_production)
                     energy = - energy_available_production  # it is served partially, even if it is urgent
                 else:
                     energy = energy_minimum
@@ -209,7 +212,6 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
                 sorted_offers[i]["quantity"] = energy_maximum - energy
 
     lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
-
     for line_index in lines_to_remove:  # removing the already served elements
         sorted_offers.pop(line_index)
 
@@ -235,17 +237,18 @@ def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity
 def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     lines_to_remove = []  # a list containing the number of lines having to be removed
     for i in range(len(sorted_demands)):  # demands
-        energy = sorted_demands[i]["quantity"]
-
-        name = sorted_demands[i]["name"]
-        price = sorted_demands[i]["price"]
-        price = min(price, max_price)
-
         if sorted_demands[i]["type"] != "storage":
+            energy = sorted_demands[i]["quantity"]
+            name = sorted_demands[i]["name"]
+            price = sorted_demands[i]["price"]
+            price = min(price, max_price)
+
             if sorted_demands[i]["emergency"] == 1:  # if it is urgent
                 lines_to_remove.append(i)
 
-                if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                if energy > energy_available_consumption + 1e-6:  # if the quantity demanded is superior to the rest of energy available
+                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
+                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts + energy-energy_available_consumption)
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
 
                 message = strategy._create_decision_message()
@@ -269,6 +272,8 @@ def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_p
                 energy_maximum = sorted_demands[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
+                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts + energy_minimum - energy_available_consumption)
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
                 else:
                     energy = energy_minimum

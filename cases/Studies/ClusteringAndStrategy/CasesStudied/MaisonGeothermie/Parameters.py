@@ -7,10 +7,10 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 # ######################################################################################################################
 # hyperparameters
 # ######################################################################################################################
-training_simulation_length = 24  # length of sequences used for clustering.
-sequences_number = 365  # number of sequences simulated
-gap = 24  # gap (given in iterations) between 2 sequences simulated
-cluster_number = 35  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
+training_simulation_length = 8760  # length of sequences used for clustering.
+sequences_number = 8760  # number of sequences simulated
+gap = 1  # gap (given in iterations) between 2 sequences simulated
+cluster_number = 5  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
 
 
 random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
@@ -41,6 +41,7 @@ performance_metrics = [
 
     "heat_storage.LTH.energy_bought",
     "heat_storage.LTH.energy_sold",
+    "unwanted_delivery_cuts",
 
     # "heat_pump.LVE.energy_bought",
     # "heat_pump.LTH.energy_sold",
@@ -59,17 +60,12 @@ performance_metrics = [
     # "house_elec.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
-money_coef = 1  # money costs around 10 C€/kWh and energy flows are around 1-10 kWH
-storage_coef = 1/20  # same reflexion on 1-10kWh
+exported_metrics = performance_metrics + clustering_metrics
 
 
-def training_performance_norm(performance_vector: Dict) -> float:
-    return (sum(performance_vector["house_owner.money_spent"]) - sum(performance_vector["house_owner.money_earned"])) * money_coef + \
-           (sum(performance_vector["heat_storage.LTH.energy_sold"]) - sum(performance_vector["heat_storage.LTH.energy_bought"])) * storage_coef
-
-
-def comparison_performance_norm(performance_vector: Dict) -> float:
-    return (sum(performance_vector["house_owner.money_spent"]) - sum(performance_vector["house_owner.money_earned"])) * money_coef
+def performance_norm(performance_vector: Dict) -> float:
+    return sum(performance_vector["house_owner.money_spent"]) - sum(performance_vector["house_owner.money_earned"]) - \
+           sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 
 # ######################################################################################################################

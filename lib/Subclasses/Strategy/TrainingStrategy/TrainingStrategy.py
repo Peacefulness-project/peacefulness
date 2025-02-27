@@ -16,6 +16,8 @@ class TrainingStrategy(Strategy):
         self._options_consumption: Callable = None
         self._options_production: Callable = None
 
+        self._catalog.add("unwanted_delivery_cuts", 0)
+
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
@@ -28,7 +30,7 @@ class TrainingStrategy(Strategy):
         ordered_list = ["min"] + self._priorities_production(self)  # satisfying the minimum quantities is always, implicitly, the absolute priority
         return ordered_list
 
-    def _asses_quantities_for_each_option(self, aggregator: "Aggregator") -> Dict:
+    def _assess_quantities_for_each_option(self, aggregator: "Aggregator") -> Dict:
         pass
 
     def _apply_priorities_exchanges(self, aggregaor: "Aggregator", quantity_to_affect: float,
@@ -37,9 +39,23 @@ class TrainingStrategy(Strategy):
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
+        energy_bought_outside = 0  # the absolute value of energy bought outside
+        energy_sold_outside = 0  # the absolute value of energy sold outside
+
+        money_earned_outside = 0  # the absolute value of money earned outside
+        money_spent_outside = 0  # the absolute value of money spent outside
+
+        minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
+        minimum_energy_produced = 0  # the minimum quantity of energy needed to be produced
+        maximum_energy_consumed = 0  # the maximum quantity of energy needed to be consumed
+        maximum_energy_produced = 0  # the maximum quantity of energy needed to be produced
+        maximum_energy_charge = 0
+        maximum_energy_discharge = 0
 
         # assess quantity for consumption and prod
-        quantity_available_per_option = self._asses_quantities_for_each_option(aggregator)
+        [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
+
+        quantity_available_per_option = self._assess_quantities_for_each_option(aggregator)
 
         quantity_to_affect = min(
             sum(quantity_available_per_option["consumption"].values()),
@@ -66,6 +82,7 @@ class TrainingStrategy(Strategy):
         pass
 
     def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
+        self._catalog.set("unwanted_delivery_cuts", 0)
         energy_bought_outside = 0  # the absolute value of energy bought outside
         energy_sold_outside = 0  # the absolute value of energy sold outside
 
@@ -87,12 +104,13 @@ class TrainingStrategy(Strategy):
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
+        # print(minimum_energy_consumed, maximum_energy_consumed)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
         # assess quantity for consumption and prod
-        quantity_available_per_option = self._asses_quantities_for_each_option(aggregator)
+        quantity_available_per_option = self._assess_quantities_for_each_option(aggregator)
 
         # ##########################################################################################
         # balance of energy available

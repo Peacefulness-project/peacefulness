@@ -25,9 +25,10 @@ class LimitedCurtailmentContract(Contract):
         self._remnant_hours -= 1  # decrement
         if self._remnant_hours == 0:  # reset of curtailment hours
             self._curtailment_hours_available = self._curtailment_hours
+            self._remnant_hours = self._rotation_duration
 
         # billing
-        if self._curtailment_hours_available:  # if it is still possible to cut consumption, it works as the curtailment contract
+        if self._curtailment_hours_available > 0:  # if it is still possible to cut consumption, it works as the curtailment contract
             if message["energy_maximum"] > 0:  # if the maximal quantity of energy is positive, it means that the device asks for energy
                 message["price"] = self._catalog.get(f"{self._daemon_name}.buying_price")  # getting the price per kW.h
             elif message["energy_maximum"] < 0:  # if the maximal quantity of energy is positive, it means that the device proposes energy
@@ -52,7 +53,7 @@ class LimitedCurtailmentContract(Contract):
         initial_quantity = energy_wanted["energy_maximum"]
         energy_erased = initial_quantity - energy_served  # the demand not satisfied by the aggregator
 
-        if energy_erased:  # if there was a curtailment, the number of hours available decrease
+        if energy_erased > 1e-6:  # if there was a curtailment, the number of hours available decrease
             self._curtailment_hours_available -= 1
 
         if energy_served < 0:  # if the device delivers energy

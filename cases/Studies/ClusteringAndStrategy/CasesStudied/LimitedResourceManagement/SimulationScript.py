@@ -133,7 +133,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
     aggregator_name = "local_network"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 100, "selling": 100})  # creation of an aggregator
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 200, "selling": 0})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
@@ -142,7 +142,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 100})  # creation of a heat production unit
 
     # storage
-    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 250, "initial_SOC": 0.5})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 1000, "initial_SOC": 0.5})
 
     # consumption
     subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, residential_consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 100})
@@ -151,7 +151,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Creation of dataloggers
-    subclasses_dictionary["Datalogger"]["SelfSufficiencyDatalogger"]()
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
     # datalogger for balances
@@ -164,7 +163,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     for key in metrics:
         metrics_datalogger.add(key)
 
-    world.start(False)
+    world.start(verbose=False)
 
     return metrics_datalogger
 

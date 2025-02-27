@@ -1,4 +1,3 @@
-from random import seed
 import itertools
 
 
@@ -8,13 +7,8 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 #
 # ######################################################################################################################
 training_simulation_length = 8760  # length of sequences used for clustering.
-sequences_number = 8760  # number of sequences simulated
+clustering_sequences_number = 8760  # number of sequences simulated
 gap = 1  # gap (given in iterations) between 2 sequences simulated
-cluster_number = 5  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
-
-
-random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
-seed(random_seed)
 
 
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
@@ -27,19 +21,26 @@ clustering_metrics = [  # prices are not taken into account for now
     # storage
     "storage.energy_stored",
     # consumption
-    "residential_dwellings.LVE.energy_bought",
-    "industrial_consumer.LVE.energy_bought",
-    # + demande en attente ?
+    "local_network.minimum_energy_consumption",
+    "local_network.maximum_energy_consumption",
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
-    "local_network.coverage_rate",
     "local_network.energy_bought_outside",
+    "unwanted_delivery_cuts",
 ]  # critères de performance, spécifiques au cas étudié...
+
+exported_metrics = performance_metrics + clustering_metrics + [
+    "storage.LVE.energy_bought",
+    "storage.LVE.energy_sold",
+    "industrial_process.LVE.energy_bought",
+    "residential_dwellings.LVE.energy_bought",
+]
 
 
 def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return sum(performance_vector["local_network.energy_bought_outside"])
+    return - sum(performance_vector["local_network.energy_bought_outside"]) - \
+             sum(performance_vector["unwanted_delivery_cuts"]) * 2  # non respect of the minimum constraints
 
 
 # ######################################################################################################################
@@ -56,12 +57,20 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 # reference strategies
 # exchange first, then storage and DSM if nothing else
 def ref_priorities_consumption(strategy: "Strategy"):
-    # return ["industrial", "storage", "nothing"]
-    return ['storage', 'industrial', 'nothing']
+    current_situation = {}
+    current_situation["residential_dwellings.demand"] = strategy._catalog.get("residential_dwellings.LVE.energy_wanted")["energy_maximum"]
+    current_situation["industrial_process.demand"] = strategy._catalog.get("industrial_process.LVE.energy_wanted")["energy_maximum"]
+    total_consumption = current_situation["residential_dwellings.demand"] + \
+                        current_situation["industrial_process.demand"]
+    max_prod = 100  # TODO: à paramétrer parce qu'en l'état c'est dégueu...
+    if current_situation["residential_dwellings.demand"] > max_prod:  # if minimal consumption is superior to the production...
+        return ["nothing", "industrial", "storage"]  # ...industrials are cut if possible
+    elif total_consumption > max_prod:  # if consumption is superior to production...
+        return ["industrial", "nothing", "storage"]  # ... no storage is done
+    else:
+        return ["industrial", "storage", "nothing"]  # ... storage is done
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    # return ["production", "unstorage", "grid"]
-    return ['grid', 'production', 'unstorage']
+    return ["production", "unstorage", "grid"]
 
-# ['storage', 'nothing', 'industrial']/['grid', 'production', 'unstorage']

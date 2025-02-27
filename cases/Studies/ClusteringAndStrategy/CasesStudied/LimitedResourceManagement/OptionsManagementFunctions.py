@@ -194,7 +194,7 @@ def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity
 def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
     name = "storage"
-    while sorted_offers[i]["name"] != name and i:  # as long as the storage is not found
+    while sorted_offers[i]["name"] != name and i < len(sorted_offers) - 1:  # as long as the storage is not found
         i += 1
 
     if sorted_offers[i]["name"] == name:
@@ -208,6 +208,7 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
         message = {element: strategy.__class__.decision_message()[element] for element in strategy.__class__.decision_message()}
         message["quantity"] = energy + strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # integration of decision taken regarding the charge
         message["price"] = price
+        # print(energy, sorted_offers[i]["quantity_min"])
 
         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -222,6 +223,7 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
         energy_available_production += energy  # the difference between the max and the min is consumed
 
     return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
+
 
 # outside energy
 def assess_buy_outside(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:

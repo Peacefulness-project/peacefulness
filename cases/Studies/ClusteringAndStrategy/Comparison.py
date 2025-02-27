@@ -2,10 +2,10 @@ from typing import List, Dict, Callable
 import math
 
 
-def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics: List,
-               comparison_simulation_length: int, performance_norm: Callable,
-               ref_priorities_consumption: Callable, ref_priorities_production: Callable,
-               performance_metrics: List, create_simulation: Callable):
+def assess_reference(
+        comparison_simulation_length: int, performance_norm: Callable,
+        ref_priorities_consumption: Callable, ref_priorities_production: Callable,
+        performance_metrics: List, create_simulation: Callable):
 
     # reference run
     print(f"start of the reference run")
@@ -15,6 +15,15 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
         ref_results[key] = ref_datalogger._values[key]
     ref_performance = performance_norm(ref_results)
     print("Done\n")
+
+    print(f"Performance of the reference strategy: {ref_performance}")
+
+    return ref_performance
+
+def assess_performance(best_strategies: Dict, cluster_centers: List, clustering_metrics: List,
+                       comparison_simulation_length: int, performance_norm: Callable,
+                       ref_priorities_consumption: Callable, ref_priorities_production: Callable,
+                       performance_metrics: List, create_simulation: Callable):
 
     # improved run
     def find_strategy(cons_or_prod: str):
@@ -38,6 +47,7 @@ def comparison(best_strategies: Dict, cluster_centers: List, clustering_metrics:
     tested_performance = performance_norm(tested_results)
     print("Done\n")
 
-    print(f"Performance of the reference strategy: {ref_performance}")
     print(f"Performance of the improved strategy: {tested_performance}")
+
+    return tested_performance
 
