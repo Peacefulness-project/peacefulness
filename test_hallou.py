@@ -318,17 +318,17 @@
 # #
 # #     for element in decision_message.keys():  # TODO prices ?
 # #         if element == aggregator.name:
-# #             dummy_dict = decision_message[element]
-# #             if "Energy_Consumption" in dummy_dict:
+# #             cold_startup = decision_message[element]
+# #             if "Energy_Consumption" in cold_startup:
 # #                 consumption = decision_message[element]["Energy_Consumption"]
-# #                 dummy_dict.pop("Energy_Consumption")
-# #             if "Energy_Production" in dummy_dict:
+# #                 cold_startup.pop("Energy_Consumption")
+# #             if "Energy_Production" in cold_startup:
 # #                 production = decision_message[element]["Energy_Production"]
-# #                 dummy_dict.pop("Energy_Production")
-# #             if "Energy_Storage" in dummy_dict:
+# #                 cold_startup.pop("Energy_Production")
+# #             if "Energy_Storage" in cold_startup:
 # #                 storage = decision_message[element]["Energy_Storage"]
-# #                 dummy_dict.pop("Energy_Storage")
-# #             exchange = dummy_dict
+# #                 cold_startup.pop("Energy_Storage")
+# #             exchange = cold_startup
 # #
 # #     return [consumption, production, storage, exchange]
 # #
@@ -391,7 +391,7 @@
 # # from src.tools.DRL_Strategy_utilities import *
 # #
 # #
-# # dummy_dict = {"A1": {"Energy_Consumption": {"D1": {"energy_minimum": 20, "energy_maximum": 150, "flexibility": [0], "interruptibility": 0, "coming_volume": 500},
+# # cold_startup = {"A1": {"Energy_Consumption": {"D1": {"energy_minimum": 20, "energy_maximum": 150, "flexibility": [0], "interruptibility": 0, "coming_volume": 500},
 # #                                             "D2": {"energy_minimum": 20, "energy_maximum": 150, "flexibility": [], "interruptibility": 0, "coming_volume": 500},
 # #                                             "D3": {"energy_minimum": 20, "energy_maximum": 150, "flexibility": [], "interruptibility": 0, "coming_volume": 500}},
 # #                      "Energy_Production": {"D4": {"energy_minimum": -20, "energy_maximum": -150, "flexibility": [], "interruptibility": 0, "coming_volume": 0},
@@ -406,8 +406,8 @@
 # #                      }
 # #               }
 # #
-# # dummy_dict = mutualize_formalism_message(dummy_dict)
-# # print(dummy_dict)
+# # cold_startup = mutualize_formalism_message(cold_startup)
+# # print(cold_startup)
 #
 # # # Preparing the dict
 # # return_dict = {}
@@ -416,8 +416,8 @@
 # # production_dict = {}
 # # storage_dict = {}
 # # conversion_dict = {}
-# # for aggregator_name in dummy_dict.keys():
-# #     inter_dict = {**dummy_dict[aggregator_name]}
+# # for aggregator_name in cold_startup.keys():
+# #     inter_dict = {**cold_startup[aggregator_name]}
 # #     for key in inter_dict.keys():
 # #         consumption_dict = {**consumption_dict, **inter_dict["Energy_Consumption"]}
 # #         production_dict = {**production_dict, **inter_dict["Energy_Production"]}
@@ -541,17 +541,17 @@
 # # 'Energy_Exchange_3': -30}}
 # #
 # # if my_aggregator.name in decision_message:
-# #     dummy_dict = decision_message[my_aggregator.name]
-# #     if "Energy_Consumption" in dummy_dict:
+# #     cold_startup = decision_message[my_aggregator.name]
+# #     if "Energy_Consumption" in cold_startup:
 # #         consumption = decision_message[my_aggregator.name]["Energy_Consumption"]
-# #         dummy_dict.pop("Energy_Consumption")
-# #     if "Energy_Production" in dummy_dict:
+# #         cold_startup.pop("Energy_Consumption")
+# #     if "Energy_Production" in cold_startup:
 # #         production = decision_message[my_aggregator.name]["Energy_Production"]
-# #         dummy_dict.pop("Energy_Production")
-# #     if "Energy_Storage" in dummy_dict:
+# #         cold_startup.pop("Energy_Production")
+# #     if "Energy_Storage" in cold_startup:
 # #         storage = decision_message[my_aggregator.name]["Energy_Storage"]
-# #         dummy_dict.pop("Energy_Storage")
-# #     exchange = dummy_dict
+# #         cold_startup.pop("Energy_Storage")
+# #     exchange = cold_startup
 # # print(consumption)
 # # print(production)
 # # print(storage)
@@ -672,13 +672,13 @@
 # #             aggregator_energy_exchanges_from_grid_topology.append(tup)
 # #
 # #     aggregator_energy_exchanges_from_RL_decision = []
-# #     dummy_dict = {**energy_accorded_to_exchange}
+# #     cold_startup = {**energy_accorded_to_exchange}
 # #     for key, value in energy_accorded_to_exchange.items():
 # #         if value != 0:
 # #             aggregator_energy_exchanges_from_RL_decision.append(value)
-# #             dummy_dict.pop(key)
-# #     if len(dummy_dict) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
-# #         for key, value in dummy_dict.items():
+# #             cold_startup.pop(key)
+# #     if len(cold_startup) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
+# #         for key, value in cold_startup.items():
 # #             aggregator_energy_exchanges_from_RL_decision.append(value)
 # #     else:
 # #         for i in range(len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision)):
@@ -770,13 +770,13 @@
 # #         aggregator_energy_exchanges_from_grid_topology.append(tup)
 # #
 # # aggregator_energy_exchanges_from_RL_decision = []
-# # dummy_dict = {**energy_accorded_to_exchange}
+# # cold_startup = {**energy_accorded_to_exchange}
 # # for key, value in energy_accorded_to_exchange.items():
 # #     if value != 0:
 # #         aggregator_energy_exchanges_from_RL_decision.append(value)
-# #         dummy_dict.pop(key)
-# # if len(dummy_dict) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
-# #     for key, value in dummy_dict.items():
+# #         cold_startup.pop(key)
+# # if len(cold_startup) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
+# #     for key, value in cold_startup.items():
 # #         aggregator_energy_exchanges_from_RL_decision.append(value)
 # # else:
 # #     for i in range(len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision)):
@@ -870,13 +870,13 @@
 # #             aggregator_energy_exchanges_from_grid_topology.append(tup)
 # #
 # #     aggregator_energy_exchanges_from_RL_decision = []
-# #     dummy_dict = {**energy_accorded_to_exchange}
+# #     cold_startup = {**energy_accorded_to_exchange}
 # #     for key, value in energy_accorded_to_exchange.items():
 # #         if value != 0:
 # #             aggregator_energy_exchanges_from_RL_decision.append(value)
-# #             dummy_dict.pop(key)
-# #     if len(dummy_dict) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
-# #         for key, value in dummy_dict.items():
+# #             cold_startup.pop(key)
+# #     if len(cold_startup) == len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision):
+# #         for key, value in cold_startup.items():
 # #             aggregator_energy_exchanges_from_RL_decision.append(value)
 # #     else:
 # #         for i in range(len(aggregator_energy_exchanges_from_grid_topology) - len(aggregator_energy_exchanges_from_RL_decision)):
@@ -1504,5 +1504,131 @@
 # # writing the data in the json file
 # with open(jsonFile, 'w') as my_file:
 #     json.dump(systemData, my_file, indent=4)
+
+# #####################################################################################################################
+# TODO testing the biomass alternative plant
+#######################################################################################################################
+# from typing import Dict
+# from ijson import items
+# import numpy as np
+# from lib.Subclasses.Device.BiomassGasPlantAlternative.BiomassGasPlantAlternative import get_data_at_timestep
+#
+#
+# class DummyClass:
+#     def __init__(self, profile: Dict, device_parameters: Dict, filepath: str, timestep: int):
+#         self._filename = filepath
+#         self._max_power = device_parameters["max_power"] * timestep  # max power (kWh)
+#         self._recharge_quantity = device_parameters["recharge_quantity"]  # fuel quantity recharged at each period (kg)
+#         self._autonomy = device_parameters["autonomy"] / timestep
+#         self._read_data_profiles(profile)
+#         self.cold_startup_flag = False
+#         self.warm_startup_flag = False
+#         self._buffer = {"last_stopped": 0}
+#
+#     def _read_data_profiles(self, profiles):
+#         data_device = self._read_technical_data(profiles["device"])  # parsing the data
+#
+#         self._technical_profile = dict()
+#
+#         # usage profile
+#         self._technical_profile[data_device["usage_profile"]["nature"]] = None
+#         self._efficiency = data_device["efficiency"]  # the efficiency of the waste/biomass plant (%)
+#         self._min_PCI = data_device["min_PCI"]  # the min PCI of the waste/biomass plant (kWh/kg)
+#         self._max_PCI = data_device["max_PCI"]  # the max PCI of the waste/biomass plant (kWh/kg)
+#         self._coldStartUp = data_device["cold_startup"]  # thermal power evolution during a cold startup
+#         self._warmStartUp = data_device["warm_startup"]  # thermal power evolution during a warm startup
+#
+#     def _read_technical_data(self, technical_profile):
+#         # parsing the data
+#         with open(self._filename, "r") as file:
+#             temp = items(file, "technical_data", use_float=True)
+#             data = {}
+#             for truc in temp:
+#                 data = truc
+#
+#         # getting the technical profile
+#         try:
+#             technical_data = data[technical_profile]
+#         except:
+#             raise Exception(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
+#
+#         return technical_data
+#
+#     # ##########################################################################################
+#     # Dynamic behavior
+#     # ##########################################################################################
+#     def update(self, current_time):
+#         min_production = 0.0
+#         if self.cold_startup_flag:
+#             startup_time = self._buffer["cold_startup"]
+#             if current_time == startup_time + 1:
+#                 max_production = - get_data_at_timestep(self._coldStartUp, 1) * self._max_power
+#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 1) + get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 1) * self._max_power
+#             elif current_time == startup_time + 2:
+#                 max_production = - get_data_at_timestep(self._coldStartUp, 2) * self._max_power
+#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 2) * self._max_power
+#             elif current_time == startup_time + 3:
+#                 max_production = - get_data_at_timestep(self._coldStartUp, 3) * self._max_power
+#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 3) * self._max_power
+#             elif current_time == startup_time + 4:
+#                 max_production = - get_data_at_timestep(self._coldStartUp, 4) * self._max_power
+#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 4) + 4) * self._max_power
+#             else:
+#                 max_production = - self._max_power
+#                 coming_volume = - 5 * self._max_power
+#
+#         elif self.warm_startup_flag:
+#             startup_time = self._buffer["warm_startup"]
+#             if current_time == startup_time + 1:
+#                 max_production = - get_data_at_timestep(self._warmStartUp, 1) * self._max_power
+#                 coming_volume = - (get_data_at_timestep(self._warmStartUp, 1) + 4) * self._max_power
+#             else:
+#                 max_production = - self._max_power
+#                 coming_volume = - 5 * self._max_power
+#
+#         else:  # idle
+#             max_production = - 0.01 * self._max_power
+#             coming_volume = - 0.01 * self._max_power
+#
+#         print(f"The minimum energy wanted by the biomass plant is : {min_production}")
+#         print(f"The maximum energy wanted by the biomass plant is : {max_production}")
+#         print(f"The expected coming volume of the biomass plant is : {coming_volume}")
+#
+#     def react(self, current_time, energy_accorded):
+#         print(f"What was accorded is {energy_accorded}")
+#         if energy_accorded != 0.0:
+#             if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
+#                 self.warm_startup_flag = True
+#                 if not "warm_startup" in self._buffer:
+#                     self._buffer["warm_startup"] = current_time
+#                 print(f"The energy accorded is {energy_accorded} and a warm startup is triggered at the {self._buffer["warm_startup"]} !")
+#             else:
+#                 self.cold_startup_flag = True
+#                 if not "cold_startup" in self._buffer:
+#                     self._buffer["cold_startup"] = current_time
+#                 self._buffer["last_stopped"] = 0
+#                 print(f"The energy accorded is {energy_accorded} and a cold startup is triggered at the {self._buffer["cold_startup"]} !")
+#         else:
+#             if "cold_startup" in self._buffer:
+#                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["cold_startup"]} after cold start-up !")
+#                 self.cold_startup_flag = False
+#                 self._buffer.pop("cold_startup")
+#                 self._buffer["last_stopped"] = current_time
+#             elif "warm_startup" in self._buffer:
+#                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["warm_startup"]} after warm start-up !")
+#                 self.warm_startup_flag = False
+#                 self._buffer.pop("warm_startup")
+#                 self._buffer["last_stopped"] = current_time
+#
+#
+# my_incinerator = DummyClass({"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 8}, "lib/Subclasses/Device/BiomassGasPlantAlternative/BiomassGasPlantAlternative.json", 1)
+# simulation_dict = {'energy_accorded': []}
+# simulation_dict["energy_accorded"].extend([0, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 1300, 1300, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 0, 25, 87, 100, 1300, 1300, 0, 0, 13, 17 ,40])
+#
+# for i in range(len(simulation_dict["energy_accorded"])):
+#     print(f"\n at the iteration {i+1}")
+#     print(f"\ni am the energy accorded {simulation_dict["energy_accorded"][i]}")
+#     my_incinerator.update(i+1)
+#     my_incinerator.react(i+1, simulation_dict["energy_accorded"][i])
 
 
