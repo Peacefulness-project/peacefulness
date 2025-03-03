@@ -1,0 +1,1 @@
+simulation_time	physical_time	DHN_producer.LTH.energy_bought	DHN_producer.LTH.energy_sold	DHN_producer.LTH.energy_erased	DHN_producer.LTH.energy_imbalance	DHN_producer.money_spent	DHN_producer.money_earned	
