@@ -1159,6 +1159,8 @@
 # #######################################################################################################################
 #
 # Imports
+# from fileinput import filename
+#
 # import pandas as pd
 # import matplotlib.pyplot as plt
 # import numpy as np
@@ -1168,8 +1170,8 @@
 # my_year = np.arange(1, 8761)
 #
 # # Reading data from excel file
-# my_df1 = pd.read_excel('cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
-# my_df2 = pd.read_excel('cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
+# my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
+# my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
 # my_data = my_df1.to_dict(orient='list')
 # setpoints = my_df2.to_dict(orient='list')
 #
@@ -1235,9 +1237,20 @@
 #     else:
 #         house_deltas.append(0.0)
 #
-# # plt.plot(my_year, yearly_exterior_temperature)  # Plotting the Exterior Temperature values through the year
-# # plt.show()
+# minTemp = min(yearly_exterior_temperature)
+# minIndex = yearly_exterior_temperature.index(minTemp)
+# start_min_day = my_year[minIndex] - my_year[minIndex] % 24
+# end_min_day = start_min_day + 24
 #
+# maxTemp = max(yearly_exterior_temperature)
+# maxIndex = yearly_exterior_temperature.index(maxTemp)
+# start_max_day = my_year[maxIndex] - my_year[maxIndex] % 24
+# end_max_day = start_max_day + 24
+#
+# # plt.plot(my_year[0: 24], yearly_exterior_temperature[start_min_day: end_min_day])  # Plotting the Exterior Temperature values through the year
+# # plt.plot(my_year[0: 24], yearly_exterior_temperature[start_max_day: end_max_day])
+# # plt.show()
+# #
 # # plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
 # # plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
 # # plt.show()
@@ -1265,24 +1278,83 @@
 # heat_sink = np.empty(len(my_year))
 # heat_sink.fill(1300.0)
 #
+# total_consumption = []
+# for index in range(len(office_profile)):
+#     total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
+#
 # # Plotting the consumption profiles
-# my_fig = plt.figure()
+# # my_fig = plt.figure()
 # # plt.plot(my_year, old_house_profile, label="Old house consumption profile")
 # # plt.plot(my_year, new_house_profile, label="New house consumption profile")
-# plt.plot(my_year, office_profile, label="Office consumption profile")
-# plt.plot(my_year, heat_sink, label="Office consumption profile")
+# # plt.plot(my_year, office_profile, label="Office consumption profile")
+# # plt.plot(my_year[:2712], total_consumption[:2712], label="Total consumption profile")
+# # plt.plot(my_year[6144:], total_consumption[6144:], label="Total consumption profile")
+#
+# # plt.plot(my_year, heat_sink, label="Office consumption profile")
+# # plt.show()
+# #
+# maxConso = max(total_consumption)
+# maxIndexConso = total_consumption.index(maxConso)
+# startMaxConso = my_year[maxIndexConso] - my_year[maxIndexConso] % 24
+# endMaxConso = startMaxConso + 24
+#
+#
+# minConso = min(total_consumption)
+# minIndexConso = total_consumption.index(minConso)
+# startMinConso = my_year[minIndexConso] - my_year[minIndexConso] % 24
+# endMinConso = startMinConso + 24
+#
+# real_conso = total_consumption[:2712] + total_consumption[6144:]
+# moyConso = sum(real_conso) / len(real_conso)
+# closest = min(real_conso, key=lambda x: abs(x - moyConso))
+# moyIndexConso = total_consumption.index(closest)
+# startMoyConso = my_year[moyIndexConso] - my_year[moyIndexConso] % 24
+# endMoyConso = startMoyConso + 24
+#
+#
+#
+# typic_day = total_consumption[startMoyConso:startMoyConso + 11]
+#
+# for element in range(13):
+#     typic_day.append(total_consumption[startMoyConso + 11 + element] + 0.25 * total_consumption[startMoyConso + 11 + element])
+# typic_day[11] -= 100
+# typic_day[17] -= 100
+#
+# for element in range(len(typic_day)):
+#     if element != 18:
+#         if typic_day[element] < 1300:
+#             typic_day[element] -= 250
+#
+# typic_day[18] -= 400
+#
+# # typicDay = {"time": my_year[0:24], "load": typic_day}
+# # typicDay_df = pd.DataFrame(data=typicDay)
+# # nameFile = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/typicalDay.csv"
+# # typicDay_df.to_csv(nameFile, index=False, sep=";")
+#
+# plt.plot(my_year[0:24], total_consumption[startMaxConso:endMaxConso], label="Max consumption profile")
+# plt.plot(my_year[0:24], total_consumption[startMinConso:endMinConso], label="Min consumption profile")
+# plt.plot(my_year[0:24], total_consumption[startMoyConso:endMoyConso], label="Moy consumption profile")
+# plt.plot(my_year[0:24], typic_day, label="representative consumption profile")
+# plt.plot(my_year[0:24], heat_sink[0:24], label="Biomass production profile", linestyle='--')
+# plt.plot(my_year[0:24], 0.75 * heat_sink[0:24], label="Threshold", linestyle='--')
+# plt.plot(my_year[0:24], np.zeros_like(my_year[0:24]), linestyle='--')
+# plt.xlabel("Time in hours")
+# plt.ylabel("Energy in kWh")
+# plt.title("Representative days for heat management")
+# plt.legend()
 # plt.show()
 #
-# # Writing data on a file for the new background subclass
-# my_total_consumption = []
-# for index in range(len(old_house_profile)):
-#     old_house_profile[index] = float(old_house_profile[index])
-#     new_house_profile[index] = float(new_house_profile[index])
-#     office_profile[index] = float(office_profile[index])
-#     heat_sink[index] = float(heat_sink[index])
-#     my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
-#
-# with open('new_background.txt', "w") as my_file:
+# # # Writing data on a file for the new background subclass
+# # my_total_consumption = []
+# # for index in range(len(old_house_profile)):
+# #     old_house_profile[index] = float(old_house_profile[index])
+# #     new_house_profile[index] = float(new_house_profile[index])
+# #     office_profile[index] = float(office_profile[index])
+# #     heat_sink[index] = float(heat_sink[index])
+# #     my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
+# #
+# # with open('new_background.txt', "w") as my_file:
 #     my_file.write(f"Thermal consumption of old houses : {old_house_profile}")
 #     my_file.write(f"\n")
 #     my_file.write(f"\n")
@@ -1508,12 +1580,16 @@
 # #####################################################################################################################
 # TODO testing the biomass alternative plant
 #######################################################################################################################
+# from os import chdir, path
+# import sys
+# chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+# sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
 # from typing import Dict
 # from ijson import items
 # import numpy as np
 # from lib.Subclasses.Device.BiomassGasPlantAlternative.BiomassGasPlantAlternative import get_data_at_timestep
-#
-#
+# #
+# #
 # class DummyClass:
 #     def __init__(self, profile: Dict, device_parameters: Dict, filepath: str, timestep: int):
 #         self._filename = filepath
@@ -1524,12 +1600,12 @@
 #         self.cold_startup_flag = False
 #         self.warm_startup_flag = False
 #         self._buffer = {"last_stopped": 0}
-#
+# 
 #     def _read_data_profiles(self, profiles):
 #         data_device = self._read_technical_data(profiles["device"])  # parsing the data
-#
+# 
 #         self._technical_profile = dict()
-#
+# 
 #         # usage profile
 #         self._technical_profile[data_device["usage_profile"]["nature"]] = None
 #         self._efficiency = data_device["efficiency"]  # the efficiency of the waste/biomass plant (%)
@@ -1537,7 +1613,7 @@
 #         self._max_PCI = data_device["max_PCI"]  # the max PCI of the waste/biomass plant (kWh/kg)
 #         self._coldStartUp = data_device["cold_startup"]  # thermal power evolution during a cold startup
 #         self._warmStartUp = data_device["warm_startup"]  # thermal power evolution during a warm startup
-#
+# 
 #     def _read_technical_data(self, technical_profile):
 #         # parsing the data
 #         with open(self._filename, "r") as file:
@@ -1545,83 +1621,90 @@
 #             data = {}
 #             for truc in temp:
 #                 data = truc
-#
+# 
 #         # getting the technical profile
 #         try:
 #             technical_data = data[technical_profile]
 #         except:
 #             raise Exception(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
-#
+# 
 #         return technical_data
-#
-#     # ##########################################################################################
-#     # Dynamic behavior
-#     # ##########################################################################################
-#     def update(self, current_time):
-#         min_production = 0.0
-#         if self.cold_startup_flag:
-#             startup_time = self._buffer["cold_startup"]
-#             if current_time == startup_time + 1:
-#                 max_production = - get_data_at_timestep(self._coldStartUp, 1) * self._max_power
-#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 1) + get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 1) * self._max_power
-#             elif current_time == startup_time + 2:
-#                 max_production = - get_data_at_timestep(self._coldStartUp, 2) * self._max_power
-#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 2) * self._max_power
-#             elif current_time == startup_time + 3:
-#                 max_production = - get_data_at_timestep(self._coldStartUp, 3) * self._max_power
-#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 3) * self._max_power
-#             elif current_time == startup_time + 4:
-#                 max_production = - get_data_at_timestep(self._coldStartUp, 4) * self._max_power
-#                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 4) + 4) * self._max_power
-#             else:
-#                 max_production = - self._max_power
-#                 coming_volume = - 5 * self._max_power
-#
-#         elif self.warm_startup_flag:
-#             startup_time = self._buffer["warm_startup"]
-#             if current_time == startup_time + 1:
-#                 max_production = - get_data_at_timestep(self._warmStartUp, 1) * self._max_power
-#                 coming_volume = - (get_data_at_timestep(self._warmStartUp, 1) + 4) * self._max_power
-#             else:
-#                 max_production = - self._max_power
-#                 coming_volume = - 5 * self._max_power
-#
-#         else:  # idle
-#             max_production = - 0.01 * self._max_power
-#             coming_volume = - 0.01 * self._max_power
-#
-#         print(f"The minimum energy wanted by the biomass plant is : {min_production}")
-#         print(f"The maximum energy wanted by the biomass plant is : {max_production}")
-#         print(f"The expected coming volume of the biomass plant is : {coming_volume}")
-#
-#     def react(self, current_time, energy_accorded):
-#         print(f"What was accorded is {energy_accorded}")
-#         if energy_accorded != 0.0:
-#             if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
-#                 self.warm_startup_flag = True
-#                 if not "warm_startup" in self._buffer:
-#                     self._buffer["warm_startup"] = current_time
-#                 print(f"The energy accorded is {energy_accorded} and a warm startup is triggered at the {self._buffer["warm_startup"]} !")
-#             else:
-#                 self.cold_startup_flag = True
-#                 if not "cold_startup" in self._buffer:
-#                     self._buffer["cold_startup"] = current_time
-#                 self._buffer["last_stopped"] = 0
-#                 print(f"The energy accorded is {energy_accorded} and a cold startup is triggered at the {self._buffer["cold_startup"]} !")
-#         else:
-#             if "cold_startup" in self._buffer:
-#                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["cold_startup"]} after cold start-up !")
-#                 self.cold_startup_flag = False
-#                 self._buffer.pop("cold_startup")
-#                 self._buffer["last_stopped"] = current_time
-#             elif "warm_startup" in self._buffer:
-#                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["warm_startup"]} after warm start-up !")
-#                 self.warm_startup_flag = False
-#                 self._buffer.pop("warm_startup")
-#                 self._buffer["last_stopped"] = current_time
-#
-#
-# my_incinerator = DummyClass({"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 8}, "lib/Subclasses/Device/BiomassGasPlantAlternative/BiomassGasPlantAlternative.json", 1)
+# #
+# #     # ##########################################################################################
+# #     # Dynamic behavior
+# #     # ##########################################################################################
+#     def print_my_data(self, timestep):
+#         print(get_data_at_timestep(self._coldStartUp, timestep))
+#         # print(get_data_at_timestep(self._warmStartUp, timestep))
+# 
+# #     def update(self, current_time):
+# #         min_production = 0.0
+# #         if self.cold_startup_flag:
+# #             startup_time = self._buffer["cold_startup"]
+# #             if current_time == startup_time + 1:
+# #                 max_production = - get_data_at_timestep(self._coldStartUp, 1) * self._max_power
+# #                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 1) + get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 1) * self._max_power
+# #             elif current_time == startup_time + 2:
+# #                 max_production = - get_data_at_timestep(self._coldStartUp, 2) * self._max_power
+# #                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 2) * self._max_power
+# #             elif current_time == startup_time + 3:
+# #                 max_production = - get_data_at_timestep(self._coldStartUp, 3) * self._max_power
+# #                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 3) * self._max_power
+# #             elif current_time == startup_time + 4:
+# #                 max_production = - get_data_at_timestep(self._coldStartUp, 4) * self._max_power
+# #                 coming_volume = - (get_data_at_timestep(self._coldStartUp, 4) + 4) * self._max_power
+# #             else:
+# #                 max_production = - self._max_power
+# #                 coming_volume = - 5 * self._max_power
+# #
+# #         elif self.warm_startup_flag:
+# #             startup_time = self._buffer["warm_startup"]
+# #             if current_time == startup_time + 1:
+# #                 max_production = - get_data_at_timestep(self._warmStartUp, 1) * self._max_power
+# #                 coming_volume = - (get_data_at_timestep(self._warmStartUp, 1) + 4) * self._max_power
+# #             else:
+# #                 max_production = - self._max_power
+# #                 coming_volume = - 5 * self._max_power
+# #
+# #         else:  # idle
+# #             max_production = - 0.01 * self._max_power
+# #             coming_volume = - 0.01 * self._max_power
+# #
+# #         print(f"The minimum energy wanted by the biomass plant is : {min_production}")
+# #         print(f"The maximum energy wanted by the biomass plant is : {max_production}")
+# #         print(f"The expected coming volume of the biomass plant is : {coming_volume}")
+# #
+# #     def react(self, current_time, energy_accorded):
+# #         print(f"What was accorded is {energy_accorded}")
+# #         if energy_accorded != 0.0:
+# #             if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
+# #                 self.warm_startup_flag = True
+# #                 if not "warm_startup" in self._buffer:
+# #                     self._buffer["warm_startup"] = current_time
+# #                 print(f"The energy accorded is {energy_accorded} and a warm startup is triggered at the {self._buffer["warm_startup"]} !")
+# #             else:
+# #                 self.cold_startup_flag = True
+# #                 if not "cold_startup" in self._buffer:
+# #                     self._buffer["cold_startup"] = current_time
+# #                 self._buffer["last_stopped"] = 0
+# #                 print(f"The energy accorded is {energy_accorded} and a cold startup is triggered at the {self._buffer["cold_startup"]} !")
+# #         else:
+# #             if "cold_startup" in self._buffer:
+# #                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["cold_startup"]} after cold start-up !")
+# #                 self.cold_startup_flag = False
+# #                 self._buffer.pop("cold_startup")
+# #                 self._buffer["last_stopped"] = current_time
+# #             elif "warm_startup" in self._buffer:
+# #                 print(f"The energy accorded is {energy_accorded} and a shut-down is triggered at the {current_time - self._buffer["warm_startup"]} after warm start-up !")
+# #                 self.warm_startup_flag = False
+# #                 self._buffer.pop("warm_startup")
+# #                 self._buffer["last_stopped"] = current_time
+# #
+# #
+# my_incinerator = DummyClass({"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 8}, "D:/dossier_y23hallo/PycharmProjects/peacefulness/lib/Subclasses/Device/BiomassGasPlantAlternative/BiomassGasPlantAlternative.json", 1)
+# # my_incinerator.print_my_data(0)
+# my_incinerator.print_my_data(5)
+
 # simulation_dict = {'energy_accorded': []}
 # simulation_dict["energy_accorded"].extend([0, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 1300, 1300, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 0, 25, 87, 100, 1300, 1300, 0, 0, 13, 17 ,40])
 #
@@ -1631,4 +1714,24 @@
 #     my_incinerator.update(i+1)
 #     my_incinerator.react(i+1, simulation_dict["energy_accorded"][i])
 
+
+# ma_liste = ["idle", "idle", "cold_startup", "cold_startup", "cold_startup", "cold_startup", "cold_startup", "nominal_state", "nominal_state", "shut_down", "warm_startup", "warm_startup", "warm_startup", "nominal_state"]
+
+# def find_last_occurrence(lst, label):
+#     relevant_index = None
+#     for i in range(len(lst) - 1, -1, -1):
+#         if lst[i] == label:
+#             relevant_index = i
+#             break
+#     if relevant_index is not None:
+#         for j in range(relevant_index - 1, -1, -1):
+#             if lst[j] != label:
+#                 return j + 1
+#     return None
+
+# print(find_last_occurrence(ma_liste, "nominal_state"))
+
+from math import ceil
+
+print(ceil(1.3))
 
