@@ -18,6 +18,12 @@
 
 # ##############################################################################################
 # Importations
+from os import path, chdir
+import sys
+sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
+chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+
+
 from datetime import datetime
 
 from time import process_time
@@ -37,6 +43,8 @@ from src.common.Datalogger import Datalogger
 from src.tools.SubclassesDictionary import get_subclasses
 
 from src.tools.GraphAndTex import GraphOptions
+
+
 
 
 # ##############################################################################################
@@ -274,6 +282,12 @@ heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_cont
                                                           {"user": "artificial_sink", "device": "artificial_sink"},
                                                           filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
 
+base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_producer,
+                                                                          aggregator_district,
+                                                                          {"device": "Biomass_2_ThP"},
+                                                                          {"max_power": 1300, "recharge_quantity": 1500,
+                                                                           "autonomy": 12})
+
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 # subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
 # subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
@@ -339,7 +353,7 @@ file.close()
 subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"](period=1)
 subclasses_dictionary["Datalogger"]["NatureBalancesDatalogger"](period=1)
-my_device_list = ["heat_sink"]
+my_device_list = ["biomass_plant", "heat_sink"]
 subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1",
                                                                 "DeviceQuantity_frequency_1", my_device_list, period=1)
 
