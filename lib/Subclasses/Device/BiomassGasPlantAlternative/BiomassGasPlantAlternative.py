@@ -1,5 +1,6 @@
 # device representing either a biomass or waste boiler or plant.
 from src.common.DeviceMainClasses import AdjustableDevice
+from math import ceil, floor
 
 
 class BiomassGasPlantAlternative(AdjustableDevice):
@@ -17,8 +18,10 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         self._autonomy = parameters["autonomy"] / self._catalog.get("time_step")  # the time period during which the plant operates without recharging (timesteps)
         self._check_quantities()  # checking the proposed sizing
         self.cold_startup_flag = False
+        self.cold_startup = {"time_step": [1, 2, 3, 4, 5], "energy": [0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
         self.warm_startup_flag = False
-        self._buffer = {"last_stopped": 0}
+        self.warm_startup = {"time_step": [1, 2], "energy": [0.7473570931988995, 1]}
+        self._log = {"time_step": [], "energy": [], "state": []}
 
         self._catalog.add(f"{self.name}.exergy_in", 0)
         self._catalog.add(f"{self.name}.exergy_out", 0)
@@ -52,6 +55,10 @@ class BiomassGasPlantAlternative(AdjustableDevice):
             self._recharge_quantity = max_bound
             # print(f"The sizing of the Biomass is not correct, the new fuel recharge quantity is: {self._recharge_quantity}")
         self._fuel_mass_flow_rate = self._recharge_quantity / self._autonomy
+        for index in range(len(self.cold_startup["energy"])):
+            self.cold_startup["energy"][index] *= self._max_power
+        for index in range(len(self.warm_startup["energy"])):
+            self.warm_startup["energy"][index] *= self._max_power
 
     # ##########################################################################################
     # Dynamic behavior
@@ -62,36 +69,76 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         min_production = 0.0
-        if self.cold_startup_flag:
-            startup_time = self._buffer["cold_startup"]
-            if current_time == startup_time + 1:
-                max_production = - get_data_at_timestep(self._coldStartUp, 1) * self._max_power
-                coming_volume = - (get_data_at_timestep(self._coldStartUp, 1) + get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 1) * self._max_power
-            elif current_time == startup_time + 2:
-                max_production = - get_data_at_timestep(self._coldStartUp, 2) * self._max_power
-                coming_volume = - (get_data_at_timestep(self._coldStartUp, 2) + get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 2) * self._max_power
-            elif current_time == startup_time + 3:
-                max_production = - get_data_at_timestep(self._coldStartUp, 3) * self._max_power
-                coming_volume = - (get_data_at_timestep(self._coldStartUp, 3) + get_data_at_timestep(self._coldStartUp, 4) + 3) * self._max_power
-            elif current_time == startup_time + 4:
-                max_production = - get_data_at_timestep(self._coldStartUp, 4) * self._max_power
-                coming_volume = - (get_data_at_timestep(self._coldStartUp, 4) + 4) * self._max_power
-            else:
-                max_production = - self._max_power
-                coming_volume = - 5 * self._max_power
 
-        elif self.warm_startup_flag:
-            startup_time = self._buffer["warm_startup"]
-            if current_time == startup_time + 1:
-                max_production = - get_data_at_timestep(self._warmStartUp, 1) * self._max_power
-                coming_volume = - (get_data_at_timestep(self._warmStartUp, 1) + 4) * self._max_power
-            else:
-                max_production = - self._max_power
-                coming_volume = - 5 * self._max_power
-
-        else:  # idle
+        if self._log["state"][-1] == "idle" or self._log["state"][-1] == "shut_down":
             max_production = - 0.01 * self._max_power
             coming_volume = - 0.01 * self._max_power
+
+        elif self._log["state"][-1] == "nominal_state":
+            max_production = - self._max_power
+            coming_volume = - 5 * self._max_power
+
+        if self.cold_startup_flag:  # a cold startup is triggered
+            coming_volume = 0.0
+            if self._log["energy"][-1] in self.cold_startup["energy"]:  # a standard cold start-up
+                coldStartUpIndex = self.cold_startup["energy"].index(self._log["energy"][-1])
+                if coldStartUpIndex < len(self.cold_startup["energy"]) - 1:
+                    max_production = - self.cold_startup["energy"][coldStartUpIndex + 1] * self._max_power
+                    for index in range(coldStartUpIndex + 1, len(self.cold_startup["energy"])):
+                        coming_volume -= self.cold_startup["energy"][index] * self._max_power
+                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - 1 - coldStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+            else:  # Energy accorded doesn't correspond to the cold start-up curve
+                corresponding_time = get_timestep_of_data(self._coldStartUp, self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                upper_timestep = ceil(corresponding_time)
+                if not upper_timestep > max(self._coldStartUp["time"]):
+                    max_production = - get_data_at_timestep(self._coldStartUp, upper_timestep) * self._max_power
+                    coldStartUpIndex = self.cold_startup["time_step"].index(upper_timestep)
+                    for index in range(coldStartUpIndex, len(self.cold_startup["energy"])):
+                        coming_volume -= self.cold_startup["energy"][index] * self._max_power
+                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - 1 - coldStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+
+        elif self.warm_startup_flag:  # a warm startup is triggered
+            coming_volume = 0.0
+            if self._log["energy"][-1] in self.warm_startup["energy"]:  # a standard warm start-up
+                warmStartUpIndex = self.warm_startup["energy"].index(self._log["energy"][-1])
+                if warmStartUpIndex < len(self.warm_startup["energy"]) - 1:
+                    max_production = - self.warm_startup["energy"][warmStartUpIndex + 1] * self._max_power
+                    for index in range(warmStartUpIndex + 1, len(self.warm_startup["energy"])):
+                        coming_volume -= self.warm_startup["energy"][index] * self._max_power
+                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - 1 - warmStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+            else:  # Energy accorded doesn't correspond to the warm start-up curve
+                corresponding_time = get_timestep_of_data(self._warmStartUp, self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                upper_timestep = ceil(corresponding_time)
+                if not upper_timestep > max(self._warmStartUp["time"]):
+                    max_production = - get_data_at_timestep(self._warmStartUp, upper_timestep) * self._max_power
+                    warmStartUpIndex = self.warm_startup["time_step"].index(upper_timestep)
+                    for index in range(warmStartUpIndex + 1, len(self.warm_startup["energy"])):
+                        coming_volume -= self.warm_startup["energy"][index] * self._max_power
+                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - 1 - warmStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
 
         for nature in self.natures:
             energy_wanted[nature.name]["energy_minimum"] = min_production  # energy produced by the device
@@ -104,28 +151,45 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
     def react(self):
         super().react()
-        current_time = self._catalog.get("simulation_time")
+        self._log["time_step"].append(self._catalog.get("simulation_time"))
         for nature in self.natures:
-            energy_accorded = self.get_energy_accorded_quantity(nature)
-            if energy_accorded != 0:
-                if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
-                    self.warm_startup_flag = True
-                    if not "warm_startup" in self._buffer:
-                        self._buffer["warm_startup"] = current_time
+            self._log["energy"].append(self.get_energy_accorded_quantity(nature))
+            if self._log["energy"][-1] == 0:  # if no energy was accorded (no production)
+                self.cold_startup_flag = False
+                self.warm_startup_flag = False
+                if len(self._log["energy"]) < 2:  # first start up
+                    self._log["state"].append("idle")
                 else:
+                    if self._log["energy"][-2] == 0:  # at least 2 time steps since shut-down
+                        self._log["state"].append("idle")
+                    else:  # the biomass plant was just shut-down for one time step
+                        self._log["state"].append("shut_down")
+
+            elif self._log["energy"][-1] == self._max_power:  # the biomass plant generates nominal energy
+                self._log["state"].append("nominal_state")
+                self.cold_startup_flag = False
+                self.warm_startup_flag = False
+
+            else:  # the biomass plant generates energy during the dynamic phase
+                if self._log['state'][-1] == "nominal_state":  # adjusting the generated power from the nominal state
+                    if self._log["energy"][-1] <= 0.3 * self._max_power:  # a cold startup is needed
+                        self._log["state"].append("cold_startup")
+                        self.cold_startup_flag = True
+                        self.warm_startup_flag = False
+                    else:  # a warm startup is needed
+                        self._log["state"].append("warm_startup")
+                        self.cold_startup_flag = False
+                        self.warm_startup_flag = True
+
+                elif self._log['state'][-1] == "cold_startup" or self._log['state'][-1] == "idle":  # conditions to perform a cold startup
+                    self._log["state"].append("cold_startup")
                     self.cold_startup_flag = True
-                    if not "cold_startup" in self._buffer:
-                        self._buffer["cold_startup"] = current_time
-                    self._buffer["last_stopped"] = 0
-            else:
-                if "cold_startup" in self._buffer:
-                    self.cold_startup_flag = False
-                    self._buffer.pop("cold_startup")
-                    self._buffer["last_stopped"] = current_time
-                elif "warm_startup" in self._buffer:
                     self.warm_startup_flag = False
-                    self._buffer.pop("warm_startup")
-                    self._buffer["last_stopped"] = current_time
+
+                elif self._log['state'][-1] == "warm_startup" or self._log['state'][-1] == "shut-down":  # conditions to perform a warm startup
+                    self._log["state"].append("warm_startup")
+                    self.cold_startup_flag = False
+                    self.warm_startup_flag = True
 
 
 
@@ -154,3 +218,39 @@ def get_data_at_timestep(df: dict, timestep: int):
         interpolated_value /= 100
         return interpolated_value
 
+
+def get_timestep_of_data(df: dict, out_power: float, max_power: float):
+    """
+    Give back the time step corresponding to the value of %Pth using interpolation (if it doesn't already exist in the data).
+    """
+    out_power /= max_power
+    out_power *= 100
+    # Check if the timestep exists in the DataFrame
+    if out_power in df['power']:
+        return df['time'][df['power'].index(out_power)]
+    else:
+        # If out_power does not exist, interpolate between the nearest values
+        lower_data = max((d for d in df["power"] if d < out_power), default=None)
+        upper_data = min((d for d in df["power"] if d > out_power), default=None)
+        # Check if lower and upper timesteps exist
+        if not lower_data or not upper_data:
+            raise ValueError(f"Timestep {out_power} is out of bounds for interpolation.")
+        # Get corresponding data for lower and upper timesteps
+        lower_timestep = df['time'][df['power'].index(lower_data)]
+        upper_timestep = df['time'][df['power'].index(upper_data)]
+        # Perform linear interpolation
+        interpolated_value = lower_timestep + (upper_timestep - lower_timestep) * (out_power - lower_data) / (upper_data - lower_data)
+        return interpolated_value
+
+
+def find_last_occurrence(lst, label):
+    relevant_index = None
+    for i in range(len(lst) - 1, -1, -1):
+        if lst[i] == label:
+            relevant_index = i
+            break
+    if relevant_index is not None:
+        for j in range(relevant_index - 1, -1, -1):
+            if lst[j] != label:
+                return j + 1
+    return None
