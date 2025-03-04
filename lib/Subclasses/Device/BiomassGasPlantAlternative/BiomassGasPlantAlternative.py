@@ -97,6 +97,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the cold start-up curve
+                print(f"in case of cold start up {- self._log["energy"][-1]}")
                 corresponding_time = get_timestep_of_data(self._coldStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
                 upper_timestep = ceil(corresponding_time)
                 if not upper_timestep > max(self._coldStartUp["time"]):
@@ -129,6 +130,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the warm start-up curve
+                print(f"in case of warm start up {- self._log["energy"][-1]}")
                 corresponding_time = get_timestep_of_data(self._warmStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
                 upper_timestep = ceil(corresponding_time)
                 if not upper_timestep > max(self._warmStartUp["time"]):
@@ -251,7 +253,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         return interpolated_value
 
 
-def check_distance(myList: List, myElement, precision: float=1e-6):
+def check_distance(myList: list, myElement, precision: float=1e-6):
     myFlag = False
     my_element = None
     if myElement in myList:
