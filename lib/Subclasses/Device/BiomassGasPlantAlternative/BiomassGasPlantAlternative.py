@@ -254,7 +254,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         return interpolated_value
 
 
-def check_distance(myList: list, myElement, precision: float=1e-6):
+def check_distance(myList: list, myElement, precision: float=1e-2):
     myFlag = False
     my_element = None
     if myElement in myList:
