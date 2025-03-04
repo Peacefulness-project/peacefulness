@@ -97,7 +97,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the cold start-up curve
-                print(f"in case of cold start up {- self._log["energy"][-1]}")
                 corresponding_time = get_timestep_of_data(self._coldStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
                 upper_timestep = ceil(corresponding_time)
                 if not upper_timestep > max(self._coldStartUp["time"]):
@@ -130,7 +129,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the warm start-up curve
-                print(f"in case of warm start up {- self._log["energy"][-1]}")
                 corresponding_time = get_timestep_of_data(self._warmStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
                 upper_timestep = ceil(corresponding_time)
                 if not upper_timestep > max(self._warmStartUp["time"]):
@@ -169,7 +167,10 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     if self._log["energy"][-2] == 0:  # at least 2 time steps since shut-down
                         self._log["state"].append("idle")
                     else:  # the biomass plant was just shut-down for one time step
-                        self._log["state"].append("shut_down")
+                        if "nominal_state" in self._log['state']:
+                            self._log["state"].append("shut_down")
+                        else:
+                            self._log["state"].append("idle")
 
             elif self._log["energy"][-1] == - self._max_power:  # the biomass plant generates nominal energy
                 self._log["state"].append("nominal_state")
@@ -216,7 +217,7 @@ def get_data_at_timestep(df: dict, timestep: int):
         upper_timestep = min((t for t in df["time"] if t > timestep), default=None)
 
         # Check if lower and upper timesteps exist
-        if not lower_timestep or not upper_timestep:
+        if lower_timestep is not None or upper_timestep is not None:
             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
 
         # Get corresponding data for lower and upper timesteps
@@ -243,7 +244,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         lower_data = max((d for d in df["power"] if d < out_power), default=None)
         upper_data = min((d for d in df["power"] if d > out_power), default=None)
         # Check if lower and upper timesteps exist
-        if not lower_data or not upper_data:
+        if lower_data is not None or upper_data is not None:
             raise ValueError(f"Power {out_power} is out of bounds for interpolation.")
         # Get corresponding data for lower and upper timesteps
         lower_timestep = df['time'][df['power'].index(lower_data)]
