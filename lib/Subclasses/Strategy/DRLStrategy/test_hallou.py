@@ -1580,55 +1580,62 @@
 # #####################################################################################################################
 # TODO testing the biomass alternative plant
 #######################################################################################################################
-# from os import chdir, path
-# import sys
-# chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-# sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
-# from typing import Dict
-# from ijson import items
-# import numpy as np
-# from lib.Subclasses.Device.BiomassGasPlantAlternative.BiomassGasPlantAlternative import get_data_at_timestep
-# #
-# #
-# class DummyClass:
-#     def __init__(self, profile: Dict, device_parameters: Dict, filepath: str, timestep: int):
-#         self._filename = filepath
-#         self._max_power = device_parameters["max_power"] * timestep  # max power (kWh)
-#         self._recharge_quantity = device_parameters["recharge_quantity"]  # fuel quantity recharged at each period (kg)
-#         self._autonomy = device_parameters["autonomy"] / timestep
-#         self._read_data_profiles(profile)
-#         self.cold_startup_flag = False
-#         self.warm_startup_flag = False
-#         self._buffer = {"last_stopped": 0}
-# 
-#     def _read_data_profiles(self, profiles):
-#         data_device = self._read_technical_data(profiles["device"])  # parsing the data
-# 
-#         self._technical_profile = dict()
-# 
-#         # usage profile
-#         self._technical_profile[data_device["usage_profile"]["nature"]] = None
-#         self._efficiency = data_device["efficiency"]  # the efficiency of the waste/biomass plant (%)
-#         self._min_PCI = data_device["min_PCI"]  # the min PCI of the waste/biomass plant (kWh/kg)
-#         self._max_PCI = data_device["max_PCI"]  # the max PCI of the waste/biomass plant (kWh/kg)
-#         self._coldStartUp = data_device["cold_startup"]  # thermal power evolution during a cold startup
-#         self._warmStartUp = data_device["warm_startup"]  # thermal power evolution during a warm startup
-# 
-#     def _read_technical_data(self, technical_profile):
-#         # parsing the data
-#         with open(self._filename, "r") as file:
-#             temp = items(file, "technical_data", use_float=True)
-#             data = {}
-#             for truc in temp:
-#                 data = truc
-# 
-#         # getting the technical profile
-#         try:
-#             technical_data = data[technical_profile]
-#         except:
-#             raise Exception(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
-# 
-#         return technical_data
+from os import chdir, path
+import sys
+chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
+from typing import Dict, List
+from ijson import items
+import numpy as np
+from math import ceil
+#
+#
+class DummyClass:
+    def __init__(self, profile: Dict, device_parameters: Dict, filepath: str, timestep: int):
+        self._filename = filepath
+        self._max_power = device_parameters["max_power"] * timestep  # max power (kWh)
+        self._recharge_quantity = device_parameters["recharge_quantity"]  # fuel quantity recharged at each period (kg)
+        self._autonomy = device_parameters["autonomy"] / timestep
+        self._read_data_profiles(profile)
+        self.cold_startup_flag = False
+        self.cold_startup = {"time_step": [0, 1, 2, 3, 4, 5], "energy": [0.01, 0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
+        self.warm_startup_flag = False
+        self.warm_startup = {"time_step": [0, 1, 2], "energy": [0.01, 0.7473570931988995, 1]}
+        self._log = {"time_step": [], "energy": [], "state": []}
+        for index in range(len(self.cold_startup["energy"])):
+            self.cold_startup["energy"][index] *= self._max_power
+        for index in range(len(self.warm_startup["energy"])):
+            self.warm_startup["energy"][index] *= self._max_power
+
+
+    def _read_data_profiles(self, profiles):
+        data_device = self._read_technical_data(profiles["device"])  # parsing the data
+
+        self._technical_profile = dict()
+
+        # usage profile
+        self._technical_profile[data_device["usage_profile"]["nature"]] = None
+        self._efficiency = data_device["efficiency"]  # the efficiency of the waste/biomass plant (%)
+        self._min_PCI = data_device["min_PCI"]  # the min PCI of the waste/biomass plant (kWh/kg)
+        self._max_PCI = data_device["max_PCI"]  # the max PCI of the waste/biomass plant (kWh/kg)
+        self._coldStartUp = data_device["cold_startup"]  # thermal power evolution during a cold startup
+        self._warmStartUp = data_device["warm_startup"]  # thermal power evolution during a warm startup
+
+    def _read_technical_data(self, technical_profile):
+        # parsing the data
+        with open(self._filename, "r") as file:
+            temp = items(file, "technical_data", use_float=True)
+            data = {}
+            for truc in temp:
+                data = truc
+
+        # getting the technical profile
+        try:
+            technical_data = data[technical_profile]
+        except:
+            raise Exception(f"{technical_profile} does not belong to the list of predefined device profiles for the class {type(self).__name__}: {data['device_consumption'].keys()}")
+
+        return technical_data
 # #
 # #     # ##########################################################################################
 # #     # Dynamic behavior
@@ -1637,8 +1644,88 @@
 #         print(get_data_at_timestep(self._coldStartUp, timestep))
 #         # print(get_data_at_timestep(self._warmStartUp, timestep))
 # 
-# #     def update(self, current_time):
-# #         min_production = 0.0
+    def update(self):
+        min_production = 0.0
+        if len(self._log["state"]) > 0:
+            if self._log["state"][-1] == "idle" or self._log["state"][-1] == "shut_down":
+                max_production = - 0.01 * self._max_power
+                coming_volume = - 0.01 * self._max_power
+
+            elif self._log["state"][-1] == "nominal_state":
+                max_production = - self._max_power
+                coming_volume = - 5 * self._max_power
+        else:
+            max_production = - 0.01 * self._max_power
+            coming_volume = - 0.01 * self._max_power
+
+        if self.cold_startup_flag:  # a cold startup is triggered
+            coming_volume = 0.0
+            inside_flag, nearest_value = check_distance(self.cold_startup["energy"], - self._log["energy"][-1])
+            if inside_flag:  # a standard cold start-up
+                coldStartUpIndex = self.cold_startup["energy"].index(nearest_value)
+                if coldStartUpIndex < len(self.cold_startup["energy"]) - 1:
+                    max_production = - self.cold_startup["energy"][coldStartUpIndex + 1]
+                    for index in range(coldStartUpIndex + 1, len(self.cold_startup["energy"])):
+                        coming_volume -= self.cold_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - 1 - coldStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+            else:  # Energy accorded doesn't correspond to the cold start-up curve
+                corresponding_time = get_timestep_of_data(self._coldStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                upper_timestep = ceil(corresponding_time)
+                if not upper_timestep > max(self._coldStartUp["time"]):
+                    max_production = - get_data_at_timestep(self._coldStartUp, upper_timestep) * self._max_power
+                    coldStartUpIndex = self.cold_startup["time_step"].index(upper_timestep)
+                    for index in range(coldStartUpIndex, len(self.cold_startup["energy"])):
+                        coming_volume -= self.cold_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - coldStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+
+        elif self.warm_startup_flag:  # a warm startup is triggered
+            coming_volume = 0.0
+            inside_flag, nearest_value = check_distance(self.warm_startup["energy"], - self._log["energy"][-1])
+            if inside_flag:  # a standard warm start-up
+                warmStartUpIndex = self.warm_startup["energy"].index(nearest_value)
+                if warmStartUpIndex < len(self.warm_startup["energy"]) - 1:
+                    max_production = - self.warm_startup["energy"][warmStartUpIndex + 1]
+                    for index in range(warmStartUpIndex + 1, len(self.warm_startup["energy"])):
+                        coming_volume -= self.warm_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - 1 - warmStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+            else:  # Energy accorded doesn't correspond to the warm start-up curve
+                corresponding_time = get_timestep_of_data(self._warmStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                upper_timestep = ceil(corresponding_time)
+                if not upper_timestep > max(self._warmStartUp["time"]):
+                    max_production = - get_data_at_timestep(self._warmStartUp, upper_timestep) * self._max_power
+                    warmStartUpIndex = self.warm_startup["time_step"].index(upper_timestep)
+                    for index in range(warmStartUpIndex, len(self.warm_startup["energy"])):
+                        coming_volume -= self.warm_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - warmStartUpIndex)
+                    if remaining_steps > 0:
+                        for index in range(remaining_steps):
+                            coming_volume -= self._max_power
+                else:
+                    max_production = - self._max_power
+                    coming_volume = - 5 * self._max_power
+
+        print(f"i am the min energy : {min_production}")
+        print(f"i am the max energy : {max_production}")
+        print(f"i am the coming volume : {coming_volume}")
+
 # #         if self.cold_startup_flag:
 # #             startup_time = self._buffer["cold_startup"]
 # #             if current_time == startup_time + 1:
@@ -1674,7 +1761,52 @@
 # #         print(f"The maximum energy wanted by the biomass plant is : {max_production}")
 # #         print(f"The expected coming volume of the biomass plant is : {coming_volume}")
 # #
-# #     def react(self, current_time, energy_accorded):
+    def react(self, current_time, energy_accorded):
+        self._log["time_step"].append(current_time)
+        self._log["energy"].append(energy_accorded)
+
+        if self._log["energy"][-1] == 0:  # if no energy was accorded (no production)
+            self.cold_startup_flag = False
+            self.warm_startup_flag = False
+            if len(self._log["energy"]) < 2:  # first start up
+                self._log["state"].append("idle")
+            else:
+                if self._log["energy"][-2] == 0:  # at least 2 time steps since shut-down
+                    self._log["state"].append("idle")
+                else:  # the biomass plant was just shut-down for one time step
+                    self._log["state"].append("shut_down")
+
+        elif self._log["energy"][-1] == - self._max_power:  # the biomass plant generates nominal energy
+            self._log["state"].append("nominal_state")
+            self.cold_startup_flag = False
+            self.warm_startup_flag = False
+
+        else:  # the biomass plant generates energy during the dynamic phase
+            if len(self._log['state']) > 0:
+                if self._log['state'][-1] == "nominal_state":  # adjusting the generated power from the nominal state
+                    if abs(self._log["energy"][-1]) <= 0.3 * self._max_power:  # a cold startup is needed
+                        self._log["state"].append("cold_startup")
+                        self.cold_startup_flag = True
+                        self.warm_startup_flag = False
+                    else:  # a warm startup is needed
+                        self._log["state"].append("warm_startup")
+                        self.cold_startup_flag = False
+                        self.warm_startup_flag = True
+                elif self._log['state'][-1] == "cold_startup" or self._log['state'][-1] == "idle":  # conditions to perform a cold startup
+                    self._log["state"].append("cold_startup")
+                    self.cold_startup_flag = True
+                    self.warm_startup_flag = False
+                elif self._log['state'][-1] == "warm_startup" or self._log['state'][-1] == "shut_down":  # conditions to perform a warm startup
+                    self._log["state"].append("warm_startup")
+                    self.cold_startup_flag = False
+                    self.warm_startup_flag = True
+            else:
+                self._log["state"].append("cold_startup")
+                self.cold_startup_flag = True
+                self.warm_startup_flag = False
+
+        print(f"i am the log of everything that happened {self._log}")
+
 # #         print(f"What was accorded is {energy_accorded}")
 # #         if energy_accorded != 0.0:
 # #             if current_time - self._buffer["last_stopped"] <= 1 or self.warm_startup_flag:
@@ -1701,18 +1833,89 @@
 # #                 self._buffer["last_stopped"] = current_time
 # #
 # #
-# my_incinerator = DummyClass({"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 8}, "D:/dossier_y23hallo/PycharmProjects/peacefulness/lib/Subclasses/Device/BiomassGasPlantAlternative/BiomassGasPlantAlternative.json", 1)
+
+def check_distance(myList: List, myElement, precision: float=1e-6):
+    myFlag = False
+    my_element = None
+    if myElement in myList:
+        myFlag = True
+        my_element = myElement
+    else:
+        for element in myList:
+            if abs(element - myElement) < precision:
+                myFlag = True
+                my_element = element
+                break
+    return myFlag, my_element
+
+def get_data_at_timestep(df: dict, timestep: int):
+    """
+    Give back the value of %Pth as a function of the timestep using interpolation (if it doesn't already exist in the data).
+    """
+    # Check if the timestep exists in the DataFrame
+    if timestep in df['time']:
+        return df['power'][df['time'].index(timestep)]
+    else:
+        # If timestep does not exist, interpolate between the nearest timesteps
+        lower_timestep = max((t for t in df["time"] if t < timestep), default=None)
+        upper_timestep = min((t for t in df["time"] if t > timestep), default=None)
+
+        # Check if lower and upper timesteps exist
+        if not lower_timestep or not upper_timestep:
+            raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
+
+        # Get corresponding data for lower and upper timesteps
+        lower_data = df['power'][df['time'].index(lower_timestep)]
+        upper_data = df['power'][df['time'].index(upper_timestep)]
+
+        # Perform linear interpolation
+        interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+        interpolated_value /= 100
+        return interpolated_value
+
+
+def get_timestep_of_data(df: dict, out_power: float, max_power: float):
+    """
+    Give back the time step corresponding to the value of %Pth using interpolation (if it doesn't already exist in the data).
+    """
+    out_power /= max_power
+    out_power *= 100
+    # Check if the timestep exists in the DataFrame
+    if out_power in df['power']:
+        return df['time'][df['power'].index(out_power)]
+    else:
+        # If out_power does not exist, interpolate between the nearest values
+        lower_data = max((d for d in df["power"] if d < out_power), default=None)
+        upper_data = min((d for d in df["power"] if d > out_power), default=None)
+        # Check if lower and upper timesteps exist
+        if not lower_data or not upper_data:
+            raise ValueError(f"Power {out_power} is out of bounds for interpolation.")
+        # Get corresponding data for lower and upper timesteps
+        lower_timestep = df['time'][df['power'].index(lower_data)]
+        upper_timestep = df['time'][df['power'].index(upper_data)]
+        # Perform linear interpolation
+        interpolated_value = lower_timestep + (upper_timestep - lower_timestep) * (out_power - lower_data) / (upper_data - lower_data)
+        return interpolated_value
+
+
+
+
+my_incinerator = DummyClass({"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 8}, "D:/dossier_y23hallo/PycharmProjects/peacefulness/lib/Subclasses/Device/BiomassGasPlantAlternative/BiomassGasPlantAlternative.json", 1)
+# print(my_incinerator._coldStartUp)
 # # my_incinerator.print_my_data(0)
 # my_incinerator.print_my_data(5)
 
-# simulation_dict = {'energy_accorded': []}
-# simulation_dict["energy_accorded"].extend([0, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 1300, 1300, 0, 0, 0, 13, 25, 50, 120, 1300, 1300, 0, 25, 87, 100, 1300, 1300, 0, 0, 13, 17 ,40])
-#
-# for i in range(len(simulation_dict["energy_accorded"])):
-#     print(f"\n at the iteration {i+1}")
-#     print(f"\ni am the energy accorded {simulation_dict["energy_accorded"][i]}")
-#     my_incinerator.update(i+1)
-#     my_incinerator.react(i+1, simulation_dict["energy_accorded"][i])
+simulation_dict = {'energy_accorded': []}
+simulation_dict["energy_accorded"].extend([0, 0, 0, -13, -19.655127574397902, -155.47653950502414, -407.38184336053314, -1195.6254319101931,
+                                           -1300, -1300, -1300, -1300,
+                                           -390, -400, -250, -130, -155.47653950502414, 0,-13, -500, -971.5642211585694,
+                                           -1300, -1300,
+                                           -400, -800, -971.5642211585694])
+
+for i in range(len(simulation_dict["energy_accorded"])):
+    print(f"\n at the iteration {i+1}")
+    my_incinerator.update()
+    my_incinerator.react(i+1, simulation_dict["energy_accorded"][i])
 
 
 # ma_liste = ["idle", "idle", "cold_startup", "cold_startup", "cold_startup", "cold_startup", "cold_startup", "nominal_state", "nominal_state", "shut_down", "warm_startup", "warm_startup", "warm_startup", "nominal_state"]
@@ -1731,7 +1934,12 @@
 
 # print(find_last_occurrence(ma_liste, "nominal_state"))
 
-from math import ceil
+# from math import ceil
+#
+# print(ceil(1.3))
 
-print(ceil(1.3))
+
+
+
+
 
