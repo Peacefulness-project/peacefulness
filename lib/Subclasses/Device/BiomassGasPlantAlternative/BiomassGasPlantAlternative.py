@@ -217,7 +217,7 @@ def get_data_at_timestep(df: dict, timestep: int):
         upper_timestep = min((t for t in df["time"] if t > timestep), default=None)
 
         # Check if lower and upper timesteps exist
-        if lower_timestep is not None or upper_timestep is not None:
+        if lower_timestep is None or upper_timestep is None:
             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
 
         # Get corresponding data for lower and upper timesteps
@@ -244,7 +244,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         lower_data = max((d for d in df["power"] if d < out_power), default=None)
         upper_data = min((d for d in df["power"] if d > out_power), default=None)
         # Check if lower and upper timesteps exist
-        if lower_data is not None or upper_data is not None:
+        if lower_data is None or upper_data is None:
             raise ValueError(f"Power {out_power} is out of bounds for interpolation.")
         # Get corresponding data for lower and upper timesteps
         lower_timestep = df['time'][df['power'].index(lower_data)]
