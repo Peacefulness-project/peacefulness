@@ -15,7 +15,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         time_step = self._catalog.get("time_step")
         self._max_power = parameters["max_power"] * time_step  # max power (kWh)
         self._recharge_quantity = parameters["recharge_quantity"]  # fuel quantity recharged at each period (kg)
-        self._autonomy = parameters["autonomy"] / self._catalog.get("time_step")  # the time period during which the plant operates without recharging (timesteps)
+        self._autonomy = parameters["autonomy"] / time_step  # the time period during which the plant operates without recharging (timesteps)
         self.cold_startup_flag = False
         self.cold_startup = {"time_step": [1, 2, 3, 4, 5], "energy": [0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
         self.warm_startup_flag = False
@@ -65,8 +65,6 @@ class BiomassGasPlantAlternative(AdjustableDevice):
     # ##########################################################################################
 
     def update(self):
-        current_time = self._catalog.get("simulation_time")
-
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         min_production = 0.0
 
@@ -84,12 +82,13 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
         if self.cold_startup_flag:  # a cold startup is triggered
             coming_volume = 0.0
-            if - self._log["energy"][-1] in self.cold_startup["energy"]:  # a standard cold start-up
-                coldStartUpIndex = self.cold_startup["energy"].index(- self._log["energy"][-1])
+            inside_flag, nearest_value = check_distance(self.cold_startup["energy"], - self._log["energy"][-1])
+            if inside_flag:  # a standard cold start-up
+                coldStartUpIndex = self.cold_startup["energy"].index(nearest_value)
                 if coldStartUpIndex < len(self.cold_startup["energy"]) - 1:
-                    max_production = - self.cold_startup["energy"][coldStartUpIndex + 1] * self._max_power
+                    max_production = - self.cold_startup["energy"][coldStartUpIndex + 1]
                     for index in range(coldStartUpIndex + 1, len(self.cold_startup["energy"])):
-                        coming_volume -= self.cold_startup["energy"][index] * self._max_power
+                        coming_volume -= self.cold_startup["energy"][index]
                     remaining_steps = 5 - (len(self.cold_startup["energy"]) - 1 - coldStartUpIndex)
                     if remaining_steps > 0:
                         for index in range(remaining_steps):
@@ -104,8 +103,8 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - get_data_at_timestep(self._coldStartUp, upper_timestep) * self._max_power
                     coldStartUpIndex = self.cold_startup["time_step"].index(upper_timestep)
                     for index in range(coldStartUpIndex, len(self.cold_startup["energy"])):
-                        coming_volume -= self.cold_startup["energy"][index] * self._max_power
-                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - 1 - coldStartUpIndex)
+                        coming_volume -= self.cold_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.cold_startup["energy"]) - coldStartUpIndex)
                     if remaining_steps > 0:
                         for index in range(remaining_steps):
                             coming_volume -= self._max_power
@@ -115,12 +114,13 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
         elif self.warm_startup_flag:  # a warm startup is triggered
             coming_volume = 0.0
-            if - self._log["energy"][-1] in self.warm_startup["energy"]:  # a standard warm start-up
-                warmStartUpIndex = self.warm_startup["energy"].index(- self._log["energy"][-1])
+            inside_flag, nearest_value = check_distance(self.warm_startup["energy"], - self._log["energy"][-1])
+            if inside_flag:  # a standard warm start-up
+                warmStartUpIndex = self.warm_startup["energy"].index(nearest_value)
                 if warmStartUpIndex < len(self.warm_startup["energy"]) - 1:
-                    max_production = - self.warm_startup["energy"][warmStartUpIndex + 1] * self._max_power
+                    max_production = - self.warm_startup["energy"][warmStartUpIndex + 1]
                     for index in range(warmStartUpIndex + 1, len(self.warm_startup["energy"])):
-                        coming_volume -= self.warm_startup["energy"][index] * self._max_power
+                        coming_volume -= self.warm_startup["energy"][index]
                     remaining_steps = 5 - (len(self.warm_startup["energy"]) - 1 - warmStartUpIndex)
                     if remaining_steps > 0:
                         for index in range(remaining_steps):
@@ -134,9 +134,9 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                 if not upper_timestep > max(self._warmStartUp["time"]):
                     max_production = - get_data_at_timestep(self._warmStartUp, upper_timestep) * self._max_power
                     warmStartUpIndex = self.warm_startup["time_step"].index(upper_timestep)
-                    for index in range(warmStartUpIndex + 1, len(self.warm_startup["energy"])):
-                        coming_volume -= self.warm_startup["energy"][index] * self._max_power
-                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - 1 - warmStartUpIndex)
+                    for index in range(warmStartUpIndex, len(self.warm_startup["energy"])):
+                        coming_volume -= self.warm_startup["energy"][index]
+                    remaining_steps = 5 - (len(self.warm_startup["energy"]) - warmStartUpIndex)
                     if remaining_steps > 0:
                         for index in range(remaining_steps):
                             coming_volume -= self._max_power
@@ -191,7 +191,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                         self.cold_startup_flag = True
                         self.warm_startup_flag = False
 
-                    elif self._log['state'][-1] == "warm_startup" or self._log['state'][-1] == "shut-down":  # conditions to perform a warm startup
+                    elif self._log['state'][-1] == "warm_startup" or self._log['state'][-1] == "shut_down":  # conditions to perform a warm startup
                         self._log["state"].append("warm_startup")
                         self.cold_startup_flag = False
                         self.warm_startup_flag = True
@@ -251,14 +251,16 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         return interpolated_value
 
 
-def find_last_occurrence(lst, label):
-    relevant_index = None
-    for i in range(len(lst) - 1, -1, -1):
-        if lst[i] == label:
-            relevant_index = i
-            break
-    if relevant_index is not None:
-        for j in range(relevant_index - 1, -1, -1):
-            if lst[j] != label:
-                return j + 1
-    return None
+def check_distance(myList: List, myElement, precision: float=1e-6):
+    myFlag = False
+    my_element = None
+    if myElement in myList:
+        myFlag = True
+        my_element = myElement
+    else:
+        for element in myList:
+            if abs(element - myElement) < precision:
+                myFlag = True
+                my_element = element
+                break
+    return myFlag, my_element
