@@ -1,0 +1,1 @@
+simulation_time	physical_time	DHN_manager.LTH.energy_bought	DHN_manager.LTH.energy_sold	DHN_manager.LTH.energy_erased	DHN_manager.LTH.energy_imbalance	DHN_manager.money_spent	DHN_manager.money_earned	

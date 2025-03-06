@@ -14,6 +14,8 @@ class DeepReinforcementLearning(Strategy):
         self.agent = agent
         self.counter = 0  # will be used to send and receive information from the RL agent
         self.scope = None  # list of aggregators managed by this strategy in particular for Multi-Agent purposes
+        self._catalog.add(f"DRL_Strategy.decision_message", {})
+        self._catalog.add(f"DRL_Strategy.exchanges_message", {})
 
     # ##################################################################################################################
     # Dynamic behavior

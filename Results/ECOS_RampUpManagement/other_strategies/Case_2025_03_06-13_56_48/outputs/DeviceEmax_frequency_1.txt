@@ -1,0 +1,1 @@
+simulation_time	physical_time	heat_sink.district_heating_microgrid.LTH.maximum_energy	old_house.district_heating_microgrid.LTH.maximum_energy	new_house.district_heating_microgrid.LTH.maximum_energy	office.district_heating_microgrid.LTH.maximum_energy	biomass_plant.district_heating_microgrid.LTH.maximum_energy	

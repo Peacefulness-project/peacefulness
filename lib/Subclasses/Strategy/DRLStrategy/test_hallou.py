@@ -1959,87 +1959,89 @@ myData = {'time': [0, 0.85759257, 0.900218005627907, 0.942843441255814, 0.985468
 # # print(lower_data)
 # # print(upper_data)
 #
-from math import ceil, floor
+# from math import ceil, floor
+# 
+# def check_distance(myList: list, myElement, precision: float=1e-6):
+#     myFlag = False
+#     my_element = None
+#     if myElement in myList:
+#         myFlag = True
+#         my_element = myElement
+#     else:
+#         for element in myList:
+#             if abs(element - myElement) < precision:
+#                 myFlag = True
+#                 my_element = element
+#                 break
+#     return myFlag, my_element
+# 
+# def get_timestep_of_data(df: dict, out_power: float, max_power: float):
+#     """
+#     Give back the time step corresponding to the value of %Pth using interpolation (if it doesn't already exist in the data).
+#     """
+#     out_power /= max_power
+#     out_power *= 100
+#     # Check if the timestep exists in the DataFrame
+#     if out_power in df['power']:
+#         return df['time'][df['power'].index(out_power)]
+#     else:
+#         # If out_power does not exist, interpolate between the nearest values
+#         lower_data = max((d for d in df["power"] if d < out_power), default=None)
+#         upper_data = min((d for d in df["power"] if d > out_power), default=None)
+#         # Check if lower and upper timesteps exist
+#         if lower_data is None or upper_data is None:
+#             raise ValueError(f"Power {out_power} is out of bounds for interpolation.")
+#         # Get corresponding data for lower and upper timesteps
+#         lower_timestep = df['time'][df['power'].index(lower_data)]
+#         upper_timestep = df['time'][df['power'].index(upper_data)]
+#         # Perform linear interpolation
+#         interpolated_value = lower_timestep + (upper_timestep - lower_timestep) * (out_power - lower_data) / (upper_data - lower_data)
+#         return interpolated_value
+# 
+# def get_data_at_timestep(df: dict, timestep: int):
+#     """
+#     Give back the value of %Pth as a function of the timestep using interpolation (if it doesn't already exist in the data).
+#     """
+#     # Check if the timestep exists in the DataFrame
+#     if timestep in df['time']:
+#         return df['power'][df['time'].index(timestep)]
+#     else:
+#         # If timestep does not exist, interpolate between the nearest timesteps
+#         lower_timestep = max((t for t in df["time"] if t < timestep), default=None)
+#         upper_timestep = min((t for t in df["time"] if t > timestep), default=None)
+# 
+#         # Check if lower and upper timesteps exist
+#         if lower_timestep is None or upper_timestep is None:
+#             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
+# 
+#         # Get corresponding data for lower and upper timesteps
+#         lower_data = df['power'][df['time'].index(lower_timestep)]
+#         upper_data = df['power'][df['time'].index(upper_timestep)]
+# 
+#         # Perform linear interpolation
+#         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+#         interpolated_value /= 100
+#         return interpolated_value
+# 
+# 
+# max_power = 1300
+# cold_startup = {"time_step": [0, 1, 2, 3, 4, 5], "energy": [0.01, 0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
+# warm_startup_flag = False
+# warm_startup = {"time_step": [0, 1, 2], "energy": [0.01, 0.7473570931988995, 1]}
+# log = {"time_step": [], "energy": [], "state": []}
+# for index in range(len(cold_startup["energy"])):
+#     cold_startup["energy"][index] *= max_power
+# 
+# for index in range(len(warm_startup["energy"])):
+#     warm_startup["energy"][index] *= max_power
+# 
+# a = -155.47653198
+# 
+# print(check_distance(cold_startup["energy"], -a))
+# print(get_timestep_of_data(myData, 19.65512848, max_power))
+# print(get_data_at_timestep(myData, ceil(get_timestep_of_data(myData, 19.65512848, max_power))) * max_power)
 
-def check_distance(myList: list, myElement, precision: float=1e-6):
-    myFlag = False
-    my_element = None
-    if myElement in myList:
-        myFlag = True
-        my_element = myElement
-    else:
-        for element in myList:
-            if abs(element - myElement) < precision:
-                myFlag = True
-                my_element = element
-                break
-    return myFlag, my_element
-
-def get_timestep_of_data(df: dict, out_power: float, max_power: float):
-    """
-    Give back the time step corresponding to the value of %Pth using interpolation (if it doesn't already exist in the data).
-    """
-    out_power /= max_power
-    out_power *= 100
-    # Check if the timestep exists in the DataFrame
-    if out_power in df['power']:
-        return df['time'][df['power'].index(out_power)]
-    else:
-        # If out_power does not exist, interpolate between the nearest values
-        lower_data = max((d for d in df["power"] if d < out_power), default=None)
-        upper_data = min((d for d in df["power"] if d > out_power), default=None)
-        # Check if lower and upper timesteps exist
-        if lower_data is None or upper_data is None:
-            raise ValueError(f"Power {out_power} is out of bounds for interpolation.")
-        # Get corresponding data for lower and upper timesteps
-        lower_timestep = df['time'][df['power'].index(lower_data)]
-        upper_timestep = df['time'][df['power'].index(upper_data)]
-        # Perform linear interpolation
-        interpolated_value = lower_timestep + (upper_timestep - lower_timestep) * (out_power - lower_data) / (upper_data - lower_data)
-        return interpolated_value
-
-def get_data_at_timestep(df: dict, timestep: int):
-    """
-    Give back the value of %Pth as a function of the timestep using interpolation (if it doesn't already exist in the data).
-    """
-    # Check if the timestep exists in the DataFrame
-    if timestep in df['time']:
-        return df['power'][df['time'].index(timestep)]
-    else:
-        # If timestep does not exist, interpolate between the nearest timesteps
-        lower_timestep = max((t for t in df["time"] if t < timestep), default=None)
-        upper_timestep = min((t for t in df["time"] if t > timestep), default=None)
-
-        # Check if lower and upper timesteps exist
-        if lower_timestep is None or upper_timestep is None:
-            raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
-
-        # Get corresponding data for lower and upper timesteps
-        lower_data = df['power'][df['time'].index(lower_timestep)]
-        upper_data = df['power'][df['time'].index(upper_timestep)]
-
-        # Perform linear interpolation
-        interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
-        interpolated_value /= 100
-        return interpolated_value
-
-
-max_power = 1300
-cold_startup = {"time_step": [0, 1, 2, 3, 4, 5], "energy": [0.01, 0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
-warm_startup_flag = False
-warm_startup = {"time_step": [0, 1, 2], "energy": [0.01, 0.7473570931988995, 1]}
-log = {"time_step": [], "energy": [], "state": []}
-for index in range(len(cold_startup["energy"])):
-    cold_startup["energy"][index] *= max_power
-
-for index in range(len(warm_startup["energy"])):
-    warm_startup["energy"][index] *= max_power
-
-a = -155.47653198
-
-print(check_distance(cold_startup["energy"], -a))
-print(get_timestep_of_data(myData, 19.65512848, max_power))
-print(get_data_at_timestep(myData, ceil(get_timestep_of_data(myData, 19.65512848, max_power))) * max_power)
-
-
+a = {("A1", "A2"): [-120, 100, 0.85]}
+for tup in a:
+    print(tup)
 
