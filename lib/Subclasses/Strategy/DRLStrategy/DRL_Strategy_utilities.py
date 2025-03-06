@@ -296,8 +296,8 @@ def from_tensor_to_dict(actions: np.ndarray, aggregators: list, agent: "Agent") 
         agent_grid_topology = agent.grid.get_topology  # the return of the get_topology method
         agent_storage_devices = agent.grid.get_storage  # the return of the get_storage method
     else:  # while exploiting the model (inference)
-        agent_grid_topology = agent.grid_topology
-        agent_storage_devices = {"dummy_key": 6}  # todo to be manually changed to 0 if needed during inference
+        agent_grid_topology = agent.grid_topology[0]
+        agent_storage_devices = {"dummy_key": 0}  # todo to be manually changed to 0 if needed during inference
     number_of_energy_exchanges_actions = actions_related_to_energy_exchange(agent_grid_topology)
 
     # Grouping actions into ones related to energy exchanges and ones related to management of energy consumption, production and storage inside the aggregators
