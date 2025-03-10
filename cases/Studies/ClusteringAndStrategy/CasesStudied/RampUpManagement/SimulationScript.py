@@ -131,7 +131,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
                                                             {"user": "office", "device": "office"},
                                                             filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal energy producers
-    base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 12})
+    base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 12, "initial_energy": 300})
     # peak_load = subclasses_dictionary["Device"]["DummyProducer"]("fast_gas_boiler", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "heat"}, {"max_power": 1100})
     # Thermal energy storage
     # network_pipes = subclasses_dictionary["Device"]["LatentHeatStorage"]("DHN_pipelines", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})

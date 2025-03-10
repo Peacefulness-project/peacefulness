@@ -1,1 +1,0 @@
-simulation_time	physical_time	heat_sink.district_heating_microgrid.LTH.minimum_energy	old_house.district_heating_microgrid.LTH.minimum_energy	new_house.district_heating_microgrid.LTH.minimum_energy	office.district_heating_microgrid.LTH.minimum_energy	biomass_plant.district_heating_microgrid.LTH.minimum_energy	

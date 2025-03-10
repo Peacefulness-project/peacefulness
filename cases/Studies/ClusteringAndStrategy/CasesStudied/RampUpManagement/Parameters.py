@@ -28,6 +28,7 @@ clustering_metrics = [  # prices are not taken into account for now
     # storage
     # "DHN_pipelines.energy_stored",
     # consumption
+    "heat_sink.LTH.energy_bought",  # dissipation
     "old_house.LTH.energy_bought",
     "new_house.LTH.energy_bought",
     "office.LTH.energy_bought",
@@ -36,32 +37,32 @@ clustering_metrics = [  # prices are not taken into account for now
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
-    "DHN_manager.money_earned",
-    "DHN_manager.money_spent",
+    # "DHN_manager.money_earned",
+    # "DHN_manager.money_spent",
 
     # "DHN_pipelines.LTH.energy_bought",
     # "DHN_pipelines.LTH.energy_sold",
-
+    "heat_sink.LTH.energy_bought",
     "old_house.LTH.energy_bought",
-    "old_house.LTH.energy_sold",
+    # "old_house.LTH.energy_sold",
     "new_house.LTH.energy_bought",
-    "new_house.LTH.energy_sold",
+    # "new_house.LTH.energy_sold",
     "office.LTH.energy_bought",
-    "office.LTH.energy_sold",
+    # "office.LTH.energy_sold",
 
-    "DHN_manager.LTH.energy_bought",
-    "DHN_manager.LTH.energy_sold",
+    # "DHN_manager.LTH.energy_bought",
+    # "DHN_manager.LTH.energy_sold",
 
     "biomass_plant.LTH.energy_sold",
 
-    "district_heating_microgrid.energy_sold",
+    # "district_heating_microgrid.energy_sold",
     "district_heating_microgrid.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
 coef = 1
 
 def performance_norm(performance_vector: Dict) -> float:
-    return (sum(performance_vector["biomass_plant.LTH.energy_sold"])) * coef
+    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
 
 
 # ######################################################################################################################
@@ -78,43 +79,33 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
     real_consumption = 0.0
-    biomass_max_power = 1300  # kWh
     real_consumption += strategy._catalog.get("old_house.LTH.energy_wanted")["energy_maximum"]
     real_consumption += strategy._catalog.get("new_house.LTH.energy_wanted")["energy_maximum"]
     real_consumption += strategy._catalog.get("office.LTH.energy_wanted")["energy_maximum"]
-    # return ["heat_loads", "charging_storage", "nothing"]
+    biomass_previous_power = strategy._catalog.get("dictionaries")['devices']['biomass_plant'].last_energy
+    current_time = strategy._catalog.get("simulation_time")
 
-    if real_consumption > biomass_max_power or real_consumption == 0.0:
-        if "HeatDissipation" in strategy._catalog.keys:
-            strategy._catalog.remove("HeatDissipation")
-
+    if real_consumption > abs(biomass_previous_power):
         return ["nothing", "dissipation"]
     else:
-        if real_consumption <= 0.75 * biomass_max_power:
-            if "HeatDissipation" in strategy._catalog.keys:
-                strategy._catalog.remove("HeatDissipation")
-
-            return ["nothing", "dissipation"]
-        else:
-            # Getting the time condition
-            if "HeatDissipation" in strategy._catalog.keys:
-                dissipationTime = strategy._catalog.get("HeatDissipation")
-            else:
-                dissipationTime = strategy._catalog.get("time_step")
-            if isinstance(dissipationTime, list):
-                dissipationTime.extend(strategy_catalog.get("time_step"))
-
-            if "HeatDissipation" not in strategy._catalog.keys:
-                strategy._catalog.add("HeatDissipation", [dissipationTime])
-            else:
-                strategy._catalog.set("HeatDissipation", dissipationTime)
-
-            if len(dissipationTime) <= 5:
-                return ["dissipation", "nothing"]
-            else:
-                if "HeatDissipation" in strategy._catalog.keys:
-                    strategy._catalog.remove("HeatDissipation")
+        if current_time < 2712:  # for the first heating season
+            if current_time % 24 > 9:
                 return ["nothing", "dissipation"]
+            else:
+                if real_consumption <= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["dissipation", "nothing"]
+                else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
+                    return ["nothing", "dissipation"]
+        elif current_time >= 6144:  # for the second heating season
+            if 9 < current_time % 24 < 17:  # middle of the day
+                return ["nothing", "dissipation"]
+            else:  # from midnight to 8 and from 17 to midnight
+                if real_consumption <= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["dissipation", "nothing"]
+                else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
+                    return ["nothing", "dissipation"]
+        else:  # the rest of the year
+            return ["nothing", "dissipation"]
 
 
 def ref_priorities_production(strategy: "Strategy"):
