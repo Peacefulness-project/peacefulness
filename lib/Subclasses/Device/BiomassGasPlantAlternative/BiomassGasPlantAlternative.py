@@ -1,6 +1,6 @@
 # device representing either a biomass or waste boiler or plant.
 from src.common.DeviceMainClasses import AdjustableDevice
-from math import ceil, floor
+from math import ceil
 
 
 class BiomassGasPlantAlternative(AdjustableDevice):
@@ -16,10 +16,11 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         self._max_power = parameters["max_power"] * time_step  # max power (kWh)
         self._recharge_quantity = parameters["recharge_quantity"]  # fuel quantity recharged at each period (kg)
         self._autonomy = parameters["autonomy"] / time_step  # the time period during which the plant operates without recharging (timesteps)
+        self._initial_conditions = {"initial_energy": parameters["initial_energy"], "initial_state": self._determine_initial_state(parameters["initial_energy"])}
         self.cold_startup_flag = False
-        self.cold_startup = {"time_step": [1, 2, 3, 4, 5], "energy": [0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
+        self.cold_startup = {"time_step": [0, 1, 2, 3, 4, 5], "energy": [0.01, 0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
         self.warm_startup_flag = False
-        self.warm_startup = {"time_step": [1, 2], "energy": [0.7473570931988995, 1]}
+        self.warm_startup = {"time_step": [0, 1, 2], "energy": [0.01, 0.7473570931988995, 1]}
         self._log = {"time_step": [], "energy": [], "state": []}
         self._check_quantities()  # checking the proposed sizing
 
@@ -40,6 +41,18 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         self._warmStartUp = data_device["warm_startup"]  # thermal power evolution during a warm startup
 
         self._unused_nature_removal()
+
+    def _determine_initial_state(self, initial_power):
+        if initial_power == self._max_power:
+            return "nominal_state"
+        elif initial_power == 0:
+            return "idle"
+        elif 0.3 * self._max_power >= initial_power > 0:
+            return "cold_startup"
+        elif self._max_power > initial_power > 0.3 * self._max_power:
+            return "warm_startup"
+        else:
+            raise Exception("The initial energy specified for the biomass plant is not valid !")
 
     def _check_quantities(self):
         """
@@ -66,24 +79,32 @@ class BiomassGasPlantAlternative(AdjustableDevice):
 
     def update(self):
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
+        current_timestep = self._catalog.get("simulation_time")
         min_production = 0.0
 
-        if len(self._log["state"]) > 0:
-            if self._log["state"][-1] == "idle" or self._log["state"][-1] == "shut_down":
-                max_production = - 0.01 * self._max_power
-                coming_volume = - 0.01 * self._max_power
+        if current_timestep == 0:  # initial conditions
+            self._log["state"].append(self._initial_conditions["initial_state"])
+            if self._log["state"][-1] == "cold_startup":
+                self.cold_startup_flag = True
+                self.warm_startup_flag = False
+                self._log["energy"].append(- self._initial_conditions["initial_energy"])
+            elif self._log["state"][-1] == "warm_startup":
+                self.cold_startup_flag = False
+                self.warm_startup_flag = True
+                self._log["energy"].append(- self._initial_conditions["initial_energy"])
 
-            elif self._log["state"][-1] == "nominal_state":
-                max_production = - self._max_power
-                coming_volume = - 5 * self._max_power
-        else:
+        if self._log["state"][-1] == "idle" or self._log["state"][-1] == "shut_down":
             max_production = - 0.01 * self._max_power
             coming_volume = - 0.01 * self._max_power
+
+        elif self._log["state"][-1] == "nominal_state":
+            max_production = - self._max_power
+            coming_volume = - 5 * self._max_power
 
         if self.cold_startup_flag:  # a cold startup is triggered
             coming_volume = 0.0
             inside_flag, nearest_value = check_distance(self.cold_startup["energy"], - self._log["energy"][-1])
-            if inside_flag:  # a standard cold start-up
+            if inside_flag:  # a standard cold start-up (E_accorded == max_production)
                 coldStartUpIndex = self.cold_startup["energy"].index(nearest_value)
                 if coldStartUpIndex < len(self.cold_startup["energy"]) - 1:
                     max_production = - self.cold_startup["energy"][coldStartUpIndex + 1]
@@ -97,11 +118,14 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the cold start-up curve
-                corresponding_time = get_timestep_of_data(self._coldStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
-                upper_timestep = ceil(corresponding_time)
-                if not upper_timestep > max(self._coldStartUp["time"]):
-                    max_production = - get_data_at_timestep(self._coldStartUp, upper_timestep) * self._max_power
-                    coldStartUpIndex = self.cold_startup["time_step"].index(upper_timestep)
+                corresponding_time, corresponding_power = get_timestep_of_data(self._coldStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                next_timestep = corresponding_time + self._catalog.get("time_step")
+                if not next_timestep > max(self._coldStartUp["time"]):
+                    # trapezoidal intergation
+                    # max_production = - ((get_data_at_timestep(self._coldStartUp, next_timestep) + corresponding_power) / 2) * self._max_power
+                    # calcul normal
+                    max_production = - get_data_at_timestep(self._coldStartUp, next_timestep) * self._max_power
+                    coldStartUpIndex = self.cold_startup["time_step"].index(ceil(next_timestep))
                     for index in range(coldStartUpIndex, len(self.cold_startup["energy"])):
                         coming_volume -= self.cold_startup["energy"][index]
                     remaining_steps = 5 - (len(self.cold_startup["energy"]) - coldStartUpIndex)
@@ -115,7 +139,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         elif self.warm_startup_flag:  # a warm startup is triggered
             coming_volume = 0.0
             inside_flag, nearest_value = check_distance(self.warm_startup["energy"], - self._log["energy"][-1])
-            if inside_flag:  # a standard warm start-up
+            if inside_flag:  # a standard warm start-up (E_accorded == max_production)
                 warmStartUpIndex = self.warm_startup["energy"].index(nearest_value)
                 if warmStartUpIndex < len(self.warm_startup["energy"]) - 1:
                     max_production = - self.warm_startup["energy"][warmStartUpIndex + 1]
@@ -129,11 +153,14 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                     max_production = - self._max_power
                     coming_volume = - 5 * self._max_power
             else:  # Energy accorded doesn't correspond to the warm start-up curve
-                corresponding_time = get_timestep_of_data(self._warmStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
-                upper_timestep = ceil(corresponding_time)
-                if not upper_timestep > max(self._warmStartUp["time"]):
-                    max_production = - get_data_at_timestep(self._warmStartUp, upper_timestep) * self._max_power
-                    warmStartUpIndex = self.warm_startup["time_step"].index(upper_timestep)
+                corresponding_time, corresponding_power = get_timestep_of_data(self._warmStartUp, - self._log["energy"][-1], self._max_power)  # the time step corresponding to the energy accorded in ti-1
+                next_timestep = corresponding_time + self._catalog.get("time_step")
+                if not next_timestep > max(self._warmStartUp["time"]):
+                    #  trapezoidal integration
+                    # max_production = - ((get_data_at_timestep(self._warmStartUp, next_timestep) + corresponding_power) / 2) * self._max_power
+                    # calcul normal
+                    max_production = - get_data_at_timestep(self._warmStartUp, next_timestep) * self._max_power
+                    warmStartUpIndex = self.warm_startup["time_step"].index(ceil(next_timestep))
                     for index in range(warmStartUpIndex, len(self.warm_startup["energy"])):
                         coming_volume -= self.warm_startup["energy"][index]
                     remaining_steps = 5 - (len(self.warm_startup["energy"]) - warmStartUpIndex)
@@ -153,9 +180,17 @@ class BiomassGasPlantAlternative(AdjustableDevice):
             energy_wanted[nature.name]["interruptibility"] = 1
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
+
     def react(self):
         super().react()
         self._log["time_step"].append(self._catalog.get("simulation_time"))
+
+        if self._log["time_step"][-1] == 0:  # initial conditions
+            self._log["state"] = []
+            self._log["energy"] = []
+            self.cold_startup_flag = False
+            self.warm_startup_flag = False
+
         for nature in self.natures:
             self._log["energy"].append(self.get_energy_accorded_quantity(nature))
             if self._log["energy"][-1] == 0:  # if no energy was accorded (no production)
@@ -198,11 +233,20 @@ class BiomassGasPlantAlternative(AdjustableDevice):
                         self._log["state"].append("warm_startup")
                         self.cold_startup_flag = False
                         self.warm_startup_flag = True
-                else:
-                    self._log["state"].append("cold_startup")
-                    self.cold_startup_flag = True
-                    self.warm_startup_flag = False
-
+                else:  # Only for the first iteration
+                    if abs(self._log["energy"][-1]) <= 0.3 * self._max_power:  # a cold startup is needed
+                        self._log["state"].append("cold_startup")
+                        self.cold_startup_flag = True
+                        self.warm_startup_flag = False
+                    else:  # a warm startup is needed
+                        self._log["state"].append("warm_startup")
+                        self.cold_startup_flag = False
+                        self.warm_startup_flag = True
+    
+    @property
+    def last_energy(self):  # useful for the rule-based strategy in the ramping-up management case
+        return self._log["energy"][-1]
+    
 
 def get_data_at_timestep(df: dict, timestep: int):
     """
@@ -238,7 +282,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
     out_power *= 100
     # Check if the timestep exists in the DataFrame
     if out_power in df['power']:
-        return df['time'][df['power'].index(out_power)]
+        return df['time'][df['power'].index(out_power)], out_power
     else:
         # If out_power does not exist, interpolate between the nearest values
         lower_data = max((d for d in df["power"] if d < out_power), default=None)
@@ -251,7 +295,7 @@ def get_timestep_of_data(df: dict, out_power: float, max_power: float):
         upper_timestep = df['time'][df['power'].index(upper_data)]
         # Perform linear interpolation
         interpolated_value = lower_timestep + (upper_timestep - lower_timestep) * (out_power - lower_data) / (upper_data - lower_data)
-        return interpolated_value
+        return interpolated_value, out_power
 
 
 def check_distance(myList: list, myElement, precision: float=1e-2):

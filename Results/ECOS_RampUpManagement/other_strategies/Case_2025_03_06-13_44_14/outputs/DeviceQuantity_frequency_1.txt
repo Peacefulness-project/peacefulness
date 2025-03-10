@@ -1,1 +1,0 @@
-simulation_time	physical_time	heat_sink.energy	heat_sink.money	old_house.energy	old_house.money	new_house.energy	new_house.money	office.energy	office.money	biomass_plant.energy	biomass_plant.money	

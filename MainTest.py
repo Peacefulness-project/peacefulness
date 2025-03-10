@@ -286,7 +286,7 @@ base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("bioma
                                                                           aggregator_district,
                                                                           {"device": "Biomass_2_ThP"},
                                                                           {"max_power": 1300, "recharge_quantity": 1500,
-                                                                           "autonomy": 12})
+                                                                           "autonomy": 12, "initial_energy": 1000})
 
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 # subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
