@@ -92,7 +92,7 @@ def ref_priorities_consumption(strategy: "Strategy"):
             if current_time % 24 > 9:
                 return ["nothing", "dissipation"]
             else:
-                if real_consumption <= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
                     return ["dissipation", "nothing"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
                     return ["nothing", "dissipation"]
@@ -100,7 +100,7 @@ def ref_priorities_consumption(strategy: "Strategy"):
             if 9 < current_time % 24 < 17:  # middle of the day
                 return ["nothing", "dissipation"]
             else:  # from midnight to 8 and from 17 to midnight
-                if real_consumption <= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
                     return ["dissipation", "nothing"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
                     return ["nothing", "dissipation"]
@@ -109,4 +109,30 @@ def ref_priorities_consumption(strategy: "Strategy"):
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    return ["biomass", "gas"]
+    real_consumption = 0.0
+    real_consumption += strategy._catalog.get("old_house.LTH.energy_wanted")["energy_maximum"]
+    real_consumption += strategy._catalog.get("new_house.LTH.energy_wanted")["energy_maximum"]
+    real_consumption += strategy._catalog.get("office.LTH.energy_wanted")["energy_maximum"]
+    biomass_previous_power = strategy._catalog.get("dictionaries")['devices']['biomass_plant'].last_energy
+    current_time = strategy._catalog.get("simulation_time")
+    if real_consumption > abs(biomass_previous_power):
+        return ["biomass", "gas", "naught"]
+    else:
+        if current_time < 2712:  # for the first heating season
+            if current_time % 24 > 9:
+                return ["biomass", "gas", "naught"]
+            else:
+                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["biomass", "naught", "gas"]
+                else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
+                    return ["biomass", "gas", "naught"]
+        elif current_time >= 6144:  # for the second heating season
+            if 9 < current_time % 24 < 17:  # middle of the day
+                return ["biomass", "gas", "naught"]
+            else:  # from midnight to 8 and from 17 to midnight
+                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["biomass", "naught", "gas"]
+                else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
+                    return ["biomass", "gas", "naught"]
+        else:  # the rest of the year
+            return ["naught", "biomass", "gas"]

@@ -153,6 +153,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     for key in metrics:
         metrics_datalogger.add(key)
 
-    world.start(False)
+    world.start()
 
     return metrics_datalogger
