@@ -1,16 +1,15 @@
 from skopt import gp_minimize
 import shutil
 from cases.Studies.ClusteringAndStrategy.Utilities import *
-import pygad
 import math
 
-def training(simulation_length: int, cluster_centers: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict, create_simulation: Callable, case_name: str, clustering_metrics: List) -> Dict:
+def training(simulation_length: int, cluster_centers: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict, create_simulation: Callable, case_name: str, clustering_metrics: List, complement_path: str) -> Dict:
     # performance assessment phase
     print("identification of the relevant strategy for each cluster")
     research_method = bricolage
     best_strategies = research_method(cluster_centers, simulation_length,
                                       performance_metrics, performance_norm, assessed_priorities,
-                                      create_simulation, case_name, clustering_metrics)
+                                      create_simulation, case_name, clustering_metrics, complement_path)
     print("Done\n")
 
     print("\n\n")
@@ -104,7 +103,7 @@ def training(simulation_length: int, cluster_centers: List, performance_norm: Ca
 #
 # return best_strategy
 
-def bricolage(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, case_name: str, clustering_metrics: List) -> Dict:
+def bricolage(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, case_name: str, clustering_metrics: List, complement_path: str) -> Dict:
     """
     Clusters are sorted by the number of days inside.
     For the cluster i, all the strategies are tested knowing that:
@@ -167,9 +166,9 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
 
                 # simulation
                 print(f"test of strategy {assessed_priorities_consumption[i]}/{assessed_priorities_production[j]}")
-                directory = f"training/{i}_{j}"
+                directory = f"{complement_path}/training/{i}_{j}"
                 datalogger = create_simulation(simulation_length, priorities_consumption,  priorities_production, directory, performance_metrics)
-                shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/training/", ignore_errors=False, onerror=None)
+                shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/", ignore_errors=False, onerror=None)
 
                 # metering
                 raw_outputs = {}

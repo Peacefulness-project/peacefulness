@@ -1,6 +1,8 @@
 # This script is the one deconstructed in the tuto to create a case on the wiki.
 from typing import Callable
 
+from scipy.stats import gamma
+
 # ##############################################################################################
 # Importations
 from datetime import datetime, timedelta
@@ -17,7 +19,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.OptionsManagementFunctions import options_consumption, options_production
 
 
-def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
+def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: str = "sunflower", standard_deviation: int = 0):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -45,7 +47,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Definition of the random seed
     # The default seed is the current time (the value returned by datetime.now())
-    world.set_random_seed("sunflower")
+    world.set_random_seed(random_seed)
 
     # ##############################################################################################
     # Time parameters
@@ -77,22 +79,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
     limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.05})  # sets limit price accepted
-
-    # Indoor temperature
-    # this daemon is responsible for the value of indoor temperatures in the catalog
-    indoor_temperature_daemon = subclasses_dictionary["Daemon"]["IndoorTemperatureDaemon"]()
-
-    # Outdoor temperature
-    # this daemon is responsible for the value of outside temperature in the catalog
-    outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": location}, exergy=False)
-
-    # Water temperature
-    # this daemon is responsible for the value of the water temperature in the catalog
-    ground_temperature_daemon = subclasses_dictionary["Daemon"]["GroundTemperatureDaemon"]({"location": "France"})
-
-    # Irradiation
-    # this daemon is responsible for updating the value of raw solar irradiation
-    irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": location}, direct_normal_irradiation=False)
 
     # ##############################################################################################
     # Creation of strategies
@@ -133,21 +119,30 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
     aggregator_name = "local_network"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 200, "selling": 0})  # creation of an aggregator
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, grid_manager, aggregator_grid, contract_grid, capacity={"buying": 100, "selling": 0})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
+    def rng_generator(consumption):
+        if standard_deviation:
+            a = (consumption * standard_deviation)**2
+            b = a / consumption
+            return gamma.rvs(a, scale=b)
+        else:
+            return consumption
 
     # base plant
-    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 100})  # creation of a heat production unit
+    subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 175})  # creation of a heat production unit
 
     # storage
-    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "industrial_battery"}, {"capacity": 1000, "initial_SOC": 0.5})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 1000, "initial_SOC": 0.2},                                                            filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/ElectricalBattery.json")
+
 
     # consumption
-    subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, residential_consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 100})
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, residential_consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 100, "rng_generator": rng_generator})
 
-    subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract, industrial_consumer, aggregator_elec, {"user": "yearly_consumer", "device": "industrial_ELMAS_dataset"}, filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/Background.json")
+    subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract, industrial_consumer, aggregator_elec, {"user": "yearly_consumer", "device": "industrial_ELMAS_dataset"}, parameters={"rng_generator": rng_generator},
+                                                  filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/Background.json")
 
     # ##############################################################################################
     # Creation of dataloggers

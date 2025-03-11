@@ -2,7 +2,7 @@
   "technical_data": {
     "domestic_battery": {
       "charge": {"nature": "LVE", "power": 0.2, "efficiency":  0.8},
-      "discharge": {"nature": "LVE", "power": 0.3, "efficiency":  0.8},
+      "discharge": {"nature": "LVE", "power": 0.2, "efficiency":  0.8},
       "minimum_energy": 0.2,
       "degradation_rate": 0.002,
 

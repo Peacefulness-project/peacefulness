@@ -9,19 +9,17 @@ from sklearn import cluster
 # lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
 
 
-def situations_recording(clustering_metrics: List, sequences_number: int, create_simulation: Callable, consumption_options: List, production_options: List):
-    delay = [i for i in range(sequences_number)]
-
+def situations_recording(clustering_metrics: List, sequences_number: int, create_simulation: Callable, consumption_options: List, production_options: List, complement_path: str):
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
-    for start_point in delay:
-        print(f"situation starting {start_point} hours past the initial start")
-        metrics_datalogger = create_simulation(1, random_order_priorities(consumption_options),
-                                               random_order_priorities(production_options), f"clustering/sequence_{start_point}",
-                                               clustering_metrics, delay_days=start_point)
-        # récupérer moyennes pour normaliser métriques
-        for key in clustering_metrics:
-            raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
+    for i in range(sequences_number):
+            print(f"situation starting {i} hours past the initial start")
+            metrics_datalogger = create_simulation(8760, random_order_priorities(consumption_options),
+                                                   random_order_priorities(production_options), f"{complement_path}/clustering/sequence_{i}",
+                                                   clustering_metrics, delay_days=i, random_seed=f"{i}_seed", standard_deviation=0.1)
+            # récupérer moyennes pour normaliser métriques
+            for key in clustering_metrics:
+                raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
     print("Done\n")
 
     return raw_situations
@@ -29,6 +27,7 @@ def situations_recording(clustering_metrics: List, sequences_number: int, create
 
 def clustering(clusters_number: int, clustering_metrics: List, raw_situations, sequences_number: int):
     print(f"construction of the description of the situations")
+    sequences_number *= 8760
     refined_situations = zeros((sequences_number, len(clustering_metrics)))
     normalisation_values = []
     j = 0
@@ -43,6 +42,7 @@ def clustering(clusters_number: int, clustering_metrics: List, raw_situations, s
     print("Done\n")
 
     print(f"identification of clusters")
+    print(refined_situations)
     clusters = cluster.KMeans(clusters_number).fit(refined_situations)
     situations_list = [[] for _ in range(len(raw_situations[key]))]
     for criterion in raw_situations:

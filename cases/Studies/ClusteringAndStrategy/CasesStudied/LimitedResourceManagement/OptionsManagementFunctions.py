@@ -20,7 +20,7 @@ def assess_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List
 
 
 def exchanges_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
@@ -62,13 +62,13 @@ def assess_industrial(strategy: "Strategy", aggregator: "Aggregator", demands: L
 
     for demand in demands:
         if demand["name"] == "industrial_process":
-            quantity_for_this_option += demand["quantity"]
+            quantity_for_this_option += demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
 
 
 def exchanges_industrial(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
@@ -113,7 +113,7 @@ def assess_nothing_option(strategy: "Strategy", aggregator: "Aggregator", demand
 
 
 def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = 0
+    # quantity_to_affect = 0
     return quantity_to_affect, quantities_and_prices
 
 
@@ -137,8 +137,8 @@ def assess_prod(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dic
     return quantity_for_this_option
 
 
-def exchanges_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
+    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
@@ -186,8 +186,8 @@ def assess_unstorage(strategy: "Strategy", aggregator: "Aggregator", offers: Lis
     return quantity_for_this_option
 
 
-def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
+    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 
@@ -201,14 +201,13 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
         if energy_available_production > - sorted_offers[i]["quantity_min"]:  # if there is enough energy
             energy = sorted_offers[i]["quantity_min"]  # the quantity of energy needed
         else:  # if there is not enough energy available
-            energy = max(sorted_offers[i]["quantity_min"], - energy_available_production)  # the quantity of energy needed
+            energy = - energy_available_production  # the quantity of energy needed
         price = sorted_offers[i]["price"]  # the price of energy
         price = max(price, min_price)
 
         message = {element: strategy.__class__.decision_message()[element] for element in strategy.__class__.decision_message()}
         message["quantity"] = energy + strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")["quantity"]  # integration of decision taken regarding the charge
         message["price"] = price
-        # print(energy, sorted_offers[i]["quantity_min"])
 
         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -227,15 +226,17 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
 
 # outside energy
 def assess_buy_outside(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
-    quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
+    quantity_for_this_option = 0*aggregator.capacity["buying"] / aggregator.efficiency
 
     return quantity_for_this_option
 
 
-def exchanges_buy_outside(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_buy_outside(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     # message = {element: strategy._messages["bottom-up"][element] for element in strategy._messages["bottom-up"]}
     message = strategy.__class__.information_message()
-    quantity_remaining = max(0, quantity_to_affect - quantity_available_for_this_option)
+    quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
+    # print(0, quantity_to_affect - quantity_for_this_option, "plop")
+    quantity_remaining = max(0, quantity_to_affect - quantity_for_this_option)
     quantity_bought = quantity_to_affect - quantity_remaining
 
     message["energy_minimum"] = quantity_bought
