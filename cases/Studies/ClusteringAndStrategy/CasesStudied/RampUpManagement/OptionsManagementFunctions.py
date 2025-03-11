@@ -142,6 +142,21 @@ def distribution_fossil_generation(strategy: "Strategy", aggregator: "Aggregator
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
 
+def assess_naught_option(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
+    quantity_for_this_option = 0
+
+    return quantity_for_this_option
+
+
+def exchanges_naught_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+    quantity_to_affect = 0
+    return quantity_to_affect, quantities_and_prices
+
+
+def distribution_naught_option(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
+
+    return sorted_demands, 0, money_earned_inside, energy_sold_inside
+
 
 
 index = ["dissipation", "nothing"]
