@@ -166,9 +166,10 @@ data = [[assess_dissipation, exchanges_dissipation, distribution_dissipation],
         ]
 options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["biomass", "gas"]
+index = ["biomass", "gas", "naught"]
 columns = ["assess", "exchange", "distribute"]
 data = [[assess_renewable_generation, exchanges_renewable_generation, distribution_renewable_generation],
-        [assess_fossil_generation, exchanges_fossil_generation, distribution_fossil_generation]
+        [assess_fossil_generation, exchanges_fossil_generation, distribution_fossil_generation],
+        [assess_naught_option, exchanges_naught_option, distribution_naught_option]
         ]
 options_production = pd.DataFrame(index=index, columns=columns, data=data)
