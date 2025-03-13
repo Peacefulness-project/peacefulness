@@ -89,10 +89,8 @@ class MLStrategy(TrainingStrategy):
 
         if cons_or_prod == "consumption":
             for priority in priorities_consumption:
-                quantity_available = quantity_available_per_option["consumption"][priority]
                 quantity_to_affect, quantities_and_prices = self._options_consumption.loc[priority]["exchange"](self, aggregator,
                                                                                                                 quantity_to_affect,
-                                                                                                                quantity_available,
                                                                                                                 quantities_and_prices)
                 if priority == "nothing":
                     break
@@ -116,7 +114,6 @@ class MLStrategy(TrainingStrategy):
 
         for priority in priorities_consumption:
             [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
-            # print(priority, energy_available_consumption)
             if priority == "nothing":
                 break
         for priority in priorities_production:
@@ -226,8 +223,7 @@ def assess_min_conso(strategy: "Strategy", aggregator: "Aggregator", demands: Li
     return quantity_for_this_option
 
 
-def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 

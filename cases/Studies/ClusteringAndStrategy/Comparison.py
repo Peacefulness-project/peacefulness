@@ -1,5 +1,6 @@
 from typing import List, Dict, Callable
 import math
+seed = "potimarron"
 
 
 def assess_reference(
@@ -9,7 +10,8 @@ def assess_reference(
 
     # reference run
     print(f"start of the reference run")
-    ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+    ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics,
+                                       random_seed=seed, standard_deviation=0.15)
     ref_results = {key: [] for key in performance_metrics}
     for key in performance_metrics:
         ref_results[key] = ref_datalogger._values[key]
@@ -23,7 +25,6 @@ def assess_reference(
 
 def assess_performance(best_strategies: Dict, cluster_centers: List, clustering_metrics: List,
                        comparison_simulation_length: int, performance_norm: Callable,
-                       ref_priorities_consumption: Callable, ref_priorities_production: Callable,
                        performance_metrics: List, create_simulation: Callable, complement_path: str):
 
     # improved run
@@ -47,7 +48,8 @@ def assess_performance(best_strategies: Dict, cluster_centers: List, clustering_
         return find
 
     print(f"start of the (presumably) better run")
-    tested_datalogger = create_simulation(comparison_simulation_length, find_strategy("consumption"), find_strategy("production"), f"{complement_path}/comparison/improved", performance_metrics)
+    tested_datalogger = create_simulation(comparison_simulation_length, find_strategy("consumption"), find_strategy("production"), f"{complement_path}/comparison/improved", performance_metrics,
+                                          random_seed=seed, standard_deviation=0.15)
     tested_results = {key: [] for key in performance_metrics}
     for key in performance_metrics:
         tested_results[key] = tested_datalogger._values[key]

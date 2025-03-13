@@ -54,23 +54,15 @@ class TrainingStrategy(Strategy):
 
         # assess quantity for consumption and prod
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
-
         quantity_available_per_option = self._assess_quantities_for_each_option(aggregator)
-
         quantity_to_affect = sum(quantity_available_per_option["consumption"].values()) - sum(quantity_available_per_option["production"].values())
-        # print(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values()), quantity_to_affect)
-        # print(minimum_energy_consumed, maximum_energy_consumed)
 
         # affect available quantities
-        # if sum(quantity_available_per_option["consumption"].values()) < sum(quantity_available_per_option["production"].values()):  # if consumption is limiting
         quantities_and_prices = []
-        if quantity_to_affect >0:
+        if quantity_to_affect > 0:
             self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, quantities_and_prices, "production")
-            # print(quantities_and_prices)
         else:
             self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, quantities_and_prices, "consumption")
-            # print(quantities_and_prices)
-        # print(quantities_and_prices)
 
         # send the demand to the other aggregator
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
@@ -106,16 +98,12 @@ class TrainingStrategy(Strategy):
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
-        # print(minimum_energy_consumed, maximum_energy_consumed)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
         # assess quantity for consumption and prod
         quantity_available_per_option = self._assess_quantities_for_each_option(aggregator)
-        # print(self._get_priorities_consumption(), self._get_priorities_production())
-        # print(quantity_available_per_option, energy_bought_outside)
-        # print(quantity_available_per_option)
 
         # ##########################################################################################
         # balance of energy available

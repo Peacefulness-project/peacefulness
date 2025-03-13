@@ -1,5 +1,5 @@
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import *
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
 from cases.Studies.ClusteringAndStrategy.Clustering import clustering, situations_recording
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, assess_reference
@@ -8,14 +8,14 @@ import time
 import os
 
 
+results_path = "cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/BatchSize/"
 # export management
-results_path = "cases/Studies/ClusteringAndStrategy/Results/LimitedResource/BatchSize/"
 if "Results" not in os.listdir("./cases/Studies/ClusteringAndStrategy"):
     os.mkdir("cases/Studies/ClusteringAndStrategy/Results/")
-if "LimitedResource" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
-    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/LimitedResource/")
-if "BatchSize" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/LimitedResource"):
-    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/LimitedResource/BatchSize/")
+if "RampUpManagement" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
+    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/")
+if "BatchSize" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/RampUpManagement"):
+    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/BatchSize/")
 
 
 intermediate_results = open(results_path + f"IntermediateResults_common.txt", "w")
@@ -26,8 +26,6 @@ intermediate_results.close()
 for cluster_number in [3, 6, 9]:
     for i in range(1, 11):
         recorded_situations = situations_recording(clustering_metrics, i, create_simulation, consumption_options, production_options, "BatchSize")
-
-        # cluster_number = 4  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
         intermediate_results = open(results_path + f"IntermediateResults_{cluster_number}_clusters_{i}_batch_size.txt", "w")
 
         # clustering
@@ -42,7 +40,7 @@ for cluster_number in [3, 6, 9]:
         # training
         print("--- TRAINING PHASE ---")
         start_time = time.process_time()
-        best_strategies = training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities, create_simulation, "LimitedResource", clustering_metrics, "BatchSize")
+        best_strategies = training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities, create_simulation, "RampUpManagement", clustering_metrics, "BatchSize")
         intermediate_results.write("best couples strategies/clusters:\n" + str(best_strategies) + "\n")
         training_duration = time.process_time() - start_time
 

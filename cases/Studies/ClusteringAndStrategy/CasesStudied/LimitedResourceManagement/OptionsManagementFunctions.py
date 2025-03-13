@@ -19,8 +19,7 @@ def assess_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List
     return quantity_for_this_option
 
 
-def exchanges_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -67,8 +66,7 @@ def assess_industrial(strategy: "Strategy", aggregator: "Aggregator", demands: L
     return quantity_for_this_option
 
 
-def exchanges_industrial(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_industrial(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -112,8 +110,7 @@ def assess_nothing_option(strategy: "Strategy", aggregator: "Aggregator", demand
     return quantity_for_this_option
 
 
-def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # quantity_to_affect = 0
+def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -226,16 +223,14 @@ def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_p
 
 # outside energy
 def assess_buy_outside(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
-    quantity_for_this_option = 0*aggregator.capacity["buying"] / aggregator.efficiency
+    quantity_for_this_option = 0
 
     return quantity_for_this_option
 
 
 def exchanges_buy_outside(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # message = {element: strategy._messages["bottom-up"][element] for element in strategy._messages["bottom-up"]}
     message = strategy.__class__.information_message()
     quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
-    # print(0, quantity_to_affect - quantity_for_this_option, "plop")
     quantity_remaining = max(0, quantity_to_affect - quantity_for_this_option)
     quantity_bought = quantity_to_affect - quantity_remaining
 

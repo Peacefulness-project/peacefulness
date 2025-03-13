@@ -1,5 +1,5 @@
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import *
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
 from cases.Studies.ClusteringAndStrategy.Clustering import clustering, situations_recording
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, assess_reference
@@ -7,26 +7,29 @@ from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, a
 import time
 import os
 
-
+run_name = "RandomSeed"
+results_path = f"cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/{run_name}/"
 # export management
-results_path = "cases/Studies/ClusteringAndStrategy/Results/LimitedResource/ClusterNumber/"
 if "Results" not in os.listdir("./cases/Studies/ClusteringAndStrategy"):
     os.mkdir("cases/Studies/ClusteringAndStrategy/Results/")
-if "LimitedResource" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
-    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/LimitedResource/")
-if "ClusterNumber" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/LimitedResource"):
-    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/LimitedResource/ClusterNumber/")
-
-intermediate_results = open(results_path + f"IntermediateResults_common.txt", "w")
-ref_performance = assess_reference(comparison_simulation_length, performance_norm, ref_priorities_consumption, ref_priorities_production, exported_metrics, create_simulation)
-intermediate_results.write("reference performance\n" + str(ref_performance) + "\n")
-intermediate_results.close()
-recorded_situations = situations_recording(clustering_metrics, clustering_sequences_number, create_simulation, consumption_options, production_options, "ClusterNumber")
+if "RampUpManagement" not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
+    os.mkdir("cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/")
+if run_name not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/RampUpManagement"):
+    os.mkdir(f"cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/{run_name}/")
 
 
-for i in range(2, 11):
-    cluster_number = i  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
-    intermediate_results = open(results_path + f"IntermediateResults_{cluster_number}_clusters.txt", "w")
+# intermediate_results = open(results_path + f"IntermediateResults_common.txt", "w")
+# ref_performance = assess_reference(comparison_simulation_length, performance_norm, ref_priorities_consumption, ref_priorities_production, exported_metrics, create_simulation)
+# intermediate_results.write("reference performance\n" + str(ref_performance) + "\n")
+# intermediate_results.close()
+
+
+for i in range(10):
+    cluster_number = 3
+    intermediate_results = open(results_path + f"IntermediateResults_{i}_seed.txt", "w")
+
+    recorded_situations = situations_recording(clustering_metrics, clustering_sequences_number, create_simulation,
+                                               consumption_options, production_options, run_name, fixed_random_seed=f"{i}_seed")
 
     # clustering
     print("--- CLUSTERING PHASE ---")
@@ -40,14 +43,14 @@ for i in range(2, 11):
     # training
     print("--- TRAINING PHASE ---")
     start_time = time.process_time()
-    best_strategies = training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities, create_simulation, "LimitedResource", clustering_metrics, "ClusterNumber")
+    best_strategies = training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities, create_simulation, "RampUpManagement", clustering_metrics, run_name)
     intermediate_results.write("best couples strategies/clusters:\n" + str(best_strategies) + "\n")
     training_duration = time.process_time() - start_time
 
     # comparison
     print("--- COMPARISON PHASE ---")
     start_time = time.process_time()
-    tested_performance, clusters_situation = assess_performance(best_strategies, cluster_centers, clustering_metrics, comparison_simulation_length, performance_norm, exported_metrics, create_simulation, "ClusterNumber")
+    tested_performance, clusters_situation = assess_performance(best_strategies, cluster_centers, clustering_metrics, comparison_simulation_length, performance_norm, exported_metrics, create_simulation, run_name)
     intermediate_results.write("improved performance\n" + str(tested_performance) + "\n")
     intermediate_results.close()
 

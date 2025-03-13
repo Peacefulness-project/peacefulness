@@ -9,14 +9,18 @@ from sklearn import cluster
 # lien pour les fonctions de clustering https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
 
 
-def situations_recording(clustering_metrics: List, sequences_number: int, create_simulation: Callable, consumption_options: List, production_options: List, complement_path: str):
+def situations_recording(clustering_metrics: List, sequences_number: int, create_simulation: Callable, consumption_options: List, production_options: List, complement_path: str, fixed_random_seed: str = None):
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
     for i in range(sequences_number):
+            if fixed_random_seed:
+                random_seed = str(i) + fixed_random_seed
+            else:
+                random_seed = f"{i}_seed"
             print(f"situation starting {i} hours past the initial start")
             metrics_datalogger = create_simulation(8760, random_order_priorities(consumption_options),
                                                    random_order_priorities(production_options), f"{complement_path}/clustering/sequence_{i}",
-                                                   clustering_metrics, delay_days=i, random_seed=f"{i}_seed", standard_deviation=0.1)
+                                                   clustering_metrics, delay_days=i, random_seed=random_seed, standard_deviation=0.1)
             # récupérer moyennes pour normaliser métriques
             for key in clustering_metrics:
                 raw_situations[key] = raw_situations[key] + metrics_datalogger._values[key]
@@ -42,7 +46,6 @@ def clustering(clusters_number: int, clustering_metrics: List, raw_situations, s
     print("Done\n")
 
     print(f"identification of clusters")
-    print(refined_situations)
     clusters = cluster.KMeans(clusters_number).fit(refined_situations)
     situations_list = [[] for _ in range(len(raw_situations[key]))]
     for criterion in raw_situations:

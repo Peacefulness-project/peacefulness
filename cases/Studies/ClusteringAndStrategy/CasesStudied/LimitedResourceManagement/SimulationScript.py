@@ -1,6 +1,5 @@
 # This script is the one deconstructed in the tuto to create a case on the wiki.
 from typing import Callable
-
 from scipy.stats import gamma
 
 # ##############################################################################################
@@ -124,10 +123,11 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of devices
     def rng_generator(consumption):
-        if standard_deviation:
-            a = (consumption * standard_deviation)**2
-            b = a / consumption
-            return gamma.rvs(a, scale=b)
+        if bool(standard_deviation) & bool(consumption):
+            a = (1 / standard_deviation)**2
+            b = standard_deviation ** 2 * consumption
+            toto = gamma.rvs(a, scale=b)
+            return toto
         else:
             return consumption
 
