@@ -1,0 +1,2 @@
+time taken by the device generation phase: 0.0
+time taken by the initialization phase: 1.0625
