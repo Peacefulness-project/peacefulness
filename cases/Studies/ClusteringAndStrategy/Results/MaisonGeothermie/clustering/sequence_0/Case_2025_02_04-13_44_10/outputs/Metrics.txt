@@ -1,1 +1,0 @@
-heat_storage.energy_stored	heating.LTH.energy_bought	prices_elec.France.buying_price	PV.LVE.energy_sold	heat_pump.LTH.efficiency	

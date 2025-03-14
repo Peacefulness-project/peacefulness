@@ -1,1 +1,0 @@
-old_house.LTH.energy_bought	new_house.LTH.energy_bought	office.LTH.energy_bought	incinerator.LTH.energy_sold	fast_gas_boiler.LTH.energy_sold	

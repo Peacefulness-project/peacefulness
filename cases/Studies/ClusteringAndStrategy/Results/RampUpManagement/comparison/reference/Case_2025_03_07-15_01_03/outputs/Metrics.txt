@@ -1,1 +1,0 @@
-heat_sink.LTH.energy_bought	old_house.LTH.energy_bought	new_house.LTH.energy_bought	office.LTH.energy_bought	biomass_plant.LTH.energy_sold	district_heating_microgrid.LTH.energy_bought_outside	
