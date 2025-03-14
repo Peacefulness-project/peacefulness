@@ -11,6 +11,7 @@ from src.common.DeviceMainClasses import NonControllableDevice
 class Background(NonControllableDevice):
 
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Background/Background.json"):
+        self._rng_generator = parameters["rng_generator"]
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
@@ -19,6 +20,12 @@ class Background(NonControllableDevice):
 
     def _read_data_profiles(self, profiles):
         super()._read_data_profiles(profiles)
+        for nature_name in self._technical_profile:
+            for i in range(len(self._technical_profile[nature_name])):
+                consumption = self._technical_profile[nature_name][i]
+                self._technical_profile[nature_name][i] = self._rng_generator(consumption)
+
+
 
         # data_user = self._read_consumer_data(profiles["user"])  # parsing the data
         # data_device = self._read_technical_data(profiles["device"])  # parsing the data

@@ -21,7 +21,7 @@ class BiomassGasPlantAlternative(AdjustableDevice):
         self.cold_startup_signal_time = None
         # todo if the original curve is used
         # self.cold_startup = {"time_step": [0, 1, 2, 3, 4, 5], "energy": [0.01, 0.015119328903383002, 0.1195973380807878, 0.31337064873887166, 0.9197118707001486, 1]}
-        self.cold_startup = {"time_step": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "energy": [0, 0.01, 0.015119328903383002, 0.1195973380807878, 0.2164839934098297, 0.31337064873887166, 0.5154843893926306, 0.7175981300463896, 0.9197118707001486, 1]}
+        self.cold_startup = {"time_step": [0, 1, 2, 3, 4, 5, 6, 7, 8], "energy": [0, 0.015119328903383002, 0.1195973380807878, 0.2164839934098297, 0.31337064873887166, 0.5154843893926306, 0.7175981300463896, 0.9197118707001486, 1]}
         
         self._log = {"time_step": [], "energy": [], "state": []}
         self._check_quantities()  # checking the proposed sizing

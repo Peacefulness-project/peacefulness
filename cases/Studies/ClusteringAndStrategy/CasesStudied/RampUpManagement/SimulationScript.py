@@ -7,6 +7,7 @@
 # Imports
 from typing import Callable
 from datetime import datetime, timedelta
+from scipy.stats import gamma
 
 from lib.Subclasses.Strategy.AlwaysSatisfied.AlwaysSatisfied import AlwaysSatisfied
 from src.common.World import World
@@ -116,19 +117,32 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Manual creation of devices
+    standard_deviation = 0.25
+    def rng_generator(consumption):
+        if bool(standard_deviation) & bool(consumption):
+            a = (1 / standard_deviation)**2
+            b = standard_deviation ** 2 * consumption
+            toto = gamma.rvs(a, scale=b)
+            return toto
+        else:
+            return consumption
+
+    def identity(consumption):
+        return consumption
+
     # dissipation
     heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_curtailment, DHN_manager, aggregator_district,
-                                                              {"user": "artificial_sink", "device": "artificial_sink"},
+                                                              {"user": "artificial_sink", "device": "artificial_sink"}, parameters={"rng_generator": identity},
                                                               filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal loads
     old_houses = subclasses_dictionary["Device"]["Background"]("old_house", heat_contract_BAU, DHN_manager, aggregator_district,
-                                                                {"user": "old_house", "device": "old_house"},
+                                                                {"user": "old_house", "device": "old_house"}, parameters={"rng_generator": rng_generator},
                                                                 filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     new_houses = subclasses_dictionary["Device"]["Background"]("new_house", heat_contract_BAU, DHN_manager, aggregator_district,
-                                                               {"user": "new_house", "device": "new_house"},
+                                                               {"user": "new_house", "device": "new_house"}, parameters={"rng_generator": rng_generator},
                                                                filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     offices = subclasses_dictionary["Device"]["Background"]("office", heat_contract_BAU, DHN_manager, aggregator_district,
-                                                            {"user": "office", "device": "office"},
+                                                            {"user": "office", "device": "office"}, parameters={"rng_generator": rng_generator},
                                                             filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal energy producers
     base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 12, "initial_energy": 300})

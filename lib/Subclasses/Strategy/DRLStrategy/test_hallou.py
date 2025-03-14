@@ -1158,144 +1158,154 @@
 # # # # # TODO creating thermal consumption profiles for the ramp-up management study case (ECOS)
 # # # # #######################################################################################################################
 # # # #
-# # Imports
-# from fileinput import filename
-# # # #
-# import pandas as pd
-# import matplotlib.pyplot as plt
-# import numpy as np
-# from copy import deepcopy
-# # # # #
-# # # # #
-# my_year = np.arange(1, 8761)
-# # # # #
-# # Reading data from excel file
-# my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
-# my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
-# my_data = my_df1.to_dict(orient='list')
-# setpoints = my_df2.to_dict(orient='list')
-# # # #
-# # Constructing my setpoints evolution over the year - starts in sunday
-# house_setpoints = []
-# office_setpoints = []
-# for week in range(len(my_year) // (24 * 7)):
-#     for weekday in range(5):  # temperature setpoints during the week-days
-#         office_setpoints.extend(setpoints["setpoint_office_week"])
-#         house_setpoints.extend(setpoints["setpoint_house_week"])
-#     for weekday in range(2):  # temperature setpoints during the week-days
-#         office_setpoints.extend(setpoints["setpoint_office_weekend"])
-#         house_setpoints.extend(setpoints["setpoint_house_weekend"])
-# # # #
-# remaining_time = len(my_year) % (24 * 7)
-# # # #
-# if remaining_time != 0 and remaining_time % 24 == 0:
-#     for day in range(remaining_time // 24):
-#         office_setpoints.extend(setpoints["setpoint_office_week"])
-#         house_setpoints.extend(setpoints["setpoint_house_week"])
-# elif remaining_time % 24 != 0:
-#     number_of_hours = remaining_time % 24
-#     office_hours = []
-#     house_hours = []
-#     for hour in range(number_of_hours):
-#         office_hours.append(setpoints["setpoint_office_week"][hour])
-#         house_hours.append(setpoints["setpoint_house_week"][hour])
-#     office_setpoints.extend(office_hours)
-#     house_setpoints.extend(house_hours)
-# # # #
-# # # # # Delta Temperature values through the year
-# office_deltas = []
-# house_deltas = []
-# first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
-# second_set_of_data = deepcopy(my_data['OutdoorTemperature'][:2616])
-# yearly_exterior_temperature = deepcopy(first_set_of_data)
-# yearly_exterior_temperature.extend(np.zeros(3432))
-# yearly_exterior_temperature.extend(second_set_of_data)
-# # # #
-# # # #
-# for index in range(len(first_set_of_data)):
-#      if office_setpoints[index] > yearly_exterior_temperature[index]:
-#          office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
-#      else:
-#          office_deltas.append(0.0)
-# for index in range(len(first_set_of_data)):
-#      if house_setpoints[index] > yearly_exterior_temperature[index]:
-#          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
-#      else:
-#          house_deltas.append(0.0)
-# # # #
-# office_deltas.extend(np.zeros(3432))
-# house_deltas.extend(np.zeros(3432))
-# # # #
-# for index in range(len(second_set_of_data)):
-#     if office_setpoints[index] > yearly_exterior_temperature[index]:
-#         office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
-#     else:
-#         office_deltas.append(0.0)
-# for index in range(len(second_set_of_data)):
-#      if house_setpoints[index] > yearly_exterior_temperature[index]:
-#          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
-#      else:
-#          house_deltas.append(0.0)
-# # # # #
-# # minTemp = min(yearly_exterior_temperature)
-# # minIndex = yearly_exterior_temperature.index(minTemp)
-# # start_min_day = my_year[minIndex] - my_year[minIndex] % 24
-# # end_min_day = start_min_day + 24
-# # # # #
-# # maxTemp = max(yearly_exterior_temperature)
-# # maxIndex = yearly_exterior_temperature.index(maxTemp)
-# # start_max_day = my_year[maxIndex] - my_year[maxIndex] % 24
-# # end_max_day = start_max_day + 24
-# # # # #
-# # # print(len(first_set_of_data))
-# # # plt.plot(my_year[0: len(first_set_of_data)], first_set_of_data)
-# # # plt.show()
-# # # # print(len(second_set_of_data))
-# # # plt.plot(my_year[0: len(second_set_of_data)], second_set_of_data)
-# # # plt.show()
+# Imports
+from fileinput import filename
 # # #
-# # # plt.plot(my_year[0: 24], yearly_exterior_temperature[start_min_day: end_min_day])  # Plotting the Exterior Temperature values through the year
-# # # plt.plot(my_year[0: 24], yearly_exterior_temperature[start_max_day: end_max_day])
-# # # plt.show()
-# # # # # # #
-# # # plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
-# # # plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
-# # # plt.show()
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from copy import deepcopy
+# # # #
 # # # # #
-# # Total consumption data (kWh)
-# old_house_total_space_heating_consumption = 1232000.5
-# new_house_total_space_heating_consumption = 673000.03
-# office_total_space_heating_consumption = 2730000.948
+my_year = np.arange(1, 8761)
+# # # # #
+# Reading data from excel file
+my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
+my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
+my_data = my_df1.to_dict(orient='list')
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams['font.size'] = 10
+# plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
+# plt.xlabel('Time in [Hours]')
+# plt.ylabel('Outdoor Temperature in [°C]')
+# plt.title("Evolution of outdoor temperature during heating season")
+# plt.grid(True)
+# plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
+# plt.show()
+setpoints = my_df2.to_dict(orient='list')
 # # # #
-# # Retrieving Cp values for each building type
-# old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
-# new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
-# office_Cp = office_total_space_heating_consumption / sum(office_deltas)
+# Constructing my setpoints evolution over the year - starts in sunday
+house_setpoints = []
+office_setpoints = []
+for week in range(len(my_year) // (24 * 7)):
+    for weekday in range(5):  # temperature setpoints during the week-days
+        office_setpoints.extend(setpoints["setpoint_office_week"])
+        house_setpoints.extend(setpoints["setpoint_house_week"])
+    for weekday in range(2):  # temperature setpoints during the week-days
+        office_setpoints.extend(setpoints["setpoint_office_weekend"])
+        house_setpoints.extend(setpoints["setpoint_house_weekend"])
 # # # #
-# # Consumption profiles
-# old_house_profile = []
-# new_house_profile = []
-# office_profile = []
-# for index in range(len(house_deltas)):
-#     old_house_profile.append(old_house_Cp * house_deltas[index])
-#     new_house_profile.append(new_house_Cp * house_deltas[index])
-# for index in range(len(office_deltas)):
-#     office_profile.append(office_Cp * office_deltas[index])
+remaining_time = len(my_year) % (24 * 7)
+# # # #
+if remaining_time != 0 and remaining_time % 24 == 0:
+    for day in range(remaining_time // 24):
+        office_setpoints.extend(setpoints["setpoint_office_week"])
+        house_setpoints.extend(setpoints["setpoint_house_week"])
+elif remaining_time % 24 != 0:
+    number_of_hours = remaining_time % 24
+    office_hours = []
+    house_hours = []
+    for hour in range(number_of_hours):
+        office_hours.append(setpoints["setpoint_office_week"][hour])
+        house_hours.append(setpoints["setpoint_house_week"][hour])
+    office_setpoints.extend(office_hours)
+    house_setpoints.extend(house_hours)
+# # # #
+# # # # Delta Temperature values through the year
+office_deltas = []
+house_deltas = []
+first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
+second_set_of_data = deepcopy(my_data['OutdoorTemperature'][:2616])
+yearly_exterior_temperature = deepcopy(first_set_of_data)
+yearly_exterior_temperature.extend(np.zeros(3432))
+yearly_exterior_temperature.extend(second_set_of_data)
+# # # #
+# # # #
+for index in range(len(first_set_of_data)):
+     if office_setpoints[index] > yearly_exterior_temperature[index]:
+         office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+     else:
+         office_deltas.append(0.0)
+for index in range(len(first_set_of_data)):
+     if house_setpoints[index] > yearly_exterior_temperature[index]:
+         house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+     else:
+         house_deltas.append(0.0)
+# # # #
+office_deltas.extend(np.zeros(3432))
+house_deltas.extend(np.zeros(3432))
+# # # #
+for index in range(len(second_set_of_data)):
+    if office_setpoints[index] > yearly_exterior_temperature[index]:
+        office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+    else:
+        office_deltas.append(0.0)
+for index in range(len(second_set_of_data)):
+     if house_setpoints[index] > yearly_exterior_temperature[index]:
+         house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+     else:
+         house_deltas.append(0.0)
+# # # # #
+# minTemp = min(yearly_exterior_temperature)
+# minIndex = yearly_exterior_temperature.index(minTemp)
+# start_min_day = my_year[minIndex] - my_year[minIndex] % 24
+# end_min_day = start_min_day + 24
+# # # #
+# maxTemp = max(yearly_exterior_temperature)
+# maxIndex = yearly_exterior_temperature.index(maxTemp)
+# start_max_day = my_year[maxIndex] - my_year[maxIndex] % 24
+# end_max_day = start_max_day + 24
+# # #
+# print(len(first_set_of_data))
+# plt.plot(my_year[0: len(first_set_of_data)], first_set_of_data)
+# plt.show()
+# print(len(second_set_of_data))
+# plt.plot(my_year[0: len(second_set_of_data)], second_set_of_data)
+# plt.show()
+# # #
+# plt.plot(my_year, yearly_exterior_temperature)  # Plotting the Exterior Temperature values through the year
+# plt.plot(my_year, yearly_exterior_temperature)
+# plt.show()
+# # # # # # #
+# plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
+# plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
+# plt.show()
+# # # # #
+# Total consumption data (kWh)
+old_house_total_space_heating_consumption = 1232500
+new_house_total_space_heating_consumption = 673030
+office_total_space_heating_consumption = 2730948
+# # # #
+# Retrieving Cp values for each building type
+old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
+new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
+office_Cp = office_total_space_heating_consumption / sum(office_deltas)
+# # # #
+# Consumption profiles
+old_house_profile = []
+new_house_profile = []
+office_profile = []
+for index in range(len(house_deltas)):
+    old_house_profile.append(old_house_Cp * house_deltas[index])
+    new_house_profile.append(new_house_Cp * house_deltas[index])
+for index in range(len(office_deltas)):
+    office_profile.append(office_Cp * office_deltas[index])
 # # # #
 # heat_sink = np.empty(len(my_year))
 # heat_sink.fill(1300.0)
 # # # #
-# total_consumption = []
-# for index in range(len(office_profile)):
-#     total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
+total_consumption = []
+for index in range(len(office_profile)):
+    total_consumption.append(float(old_house_profile[index] + new_house_profile[index] + office_profile[index]))
 # # # #
 # print(total_consumption.index(max(total_consumption)))
-# # # Plotting the consumption profiles
+# # Plotting the consumption profiles
 # my_fig = plt.figure()
-# # # # plt.plot(my_year, old_house_profile, label="Old house consumption profile")
-# # # # plt.plot(my_year, new_house_profile, label="New house consumption profile")
-# # # # plt.plot(my_year, office_profile, label="Office consumption profile")
+# # # plt.plot(my_year, old_house_profile, label="Old house consumption profile")
+# # # plt.plot(my_year, new_house_profile, label="New house consumption profile")
+# # # plt.plot(my_year, office_profile, label="Office consumption profile")
 # plt.plot(my_year, total_consumption, label="Total consumption profile")
+# plt.show()
 # # # plt.plot(my_year[:2712], total_consumption[:2712], label="Total consumption profile")
 # # # plt.plot(my_year[6144:], total_consumption[6144:], label="Total consumption profile")
 # # # # # #
@@ -1303,7 +1313,52 @@
 # # # plt.legend()
 # plt.show()
 # # # # # #
-# # first_season = deepcopy(total_consumption[:2712])
+first_season = deepcopy(total_consumption[:2712])
+days = [first_season[i:i + 24] for i in range(0, len(first_season), 24)]
+weekdays = []
+weekends = []
+# Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
+for i in range(0, len(days), 7):
+    weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
+    weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
+
+num_groups = len(weekends) // 8  # Number of groups of 4 weekends
+weekend_averages = []
+
+for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
+    chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
+    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+    weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
+
+num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
+weekdays_averages = []
+
+for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
+    chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
+    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+    weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
+
+days_array = np.array(days)
+hourly_median = np.median(days_array, axis=0)
+hourly_median_list = hourly_median.tolist()
+
+myFirstSeason = []  # 1 janv -> 23 avril inclus
+for index in range(len(weekend_averages)):
+    myFirstSeason.extend(weekdays_averages[index])
+    myFirstSeason.extend(weekend_averages[index])
+
+timeFirstSeason = np.arange(0, len(myFirstSeason), 1)
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams['font.size'] = 10
+# plt.plot(timeFirstSeason, myFirstSeason, label="Heating Consumption Profile")
+# plt.xlabel("Time in [hours]")
+# plt.ylabel("Heat loads in [MWh]")
+# plt.legend()
+# plt.title("The heat loads during winter season")
+# plt.grid(True)
+# plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/WinterSeasonHeatingConsumptionProfiles.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
+
 # #
 # # firstSeasonMaxConso = max(first_season)
 # # maxFirstSeasonIndexConso = total_consumption.index(firstSeasonMaxConso)
@@ -1321,30 +1376,81 @@
 # # startFirstSeasonMoyConso = my_year[moyFirstSeasonIndexConso] - my_year[moyFirstSeasonIndexConso] % 24
 # # endFirstSeasonMoyConso = startFirstSeasonMoyConso + 24
 # #
-# # firstSeasonMedConso = np.median(first_season)
-# # medFirstSeasonIndexConso = total_consumption.index(firstSeasonMedConso)
-# # startFirstSeasonMedConso = my_year[medFirstSeasonIndexConso] - my_year[medFirstSeasonIndexConso] % 24
-# # endFirstSeasonMedConso = startFirstSeasonMedConso + 24
+firstSeasonMedConso = np.median(first_season)
+medFirstSeasonIndexConso = total_consumption.index(firstSeasonMedConso)
+startFirstSeasonMedConso = my_year[medFirstSeasonIndexConso] - my_year[medFirstSeasonIndexConso] % 24
+endFirstSeasonMedConso = startFirstSeasonMedConso + 24
 # #
 # # fig = plt.figure()
+plt.rcParams['font.family'] = "Times New Roman"
+plt.rcParams['font.size'] = 10
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMaxConso:endFirstSeasonMaxConso], label="Max consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMinConso:endFirstSeasonMinConso], label="Min consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMoyConso:endFirstSeasonMoyConso], label="Moy consumption profile")
-# # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso], label="Med consumption profile")
+# plt.plot(my_year[0:24], hourly_median_list, label="Hourly median consumption profile during the first season")
+plt.plot(my_year[0:24], total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso], label="Heat Consumption Representative Day For The Winter Season")
 # # plt.plot(my_year[0:24], heat_sink[0:24], label="Biomass production profile", linestyle='--')
 # # plt.plot(my_year[0:24], 0.75 * heat_sink[0:24], label="Threshold", linestyle='--')
-# # plt.title("First season representative day")
-# # plt.xlabel("Time step in [hours]")
-# # plt.ylabel("Energy in [kWh]")
+# plt.title("First season representative day")
+# plt.xlabel("Time step in [hours]")
+# plt.ylabel("Energy in [MWh]")
 # # plt.legend()
-# # plt.show()
+# plt.show()
 # # fig.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/firstSeasonRepresentativeDay.png")
 # # plt.close(fig)
 # #
 # # print(total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso])
 # # # print(total_consumption[startFirstSeasonMoyConso:endFirstSeasonMoyConso])
 # #
-# # second_season = deepcopy(total_consumption[6144:])
+second_season = deepcopy(total_consumption[6144:])
+days = [second_season[i:i + 24] for i in range(0, len(second_season), 24)]
+weekdays = []
+weekends = []
+# Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
+for i in range(0, len(days), 7):
+    weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
+    weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
+num_groups = len(weekends) // 8  # Number of groups of 4 weekends
+weekend_averages = []
+
+for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
+    chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
+    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+    weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
+
+num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
+weekdays_averages = []
+
+for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
+    chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
+    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+    weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
+
+days_array = np.array(days)
+hourly_median = np.median(days_array, axis=0)
+hourly_median_list = hourly_median.tolist()
+
+mySecondSeason = []  # 14 sept -> 31 déc inclus
+for index in range(len(weekend_averages)):
+    mySecondSeason.extend(weekdays_averages[index])
+    mySecondSeason.extend(weekend_averages[index])
+
+timeSecondSeason = np.arange(0, len(mySecondSeason), 1)
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams['font.size'] = 10
+# plt.plot(timeSecondSeason, mySecondSeason, label="Heating Consumption Profile")
+# plt.xlabel("Time in [hours]")
+# plt.ylabel("Heat loads in [MWh]")
+# plt.legend()
+# plt.title("The heat loads during fall season")
+# plt.grid(True)
+# plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/FallSeasonHeatingConsumptionProfiles.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
+
+
+days_array = np.array(days)
+hourly_median = np.median(days_array, axis=0)
+hourly_median_list = hourly_median.tolist()
 # #
 # # secondSeasonMaxConso = max(second_season)
 # # maxSecondSeasonIndexConso = total_consumption.index(secondSeasonMaxConso)
@@ -1362,23 +1468,27 @@
 # # startSecondSeasonMoyConso = my_year[moySecondSeasonIndexConso] - my_year[moySecondSeasonIndexConso] % 24
 # # endSecondSeasonMoyConso = startSecondSeasonMoyConso + 24
 # #
-# # secondSeasonMedConso = np.median(second_season)
-# # medSecondSeasonIndexConso = total_consumption.index(secondSeasonMedConso)
-# # startSecondSeasonMedConso = my_year[medSecondSeasonIndexConso] - my_year[medSecondSeasonIndexConso] % 24
-# # endSecondSeasonMedConso = startSecondSeasonMedConso + 24
+secondSeasonMedConso = np.median(second_season)
+medSecondSeasonIndexConso = total_consumption.index(secondSeasonMedConso)
+startSecondSeasonMedConso = my_year[medSecondSeasonIndexConso] - my_year[medSecondSeasonIndexConso] % 24
+endSecondSeasonMedConso = startSecondSeasonMedConso + 24
 # #
 # # fig = plt.figure()
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMaxConso:endSecondSeasonMaxConso], label="Max consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMinConso:endSecondSeasonMinConso], label="Min consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMoyConso:endSecondSeasonMoyConso], label="Moy consumption profile")
-# # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMedConso:endSecondSeasonMedConso], label="Med consumption profile")
+# plt.plot(my_year[0:24], hourly_median_list, label="Hourly Median consumption profile during the second season")
+plt.plot(my_year[0:24], total_consumption[startSecondSeasonMedConso:endSecondSeasonMedConso], label="Heat Consumption Representative Day For The Fall Season")
 # # plt.plot(my_year[0:24], heat_sink[0:24], label="Biomass production profile", linestyle='--')
 # # plt.plot(my_year[0:24], 0.75 * heat_sink[0:24], label="Threshold", linestyle='--')
 # # plt.title("Second season representative day")
-# # plt.xlabel("Time step in [hours]")
-# # plt.ylabel("Energy in [kWh]")
-# # plt.legend()
-# # plt.show()
+plt.xlabel("Time step in [hours]")
+plt.ylabel("Energy in [MWh]")
+plt.legend()
+plt.grid(True)
+plt.title("Heating Consumption Profiles for Representative Days of the two heating seasons")
+plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/HeatConsumptionRepresentativeDays.pdf", format="pdf", bbox_inches="tight")
+plt.show()
 # # fig.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/secondSeasonRepresentativeDay.png")
 # # plt.close(fig)
 # #
@@ -1437,13 +1547,13 @@
 # # # # plt.show()
 # # # #
 # # # # # # Writing data on a file for the new background subclass
-# # # # # my_total_consumption = []
-# # # # # for index in range(len(old_house_profile)):
-# # # # #     old_house_profile[index] = float(old_house_profile[index])
-# # # # #     new_house_profile[index] = float(new_house_profile[index])
-# # # # #     office_profile[index] = float(office_profile[index])
-# # # # #     heat_sink[index] = float(heat_sink[index])
-# # # # #     my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
+# my_total_consumption = []
+# for index in range(len(old_house_profile)):
+#     old_house_profile[index] = float(old_house_profile[index])
+#     new_house_profile[index] = float(new_house_profile[index])
+#     office_profile[index] = float(office_profile[index])
+#     # heat_sink[index] = float(heat_sink[index])
+#     my_total_consumption.append(old_house_profile[index] + new_house_profile[index] + office_profile[index])
 # # # # #
 # # # # # with open('new_background.txt', "w") as my_file:
 # # # #     my_file.write(f"Thermal consumption of old houses : {old_house_profile}")
@@ -1487,152 +1597,171 @@
 # # # # # plt.plot(x3_axis, office_profile, label="Office consumption profile")
 # # # # # plt.show()
 # # # #
-# # # # my_total_consumption = list(filter((0.0).__ne__, my_total_consumption))  # removing the zero values
-# # # # print(len(my_total_consumption))
-# # # # print(max(my_total_consumption))
-# # # # x4_axis = np.arange(1, len(my_total_consumption) + 1)
-# # # # threshold = np.empty(len(x4_axis))
-# # # # threshold.fill(1166)
-# # # # my_total_consumption.sort(reverse=True)
-# # # # plt.plot(x4_axis, my_total_consumption, label="my_total_consumption profile")
-# # # # plt.plot(x4_axis, threshold, label="sizing of the base load technology", linestyle='--')
-# # # # plt.show()
+# total_consumption = list(filter((0.0).__ne__, total_consumption))  # removing the zero values
+# # # # # print(len(my_total_consumption))
+# # # # # print(max(my_total_consumption))
+# x4_axis = np.arange(1, len(total_consumption) + 1)
+# threshold = np.empty(len(x4_axis))
+# threshold.fill(1300)
+# total_consumption.sort(reverse=True)
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 10
+# plt.plot(x4_axis, total_consumption, label="Heat loads monotone")
+# plt.plot(x4_axis, threshold, label="Baseload heat generation", linestyle='--')
+# plt.xlabel("Duration in [hours]")
+# plt.ylabel("Energy in [MWh]")
+# plt.title("Sizing of the biomass plant")
+# plt.legend()
+# plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/biomassPlantSizing.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
 # # # #
 # # #
 # # # # #####################################################################################################################
 # # # # # # TODO creating biomass power profiles for the ramp-up management study case (ECOS)
 # # # # # ###################################################################################################################
-# # # # the figures of evolution that we have correspond to a steam generator/turbine group of a 600MW generation capacity
-# # # # hyp.1 -> the efficiency considered is 35% thus, the nominal thermal power is 600 / 0.35 = 1714.28571428571 MWth
-# # # # hyp.2 -> the inlet temperature is around 60°C
-# # # # hyp.3 -> the evolution figures don't depend on the thermal power
-# # #
-# # # # import pandas as pd
-# # # # import numpy as np
-# # # # import matplotlib.pyplot as plt
-# # # # from CoolProp.CoolProp import PropsSI
-# # # #
-# # # #
-# # # #
-# # # # def get_data_at_timestep(df, timestep):
-# # # #     # Check if the timestep exists in the DataFrame
-# # # #     if timestep in df['Time'].values:
-# # # #         return df.loc[df['Time'] == timestep, 'ThermalPower'].values[0]
-# # # #     else:
-# # # #         # If timestep does not exist, interpolate between the nearest timesteps
-# # # #         lower_timestep = df[df['Time'] < timestep]['Time'].max()
-# # # #         upper_timestep = df[df['Time'] > timestep]['Time'].min()
-# # # #
-# # # #         # Check if lower and upper timesteps exist
-# # # #         if pd.isna(lower_timestep) or pd.isna(upper_timestep):
-# # # #             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
-# # # #
-# # # #         # Get corresponding data for lower and upper timesteps
-# # # #         lower_data = df.loc[df['Time'] == lower_timestep, 'ThermalPower'].values[0]
-# # # #         upper_data = df.loc[df['Time'] == upper_timestep, 'ThermalPower'].values[0]
-# # # #
-# # # #         # Perform linear interpolation
-# # # #         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
-# # # #         return interpolated_value
-# # # #
-# # # #
-# # # #
-# # # # # Reading data
-# # # # filepath = "cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData"
-# # # # cold_temperature_file = filepath + "/" + "coldStartUpTemp.csv"
-# # # # cold_steamflow_file = filepath + "/" + "coldStartUpFlow.csv"
-# # # # cold_pressure_file = filepath + "/" + "coldStartUpPressure.csv"
-# # # # warm_pressure_file = filepath + "/" + "warmStartUpPressure.csv"
-# # # # warm_temperature_file = filepath + "/" + "warmStartUpTemp.csv"
-# # # # warm_steamflow_file = filepath + "/" + "warmStartUpFlow.csv"
-# # # #
-# # # # cold_temperatures = pd.read_csv(cold_temperature_file, names=['Time', 'Temperature'], sep=';', decimal=',',header=None)
-# # # # cold_steam_flow = pd.read_csv(cold_steamflow_file, names=['Time', 'Flow'], sep=';', decimal=',',header=None)
-# # # # cold_pressure = pd.read_csv(cold_pressure_file, names=['Time', 'Pressure'], sep=';', decimal=',',header=None)
-# # # # warm_pressure = pd.read_csv(warm_pressure_file, names=['Time', 'Pressure'], sep=';', decimal=',',header=None)
-# # # # warm_temperatures = pd.read_csv(warm_temperature_file, names=['Time', 'Temperature'], sep=';', decimal=',',header=None)
-# # # # warm_steam_flow = pd.read_csv(warm_steamflow_file, names=['Time', 'Flow'], sep=';', decimal=',',header=None)
-# # # #
-# # # # common_length = max([len(cold_temperatures), len(cold_steam_flow), len(warm_steam_flow), len(warm_temperatures), len(cold_pressure), len(warm_pressure)])
-# # # #
-# # # # new_time_points_cold_Temp = np.linspace(cold_temperatures["Time"].min(), cold_temperatures["Time"].max(), common_length)
-# # # # new_time_points_warm_Temp = np.linspace(warm_temperatures["Time"].min(), warm_temperatures["Time"].max(), common_length)
-# # # # new_time_points_cold_Flow = np.linspace(cold_steam_flow["Time"].min(), cold_steam_flow["Time"].max(), common_length)
-# # # # new_time_points_warm_Flow = np.linspace(warm_steam_flow["Time"].min(), warm_steam_flow["Time"].max(), common_length)
-# # # # new_time_points_cold_Pressure = np.linspace(cold_pressure["Time"].min(), cold_pressure["Time"].max(), common_length)
-# # # # new_time_points_warm_Pressure = np.linspace(warm_pressure["Time"].min(), warm_pressure["Time"].max(), common_length)
-# # # #
-# # # # cold_temperatures_new = pd.DataFrame({'Time': new_time_points_cold_Temp})
-# # # # warm_temperatures_new = pd.DataFrame({'Time': new_time_points_warm_Temp})
-# # # # cold_steam_flow_new = pd.DataFrame({'Time': new_time_points_cold_Flow})
-# # # # warm_steam_flow_new = pd.DataFrame({'Time': new_time_points_warm_Flow})
-# # # # cold_pressure_new = pd.DataFrame({'Time': new_time_points_cold_Pressure})
-# # # # warm_pressure_new = pd.DataFrame({'Time': new_time_points_warm_Pressure})
-# # # #
-# # # # # interpolating data
-# # # # cold_temperatures_new['Temperature'] = np.interp(cold_temperatures_new['Time'], cold_temperatures['Time'], cold_temperatures['Temperature'])
-# # # # warm_temperatures_new['Temperature'] = np.interp(warm_temperatures_new['Time'], warm_temperatures['Time'], warm_temperatures['Temperature'])
-# # # # # correcting error
-# # # # for index in range(81, 87):
-# # # #     warm_temperatures_new.loc[index, "Temperature"] = warm_temperatures_new.loc[index - 1, "Temperature"]
-# # # # cold_steam_flow_new['Flow'] = np.interp(cold_steam_flow_new['Time'], cold_steam_flow['Time'], cold_steam_flow['Flow'])
-# # # # warm_steam_flow_new['Flow'] = np.interp(warm_steam_flow_new['Time'], warm_steam_flow['Time'], warm_steam_flow['Flow'])
-# # # # for index in range(82, 87):
-# # # #     warm_steam_flow_new.loc[index, "Flow"] = warm_steam_flow_new.loc[index - 1, "Flow"]
-# # # # cold_pressure_new['Pressure'] = np.interp(cold_pressure_new['Time'], cold_pressure['Time'], cold_pressure['Pressure'])
-# # # # warm_pressure_new['Pressure'] = np.interp(warm_pressure_new['Time'], warm_pressure['Time'], warm_pressure['Pressure'])
-# # # #
-# # # # # plots
-# # # # plt.plot(cold_temperatures_new['Time'], cold_temperatures_new['Temperature'])
-# # # # plt.plot(cold_pressure_new['Time'], cold_pressure_new['Pressure'])
-# # # # plt.plot(cold_steam_flow_new['Time'], cold_steam_flow_new['Flow'])
-# # # # plt.show()
-# # # # plt.plot(warm_temperatures_new['Time'], warm_temperatures_new['Temperature'])
-# # # # plt.plot(warm_pressure_new['Time'], warm_pressure_new['Pressure'])
-# # # # plt.plot(warm_steam_flow_new['Time'], warm_steam_flow_new['Flow'])
-# # # # plt.show()
-# # # #
-# # # # # finding Cp corresponding to the nominal state
-# # # # fluid = 'Water'
-# # # # warm_pressure = warm_pressure_new['Pressure'].max() * 1e5  # should be in Pascals
-# # # # cold_pressure = cold_pressure_new['Pressure'].max() * 1e5  # should be in Pascals
-# # # # warm_temperature = warm_temperatures_new['Temperature'].max() + 273.15  # should be in °K
-# # # # cold_temperature = cold_temperatures_new['Temperature'].max() + 273.15  # should be in °K
-# # # # cold_Cp = PropsSI('C', 'P', cold_pressure, 'T', cold_temperature, fluid)
-# # # # warm_Cp = PropsSI('C', 'P', warm_pressure, 'T', warm_temperature, fluid)
-# # # # nominal_thermal_power = (600 / 0.35) * 1e6
-# # # # input_Temp = 60 + 273.15
-# # # # nominal_mass_flow = nominal_thermal_power / (((cold_Cp + warm_Cp) / 2) * (((cold_temperature + warm_temperature) / 2) - input_Temp))
-# # # #
-# # # #
-# # # # # finding the evolution of P per time as a percentage of nominal thermal power
-# # # # cold_steam_flow_new.loc[:, "Flow"] *= nominal_mass_flow / 100
-# # # # warm_steam_flow_new.loc[:, "Flow"] *= nominal_mass_flow / 100
-# # # # cold_temperatures_new.loc[:, "Temperature"] += 273.15
-# # # # warm_temperatures_new.loc[:, "Temperature"] += 273.15
-# # # # cold_pressure_new.loc[:, "Pressure"] *= 1e5
-# # # # warm_pressure_new.loc[:, "Pressure"] *= 1e5
-# # # #
-# # # # cold_thermal_power = []
-# # # # warm_thermal_power = []
-# # # #
-# # # # for index in range(len(cold_steam_flow_new)):
-# # # #     cold_Cp = PropsSI('C', 'P', cold_pressure_new.loc[index, "Pressure"], 'T', cold_temperatures_new.loc[index, "Temperature"], fluid)
-# # # #     cold_thermal_power.append(((cold_steam_flow_new.loc[index, "Flow"] * cold_Cp * (cold_temperatures_new.loc[index, "Temperature"] - input_Temp)) / nominal_thermal_power) * 100)
-# # # #     warm_Cp = PropsSI('C', 'P', warm_pressure_new.loc[index, "Pressure"], 'T', warm_temperatures_new.loc[index, "Temperature"], fluid)
-# # # #     warm_thermal_power.append(((warm_steam_flow_new.loc[index, "Flow"] * warm_Cp * (warm_temperatures_new.loc[index, "Temperature"] - input_Temp)) / nominal_thermal_power) * 100)
-# # # #
-# # # # plt.plot(cold_steam_flow_new['Time'], cold_thermal_power)
-# # # # plt.show()
-# # # # plt.plot(warm_steam_flow_new['Time'], warm_thermal_power)
-# # # # plt.show()
-# # # #
-# # # # cold_thermal_power = pd.DataFrame({'Time': cold_steam_flow_new['Time'], 'ThermalPower': cold_thermal_power})
-# # # # warm_thermal_power = pd.DataFrame({'Time': warm_steam_flow_new['Time'], 'ThermalPower': warm_thermal_power})
-# # # # coldStartUpThermalPowerEvolution_filepath = filepath + "/" + "coldStartUpThermalPowerEvolution.csv"
-# # # # cold_thermal_power.to_csv(coldStartUpThermalPowerEvolution_filepath, sep=';', decimal=',', index=False, header=False)
-# # # # warmStartUpThermalPowerEvolution_filepath = filepath + "/" + "warmStartUpThermalPowerEvolution.csv"
-# # # # warm_thermal_power.to_csv(warmStartUpThermalPowerEvolution_filepath, sep=';', decimal=',', index=False, header=False)
+# the figures of evolution that we have correspond to a steam generator/turbine group of a 600MW generation capacity
+# hyp.1 -> the efficiency considered is 35% thus, the nominal thermal power is 600 / 0.35 = 1714.28571428571 MWth
+# hyp.2 -> the inlet temperature is around 60°C
+# hyp.3 -> the evolution figures don't depend on the thermal power
+
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from CoolProp.CoolProp import PropsSI
+#
+#
+#
+# def get_data_at_timestep(df, timestep):
+#     # Check if the timestep exists in the DataFrame
+#     if timestep in df['Time'].values:
+#         return df.loc[df['Time'] == timestep, 'ThermalPower'].values[0]
+#     else:
+#         # If timestep does not exist, interpolate between the nearest timesteps
+#         lower_timestep = df[df['Time'] < timestep]['Time'].max()
+#         upper_timestep = df[df['Time'] > timestep]['Time'].min()
+#
+#         # Check if lower and upper timesteps exist
+#         if pd.isna(lower_timestep) or pd.isna(upper_timestep):
+#             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
+#
+#         # Get corresponding data for lower and upper timesteps
+#         lower_data = df.loc[df['Time'] == lower_timestep, 'ThermalPower'].values[0]
+#         upper_data = df.loc[df['Time'] == upper_timestep, 'ThermalPower'].values[0]
+#
+#         # Perform linear interpolation
+#         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+#         return interpolated_value
+#
+#
+#
+# # Reading data
+# filepath = "cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData"
+# cold_temperature_file = filepath + "/" + "coldStartUpTemp.csv"
+# cold_steamflow_file = filepath + "/" + "coldStartUpFlow.csv"
+# cold_pressure_file = filepath + "/" + "coldStartUpPressure.csv"
+# warm_pressure_file = filepath + "/" + "warmStartUpPressure.csv"
+# warm_temperature_file = filepath + "/" + "warmStartUpTemp.csv"
+# warm_steamflow_file = filepath + "/" + "warmStartUpFlow.csv"
+#
+# cold_temperatures = pd.read_csv(cold_temperature_file, names=['Time', 'Temperature'], sep=';', decimal=',',header=None)
+# cold_steam_flow = pd.read_csv(cold_steamflow_file, names=['Time', 'Flow'], sep=';', decimal=',',header=None)
+# cold_pressure = pd.read_csv(cold_pressure_file, names=['Time', 'Pressure'], sep=';', decimal=',',header=None)
+# warm_pressure = pd.read_csv(warm_pressure_file, names=['Time', 'Pressure'], sep=';', decimal=',',header=None)
+# warm_temperatures = pd.read_csv(warm_temperature_file, names=['Time', 'Temperature'], sep=';', decimal=',',header=None)
+# warm_steam_flow = pd.read_csv(warm_steamflow_file, names=['Time', 'Flow'], sep=';', decimal=',',header=None)
+#
+# common_length = max([len(cold_temperatures), len(cold_steam_flow), len(cold_pressure)])
+#
+# new_time_points_cold_Temp = np.linspace(cold_temperatures["Time"].min(), cold_temperatures["Time"].max(), common_length)
+# new_time_points_warm_Temp = np.linspace(warm_temperatures["Time"].min(), warm_temperatures["Time"].max(), common_length)
+# new_time_points_cold_Flow = np.linspace(cold_steam_flow["Time"].min(), cold_steam_flow["Time"].max(), common_length)
+# new_time_points_warm_Flow = np.linspace(warm_steam_flow["Time"].min(), warm_steam_flow["Time"].max(), common_length)
+# new_time_points_cold_Pressure = np.linspace(cold_pressure["Time"].min(), cold_pressure["Time"].max(), common_length)
+# new_time_points_warm_Pressure = np.linspace(warm_pressure["Time"].min(), warm_pressure["Time"].max(), common_length)
+#
+# cold_temperatures_new = pd.DataFrame({'Time': new_time_points_cold_Temp})
+# warm_temperatures_new = pd.DataFrame({'Time': new_time_points_warm_Temp})
+# cold_steam_flow_new = pd.DataFrame({'Time': new_time_points_cold_Flow})
+# warm_steam_flow_new = pd.DataFrame({'Time': new_time_points_warm_Flow})
+# cold_pressure_new = pd.DataFrame({'Time': new_time_points_cold_Pressure})
+# warm_pressure_new = pd.DataFrame({'Time': new_time_points_warm_Pressure})
+#
+# # interpolating data
+# cold_temperatures_new['Temperature'] = np.interp(cold_temperatures_new['Time'], cold_temperatures['Time'], cold_temperatures['Temperature'])
+# warm_temperatures_new['Temperature'] = np.interp(warm_temperatures_new['Time'], warm_temperatures['Time'], warm_temperatures['Temperature'])
+# # correcting error
+# for index in range(81, 87):
+#     warm_temperatures_new.loc[index, "Temperature"] = warm_temperatures_new.loc[index - 1, "Temperature"]
+# cold_steam_flow_new['Flow'] = np.interp(cold_steam_flow_new['Time'], cold_steam_flow['Time'], cold_steam_flow['Flow'])
+# warm_steam_flow_new['Flow'] = np.interp(warm_steam_flow_new['Time'], warm_steam_flow['Time'], warm_steam_flow['Flow'])
+# for index in range(82, 87):
+#     warm_steam_flow_new.loc[index, "Flow"] = warm_steam_flow_new.loc[index - 1, "Flow"]
+# cold_pressure_new['Pressure'] = np.interp(cold_pressure_new['Time'], cold_pressure['Time'], cold_pressure['Pressure'])
+# warm_pressure_new['Pressure'] = np.interp(warm_pressure_new['Time'], warm_pressure['Time'], warm_pressure['Pressure'])
+#
+# # plots
+# # plt.plot(cold_temperatures_new['Time'], cold_temperatures_new['Temperature'], label="Temperature")
+# # plt.plot(cold_pressure_new['Time'], cold_pressure_new['Pressure'], label="Pressure")
+# # plt.plot(cold_steam_flow_new['Time'], cold_steam_flow_new['Flow'], label="Flow")
+# # plt.xlabel('Time in [hour]')
+# # plt.title('Parameters of the biomass during a cold start up')
+# # plt.legend()
+# # plt.show()
+# # plt.plot(warm_temperatures_new['Time'], warm_temperatures_new['Temperature'])
+# # plt.plot(warm_pressure_new['Time'], warm_pressure_new['Pressure'])
+# # plt.plot(warm_steam_flow_new['Time'], warm_steam_flow_new['Flow'])
+# # plt.show()
+#
+# # finding Cp corresponding to the nominal state
+# fluid = 'Water'
+# warm_pressure = warm_pressure_new['Pressure'].max() * 1e5  # should be in Pascals
+# cold_pressure = cold_pressure_new['Pressure'].max() * 1e5  # should be in Pascals
+# warm_temperature = warm_temperatures_new['Temperature'].max() + 273.15  # should be in °K
+# cold_temperature = cold_temperatures_new['Temperature'].max() + 273.15  # should be in °K
+# cold_Cp = PropsSI('C', 'P', cold_pressure, 'T', cold_temperature, fluid)
+# warm_Cp = PropsSI('C', 'P', warm_pressure, 'T', warm_temperature, fluid)
+# nominal_thermal_power = (600 / 0.35) * 1e6
+# input_Temp = 60 + 273.15
+# nominal_mass_flow = nominal_thermal_power / (((cold_Cp + warm_Cp) / 2) * (((cold_temperature + warm_temperature) / 2) - input_Temp))
+#
+#
+# # finding the evolution of P per time as a percentage of nominal thermal power
+# cold_steam_flow_new.loc[:, "Flow"] *= nominal_mass_flow / 100
+# warm_steam_flow_new.loc[:, "Flow"] *= nominal_mass_flow / 100
+# cold_temperatures_new.loc[:, "Temperature"] += 273.15
+# warm_temperatures_new.loc[:, "Temperature"] += 273.15
+# cold_pressure_new.loc[:, "Pressure"] *= 1e5
+# warm_pressure_new.loc[:, "Pressure"] *= 1e5
+#
+# cold_thermal_power = []
+# warm_thermal_power = []
+#
+# for index in range(len(cold_steam_flow_new)):
+#     cold_Cp = PropsSI('C', 'P', cold_pressure_new.loc[index, "Pressure"], 'T', cold_temperatures_new.loc[index, "Temperature"], fluid)
+#     cold_thermal_power.append(((cold_steam_flow_new.loc[index, "Flow"] * cold_Cp * (cold_temperatures_new.loc[index, "Temperature"] - input_Temp)) / nominal_thermal_power) * 100)
+#     warm_Cp = PropsSI('C', 'P', warm_pressure_new.loc[index, "Pressure"], 'T', warm_temperatures_new.loc[index, "Temperature"], fluid)
+#     warm_thermal_power.append(((warm_steam_flow_new.loc[index, "Flow"] * warm_Cp * (warm_temperatures_new.loc[index, "Temperature"] - input_Temp)) / nominal_thermal_power) * 100)
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 10
+# plt.figure(figsize=(6, 4))
+# plt.plot(cold_steam_flow_new['Time'], cold_thermal_power)
+# plt.xlabel('Time in [hour]')
+# plt.ylabel("Percent of nominal Power in [%]")
+# # plt.title('Evolution of generated heat during cold start up')
+# # plt.legend()
+# # plt.grid(True)
+# plt.savefig(filepath + "/" + "Cold_StartUp.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
+
+# plt.plot(warm_steam_flow_new['Time'], warm_thermal_power)
+# plt.show()
+#
+# cold_thermal_power = pd.DataFrame({'Time': cold_steam_flow_new['Time'], 'ThermalPower': cold_thermal_power})
+# warm_thermal_power = pd.DataFrame({'Time': warm_steam_flow_new['Time'], 'ThermalPower': warm_thermal_power})
+# coldStartUpThermalPowerEvolution_filepath = filepath + "/" + "coldStartUpThermalPowerEvolution.csv"
+# cold_thermal_power.to_csv(coldStartUpThermalPowerEvolution_filepath, sep=';', decimal=',', index=False, header=False)
+# warmStartUpThermalPowerEvolution_filepath = filepath + "/" + "warmStartUpThermalPowerEvolution.csv"
+# warm_thermal_power.to_csv(warmStartUpThermalPowerEvolution_filepath, sep=';', decimal=',', index=False, header=False)
 # # #
 # # #
 # # # # #####################################################################################################################
@@ -2452,28 +2581,28 @@
 # #####################################################################################################################
 # Running the ramping-up management case study with the rule-based strategy
 #######################################################################################################################
-from os import path, chdir
-import sys
-sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
-chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
-
-
-
-comparison_simulation_length = 8760
-performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
-                       "new_house.LTH.energy_bought", "office.LTH.energy_bought",
-                       "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-coef = 1
-def performance_norm(performance_vector: dict) -> float:
-    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-ref_performance = performance_norm(ref_results)
-
-print(f"Performance of the reference strategy: {ref_performance}")
+# from os import path, chdir
+# import sys
+# sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
+# chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
+#
+#
+#
+# comparison_simulation_length = 8760
+# performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
+#                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
+#                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
+# coef = 1
+# def performance_norm(performance_vector: dict) -> float:
+#     return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# ref_performance = performance_norm(ref_results)
+#
+# print(f"Performance of the reference strategy: {ref_performance}")
 
