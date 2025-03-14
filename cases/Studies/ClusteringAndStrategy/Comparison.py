@@ -1,6 +1,6 @@
 from typing import List, Dict, Callable
 import math
-seed = "potimarron"
+seed = 0
 
 
 def assess_reference(

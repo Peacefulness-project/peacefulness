@@ -7,7 +7,7 @@
 # Imports
 from typing import Callable
 from scipy.stats import gamma
-
+import numpy as np
 
 from datetime import datetime, timedelta
 from lib.Subclasses.Strategy.AlwaysSatisfied.AlwaysSatisfied import AlwaysSatisfied
@@ -26,7 +26,7 @@ from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.OptionsMa
 # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
 
 
-def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: str = "sunflower", standard_deviation: int = 0):
+def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation: int = 0):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -54,7 +54,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Definition of the random seed
     # The default seed is the current time (the value returned by datetime.now())
-    world.set_random_seed("sunflower")
+    world.set_random_seed(random_seed)
 
     # ##############################################################################################
     # Time parameters
@@ -119,6 +119,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Manual creation of devices
+    np.random.seed(seed=random_seed)
     def rng_generator(consumption):
         if bool(standard_deviation) & bool(consumption):
             a = (1 / standard_deviation)**2

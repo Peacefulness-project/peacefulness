@@ -29,7 +29,7 @@ for i in range(10):
     intermediate_results = open(results_path + f"IntermediateResults_{i}_seed.txt", "w")
 
     recorded_situations = situations_recording(clustering_metrics, clustering_sequences_number, create_simulation,
-                                               consumption_options, production_options, run_name, fixed_random_seed=f"{i}_seed")
+                                               consumption_options, production_options, run_name, random_seed=i*100)
 
     # clustering
     print("--- CLUSTERING PHASE ---")

@@ -28,20 +28,20 @@ clustering_metrics = [  # prices are not taken into account for now
 performance_metrics = [
     "local_network.energy_bought_outside",
     "unwanted_delivery_cuts",
+    "industrial_process.LVE.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
 exported_metrics = performance_metrics + clustering_metrics + [
     "storage.LVE.energy_bought",
     "storage.LVE.energy_sold",
-    "industrial_process.LVE.energy_bought",
     "residential_dwellings.LVE.energy_bought",
     "production.LVE.energy_sold"
 ]
 
-
+coef = 0.5
 def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return - sum(performance_vector["local_network.energy_bought_outside"]) - \
-             sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
+    return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef\
+           - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 
 # ######################################################################################################################

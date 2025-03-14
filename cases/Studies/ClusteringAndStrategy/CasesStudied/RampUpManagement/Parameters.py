@@ -39,12 +39,12 @@ exported_metrics = performance_metrics + clustering_metrics + [
     "LTH.energy_consumed",
 ]
 
+
 coef = 3
-
-
 def performance_norm(performance_vector: Dict) -> float:
-    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef - \
-             sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
+    return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) * coef\
+           - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
+
 # ######################################################################################################################
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
