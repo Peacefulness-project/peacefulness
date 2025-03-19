@@ -1,11 +1,12 @@
 # This file, we create a strategy sub-class that will be used for the Deep Reinforcement Learning method.
 # It updates the balance of each aggregator with the action/decision taken by the RL agent.
 # The decision is taken at each iteration and it is translated with the strategy_interface.
+from traceback import format_list
 
 # Imports
 from src.common.Strategy import Strategy
 from lib.Subclasses.Strategy.DRLStrategy.interface_peacefulness import *
-
+from copy import deepcopy
 
 class DeepReinforcementLearning(Strategy):
 
@@ -35,9 +36,9 @@ class DeepReinforcementLearning(Strategy):
         # these two values are to be sent to the RL agent (part of the MEG state)
         buying_price, selling_price = determine_energy_prices(self._catalog, aggregator, min_price, max_price)
         if f"{aggregator.name}.DRL_Strategy.energy_prices" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": buying_price, "selling_price": selling_price})
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": deepcopy(buying_price), "selling_price": deepcopy(selling_price)})
         else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": buying_price, "selling_price": selling_price})
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.energy_prices", {"buying_price": deepcopy(buying_price), "selling_price": deepcopy(selling_price)})
 
         message["price"] = (buying_price + selling_price) / 2  # this value is the one published in the catalog
 
@@ -49,9 +50,9 @@ class DeepReinforcementLearning(Strategy):
         forecasting_message = self.call_to_forecast(aggregator)  # this dict is to be sent to the RL agent
         if forecasting_message is not None:
             if f"{aggregator.name}.DRL_Strategy.forecasting_message" not in self._catalog.keys:
-                self._catalog.add(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
+                self._catalog.add(f"{aggregator.name}.DRL_Strategy.forecasting_message", deepcopy(forecasting_message))
             else:
-                self._catalog.set(f"{aggregator.name}.DRL_Strategy.forecasting_message", forecasting_message)
+                self._catalog.set(f"{aggregator.name}.DRL_Strategy.forecasting_message", deepcopy(forecasting_message))
 
         # Correction of the considered quantities
         # todo (verification with the self.limit_quantities doesn't work because the storage is only considered when its Emin and Emax have different signs)
@@ -63,9 +64,9 @@ class DeepReinforcementLearning(Strategy):
         maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
         if f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": maximum_energy_consumed, "production": maximum_energy_produced})
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
         else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": maximum_energy_consumed, "production": maximum_energy_produced})
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
         # Storage energy systems are only considered if they provide flexibility
         if maximum_energy_charge == 0 and maximum_energy_discharge == 0:
             formalism_message['Energy_Consumption']["energy_minimum"] = minimum_energy_consumed
@@ -77,13 +78,13 @@ class DeepReinforcementLearning(Strategy):
                 formalism_message['Energy_Storage']["energy_maximum"] = 0.0
 
         if f"{aggregator.name}.DRL_Strategy.formalism_message" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", deepcopy(formalism_message))
         else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.formalism_message", formalism_message)
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.formalism_message", deepcopy(formalism_message))
         if f"{aggregator.name}.DRL_Strategy.converter_message" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.converter_message", converter_message[aggregator.name])
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.converter_message", deepcopy(converter_message[aggregator.name]))
         else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.converter_message", converter_message[aggregator.name])
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.converter_message", deepcopy(converter_message[aggregator.name]))
 
         # Publishing the needs (before sending direct energy exchanges data to the RL agent to take the contract into account)
         # We define the min/max energy produced/consumed - todo checker les signes
@@ -102,9 +103,9 @@ class DeepReinforcementLearning(Strategy):
             if aggregator.nature.name == aggregator.superior.nature.name:
                 if len(quantities_and_prices) == 1:
                     if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
-                        self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", quantities_and_prices[0])
+                        self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
                     else:
-                        self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", quantities_and_prices[0])
+                        self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
                 else:
                     raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
 
@@ -128,15 +129,14 @@ class DeepReinforcementLearning(Strategy):
         if direct_exchanges:
             if aggregator.name in direct_exchanges:
                 if f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges" not in self._catalog.keys:
-                    self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.name])
+                    self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", deepcopy(direct_exchanges[aggregator.name]))
                 else:
-                    self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.name])
+                    self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", deepcopy(direct_exchanges[aggregator.name]))
             else:
                 if f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges" not in self._catalog.keys:
-                    self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.superior.name])
+                    self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", deepcopy(direct_exchanges[aggregator.superior.name]))
                 else:
-                    self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", direct_exchanges[aggregator.superior.name])
-
+                    self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges", deepcopy(direct_exchanges[aggregator.superior.name]))
         # Counter to call ascending and descending interfaces with my code
         if self.counter == len(self.scope) + 1:
             self.counter = 1
