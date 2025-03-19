@@ -8,6 +8,7 @@ class ResidentialDwelling(NonControllableDevice):
 
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/ResidentialDwelling/ResidentialDwelling.json"):
         self._number = parameters["number"]  # the number of dwellings represented by this device
+        self._rng_generator = parameters["rng_generator"]
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
@@ -18,7 +19,8 @@ class ResidentialDwelling(NonControllableDevice):
         super()._read_data_profiles(profiles)
         for nature_name in self._technical_profile:
             for i in range(len(self._technical_profile[nature_name])):
-                self._technical_profile[nature_name][i] *= self._number
+                consumption = self._technical_profile[nature_name][i]
+                self._technical_profile[nature_name][i] = self._number * self._rng_generator(consumption)
 
     def description(self, nature_name: str) -> Dict:
         return {"type": "ResidentialDwelling",

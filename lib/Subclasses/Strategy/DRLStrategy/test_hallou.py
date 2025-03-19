@@ -1157,94 +1157,94 @@
 # # # # # #####################################################################################################################
 # # # # # TODO creating thermal consumption profiles for the ramp-up management study case (ECOS)
 # # # # #######################################################################################################################
-# # # #
-# Imports
-from fileinput import filename
-# # #
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-from copy import deepcopy
-# # # #
 # # # # #
-my_year = np.arange(1, 8761)
+# # Imports
+# from fileinput import filename
+# # # #
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# import numpy as np
+# from copy import deepcopy
 # # # # #
-# Reading data from excel file
-my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
-my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
-my_data = my_df1.to_dict(orient='list')
-# plt.rcParams["font.family"] = "Times New Roman"
-# plt.rcParams['font.size'] = 10
-# plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
-# plt.xlabel('Time in [Hours]')
-# plt.ylabel('Outdoor Temperature in [°C]')
-# plt.title("Evolution of outdoor temperature during heating season")
-# plt.grid(True)
-# plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
-# plt.show()
-setpoints = my_df2.to_dict(orient='list')
-# # # #
-# Constructing my setpoints evolution over the year - starts in sunday
-house_setpoints = []
-office_setpoints = []
-for week in range(len(my_year) // (24 * 7)):
-    for weekday in range(5):  # temperature setpoints during the week-days
-        office_setpoints.extend(setpoints["setpoint_office_week"])
-        house_setpoints.extend(setpoints["setpoint_house_week"])
-    for weekday in range(2):  # temperature setpoints during the week-days
-        office_setpoints.extend(setpoints["setpoint_office_weekend"])
-        house_setpoints.extend(setpoints["setpoint_house_weekend"])
-# # # #
-remaining_time = len(my_year) % (24 * 7)
-# # # #
-if remaining_time != 0 and remaining_time % 24 == 0:
-    for day in range(remaining_time // 24):
-        office_setpoints.extend(setpoints["setpoint_office_week"])
-        house_setpoints.extend(setpoints["setpoint_house_week"])
-elif remaining_time % 24 != 0:
-    number_of_hours = remaining_time % 24
-    office_hours = []
-    house_hours = []
-    for hour in range(number_of_hours):
-        office_hours.append(setpoints["setpoint_office_week"][hour])
-        house_hours.append(setpoints["setpoint_house_week"][hour])
-    office_setpoints.extend(office_hours)
-    house_setpoints.extend(house_hours)
-# # # #
-# # # # Delta Temperature values through the year
-office_deltas = []
-house_deltas = []
-first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
-second_set_of_data = deepcopy(my_data['OutdoorTemperature'][:2616])
-yearly_exterior_temperature = deepcopy(first_set_of_data)
-yearly_exterior_temperature.extend(np.zeros(3432))
-yearly_exterior_temperature.extend(second_set_of_data)
-# # # #
-# # # #
-for index in range(len(first_set_of_data)):
-     if office_setpoints[index] > yearly_exterior_temperature[index]:
-         office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
-     else:
-         office_deltas.append(0.0)
-for index in range(len(first_set_of_data)):
-     if house_setpoints[index] > yearly_exterior_temperature[index]:
-         house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
-     else:
-         house_deltas.append(0.0)
-# # # #
-office_deltas.extend(np.zeros(3432))
-house_deltas.extend(np.zeros(3432))
-# # # #
-for index in range(len(second_set_of_data)):
-    if office_setpoints[index] > yearly_exterior_temperature[index]:
-        office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
-    else:
-        office_deltas.append(0.0)
-for index in range(len(second_set_of_data)):
-     if house_setpoints[index] > yearly_exterior_temperature[index]:
-         house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
-     else:
-         house_deltas.append(0.0)
+# # # # # #
+# my_year = np.arange(1, 8761)
+# # # # # #
+# # Reading data from excel file
+# my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
+# my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
+# my_data = my_df1.to_dict(orient='list')
+# # plt.rcParams["font.family"] = "Times New Roman"
+# # plt.rcParams['font.size'] = 10
+# # plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
+# # plt.xlabel('Time in [Hours]')
+# # plt.ylabel('Outdoor Temperature in [°C]')
+# # plt.title("Evolution of outdoor temperature during heating season")
+# # plt.grid(True)
+# # plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
+# # plt.show()
+# setpoints = my_df2.to_dict(orient='list')
+# # # # #
+# # Constructing my setpoints evolution over the year - starts in sunday
+# house_setpoints = []
+# office_setpoints = []
+# for week in range(len(my_year) // (24 * 7)):
+#     for weekday in range(5):  # temperature setpoints during the week-days
+#         office_setpoints.extend(setpoints["setpoint_office_week"])
+#         house_setpoints.extend(setpoints["setpoint_house_week"])
+#     for weekday in range(2):  # temperature setpoints during the week-days
+#         office_setpoints.extend(setpoints["setpoint_office_weekend"])
+#         house_setpoints.extend(setpoints["setpoint_house_weekend"])
+# # # # #
+# remaining_time = len(my_year) % (24 * 7)
+# # # # #
+# if remaining_time != 0 and remaining_time % 24 == 0:
+#     for day in range(remaining_time // 24):
+#         office_setpoints.extend(setpoints["setpoint_office_week"])
+#         house_setpoints.extend(setpoints["setpoint_house_week"])
+# elif remaining_time % 24 != 0:
+#     number_of_hours = remaining_time % 24
+#     office_hours = []
+#     house_hours = []
+#     for hour in range(number_of_hours):
+#         office_hours.append(setpoints["setpoint_office_week"][hour])
+#         house_hours.append(setpoints["setpoint_house_week"][hour])
+#     office_setpoints.extend(office_hours)
+#     house_setpoints.extend(house_hours)
+# # # # #
+# # # # # Delta Temperature values through the year
+# office_deltas = []
+# house_deltas = []
+# first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
+# second_set_of_data = deepcopy(my_data['OutdoorTemperature'][:2616])
+# yearly_exterior_temperature = deepcopy(first_set_of_data)
+# yearly_exterior_temperature.extend(np.zeros(3432))
+# yearly_exterior_temperature.extend(second_set_of_data)
+# # # # #
+# # # # #
+# for index in range(len(first_set_of_data)):
+#      if office_setpoints[index] > yearly_exterior_temperature[index]:
+#          office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+#      else:
+#          office_deltas.append(0.0)
+# for index in range(len(first_set_of_data)):
+#      if house_setpoints[index] > yearly_exterior_temperature[index]:
+#          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+#      else:
+#          house_deltas.append(0.0)
+# # # # #
+# office_deltas.extend(np.zeros(3432))
+# house_deltas.extend(np.zeros(3432))
+# # # # #
+# for index in range(len(second_set_of_data)):
+#     if office_setpoints[index] > yearly_exterior_temperature[index]:
+#         office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
+#     else:
+#         office_deltas.append(0.0)
+# for index in range(len(second_set_of_data)):
+#      if house_setpoints[index] > yearly_exterior_temperature[index]:
+#          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
+#      else:
+#          house_deltas.append(0.0)
 # # # # #
 # minTemp = min(yearly_exterior_temperature)
 # minIndex = yearly_exterior_temperature.index(minTemp)
@@ -1270,33 +1270,33 @@ for index in range(len(second_set_of_data)):
 # plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
 # plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
 # plt.show()
+# # # # # #
+# # Total consumption data (kWh)
+# old_house_total_space_heating_consumption = 1232500
+# new_house_total_space_heating_consumption = 673030
+# office_total_space_heating_consumption = 2730948
 # # # # #
-# Total consumption data (kWh)
-old_house_total_space_heating_consumption = 1232500
-new_house_total_space_heating_consumption = 673030
-office_total_space_heating_consumption = 2730948
-# # # #
-# Retrieving Cp values for each building type
-old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
-new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
-office_Cp = office_total_space_heating_consumption / sum(office_deltas)
-# # # #
+# # Retrieving Cp values for each building type
+# old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
+# new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
+# office_Cp = office_total_space_heating_consumption / sum(office_deltas)
+# # # # #
 # Consumption profiles
-old_house_profile = []
-new_house_profile = []
-office_profile = []
-for index in range(len(house_deltas)):
-    old_house_profile.append(old_house_Cp * house_deltas[index])
-    new_house_profile.append(new_house_Cp * house_deltas[index])
-for index in range(len(office_deltas)):
-    office_profile.append(office_Cp * office_deltas[index])
+# old_house_profile = []
+# new_house_profile = []
+# office_profile = []
+# for index in range(len(house_deltas)):
+#     old_house_profile.append(old_house_Cp * house_deltas[index])
+#     new_house_profile.append(new_house_Cp * house_deltas[index])
+# for index in range(len(office_deltas)):
+#     office_profile.append(office_Cp * office_deltas[index])
 # # # #
 # heat_sink = np.empty(len(my_year))
 # heat_sink.fill(1300.0)
 # # # #
-total_consumption = []
-for index in range(len(office_profile)):
-    total_consumption.append(float(old_house_profile[index] + new_house_profile[index] + office_profile[index]))
+# total_consumption = []
+# for index in range(len(office_profile)):
+#     total_consumption.append(float(old_house_profile[index] + new_house_profile[index] + office_profile[index]))
 # # # #
 # print(total_consumption.index(max(total_consumption)))
 # # Plotting the consumption profiles
@@ -1313,41 +1313,41 @@ for index in range(len(office_profile)):
 # # # plt.legend()
 # plt.show()
 # # # # # #
-first_season = deepcopy(total_consumption[:2712])
-days = [first_season[i:i + 24] for i in range(0, len(first_season), 24)]
-weekdays = []
-weekends = []
-# Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
-for i in range(0, len(days), 7):
-    weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
-    weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
-
-num_groups = len(weekends) // 8  # Number of groups of 4 weekends
-weekend_averages = []
-
-for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
-    chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
-    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
-    weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
-
-num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
-weekdays_averages = []
-
-for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
-    chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
-    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
-    weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
-
-days_array = np.array(days)
-hourly_median = np.median(days_array, axis=0)
-hourly_median_list = hourly_median.tolist()
-
-myFirstSeason = []  # 1 janv -> 23 avril inclus
-for index in range(len(weekend_averages)):
-    myFirstSeason.extend(weekdays_averages[index])
-    myFirstSeason.extend(weekend_averages[index])
-
-timeFirstSeason = np.arange(0, len(myFirstSeason), 1)
+# first_season = deepcopy(total_consumption[:2712])
+# days = [first_season[i:i + 24] for i in range(0, len(first_season), 24)]
+# weekdays = []
+# weekends = []
+# # Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
+# for i in range(0, len(days), 7):
+#     weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
+#     weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
+#
+# num_groups = len(weekends) // 8  # Number of groups of 4 weekends
+# weekend_averages = []
+#
+# for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
+#     chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
+#     avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+#     weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
+#
+# num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
+# weekdays_averages = []
+#
+# for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
+#     chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
+#     avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+#     weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
+#
+# days_array = np.array(days)
+# hourly_median = np.median(days_array, axis=0)
+# hourly_median_list = hourly_median.tolist()
+#
+# myFirstSeason = []  # 1 janv -> 23 avril inclus
+# for index in range(len(weekend_averages)):
+#     myFirstSeason.extend(weekdays_averages[index])
+#     myFirstSeason.extend(weekend_averages[index])
+#
+# timeFirstSeason = np.arange(0, len(myFirstSeason), 1)
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams['font.size'] = 10
 # plt.plot(timeFirstSeason, myFirstSeason, label="Heating Consumption Profile")
@@ -1376,19 +1376,19 @@ timeFirstSeason = np.arange(0, len(myFirstSeason), 1)
 # # startFirstSeasonMoyConso = my_year[moyFirstSeasonIndexConso] - my_year[moyFirstSeasonIndexConso] % 24
 # # endFirstSeasonMoyConso = startFirstSeasonMoyConso + 24
 # #
-firstSeasonMedConso = np.median(first_season)
-medFirstSeasonIndexConso = total_consumption.index(firstSeasonMedConso)
-startFirstSeasonMedConso = my_year[medFirstSeasonIndexConso] - my_year[medFirstSeasonIndexConso] % 24
-endFirstSeasonMedConso = startFirstSeasonMedConso + 24
+# firstSeasonMedConso = np.median(first_season)
+# medFirstSeasonIndexConso = total_consumption.index(firstSeasonMedConso)
+# startFirstSeasonMedConso = my_year[medFirstSeasonIndexConso] - my_year[medFirstSeasonIndexConso] % 24
+# endFirstSeasonMedConso = startFirstSeasonMedConso + 24
 # #
 # # fig = plt.figure()
-plt.rcParams['font.family'] = "Times New Roman"
-plt.rcParams['font.size'] = 10
+# plt.rcParams['font.family'] = "Times New Roman"
+# plt.rcParams['font.size'] = 10
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMaxConso:endFirstSeasonMaxConso], label="Max consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMinConso:endFirstSeasonMinConso], label="Min consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startFirstSeasonMoyConso:endFirstSeasonMoyConso], label="Moy consumption profile")
 # plt.plot(my_year[0:24], hourly_median_list, label="Hourly median consumption profile during the first season")
-plt.plot(my_year[0:24], total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso], label="Heat Consumption Representative Day For The Winter Season")
+# plt.plot(my_year[0:24], total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso], label="Heat Consumption Representative Day For The Winter Season")
 # # plt.plot(my_year[0:24], heat_sink[0:24], label="Biomass production profile", linestyle='--')
 # # plt.plot(my_year[0:24], 0.75 * heat_sink[0:24], label="Threshold", linestyle='--')
 # plt.title("First season representative day")
@@ -1402,40 +1402,40 @@ plt.plot(my_year[0:24], total_consumption[startFirstSeasonMedConso:endFirstSeaso
 # # print(total_consumption[startFirstSeasonMedConso:endFirstSeasonMedConso])
 # # # print(total_consumption[startFirstSeasonMoyConso:endFirstSeasonMoyConso])
 # #
-second_season = deepcopy(total_consumption[6144:])
-days = [second_season[i:i + 24] for i in range(0, len(second_season), 24)]
-weekdays = []
-weekends = []
-# Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
-for i in range(0, len(days), 7):
-    weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
-    weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
-num_groups = len(weekends) // 8  # Number of groups of 4 weekends
-weekend_averages = []
-
-for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
-    chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
-    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
-    weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
-
-num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
-weekdays_averages = []
-
-for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
-    chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
-    avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
-    weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
-
-days_array = np.array(days)
-hourly_median = np.median(days_array, axis=0)
-hourly_median_list = hourly_median.tolist()
-
-mySecondSeason = []  # 14 sept -> 31 déc inclus
-for index in range(len(weekend_averages)):
-    mySecondSeason.extend(weekdays_averages[index])
-    mySecondSeason.extend(weekend_averages[index])
-
-timeSecondSeason = np.arange(0, len(mySecondSeason), 1)
+# second_season = deepcopy(total_consumption[6144:])
+# days = [second_season[i:i + 24] for i in range(0, len(second_season), 24)]
+# weekdays = []
+# weekends = []
+# # Iterate over the days list in chunks of 7 (5 weekdays + 2 weekends)
+# for i in range(0, len(days), 7):
+#     weekdays.extend(days[i:i+5])  # First 5 days go to weekdays
+#     weekends.extend(days[i+5:i+7])  # Next 2 days go to weekends (if they exist)
+# num_groups = len(weekends) // 8  # Number of groups of 4 weekends
+# weekend_averages = []
+#
+# for i in range(0, num_groups * 8, 8):  # Process weekends in chunks of 4
+#     chunk = weekends[i:i+8]  # Extract 4 consecutive weekend lists
+#     avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+#     weekend_averages.append(avg_24h.tolist())  # Convert back to list and store
+#
+# num_groups = len(weekdays) // 20  # Number of groups of 4 weekends
+# weekdays_averages = []
+#
+# for i in range(0, num_groups * 20, 20):  # Process weekends in chunks of 4
+#     chunk = weekdays[i:i+20]  # Extract 4 consecutive weekend lists
+#     avg_24h = np.mean(chunk, axis=0)  # Compute element-wise average (hourly)
+#     weekdays_averages.append(avg_24h.tolist())  # Convert back to list and store
+#
+# days_array = np.array(days)
+# hourly_median = np.median(days_array, axis=0)
+# hourly_median_list = hourly_median.tolist()
+#
+# mySecondSeason = []  # 14 sept -> 31 déc inclus
+# for index in range(len(weekend_averages)):
+#     mySecondSeason.extend(weekdays_averages[index])
+#     mySecondSeason.extend(weekend_averages[index])
+#
+# timeSecondSeason = np.arange(0, len(mySecondSeason), 1)
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams['font.size'] = 10
 # plt.plot(timeSecondSeason, mySecondSeason, label="Heating Consumption Profile")
@@ -1448,9 +1448,9 @@ timeSecondSeason = np.arange(0, len(mySecondSeason), 1)
 # plt.show()
 
 
-days_array = np.array(days)
-hourly_median = np.median(days_array, axis=0)
-hourly_median_list = hourly_median.tolist()
+# days_array = np.array(days)
+# hourly_median = np.median(days_array, axis=0)
+# hourly_median_list = hourly_median.tolist()
 # #
 # # secondSeasonMaxConso = max(second_season)
 # # maxSecondSeasonIndexConso = total_consumption.index(secondSeasonMaxConso)
@@ -1468,27 +1468,27 @@ hourly_median_list = hourly_median.tolist()
 # # startSecondSeasonMoyConso = my_year[moySecondSeasonIndexConso] - my_year[moySecondSeasonIndexConso] % 24
 # # endSecondSeasonMoyConso = startSecondSeasonMoyConso + 24
 # #
-secondSeasonMedConso = np.median(second_season)
-medSecondSeasonIndexConso = total_consumption.index(secondSeasonMedConso)
-startSecondSeasonMedConso = my_year[medSecondSeasonIndexConso] - my_year[medSecondSeasonIndexConso] % 24
-endSecondSeasonMedConso = startSecondSeasonMedConso + 24
+# secondSeasonMedConso = np.median(second_season)
+# medSecondSeasonIndexConso = total_consumption.index(secondSeasonMedConso)
+# startSecondSeasonMedConso = my_year[medSecondSeasonIndexConso] - my_year[medSecondSeasonIndexConso] % 24
+# endSecondSeasonMedConso = startSecondSeasonMedConso + 24
 # #
 # # fig = plt.figure()
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMaxConso:endSecondSeasonMaxConso], label="Max consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMinConso:endSecondSeasonMinConso], label="Min consumption profile")
 # # plt.plot(my_year[0:24], total_consumption[startSecondSeasonMoyConso:endSecondSeasonMoyConso], label="Moy consumption profile")
 # plt.plot(my_year[0:24], hourly_median_list, label="Hourly Median consumption profile during the second season")
-plt.plot(my_year[0:24], total_consumption[startSecondSeasonMedConso:endSecondSeasonMedConso], label="Heat Consumption Representative Day For The Fall Season")
+# plt.plot(my_year[0:24], total_consumption[startSecondSeasonMedConso:endSecondSeasonMedConso], label="Heat Consumption Representative Day For The Fall Season")
 # # plt.plot(my_year[0:24], heat_sink[0:24], label="Biomass production profile", linestyle='--')
 # # plt.plot(my_year[0:24], 0.75 * heat_sink[0:24], label="Threshold", linestyle='--')
 # # plt.title("Second season representative day")
-plt.xlabel("Time step in [hours]")
-plt.ylabel("Energy in [MWh]")
-plt.legend()
-plt.grid(True)
-plt.title("Heating Consumption Profiles for Representative Days of the two heating seasons")
-plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/HeatConsumptionRepresentativeDays.pdf", format="pdf", bbox_inches="tight")
-plt.show()
+# plt.xlabel("Time step in [hours]")
+# plt.ylabel("Energy in [MWh]")
+# plt.legend()
+# plt.grid(True)
+# plt.title("Heating Consumption Profiles for Representative Days of the two heating seasons")
+# plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/HeatConsumptionRepresentativeDays.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
 # # fig.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/secondSeasonRepresentativeDay.png")
 # # plt.close(fig)
 # #
@@ -2579,30 +2579,29 @@ plt.show()
 # Max consumption of heat is in February 8th
 
 # #####################################################################################################################
-# Running the ramping-up management case study with the rule-based strategy
+# todo Running the ramping-up management case study with the rule-based strategy
 #######################################################################################################################
 # from os import path, chdir
 # import sys
 # sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
 # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
-#
-#
-#
-# comparison_simulation_length = 8760
-# performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
-#                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
-#                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-# coef = 1
-# def performance_norm(performance_vector: dict) -> float:
-#     return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
-#
-# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-# ref_results = {key: [] for key in performance_metrics}
-# for key in performance_metrics:
-#     ref_results[key] = ref_datalogger._values[key]
-# ref_performance = performance_norm(ref_results)
-#
-# print(f"Performance of the reference strategy: {ref_performance}")
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
+
+
+comparison_simulation_length = 2616
+performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
+                       "new_house.LTH.energy_bought", "office.LTH.energy_bought",
+                       "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
+coef = 1
+def performance_norm(performance_vector: dict) -> float:
+    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
 

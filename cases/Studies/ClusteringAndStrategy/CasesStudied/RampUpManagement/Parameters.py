@@ -6,67 +6,47 @@ import itertools
 from cases.Studies.ClusteringAndStrategy.Utilities import *
 
 # ######################################################################################################################
-# hyperparameters - todo à confirmer avec Timothé
+# hyperparameters -
 # ######################################################################################################################
-training_simulation_length = 24  # length of sequences used for clustering.
-sequences_number = 365  # number of sequences simulated
-gap = 24  # gap (given in iterations) between 2 sequences simulated
-cluster_number = 35  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
-
-
-random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
-seed(random_seed)
+training_simulation_length = 8760  # length of sequences used for clustering.
+clustering_sequences_number = 2  # number of sequences simulated
+gap = 1  # gap (given in iterations) between 2 sequences simulated
 
 
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
 
 
 # ######################################################################################################################
-# metrics - todo à confirmer avec Timothé
+# metrics
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
     # storage
-    # "DHN_pipelines.energy_stored",
     # consumption
-    "heat_sink.LTH.energy_bought",  # dissipation
-    "old_house.LTH.energy_bought",
-    "new_house.LTH.energy_bought",
-    "office.LTH.energy_bought",
+    "district_heating_microgrid.minimum_energy_consumption",
     # production
-    "biomass_plant.LTH.energy_sold",
+    "district_heating_microgrid.maximum_energy_production",
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
-    # "DHN_manager.money_earned",
-    # "DHN_manager.money_spent",
-
-    # "DHN_pipelines.LTH.energy_bought",
-    # "DHN_pipelines.LTH.energy_sold",
-    "heat_sink.LTH.energy_bought",
-    "old_house.LTH.energy_bought",
-    # "old_house.LTH.energy_sold",
-    "new_house.LTH.energy_bought",
-    # "new_house.LTH.energy_sold",
-    "office.LTH.energy_bought",
-    # "office.LTH.energy_sold",
-
-    # "DHN_manager.LTH.energy_bought",
-    # "DHN_manager.LTH.energy_sold",
-
     "biomass_plant.LTH.energy_sold",
-
-    # "district_heating_microgrid.energy_sold",
-    "district_heating_microgrid.energy_bought",
+    "heat_sink.LTH.energy_bought",
+    "unwanted_delivery_cuts",
 ]  # critères de performance, spécifiques au cas étudié...
 
-coef = 1
 
+exported_metrics = performance_metrics + clustering_metrics + [
+    "district_heating_microgrid.energy_bought_outside",
+    "LTH.energy_consumed",
+]
+
+
+coef = 3
 def performance_norm(performance_vector: Dict) -> float:
-    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
-
+    return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) * coef\
+           - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 # ######################################################################################################################
-# strategies, defined as an ordered list of the available levers - todo à confirmer avec Timothé
+# strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
 
 consumption_options = ["dissipation", "nothing"]
@@ -75,7 +55,7 @@ assessed_priorities_consumption = [list(toto) for toto in itertools.permutations
 assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
 assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
 
-
+threshold = 0.85
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
     real_consumption = 0.0
@@ -92,7 +72,7 @@ def ref_priorities_consumption(strategy: "Strategy"):
             if current_time % 24 > 9:
                 return ["nothing", "dissipation"]
             else:
-                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                if real_consumption >= threshold * abs(biomass_previous_power):  # threshold for accepting dissipation
                     return ["dissipation", "nothing"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
                     return ["nothing", "dissipation"]
@@ -100,7 +80,7 @@ def ref_priorities_consumption(strategy: "Strategy"):
             if 9 < current_time % 24 < 17:  # middle of the day
                 return ["nothing", "dissipation"]
             else:  # from midnight to 8 and from 17 to midnight
-                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
+                if real_consumption >= threshold * abs(biomass_previous_power):  # threshold for accepting dissipation
                     return ["dissipation", "nothing"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
                     return ["nothing", "dissipation"]
@@ -116,23 +96,23 @@ def ref_priorities_production(strategy: "Strategy"):
     biomass_previous_power = strategy._catalog.get("dictionaries")['devices']['biomass_plant'].last_energy
     current_time = strategy._catalog.get("simulation_time")
     if real_consumption > abs(biomass_previous_power):
-        return ["biomass", "gas", "naught"]
+        return ["biomass", "gas", "nothing"]
     else:
         if current_time < 2712:  # for the first heating season
             if current_time % 24 > 9:
-                return ["biomass", "gas", "naught"]
+                return ["biomass", "gas", "nothing"]
             else:
-                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
-                    return ["biomass", "naught", "gas"]
+                if real_consumption >= threshold * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["biomass", "nothing", "gas"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
-                    return ["biomass", "gas", "naught"]
+                    return ["biomass", "gas", "nothing"]
         elif current_time >= 6144:  # for the second heating season
             if 9 < current_time % 24 < 17:  # middle of the day
-                return ["biomass", "gas", "naught"]
+                return ["biomass", "gas", "nothing"]
             else:  # from midnight to 8 and from 17 to midnight
-                if real_consumption >= 0.75 * abs(biomass_previous_power):  # threshold for accepting dissipation
-                    return ["biomass", "naught", "gas"]
+                if real_consumption >= threshold * abs(biomass_previous_power):  # threshold for accepting dissipation
+                    return ["biomass", "nothing", "gas"]
                 else:  # if the consumption per generation ratio is less than the threshold we decrease generation power
-                    return ["biomass", "gas", "naught"]
+                    return ["biomass", "gas", "nothing"]
         else:  # the rest of the year
-            return ["naught", "biomass", "gas"]
+            return ["nothing", "biomass", "gas"]

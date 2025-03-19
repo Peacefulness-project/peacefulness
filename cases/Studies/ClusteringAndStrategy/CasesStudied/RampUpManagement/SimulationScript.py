@@ -6,9 +6,10 @@
 # ##############################################################################################
 # Imports
 from typing import Callable
-from datetime import datetime, timedelta
 from scipy.stats import gamma
+import numpy as np
 
+from datetime import datetime, timedelta
 from lib.Subclasses.Strategy.AlwaysSatisfied.AlwaysSatisfied import AlwaysSatisfied
 from src.common.World import World
 from src.tools.AgentGenerator import agent_generation
@@ -24,7 +25,8 @@ from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.OptionsMa
 # from os import chdir
 # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
 
-def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0):
+
+def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation: int = 0):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -57,7 +59,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime(year=2018, month=1, day=1, hour=1, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
+    start_date = datetime(year=2018, month=9, day=14, hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
     # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
@@ -113,11 +115,11 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_name = "peakload_gas_plant"  # external grid
     aggregator_grid = Aggregator(aggregator_name, LTH, strategy_grid, DHN_manager)
     aggregator_name = "district_heating_microgrid"
-    aggregator_district = Aggregator(aggregator_name, LTH, strategy_heat, DHN_manager, aggregator_grid, heat_contract, efficiency=1, capacity={"buying": 1100, "selling": 0})
+    aggregator_district = Aggregator(aggregator_name, LTH, strategy_heat, DHN_manager, aggregator_grid, heat_contract, efficiency=1, capacity={"buying": 2000, "selling": 0})
 
     # ##############################################################################################
     # Manual creation of devices
-    standard_deviation = 0.25
+    np.random.seed(seed=random_seed)
     def rng_generator(consumption):
         if bool(standard_deviation) & bool(consumption):
             a = (1 / standard_deviation)**2
@@ -145,7 +147,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
                                                             {"user": "office", "device": "office"}, parameters={"rng_generator": rng_generator},
                                                             filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
     # Thermal energy producers
-    base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1500, "autonomy": 12, "initial_energy": 300})
+    biomass_plant = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1300*12, "autonomy": 12, "initial_energy": 300})
     # peak_load = subclasses_dictionary["Device"]["DummyProducer"]("fast_gas_boiler", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "heat"}, {"max_power": 1100})
     # Thermal energy storage
     # network_pipes = subclasses_dictionary["Device"]["LatentHeatStorage"]("DHN_pipelines", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
@@ -154,7 +156,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Creation of dataloggers
 
     # datalogger used to get back producer outputs
-    # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
@@ -167,6 +169,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     for key in metrics:
         metrics_datalogger.add(key)
 
-    world.start()
+    world.start(verbose=False)
 
     return metrics_datalogger

@@ -102,7 +102,7 @@ venv.bak/
 /site
 
 # results files
-*/Results/
+Results/
 
 # mypy
 .mypy_cache/
