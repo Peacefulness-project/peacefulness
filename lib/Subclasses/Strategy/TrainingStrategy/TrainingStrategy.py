@@ -34,7 +34,7 @@ class TrainingStrategy(Strategy):
         pass
 
     def _apply_priorities_exchanges(self, aggregaor: "Aggregator", quantity_to_affect: float,
-                                    quantity_available_per_option: Dict, cons_or_prod: str) -> List[Dict]:
+                                    quantity_available_per_option: Dict, quantities_and_prices: List, cons_or_prod: str) -> List[Dict]:
         pass
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
@@ -54,21 +54,15 @@ class TrainingStrategy(Strategy):
 
         # assess quantity for consumption and prod
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
-
         quantity_available_per_option = self._assess_quantities_for_each_option(aggregator)
-
-        quantity_to_affect = min(
-            sum(quantity_available_per_option["consumption"].values()),
-            sum(quantity_available_per_option["production"].values())
-        )
-        # print(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values()),quantity_to_affect)
+        quantity_to_affect = sum(quantity_available_per_option["consumption"].values()) - sum(quantity_available_per_option["production"].values())
 
         # affect available quantities
-        if sum(quantity_available_per_option["consumption"].values()) < sum(quantity_available_per_option["production"].values()):  # if consumption is limiting
-            quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, "production")
+        quantities_and_prices = []
+        if quantity_to_affect > 0:
+            self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, quantities_and_prices, "production")
         else:
-            quantities_and_prices = self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, "consumption")
-        # print(quantities_and_prices)
+            self._apply_priorities_exchanges(aggregator, quantity_to_affect, quantity_available_per_option, quantities_and_prices, "consumption")
 
         # send the demand to the other aggregator
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
@@ -104,7 +98,6 @@ class TrainingStrategy(Strategy):
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
-        # print(minimum_energy_consumed, maximum_energy_consumed)
 
         # balance of the exchanges made with outside
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
@@ -115,8 +108,8 @@ class TrainingStrategy(Strategy):
         # ##########################################################################################
         # balance of energy available
 
-        energy_available_consumption = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) - energy_sold_outside
-        energy_available_production = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) - energy_bought_outside
+        energy_available_consumption = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) + energy_bought_outside
+        energy_available_production = min(sum(quantity_available_per_option["consumption"].values()), sum(quantity_available_per_option["production"].values())) + energy_sold_outside
 
         # ##########################################################################################
         # distribution of energy
@@ -132,5 +125,3 @@ class TrainingStrategy(Strategy):
         # ##########################################################################################
         # updates the balances
         self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
-
-

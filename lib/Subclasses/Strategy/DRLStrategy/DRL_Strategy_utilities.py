@@ -154,6 +154,8 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
             # Calculating the total efficiency of the storage cycle
             my_charging_efficiency, my_discharging_efficiency = intermediate_dict["efficiency"].values()
             intermediate_dict["efficiency"] = my_charging_efficiency * my_discharging_efficiency
+            # Calculating the current ESS capacity in kWh
+            intermediate_dict["capacity"] *= intermediate_dict["state_of_charge"]
             formalism_message[aggregator.name]["Energy_Storage"] = {**formalism_message[aggregator.name]["Energy_Storage"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             specific_message.clear()
         elif specific_message["type"] == "converter":  # if the device/energy system is for conversion

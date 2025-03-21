@@ -7,7 +7,7 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 #
 # ######################################################################################################################
 training_simulation_length = 8760  # length of sequences used for clustering.
-clustering_sequences_number = 8760  # number of sequences simulated
+clustering_sequences_number = 2  # number of sequences simulated
 gap = 1  # gap (given in iterations) between 2 sequences simulated
 
 
@@ -28,19 +28,20 @@ clustering_metrics = [  # prices are not taken into account for now
 performance_metrics = [
     "local_network.energy_bought_outside",
     "unwanted_delivery_cuts",
+    "industrial_process.LVE.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
 exported_metrics = performance_metrics + clustering_metrics + [
     "storage.LVE.energy_bought",
     "storage.LVE.energy_sold",
-    "industrial_process.LVE.energy_bought",
     "residential_dwellings.LVE.energy_bought",
+    "production.LVE.energy_sold"
 ]
 
-
+coef = 0.5
 def performance_norm(performance_vector: Dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return - sum(performance_vector["local_network.energy_bought_outside"]) - \
-             sum(performance_vector["unwanted_delivery_cuts"]) * 2  # non respect of the minimum constraints
+    return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef\
+           - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 
 # ######################################################################################################################
@@ -60,12 +61,15 @@ def ref_priorities_consumption(strategy: "Strategy"):
     current_situation = {}
     current_situation["residential_dwellings.demand"] = strategy._catalog.get("residential_dwellings.LVE.energy_wanted")["energy_maximum"]
     current_situation["industrial_process.demand"] = strategy._catalog.get("industrial_process.LVE.energy_wanted")["energy_maximum"]
+    current_situation["industrial_process.demand_min"] = strategy._catalog.get("industrial_process.LVE.energy_wanted")["energy_minimum"]
+    minimum_consumption = current_situation["residential_dwellings.demand"] + current_situation["industrial_process.demand_min"]
     total_consumption = current_situation["residential_dwellings.demand"] + \
                         current_situation["industrial_process.demand"]
-    max_prod = 100  # TODO: à paramétrer parce qu'en l'état c'est dégueu...
-    if current_situation["residential_dwellings.demand"] > max_prod:  # if minimal consumption is superior to the production...
+    max_prod = 175  # TODO: à paramétrer parce qu'en l'état c'est dégueu...
+    unstorage = - strategy._catalog.get("storage.LVE.energy_wanted")["energy_minimum"]
+    if current_situation["residential_dwellings.demand"] > max_prod + unstorage:  # if minimal consumption is superior to the production...
         return ["nothing", "industrial", "storage"]  # ...industrials are cut if possible
-    elif total_consumption > max_prod:  # if consumption is superior to production...
+    elif total_consumption > max_prod:
         return ["industrial", "nothing", "storage"]  # ... no storage is done
     else:
         return ["industrial", "storage", "nothing"]  # ... storage is done
@@ -73,4 +77,3 @@ def ref_priorities_consumption(strategy: "Strategy"):
 
 def ref_priorities_production(strategy: "Strategy"):
     return ["production", "unstorage", "grid"]
-

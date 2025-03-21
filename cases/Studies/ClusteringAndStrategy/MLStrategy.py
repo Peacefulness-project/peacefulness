@@ -63,8 +63,10 @@ class MLStrategy(TrainingStrategy):
             quantity_per_option["consumption"][priority] = self._options_consumption.loc[priority]["assess"](self, aggregator, demands)
             if priority == "nothing":
                 break
+        # print(quantity_per_option)
         for priority in priorities_production:
             quantity_per_option["production"][priority] = self._options_production.loc[priority]["assess"](self, aggregator, offers)
+            # print(quantity_per_option["production"][priority])
             if priority == "nothing":
                 break
 
@@ -81,31 +83,24 @@ class MLStrategy(TrainingStrategy):
         return quantity_per_option
 
     def _apply_priorities_exchanges(self, aggregator: "Aggregator", quantity_to_affect: float,
-                                    quantity_available_per_option: Dict, cons_or_prod: str) -> List[Dict]:
-        quantities_and_price = []
+                                    quantity_available_per_option: Dict, quantities_and_prices: List, cons_or_prod: str):
         priorities_consumption = self._get_priorities_consumption()
         priorities_production = self._get_priorities_production()
 
         if cons_or_prod == "consumption":
             for priority in priorities_consumption:
-                quantity_available = quantity_available_per_option["consumption"][priority]
-                quantity_to_affect, quantities_and_price = self._options_consumption.loc[priority]["exchange"](self, aggregator,
-                                                                                                              quantity_to_affect,
-                                                                                                              quantity_available,
-                                                                                                              quantities_and_price)
+                quantity_to_affect, quantities_and_prices = self._options_consumption.loc[priority]["exchange"](self, aggregator,
+                                                                                                                quantity_to_affect,
+                                                                                                                quantities_and_prices)
                 if priority == "nothing":
                     break
         else:
             for priority in priorities_production:
-                quantity_available = quantity_available_per_option["production"][priority]
-                quantity_to_affect, quantities_and_price = self._options_production.loc[priority]["exchange"](self, aggregator,
-                                                                                                             quantity_to_affect,
-                                                                                                             quantity_available,
-                                                                                                             quantities_and_price)
+                quantity_to_affect, quantities_and_prices = self._options_production.loc[priority]["exchange"](self, aggregator,
+                                                                                                               quantity_to_affect,
+                                                                                                               quantities_and_prices)
                 if priority == "nothing":
                     break
-
-        return quantities_and_price
 
     def _apply_priorities_distribution(self, aggregator: "Aggregator", min_price: float, max_price: float,
                                        sorted_demands, sorted_offers,
@@ -145,8 +140,7 @@ def assess_min_prod(strategy: "Strategy", aggregator: "Aggregator", offers: List
 
 
 def exchanges_min_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float,
-                       quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+                       quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -217,6 +211,7 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
 
     return [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside]
 
+
 # min consumption
 def assess_min_conso(strategy: "Strategy", aggregator: "Aggregator", demands: List[Dict]) -> float:
     quantity_for_this_option = 0
@@ -228,8 +223,7 @@ def assess_min_conso(strategy: "Strategy", aggregator: "Aggregator", demands: Li
     return quantity_for_this_option
 
 
-def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
+def exchanges_min_conso(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
