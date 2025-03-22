@@ -45,7 +45,6 @@ class DeepReinforcementLearning(Strategy):
         # Data related to the formalism variables and lateral energy exchanges (with energy conversion systems)
         formalism_message, converter_message = my_devices(self._catalog, aggregator)
         formalism_message = mutualize_formalism_message(formalism_message)  # TODO sous l'hypothèse de prendre les valeurs moyennes & ratios pour flex/inter
-
         # Data on rigid energy consumption and production forecasting
         forecasting_message = self.call_to_forecast(aggregator)  # this dict is to be sent to the RL agent
         if forecasting_message is not None:
@@ -67,6 +66,11 @@ class DeepReinforcementLearning(Strategy):
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
         else:
             self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
+        if f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities" not in self._catalog.keys:
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
+        else:
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
+
         # Storage energy systems are only considered if they provide flexibility
         if maximum_energy_charge == 0 and maximum_energy_discharge == 0:
             formalism_message['Energy_Consumption']["energy_minimum"] = minimum_energy_consumed
@@ -85,7 +89,6 @@ class DeepReinforcementLearning(Strategy):
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.converter_message", deepcopy(converter_message[aggregator.name]))
         else:
             self._catalog.set(f"{aggregator.name}.DRL_Strategy.converter_message", deepcopy(converter_message[aggregator.name]))
-
         # Publishing the needs (before sending direct energy exchanges data to the RL agent to take the contract into account)
         # We define the min/max energy produced/consumed - todo checker les signes
         message["energy_minimum"] = aggregator.capacity["selling"]

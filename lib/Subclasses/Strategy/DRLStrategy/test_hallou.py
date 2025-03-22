@@ -2584,99 +2584,103 @@
 # from os import path, chdir
 # import sys
 # sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
-# # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
-#
-#
-# comparison_simulation_length = 8760
-# performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
-#                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
-#                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-# coef = 1
-# def performance_norm(performance_vector: dict) -> float:
-#     return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
-#
-# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-# ref_results = {key: [] for key in performance_metrics}
-# for key in performance_metrics:
-#     ref_results[key] = ref_datalogger._values[key]
-# ref_performance = performance_norm(ref_results)
-#
-# print(f"Performance of the reference strategy: {ref_performance}")
+# chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
+
+
+comparison_simulation_length = 8760
+performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
+                       "new_house.LTH.energy_bought", "office.LTH.energy_bought",
+                       "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
+coef = 1
+def performance_norm(performance_vector: dict) -> float:
+    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
 
 
 
 # #####################################################################################################################
 # todo Running the limited resource management case study with the rule-based strategy
 #######################################################################################################################
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-# from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+
+
+comparison_simulation_length = 8760
+performance_metrics = ["local_network.energy_bought_outside",
+                       "unwanted_delivery_cuts",
+                       "industrial_process.LVE.energy_bought"]
+coef = 0.5
+def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+    return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef
+
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
+
+
+
+# #####################################################################################################################
+# todo exploitation des résultats Ramp-Up Management & Limited-Resource Management cases
+#######################################################################################################################
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
 #
+# filepath = "D:\dossier_y23hallo\PycharmProjects\peacefulness\cases\Studies\ClusteringAndStrategy\Results\RampUpManagement"
 #
-# comparison_simulation_length = 8760
-# performance_metrics = ["local_network.energy_bought_outside",
-#                        "unwanted_delivery_cuts",
-#                        "industrial_process.LVE.energy_bought"]
-# coef = 0.5
-# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-#     return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef
+# filename = filepath + "/" + "dissipXerror_fall.csv"
+# fall_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# fall_dict = fall_df.to_dict(orient="list")
 #
+# filename = filepath + "/" + "dissipXerror_winter.csv"
+# winter_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# winter_dict = winter_df.to_dict(orient="list")
 #
-# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-# ref_results = {key: [] for key in performance_metrics}
-# for key in performance_metrics:
-#     ref_results[key] = ref_datalogger._values[key]
-# ref_performance = performance_norm(ref_results)
+# # mytime = np.arange(0, 100, 1)
+# # myzeros = np.zeros_like(mytime)
+# winter_time = np.arange(0,len(winter_dict["abs_error"]), 1)
+# fall_time = np.arange(0, len(fall_dict["abs_error"]), 1)
 #
-# print(f"Performance of the reference strategy: {ref_performance}")
-
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-filepath = "D:\dossier_y23hallo\PycharmProjects\peacefulness\cases\Studies\ClusteringAndStrategy\Results\RampUpManagement"
-
-filename = filepath + "/" + "dissipXerror_fall.csv"
-fall_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-fall_dict = fall_df.to_dict(orient="list")
-
-filename = filepath + "/" + "dissipXerror_winter.csv"
-winter_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-winter_dict = winter_df.to_dict(orient="list")
-
-# mytime = np.arange(0, 100, 1)
-# myzeros = np.zeros_like(mytime)
-winter_time = np.arange(0,len(winter_dict["abs_error"]), 1)
-fall_time = np.arange(0, len(fall_dict["abs_error"]), 1)
-
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 10
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
-
-# Plot winter data in the first subplot
-ax1.plot(winter_time, winter_dict["abs_error"], label="Absolute Error")
-ax1.plot(winter_time, winter_dict["abs_dissip"], label="Heat dissipation")
-ax1.set_xlabel("Time in [Hours]")
-ax1.set_ylabel("Energy in [kWh]")
-ax1.set_title("Winter Season")
-ax1.grid(True)
-ax1.legend()
-
-# Plot fall data in the second subplot
-ax2.plot(fall_time, fall_dict["abs_error"], label="Absolute Error")
-ax2.plot(fall_time, fall_dict["abs_dissip"], label="Heat dissipation")
-ax2.set_xlabel("Time in [Hours]")
-ax2.set_ylabel("Energy in [kWh]")
-ax2.set_title("Fall Season")
-ax2.grid(True)
-ax2.legend()
-
-plt.tight_layout()  # Adjust layout for better spacing
-# plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/MonotoneVSprod.pdf",
-#             format="pdf", bbox_inches="tight")
-plt.show()
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 10
+#
+# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
+#
+# # Plot winter data in the first subplot
+# ax1.plot(winter_time, winter_dict["abs_error"], label="Absolute Error")
+# ax1.plot(winter_time, winter_dict["abs_dissip"], label="Heat dissipation")
+# ax1.set_xlabel("Time in [Hours]")
+# ax1.set_ylabel("Energy in [kWh]")
+# ax1.set_title("Winter Season")
+# ax1.grid(True)
+# ax1.legend()
+#
+# # Plot fall data in the second subplot
+# ax2.plot(fall_time, fall_dict["abs_error"], label="Absolute Error")
+# ax2.plot(fall_time, fall_dict["abs_dissip"], label="Heat dissipation")
+# ax2.set_xlabel("Time in [Hours]")
+# ax2.set_ylabel("Energy in [kWh]")
+# ax2.set_title("Fall Season")
+# ax2.grid(True)
+# ax2.legend()
+#
+# plt.tight_layout()  # Adjust layout for better spacing
+# # plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/MonotoneVSprod.pdf",
+# #             format="pdf", bbox_inches="tight")
+# plt.show()
 
 

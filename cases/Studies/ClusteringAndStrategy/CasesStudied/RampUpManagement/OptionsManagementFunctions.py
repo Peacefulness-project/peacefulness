@@ -16,7 +16,7 @@ def assess_dissipation(strategy: "Strategy", aggregator: "Aggregator", demands: 
     return quantity_for_this_option
 
 
-def exchanges_dissipation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_dissipation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -61,8 +61,7 @@ def assess_nothing_option(strategy: "Strategy", aggregator: "Aggregator", demand
     return quantity_for_this_option
 
 
-def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    quantity_to_affect = 0
+def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -85,7 +84,7 @@ def assess_renewable_generation(strategy: "Strategy", aggregator: "Aggregator", 
     return quantity_for_this_option
 
 
-def exchanges_renewable_generation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
+def exchanges_renewable_generation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     return quantity_to_affect, quantities_and_prices
 
 
@@ -129,8 +128,7 @@ def assess_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", dem
     return quantity_for_this_option
 
 
-def exchanges_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantity_available_for_this_option: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # message = {element: strategy._messages["bottom-up"][element] for element in strategy._messages["bottom-up"]}
+def exchanges_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
     message = strategy.__class__.information_message()
     quantity_for_this_option = aggregator.capacity["buying"] / aggregator.efficiency
     quantity_remaining = max(0, quantity_to_affect - quantity_for_this_option)
@@ -147,8 +145,6 @@ def exchanges_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", 
 
 def distribution_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
-
-
 
 
 index = ["dissipation", "nothing"]

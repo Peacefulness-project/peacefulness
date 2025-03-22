@@ -137,7 +137,8 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     subclasses_dictionary["Device"]["DummyProducer"]("production", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "elec"}, {"max_power": 175})  # creation of a heat production unit
 
     # storage
-    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 1000, "initial_SOC": 0.2},                                                            filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/ElectricalBattery.json")
+    subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 1000, "initial_SOC": 0.2},
+                                                         filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/ElectricalBattery.json")
 
 
     # consumption
@@ -154,6 +155,16 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     exhaustive_datalogger.add_all()  # add all keys
+
+    my_ESS_list = ["storage"]
+    subclasses_dictionary["Datalogger"]["StateOfChargeDatalogger"]("soc_frequency_1", "SOC_frequency_1", my_ESS_list)
+    subclasses_dictionary["Datalogger"]["MinimumEnergyDatalogger"]("device_min_quantity_frequency_1",
+                                                                   "DeviceMinQuantity_frequency_1", my_ESS_list)
+    subclasses_dictionary["Datalogger"]["MaximumEnergyDatalogger"]("device_max_quantity_frequency_1",
+                                                                   "DeviceMaxQuantity_frequency_1", my_ESS_list)
+    subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1",
+                                                                    "DeviceQuantity_frequency_1", my_ESS_list,
+                                                                    period=1)
 
     # datalogger used to export chosen metrics
     metrics_datalogger = Datalogger("metrics", "Metrics")
