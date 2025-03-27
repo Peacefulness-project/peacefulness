@@ -1158,32 +1158,32 @@
 # # # # # TODO creating thermal consumption profiles for the ramp-up management study case (ECOS)
 # # # # #######################################################################################################################
 # # # # #
-# # Imports
+# Imports
 # from fileinput import filename
-# # # #
+# # # # #
 # import pandas as pd
 # import matplotlib.pyplot as plt
 # import numpy as np
 # from copy import deepcopy
-# # # # #
 # # # # # #
+# # # # # # #
 # my_year = np.arange(1, 8761)
-# # # # # #
+# # # # # # #
 # # Reading data from excel file
 # my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
 # my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
 # my_data = my_df1.to_dict(orient='list')
-# # plt.rcParams["font.family"] = "Times New Roman"
-# # plt.rcParams['font.size'] = 10
-# # plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
-# # plt.xlabel('Time in [Hours]')
-# # plt.ylabel('Outdoor Temperature in [°C]')
-# # plt.title("Evolution of outdoor temperature during heating season")
-# # plt.grid(True)
-# # plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
-# # plt.show()
+# # # plt.rcParams["font.family"] = "Times New Roman"
+# # # plt.rcParams['font.size'] = 10
+# # # plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
+# # # plt.xlabel('Time in [Hours]')
+# # # plt.ylabel('Outdoor Temperature in [°C]')
+# # # plt.title("Evolution of outdoor temperature during heating season")
+# # # plt.grid(True)
+# # # plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
+# # # plt.show()
 # setpoints = my_df2.to_dict(orient='list')
-# # # # #
+# # # # # #
 # # Constructing my setpoints evolution over the year - starts in sunday
 # house_setpoints = []
 # office_setpoints = []
@@ -1196,7 +1196,7 @@
 #         house_setpoints.extend(setpoints["setpoint_house_weekend"])
 # # # # #
 # remaining_time = len(my_year) % (24 * 7)
-# # # # #
+# # # # # #
 # if remaining_time != 0 and remaining_time % 24 == 0:
 #     for day in range(remaining_time // 24):
 #         office_setpoints.extend(setpoints["setpoint_office_week"])
@@ -1210,8 +1210,8 @@
 #         house_hours.append(setpoints["setpoint_house_week"][hour])
 #     office_setpoints.extend(office_hours)
 #     house_setpoints.extend(house_hours)
-# # # # #
-# # # # # Delta Temperature values through the year
+# # # # # #
+# # # # # # Delta Temperature values through the year
 # office_deltas = []
 # house_deltas = []
 # first_set_of_data = deepcopy(my_data['OutdoorTemperature'][2616:])
@@ -1219,8 +1219,8 @@
 # yearly_exterior_temperature = deepcopy(first_set_of_data)
 # yearly_exterior_temperature.extend(np.zeros(3432))
 # yearly_exterior_temperature.extend(second_set_of_data)
-# # # # #
-# # # # #
+# # # # # #
+# # # # # #
 # for index in range(len(first_set_of_data)):
 #      if office_setpoints[index] > yearly_exterior_temperature[index]:
 #          office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
@@ -1231,10 +1231,10 @@
 #          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
 #      else:
 #          house_deltas.append(0.0)
-# # # # #
+# # # # # #
 # office_deltas.extend(np.zeros(3432))
 # house_deltas.extend(np.zeros(3432))
-# # # # #
+# # # # # #
 # for index in range(len(second_set_of_data)):
 #     if office_setpoints[index] > yearly_exterior_temperature[index]:
 #         office_deltas.append(office_setpoints[index] - yearly_exterior_temperature[index])
@@ -1245,43 +1245,43 @@
 #          house_deltas.append(house_setpoints[index] - yearly_exterior_temperature[index])
 #      else:
 #          house_deltas.append(0.0)
-# # # # #
-# minTemp = min(yearly_exterior_temperature)
-# minIndex = yearly_exterior_temperature.index(minTemp)
-# start_min_day = my_year[minIndex] - my_year[minIndex] % 24
-# end_min_day = start_min_day + 24
-# # # #
-# maxTemp = max(yearly_exterior_temperature)
-# maxIndex = yearly_exterior_temperature.index(maxTemp)
-# start_max_day = my_year[maxIndex] - my_year[maxIndex] % 24
-# end_max_day = start_max_day + 24
-# # #
-# print(len(first_set_of_data))
-# plt.plot(my_year[0: len(first_set_of_data)], first_set_of_data)
-# plt.show()
-# print(len(second_set_of_data))
-# plt.plot(my_year[0: len(second_set_of_data)], second_set_of_data)
-# plt.show()
-# # #
-# plt.plot(my_year, yearly_exterior_temperature)  # Plotting the Exterior Temperature values through the year
-# plt.plot(my_year, yearly_exterior_temperature)
-# plt.show()
-# # # # # # #
-# plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
-# plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
-# plt.show()
 # # # # # #
+# # minTemp = min(yearly_exterior_temperature)
+# # minIndex = yearly_exterior_temperature.index(minTemp)
+# # start_min_day = my_year[minIndex] - my_year[minIndex] % 24
+# # end_min_day = start_min_day + 24
+# # # # #
+# # maxTemp = max(yearly_exterior_temperature)
+# # maxIndex = yearly_exterior_temperature.index(maxTemp)
+# # start_max_day = my_year[maxIndex] - my_year[maxIndex] % 24
+# # end_max_day = start_max_day + 24
+# # # #
+# # print(len(first_set_of_data))
+# # plt.plot(my_year[0: len(first_set_of_data)], first_set_of_data)
+# # plt.show()
+# # print(len(second_set_of_data))
+# # plt.plot(my_year[0: len(second_set_of_data)], second_set_of_data)
+# # plt.show()
+# # # #
+# # plt.plot(my_year, yearly_exterior_temperature)  # Plotting the Exterior Temperature values through the year
+# # plt.plot(my_year, yearly_exterior_temperature)
+# # plt.show()
+# # # # # # # #
+# # plt.plot(my_year, office_deltas)  # Plotting the T° difference between exterior and offices setpoints
+# # plt.plot(my_year, house_deltas)  # Plotting the T° difference between exterior and houses setpoints
+# # plt.show()
+# # # # # # #
 # # Total consumption data (kWh)
 # old_house_total_space_heating_consumption = 1232500
 # new_house_total_space_heating_consumption = 673030
 # office_total_space_heating_consumption = 2730948
-# # # # #
-# # Retrieving Cp values for each building type
+# # # # # #
+# # # Retrieving Cp values for each building type
 # old_house_Cp = old_house_total_space_heating_consumption / sum(house_deltas)
 # new_house_Cp = new_house_total_space_heating_consumption / sum(house_deltas)
 # office_Cp = office_total_space_heating_consumption / sum(office_deltas)
-# # # # #
-# Consumption profiles
+# # # # # #
+# # Consumption profiles
 # old_house_profile = []
 # new_house_profile = []
 # office_profile = []
@@ -1290,20 +1290,21 @@
 #     new_house_profile.append(new_house_Cp * house_deltas[index])
 # for index in range(len(office_deltas)):
 #     office_profile.append(office_Cp * office_deltas[index])
-# # # #
-# heat_sink = np.empty(len(my_year))
-# heat_sink.fill(1300.0)
-# # # #
+# # # # #
+# # heat_sink = np.empty(len(my_year))
+# # heat_sink.fill(1300.0)
+# # # # #
 # total_consumption = []
 # for index in range(len(office_profile)):
 #     total_consumption.append(float(old_house_profile[index] + new_house_profile[index] + office_profile[index]))
-# # # #
-# print(total_consumption.index(max(total_consumption)))
+# # # # #
+# # print(total_consumption.index(max(total_consumption)))
 # # Plotting the consumption profiles
 # my_fig = plt.figure()
 # # # plt.plot(my_year, old_house_profile, label="Old house consumption profile")
 # # # plt.plot(my_year, new_house_profile, label="New house consumption profile")
 # # # plt.plot(my_year, office_profile, label="Office consumption profile")
+# print(max(total_consumption))
 # plt.plot(my_year, total_consumption, label="Total consumption profile")
 # plt.show()
 # # # plt.plot(my_year[:2712], total_consumption[:2712], label="Total consumption profile")
@@ -2585,102 +2586,127 @@
 # import sys
 # sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
 # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
-
-
-comparison_simulation_length = 8760
-performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
-                       "new_house.LTH.energy_bought", "office.LTH.energy_bought",
-                       "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-coef = 1
-def performance_norm(performance_vector: dict) -> float:
-    return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-ref_performance = performance_norm(ref_results)
-
-print(f"Performance of the reference strategy: {ref_performance}")
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
+#
+#
+# comparison_simulation_length = 8760
+# performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
+#                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
+#                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
+# coef = 1
+# def performance_norm(performance_vector: dict) -> float:
+#     return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# ref_performance = performance_norm(ref_results)
+#
+# print(f"Performance of the reference strategy: {ref_performance}")
 
 
 
 # #####################################################################################################################
 # todo Running the limited resource management case study with the rule-based strategy
 #######################################################################################################################
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
-
-
-comparison_simulation_length = 8760
-performance_metrics = ["local_network.energy_bought_outside",
-                       "unwanted_delivery_cuts",
-                       "industrial_process.LVE.energy_bought"]
-coef = 0.5
-def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef
-
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-ref_performance = performance_norm(ref_results)
-
-print(f"Performance of the reference strategy: {ref_performance}")
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+#
+#
+# comparison_simulation_length = 8760
+# performance_metrics = ["local_network.energy_bought_outside",
+#                        "unwanted_delivery_cuts",
+#                        "industrial_process.LVE.energy_bought"]
+# coef = 0.5
+# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+#     return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef
+#
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# ref_performance = performance_norm(ref_results)
+#
+# print(f"Performance of the reference strategy: {ref_performance}")
 
 
 
 # #####################################################################################################################
 # todo exploitation des résultats Ramp-Up Management & Limited-Resource Management cases
 #######################################################################################################################
-# import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 #
-# filepath = "D:\dossier_y23hallo\PycharmProjects\peacefulness\cases\Studies\ClusteringAndStrategy\Results\RampUpManagement"
+filepath = "D:\dossier_y23hallo\Thèse\ECOS\Limited_resource_management\plots_for_ecos"
+filename = filepath + "/" + "penaltyXepisode.csv"
+curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+curtailment_dict = curtailment_df.to_dict(orient="list")
+
+filename = filepath + "/" + "rewardXepisode.csv"
+reward_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+reward_dict = reward_df.to_dict(orient="list")
+# print(curtailment_dict.keys())
+# fall_time = np.arange(0, len(curtailment_dict["total"]), 1)
+# winter_time = np.arange(0, len(reward_dict["total"]), 1)
+# curtailment_dict["heat_load"].sort(reverse=True)
+# curtailment_dict["biomass"].sort(reverse=True)
+# reward_dict["heat_load"].sort(reverse=True)
+# reward_dict["total"].sort(reverse=True)
+# reward_dict["dissip"].sort(reverse=True)
+# reward_dict["abs_error"].sort(reverse=True)
+mytime = np.arange(0, 100, 1)
+myzeros = np.zeros_like(mytime)
+# penalty_time = np.arange(0,len(curtailment_dict["soc"]), 1)
+# reward_time = np.arange(0, len(reward_dict["abs_error"]), 1)
+filepath = "D:\dossier_y23hallo\Thèse\ECOS\Ramp_up_management\plots_for_ecos"
+filename = filepath + "/" + "penaltyXepisode.csv"
+curtailment2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+curtailment2_dict = curtailment_df.to_dict(orient="list")
+
+filename = filepath + "/" + "scoreXepisode.csv"
+reward2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+reward2_dict = reward_df.to_dict(orient="list")
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 10
+# plt.plot(penalty_time, curtailment_dict["soc"], label="The state of charge of the BESS")
+# plt.plot(curtailment_dict["episode"], curtailment_dict["penalty"], label="The constraint penalty term")
+# plt.plot(mytime, myzeros, linestyle ="--")
+# plt.plot(winter_time, reward_dict["total"], label="Heat consumption including dissipation", linestyle="--")
+# plt.plot(winter_time, reward_dict["dissip"], label="Heat dissipated")
+# plt.plot(winter_time, reward_dict["abs_error"], label="Absolute error", linestyle="--")
+# plt.xlabel("Time in [Hours]")
+# plt.ylabel("SoC in [%]")
+# plt.legend()
+# plt.grid(True)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
 #
-# filename = filepath + "/" + "dissipXerror_fall.csv"
-# fall_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-# fall_dict = fall_df.to_dict(orient="list")
-#
-# filename = filepath + "/" + "dissipXerror_winter.csv"
-# winter_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-# winter_dict = winter_df.to_dict(orient="list")
-#
-# # mytime = np.arange(0, 100, 1)
-# # myzeros = np.zeros_like(mytime)
-# winter_time = np.arange(0,len(winter_dict["abs_error"]), 1)
-# fall_time = np.arange(0, len(fall_dict["abs_error"]), 1)
-#
-# plt.rcParams["font.family"] = "Times New Roman"
-# plt.rcParams["font.size"] = 10
-#
-# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
-#
-# # Plot winter data in the first subplot
-# ax1.plot(winter_time, winter_dict["abs_error"], label="Absolute Error")
-# ax1.plot(winter_time, winter_dict["abs_dissip"], label="Heat dissipation")
-# ax1.set_xlabel("Time in [Hours]")
+# Plot fall data in the first subplot
+ax1.plot(reward_dict["episode"], reward_dict["score"], label="The average cumulated rewards")
+ax1.plot(curtailment_dict["episode"], curtailment_dict["penalty"], label="The constraint penalty term")
+ax1.plot(mytime, myzeros, linestyle="--")
+ax1.set_xlabel("Training Episodes")
 # ax1.set_ylabel("Energy in [kWh]")
-# ax1.set_title("Winter Season")
+ax1.set_title("Limited Resource Management - Case Study")
 # ax1.grid(True)
-# ax1.legend()
-#
-# # Plot fall data in the second subplot
-# ax2.plot(fall_time, fall_dict["abs_error"], label="Absolute Error")
-# ax2.plot(fall_time, fall_dict["abs_dissip"], label="Heat dissipation")
-# ax2.set_xlabel("Time in [Hours]")
+ax1.legend()
+
+# Plot winter data in the second subplot
+ax2.plot(reward2_dict["episode"], reward2_dict["score"], label="The average cumulated rewards")
+ax2.plot(curtailment2_dict["episode"], curtailment2_dict["penalty"], label="The constraint penalty term")
+ax2.plot(mytime, myzeros, linestyle="--")
+ax2.set_xlabel("Training Episodes")
 # ax2.set_ylabel("Energy in [kWh]")
-# ax2.set_title("Fall Season")
+ax2.set_title("Ramp Up Management - Case Study")
 # ax2.grid(True)
-# ax2.legend()
-#
-# plt.tight_layout()  # Adjust layout for better spacing
-# # plt.savefig("D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/MonotoneVSprod.pdf",
-# #             format="pdf", bbox_inches="tight")
-# plt.show()
+ax2.legend()
+
+plt.tight_layout()  # Adjust layout for better spacing
+plt.savefig("D:\dossier_y23hallo\Thèse\ECOS\learningRate.pdf", format="pdf", bbox_inches="tight")
+plt.show()
 
 

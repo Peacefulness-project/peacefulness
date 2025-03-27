@@ -118,7 +118,7 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
     formalism_message = {aggregator.name: {"Energy_Consumption": {}, "Energy_Production": {}, "Energy_Storage": {}}}
     converter_message = {aggregator.name: {"Energy_Conversion": {}}}
     devices_list = []
-
+    my_time = catalog.get("simulation_time")
     # Retrieving the list of devices managed by the aggregator
     for device_name in aggregator.devices:
         devices_list.append(catalog.devices[device_name])
@@ -155,6 +155,8 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
             my_charging_efficiency, my_discharging_efficiency = intermediate_dict["efficiency"].values()
             intermediate_dict["efficiency"] = my_charging_efficiency * my_discharging_efficiency
             # Calculating the current ESS capacity in kWh
+            if my_time > 0:
+                intermediate_dict["state_of_charge"] += 0.2
             intermediate_dict["capacity"] *= intermediate_dict["state_of_charge"]
             formalism_message[aggregator.name]["Energy_Storage"] = {**formalism_message[aggregator.name]["Energy_Storage"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             specific_message.clear()

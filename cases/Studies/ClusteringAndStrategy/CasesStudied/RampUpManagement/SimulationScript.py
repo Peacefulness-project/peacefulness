@@ -59,7 +59,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime(year=2018, month=9, day=14, hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
+    start_date = datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
     # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
