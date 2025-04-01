@@ -108,4 +108,16 @@ def clustering(clusters_number: int, clustering_metrics: List, raw_situations, s
     print(f"cluster centers: {cluster_centers}")
     print(f"cluster days: {cluster_days}")
     print("\n\n")
-    return sorted_cluster_centers, sorted_cluster_days, sequences_count
+
+    def find_cluster(strategy: "Strategy"):
+        current_situation = [strategy._catalog.get(key) for key in clustering_metrics]
+        distance_min = math.inf
+        for i in range(len(sorted_cluster_centers)):
+            center = sorted_cluster_centers[i]
+            distance = sum([(center[j] - current_situation[j]) ** 2 for j in range(len(clustering_metrics))])
+            if distance < distance_min:
+                distance_min = distance
+                cluster_id = i  # the cluster the center belongs to
+        return cluster_id
+
+    return sorted_cluster_centers, sorted_cluster_days, find_cluster

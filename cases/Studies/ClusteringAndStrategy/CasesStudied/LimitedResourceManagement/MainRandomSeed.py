@@ -1,6 +1,6 @@
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
-from cases.Studies.ClusteringAndStrategy.Clustering import clustering, situations_recording
+from cases.Studies.ClusteringAndStrategy.EuclidianDistanceClustering import clustering, situations_recording
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, assess_reference
 

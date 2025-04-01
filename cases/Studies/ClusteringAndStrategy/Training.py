@@ -3,14 +3,23 @@ import shutil
 from cases.Studies.ClusteringAndStrategy.Utilities import *
 import math
 
-def training(simulation_length: int, cluster_centers: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict, create_simulation: Callable, case_name: str, clustering_metrics: List, complement_path: str) -> Dict:
+
+def training(simulation_length: int, cluster_centers: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict, create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> (Dict, Callable, Callable):
     # performance assessment phase
     print("identification of the relevant strategy for each cluster")
     research_method = bricolage
     best_strategies = research_method(cluster_centers, simulation_length,
                                       performance_metrics, performance_norm, assessed_priorities,
-                                      create_simulation, case_name, clustering_metrics, complement_path)
+                                      create_simulation, find_cluster, case_name, complement_path)
     print("Done\n")
+
+    def find_strategy(cons_or_prod: str):
+        def find(strategy: "Strategy"):  # function identifying the cluster and the relevant strategy
+            cluster_rank = find_cluster(strategy)
+            ordered_list = best_strategies[cluster_rank][1]
+            return ordered_list[cons_or_prod]
+
+        return find
 
     print("\n\n")
     print(f"best couples clusters/strategies:")
@@ -18,7 +27,7 @@ def training(simulation_length: int, cluster_centers: List, performance_norm: Ca
         print(cluster, strategy)
     print("\n\n")
 
-    return best_strategies
+    return best_strategies, find_strategy("consumption"), find_strategy("production")
 
 
 # def systematic_test(cluster_center_start_dates: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, case_name: str) -> Tuple:
@@ -103,7 +112,7 @@ def training(simulation_length: int, cluster_centers: List, performance_norm: Ca
 #
 # return best_strategy
 
-def bricolage(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, case_name: str, clustering_metrics: List, complement_path: str) -> Dict:
+def bricolage(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> Dict:
     """
     Clusters are sorted by the number of days inside.
     For the cluster i, all the strategies are tested knowing that:
@@ -112,6 +121,7 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
 
     Parameters
     ----------
+    find_cluster
     cluster_centers
     simulation_length
     performance_metrics
@@ -130,17 +140,6 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
     random_priorities_consumption = random_order_priorities(assessed_priorities_consumption[0])
     random_priorities_production = random_order_priorities(assessed_priorities_production[0])
     best_strategies = {}
-
-    def find_cluster(strategy: "Strategy"):
-        current_situation = [strategy._catalog.get(key) for key in clustering_metrics]
-        distance_min = math.inf
-        for i in range(len(cluster_centers)):
-            center = cluster_centers[i]
-            distance = sum([(center[j] - current_situation[j]) ** 2 for j in range(len(center))])
-            if distance < distance_min:
-                distance_min = distance
-                cluster_id = i
-        return cluster_id
 
     for k in range(len(cluster_centers)):
         performances_record = PerformanceRecord([k])
@@ -174,16 +173,15 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
                 raw_outputs = {}
                 for key in performance_metrics:
                     raw_outputs[key] = datalogger.get_values(key)
-
                 performance = performance_norm(raw_outputs)
                 print(f"performance reached: {performance}")
-
                 performances_record.add_to_record([assessed_priorities_consumption[i], assessed_priorities_production[j]], 0, performance)
                 print()
 
         # selection
         performance, strategy_indices = performances_record.sort_strategies(0)[0]  # the maximum value is retained
         best_strategies[k] = (performance, {"consumption": strategy_indices[0], "production": strategy_indices[1]})
+
         print(f"best strategy performance: {best_strategies[k][0]}")
         print(f"best strategy name: {best_strategies[k][1]}")
         print(best_strategies)

@@ -1,6 +1,6 @@
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
-from cases.Studies.ClusteringAndStrategy.Clustering import clustering, situations_recording
+from cases.Studies.ClusteringAndStrategy.EuclidianDistanceClustering import clustering, situations_recording
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, assess_reference
 
@@ -25,7 +25,7 @@ if run_name not in os.listdir(f"./cases/Studies/ClusteringAndStrategy/Results/{c
 # intermediate_results.close()
 
 
-for i in range(1, 10):
+for i in range(1):
     cluster_number = 3
     intermediate_results = open(results_path + f"IntermediateResults_{i}_seed.txt", "w")
 
@@ -35,23 +35,27 @@ for i in range(1, 10):
     # clustering
     print("--- CLUSTERING PHASE ---")
     start_time = time.process_time()
-    cluster_centers, center_sequences, cluster_size = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_sequences_number, random_seed=i*100)
+    cluster_centers, center_sequences, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_sequences_number, random_seed=i*100)
     intermediate_results.write("cluster centers:\n" + str(cluster_centers) + "\n")
     intermediate_results.write("center sequences:\n" + str(center_sequences) + "\n")
-    intermediate_results.write("cluster cardinal:\n" + str(cluster_size) + "\n")
+    # intermediate_results.write("cluster cardinal:\n" + str(cluster_size) + "\n")
     clustering_duration = time.process_time() - start_time
 
     # training
     print("--- TRAINING PHASE ---")
     start_time = time.process_time()
-    best_strategies = training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities, create_simulation, case, clustering_metrics, run_name)
+    best_strategies, find_strategy_consumption, find_strategy_production =\
+        training(training_simulation_length, cluster_centers, performance_norm, exported_metrics, assessed_priorities,
+                 create_simulation, find_cluster, case, run_name)
     intermediate_results.write("best couples strategies/clusters:\n" + str(best_strategies) + "\n")
     training_duration = time.process_time() - start_time
 
     # comparison
     print("--- COMPARISON PHASE ---")
     start_time = time.process_time()
-    tested_performance, clusters_situation = assess_performance(best_strategies, cluster_centers, clustering_metrics, comparison_simulation_length, performance_norm, exported_metrics, create_simulation, run_name)
+    tested_performance, clusters_situation = \
+        assess_performance(find_strategy_consumption, find_strategy_production, comparison_simulation_length,
+                           performance_norm, exported_metrics, create_simulation, run_name)
     intermediate_results.write("improved performance\n" + str(tested_performance) + "\n")
     intermediate_results.close()
 
