@@ -1,8 +1,0 @@
-{
-  "technical_data": {
-    "dummy_usage": {
-      "usage_profile": {"nature": "LVE", "efficiency": 0.25, "max_power": 20, "surface": 10},
-      "efficiency_variation": 0
-    }
-  }
-}
