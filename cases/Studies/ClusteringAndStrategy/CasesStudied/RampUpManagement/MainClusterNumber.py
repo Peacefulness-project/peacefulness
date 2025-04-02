@@ -8,7 +8,8 @@ import time
 import os
 
 
-run_name = "test"
+# export management
+run_name = "ClusterNumber"
 case = "RampUpManagement"
 results_path = f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/"
 if "Results" not in os.listdir("./cases/Studies/ClusteringAndStrategy"):
@@ -18,12 +19,11 @@ if case not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
 if run_name not in os.listdir(f"./cases/Studies/ClusteringAndStrategy/Results/{case}"):
     os.mkdir(f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/")
 
-
 intermediate_results = open(results_path + f"IntermediateResults_common.txt", "w")
 ref_performance = assess_reference(comparison_simulation_length, performance_norm, ref_priorities_consumption, ref_priorities_production, exported_metrics, create_simulation)
 intermediate_results.write("reference performance\n" + str(ref_performance) + "\n")
 intermediate_results.close()
-recorded_situations = situations_recording(clustering_metrics, clustering_sequences_number, create_simulation, consumption_options, production_options, run_name)
+recorded_situations = situations_recording(clustering_metrics, clustering_batch_size, create_simulation, consumption_options, production_options, run_name)
 
 
 for i in range(2, 11):
@@ -33,7 +33,7 @@ for i in range(2, 11):
     # clustering
     print("--- CLUSTERING PHASE ---")
     start_time = time.process_time()
-    cluster_centers, cluster_size, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_sequences_number)
+    cluster_centers, cluster_size, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_batch_size)
     intermediate_results.write("cluster centers:\n" + str(cluster_centers) + "\n")
     intermediate_results.write("cluster cardinal:\n" + str(cluster_size) + "\n")
     clustering_duration = time.process_time() - start_time
@@ -57,14 +57,14 @@ for i in range(2, 11):
     intermediate_results.close()
 
     # exporting the clusters to which each hour is attached
-    cluster_along_time = open(results_path + f"ClustersALongTime_{cluster_number}.csv", "w")
+    cluster_along_time = open(results_path + f"ClustersALongTime_{i}.csv", "w")
     for moment, cluster in clusters_situation.items():
         cluster_along_time.write(f"{moment.strftime('%m,%d,%H')},{cluster}\n")
     cluster_along_time.close()
     comparison_duration = time.process_time() - start_time
 
     # post-treatment
-    file = open(results_path + f"MesureDuTemps_{cluster_number}_clusters.txt", "w")
+    file = open(results_path + f"MesureDuTemps_{i}.txt", "w")
     file.write(f"temps clustering: {clustering_duration} s\n")
     file.write(f"temps training: {training_duration} s\n")
     file.write(f"temps comparaison: {comparison_duration} s\n")

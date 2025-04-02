@@ -13,7 +13,7 @@ def situations_recording(clustering_metrics: List, sequences_number: int, create
     print(f"creation of the situation set")
     raw_situations = {key: [] for key in clustering_metrics}
     for i in range(sequences_number):
-        print(f"situation starting {i} hours past the initial start")
+        print(f"year {i} of batch")
         metrics_datalogger = create_simulation(8760, random_order_priorities(consumption_options),
                                                random_order_priorities(production_options), f"{complement_path}/clustering/sequence_{i}",
                                                clustering_metrics, delay_days=i, random_seed=random_seed, standard_deviation=0.1)

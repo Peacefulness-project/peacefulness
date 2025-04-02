@@ -8,19 +8,15 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 # ######################################################################################################################
 # hyperparameters -
 # ######################################################################################################################
-training_simulation_length = 8760  # length of sequences used for clustering.
-clustering_sequences_number = 2  # number of sequences simulated
-gap = 1  # gap (given in iterations) between 2 sequences simulated
-
-
+training_simulation_length = 8760  # length of sequences used for training
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
-
+clustering_batch_size = 2  # number of years simulated for clustering
+cluster_number = 3  # number of clusters wanted for clustering
 
 # ######################################################################################################################
 # metrics
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
-    # storage
     # consumption
     "district_heating_microgrid.minimum_energy_consumption",
     # production
