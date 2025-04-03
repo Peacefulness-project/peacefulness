@@ -2594,16 +2594,19 @@
 # performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
 #                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
 #                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-# coef = 1
+# coef1 = 1
+# coef2 = 1
 # def performance_norm(performance_vector: dict) -> float:
-#     return (abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"]))) * coef
+#     total_outside = sum(abs(element["outside"]) for element in performance_vector["district_heating_microgrid.energy_bought"])
+#     return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - coef1 * abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) - coef2 * total_outside
+#
 #
 # ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
 # ref_results = {key: [] for key in performance_metrics}
 # for key in performance_metrics:
 #     ref_results[key] = ref_datalogger._values[key]
+# # print(ref_results["district_heating_microgrid.energy_bought"])
 # ref_performance = performance_norm(ref_results)
-#
 # print(f"Performance of the reference strategy: {ref_performance}")
 
 
@@ -2619,9 +2622,10 @@
 # performance_metrics = ["local_network.energy_bought_outside",
 #                        "unwanted_delivery_cuts",
 #                        "industrial_process.LVE.energy_bought"]
-# coef = 0.5
+# coef1 = 2
+# coef2 = 0.5
 # def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-#     return - sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef
+#     return - coef1 * sum(performance_vector["local_network.energy_bought_outside"]) + sum(performance_vector["industrial_process.LVE.energy_bought"]) * coef2
 #
 #
 # ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
@@ -2637,76 +2641,218 @@
 # #####################################################################################################################
 # todo exploitation des résultats Ramp-Up Management & Limited-Resource Management cases
 #######################################################################################################################
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# # #
 #
-filepath = "D:\dossier_y23hallo\Thèse\ECOS\Limited_resource_management\plots_for_ecos"
-filename = filepath + "/" + "penaltyXepisode.csv"
-curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-curtailment_dict = curtailment_df.to_dict(orient="list")
-
-filename = filepath + "/" + "rewardXepisode.csv"
-reward_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-reward_dict = reward_df.to_dict(orient="list")
-# print(curtailment_dict.keys())
+# # cold_startup = {"time_step": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+# #                 "energy": [0, 0.015119328903383002, 0.1195973380807878, 0.2164839934098297, 0.31337064873887166, 0.5154843893926306, 0.7175981300463896, 0.9197118707001486, 1]}
+# # for index in range(len(cold_startup["energy"])):
+# #     cold_startup["energy"][index] *= 100
+# # def get_score_at_episode(df: dict, timestep: int):
+# #     """
+# #     Give back the value of %Pth as a function of the timestep using interpolation (if it doesn't already exist in the data).
+# #     """
+# #     # Check if the timestep exists in the DataFrame
+# #     if timestep in df['episode']:
+# #         return df['score'][df['episode'].index(timestep)]
+# #     else:
+# #         # If timestep does not exist, interpolate between the nearest timesteps
+# #         lower_timestep = max((t for t in df["episode"] if t < timestep), default=None)
+# #         upper_timestep = min((t for t in df["episode"] if t > timestep), default=None)
+# #
+# #         # Check if lower and upper timesteps exist
+# #         if lower_timestep is None or upper_timestep is None:
+# #             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
+# #
+# #         # Get corresponding data for lower and upper timesteps
+# #         lower_data = df['score'][df['episode'].index(lower_timestep)]
+# #         upper_data = df['score'][df['episode'].index(upper_timestep)]
+# #
+# #         # Perform linear interpolation
+# #         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+# #
+# #         return interpolated_value
+# #
+# # def get_penalty_at_episode(df: dict, timestep: int):
+# #     """
+# #     Give back the value of %Pth as a function of the timestep using interpolation (if it doesn't already exist in the data).
+# #     """
+# #     # Check if the timestep exists in the DataFrame
+# #     if timestep in df['episode']:
+# #         return df['penalty'][df['episode'].index(timestep)]
+# #     else:
+# #         # If timestep does not exist, interpolate between the nearest timesteps
+# #         lower_timestep = max((t for t in df["episode"] if t < timestep), default=None)
+# #         upper_timestep = min((t for t in df["episode"] if t > timestep), default=None)
+# #
+# #         # Check if lower and upper timesteps exist
+# #         if lower_timestep is None or upper_timestep is None:
+# #             raise ValueError(f"Timestep {timestep} is out of bounds for interpolation.")
+# #
+# #         # Get corresponding data for lower and upper timesteps
+# #         lower_data = df['penalty'][df['episode'].index(lower_timestep)]
+# #         upper_data = df['penalty'][df['episode'].index(upper_timestep)]
+# #
+# #         # Perform linear interpolation
+# #         interpolated_value = lower_data + (upper_data - lower_data) * (timestep - lower_timestep) / (upper_timestep - lower_timestep)
+# #
+# #         return interpolated_value
+#
+# filepath = "D:\dossier_y23hallo\Thèse\ECOS/Ramp_up_management\plots_for_ecos"
+# filename = filepath + "/" + "consoXdissipXerror_fall.csv"
+# curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# curtailment_dict = curtailment_df.to_dict(orient="list")
+# #
+# # filename = filepath + "/" + "scoreXepisode.csv"
+# # reward_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# # reward_dict = reward_df.to_dict(orient="list")
+# # my_episode = np.arange(1,101,1)
+# # reward = []
+# # penalty_term = []
+# # for episode in my_episode:
+# #     reward.append(get_score_at_episode(reward_dict, episode))
+# #     penalty_term.append(get_penalty_at_episode(curtailment_dict, episode))
+# #
+# # score = []
+# # for index in range(len(my_episode)):
+# #     score.append(reward[index]*8760 - penalty_term[index]*8760)
+# testi = []
+# test2 = []
+# test3 = []
+# for index in range(len(curtailment_dict["total"])):
+#     test3.append(abs(curtailment_dict["abs_dissip"][index]) - abs(curtailment_dict["abs_error"][index]))
+#     if abs(curtailment_dict["abs_dissip"][index]) >= abs(curtailment_dict["abs_error"][index]):
+#         testi.append(curtailment_dict["abs_dissip"][index])
+#         test2.append(0)
+#     else:
+#         testi.append(0)
+#         test2.append(curtailment_dict["abs_error"][index])
 # fall_time = np.arange(0, len(curtailment_dict["total"]), 1)
-# winter_time = np.arange(0, len(reward_dict["total"]), 1)
-# curtailment_dict["heat_load"].sort(reverse=True)
-# curtailment_dict["biomass"].sort(reverse=True)
-# reward_dict["heat_load"].sort(reverse=True)
-# reward_dict["total"].sort(reverse=True)
-# reward_dict["dissip"].sort(reverse=True)
-# reward_dict["abs_error"].sort(reverse=True)
-mytime = np.arange(0, 100, 1)
-myzeros = np.zeros_like(mytime)
-# penalty_time = np.arange(0,len(curtailment_dict["soc"]), 1)
-# reward_time = np.arange(0, len(reward_dict["abs_error"]), 1)
-filepath = "D:\dossier_y23hallo\Thèse\ECOS\Ramp_up_management\plots_for_ecos"
-filename = filepath + "/" + "penaltyXepisode.csv"
-curtailment2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-curtailment2_dict = curtailment_df.to_dict(orient="list")
-
-filename = filepath + "/" + "scoreXepisode.csv"
-reward2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-reward2_dict = reward_df.to_dict(orient="list")
-
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 10
-# plt.plot(penalty_time, curtailment_dict["soc"], label="The state of charge of the BESS")
-# plt.plot(curtailment_dict["episode"], curtailment_dict["penalty"], label="The constraint penalty term")
-# plt.plot(mytime, myzeros, linestyle ="--")
-# plt.plot(winter_time, reward_dict["total"], label="Heat consumption including dissipation", linestyle="--")
-# plt.plot(winter_time, reward_dict["dissip"], label="Heat dissipated")
-# plt.plot(winter_time, reward_dict["abs_error"], label="Absolute error", linestyle="--")
+# # print(max(score)/ref_performance*100)
+# # plt.figure(figsize=(5,5))
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 12
+# # threshold = np.empty(len(score))
+# # threshold.fill(ref_performance/8760)
 # plt.xlabel("Time in [Hours]")
-# plt.ylabel("SoC in [%]")
+# plt.ylabel("Energy in [kWh]")
+# # plt.plot(fall_time, curtailment_dict["abs_dissip"], label="Dissipation")
+# # plt.plot(fall_time, zeros_like(fall_time))
+# # plt.plot(fall_time, testi, label="Dissipation minus error", linestyle='--')
+# # plt.plot(fall_time, test2, label="Error minus Dissipation", linestyle='--')
+# plt.plot(fall_time, test3, label="Difference", linestyle='--')
+# # plt.xlim([0,8])
+# # plt.plot(cold_startup["time_step"], cold_startup["energy"])
+# # plt.plot(my_episode,penalty_term, label="The average cumulated penalty term obtained during an episode")
+# # plt.plot(my_episode,threshold, label='Score of the rule-based strategy', linestyle="--")
+# # plt.plot(my_episode,zeros_like(threshold), linestyle="--")
 # plt.legend()
-# plt.grid(True)
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
+# # plt.show()
+# # plt.tight_layout()  # Adjust layout for better spacing
+# # plt.show()
+# # plt.savefig("D:\dossier_y23hallo\Thèse\ECOS/rampUpLR.pdf", format="pdf", bbox_inches="tight")
 #
-# Plot fall data in the first subplot
-ax1.plot(reward_dict["episode"], reward_dict["score"], label="The average cumulated rewards")
-ax1.plot(curtailment_dict["episode"], curtailment_dict["penalty"], label="The constraint penalty term")
-ax1.plot(mytime, myzeros, linestyle="--")
-ax1.set_xlabel("Training Episodes")
-# ax1.set_ylabel("Energy in [kWh]")
-ax1.set_title("Limited Resource Management - Case Study")
-# ax1.grid(True)
-ax1.legend()
+# # # # # print(curtailment_dict.keys())
+# # # # winter_time = np.arange(0, len(reward_dict["total"]), 1)
+# # # # curtailment_dict["heat_load"].sort(reverse=True)
+# # reward_dict["biomass"].sort(reverse=True)
+# # curtailment_dict["heat_load"].sort(reverse=True)
+# # curtailment_dict["total"].sort(reverse=True)
+# # curtailment_dict["abs_dissip"].sort(reverse=True)
+# # curtailment_dict["abs_error"].sort(reverse=True)
+# # # mytime = np.arange(0, 100, 1)
+# # # myzeros = np.zeros_like(mytime)
+# # # penalty_time = np.arange(0,len(curtailment_dict["drl"]), 1)
+# # # reward_time = np.arange(0, len(reward_dict["abs_error"]), 1)
+# # # filepath = "D:\dossier_y23hallo\Thèse\ECOS\Ramp_up_management\plots_for_ecos"
+# # # filename = filepath + "/" + "penaltyXepisode.csv"
+# # # curtailment2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# # # curtailment2_dict = curtailment_df.to_dict(orient="list")
+# #
+# # # filename = filepath + "/" + "scoreXepisode.csv"
+# # # reward2_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# # # reward2_dict = reward_df.to_dict(orient="list")
+# #
+# # # day1 = [1633.0353769963308, 1690.9817935994265, 1664.6425133252924, 1569.8211043384085, 1543.4818240642742, 1548.749680119101, 1673.786088129305, 1737.0003607872275, 1970.1781645052508, 1755.5882035629902, 1439.5168402733775, 1155.0526133127264, 1049.695492216189, 960.1419392841321, 902.1955226810364, 881.1240984617291, 881.1240984617291, 1021.9640746364134, 841.4648314666589, 830.929119357005, 836.196975411832, 825.6612633021782, 799.3219830280439, 684.8212871274936]
+# # # my_time1 = np.arange(0, len(day1), 1)
+# # # day2 = [1348.5711500356797, 1327.4997258163721, 1327.4997258163721, 1385.4461424194678, 1448.6604150773906, 1564.5532482835815, 1747.5360728968813, 1705.393224458266, 1864.8210434087132, 1571.2132416440495, 1297.284726793052, 1112.9097648741115, 975.9455074486127, 896.9276666262095, 849.5169621327677, 844.249106077941, 886.3919545165559, 1085.1783472943362, 1004.7683691662919, 1125.9290584273099, 1204.9468992497132, 1299.768308236597, 1389.3218611686539, 1327.4997258163721]
+# # # my_time2 = np.arange(0, len(day2), 1)
+# #
+# #
+# #
+# # plt.rcParams["font.family"] = "Times New Roman"
+# # plt.rcParams["font.size"] = 12
+# # # # plt.plot(winter_time, reward_dict["heat_load"], label="Space heating demand")
+# # # # plt.plot(winter_time, reward_dict["total"], label="Heat consumption including dissipation", linestyle="--")
+# # # # plt.plot(my_time1, day1, label="Heat Consumption Representative Day For The Winter Season")
+# # # # plt.plot(my_time2, day2, label="Heat Consumption Representative Day For The Fall Season")
+# # # plt.plot(reward_dict["episode"], reward_dict["score"], label="The average cumulated rewards")
+# # plt.plot(fall_time, curtailment_dict["heat_load"], label="Space heating demand")
+# # plt.plot(fall_time, curtailment_dict["total"], label="Heat consumption including dissipation of biomass energy", linestyle="--")
+# # plt.plot(fall_time, reward_dict["biomass"], label="Biomass heat production")
+# # plt.plot(fall_time, curtailment_dict["abs_dissip"], label="Biomass heat dissipated")
+# # plt.plot(fall_time, curtailment_dict["abs_error"], label="Absolute error w.r.t energy conservation", linestyle="--")
+# # # # plt.plot(reward_dict, reward_dict["abs_error"], label="Absolute error", linestyle="--")
+# # # # plt.plot(curtailment_dict["time"], curtailment_dict["energy"], label="Heating Consumption Profile - Winter Season")
+# # # # plt.plot(reward_dict["time"], reward_dict["energy"], label="Heating Consumption Profile - Fall Season", linestyle="--")
+# # # plt.plot(mytime, myzeros, linestyle ="--")
+# # # # # plt.plot(winter_time, reward_dict["total"], label="Heat consumption including dissipation", linestyle="--")
+# # # # # plt.plot(winter_time, reward_dict["dissip"], label="Heat dissipated")
+# # # # # plt.plot(winter_time, reward_dict["abs_error"], label="Absolute error", linestyle="--")
+# # plt.xlabel("Time in [Hours]")
+# # plt.ylabel("Energy in [MWh]")
+# # plt.legend()
+# plt.grid(True)
+# # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # Create two subplots side by side
+# # #
+# # # Plot fall data in the first subplot
+# # ax1.plot(reward_dict["episode"], reward_dict["score"], label="The average cumulated rewards")
+# # ax1.plot(curtailment_dict["episode"], curtailment_dict["penalty"], label="The constraint penalty term")
+# # # ax1.plot(mytime, myzeros, linestyle="--")
+# # ax1.set_xlabel("Training Episodes")
+# # # ax1.set_ylabel("Energy in [kWh]")
+# # ax1.set_title("Limited Resource Management - Case Study")
+# # # ax1.grid(True)
+# # ax1.legend()
+# #
+# # # Plot winter data in the second subplot
+# # ax2.plot(reward2_dict["episode"], reward2_dict["score"], label="The average cumulated rewards")
+# # ax2.plot(curtailment2_dict["episode"], curtailment2_dict["penalty"], label="The constraint penalty term")
+# # ax2.plot(mytime, myzeros, linestyle="--")
+# # ax2.set_xlabel("Training Episodes")
+# # # ax2.set_ylabel("Energy in [kWh]")
+# # ax2.set_title("Ramp Up Management - Case Study")
+# # # ax2.grid(True)
+# # ax2.legend()
+#
+# plt.tight_layout()  # Adjust layout for better spacing
+# # plt.savefig("D:\dossier_y23hallo\Thèse\ECOS/Cold_StartUp.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
 
-# Plot winter data in the second subplot
-ax2.plot(reward2_dict["episode"], reward2_dict["score"], label="The average cumulated rewards")
-ax2.plot(curtailment2_dict["episode"], curtailment2_dict["penalty"], label="The constraint penalty term")
-ax2.plot(mytime, myzeros, linestyle="--")
-ax2.set_xlabel("Training Episodes")
-# ax2.set_ylabel("Energy in [kWh]")
-ax2.set_title("Ramp Up Management - Case Study")
-# ax2.grid(True)
-ax2.legend()
 
-plt.tight_layout()  # Adjust layout for better spacing
-plt.savefig("D:\dossier_y23hallo\Thèse\ECOS\learningRate.pdf", format="pdf", bbox_inches="tight")
-plt.show()
+# #####################################################################################################################
+# todo Running the HEMS case study for the SDEWES conference
+#######################################################################################################################
+from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.SDEWES.SimulationScript import create_simulation
+
+
+comparison_simulation_length = 8760
+performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_bought_inside"]
+coef1 = 1
+coef2 = 1
+def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+    return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_bought_inside"]) * coef2
+
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
 
 
