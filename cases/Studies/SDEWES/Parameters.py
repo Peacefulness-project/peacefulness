@@ -20,29 +20,22 @@ comparison_simulation_length = 8760  # length of the final run aimed at evaluati
 # metrics
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
-    # storage
-    # consumption
-    "district_heating_microgrid.minimum_energy_consumption",
-    # production
-    "district_heating_microgrid.maximum_energy_production",
+    "home_aggregator.energy_bought_outside",
+    "home_aggregator.energy_sold_outside"
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
-    "biomass_plant.LTH.energy_sold",
-    "heat_sink.LTH.energy_bought",
-    "unwanted_delivery_cuts",
+    "home_aggregator.energy_bought_outside",
+    "home_aggregator.energy_sold_outside",
+    "unwanted_delivery_cuts"
 ]  # critères de performance, spécifiques au cas étudié...
 
 
-exported_metrics = performance_metrics + clustering_metrics + [
-    "district_heating_microgrid.energy_bought_outside",
-    "LTH.energy_consumed",
-]
+exported_metrics = performance_metrics + clustering_metrics
 
-
-coef = 3
+coef = 1
 def performance_norm(performance_vector: Dict) -> float:
-    return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) * coef\
+    return abs(sum(performance_vector["home_aggregator.energy_sold_outside"])) - abs(sum(performance_vector["home_aggregator.energy_bought_outside"])) * coef\
            - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 # ######################################################################################################################

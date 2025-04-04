@@ -2835,24 +2835,142 @@
 # #####################################################################################################################
 # todo Running the HEMS case study for the SDEWES conference
 #######################################################################################################################
-from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.SDEWES.SimulationScript import create_simulation
+# from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.SDEWES.SimulationScript import create_simulation
+#
+#
+# comparison_simulation_length = 8760
+# performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_sold_outside"]
+# coef1 = 1
+# coef2 = 1
+# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+#     return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_sold_outside"]) * coef2
+#
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# ref_performance = performance_norm(ref_results)
+#
+# print(f"Performance of the reference strategy: {ref_performance}")
+#
+#
+# # #####################################################################################################################
+# # todo tweaking the action denormalization for action masking approach
+# #######################################################################################################################
+# import numpy as np
+#
+#
+# def denormalize_my_actions(action, topology, internal_state, number_of_outside_actions=None, action_specific_index:int=None, action_reduction_flag=False) -> np.ndarray:
+#     """
+#     This function is used to denormalize the energy dispatch decision from the action inferred by the Actor's prediction of mean and std deviation.
+#     The mean and std are used to generate a probability distribution from which action is sampled.
+#     The sampled action is clipped within the normalized range of [0.0, 1.0].
+#     The args represent the min/max bounds for de-normalization, it depends on the study case.
+#     In case of action reduction, self.acted_action and self.action do not have the same shape !
+#     """
+#     # Initializing
+#     used_action = np.copy(action)
+#     return_list = []
+#
+#     # Special treatment during inference
+#     if not number_of_outside_actions:
+#         number_of_outside_actions = actions_related_to_energy_exchange(topology)
+#
+#     # Special treatment in case Action Reduction approach is used
+#     if action_reduction_flag:
+#         if not action_specific_index:  # we add a "shadow" action just to denormalize
+#             raise Exception("If action reduction approach is to be used, you should specify during the de-normalization the index of the action which was reduced !")
+#         used_action = np.insert(used_action, action_specific_index, 1)
+#
+#     # De-normalizing internal actions to aggregators
+#     internal_actions = used_action[:- sum(number_of_outside_actions)]
+#     number_of_internal_actions = int(len(internal_actions) / len(internal_state))
+#     internal_actions = internal_actions.reshape(len(internal_state), number_of_internal_actions)
+#     for aggregator in range(len(internal_actions)):
+#         internal_actions[aggregator][0] = internal_state[aggregator][0] + (internal_state[aggregator][1] - internal_state[aggregator][0]) * internal_actions[aggregator][0]  # energy consumption
+#         internal_actions[aggregator][1] = internal_state[aggregator][5] + (internal_state[aggregator][6] - internal_state[aggregator][5]) * internal_actions[aggregator][1]  # energy production
+#         if number_of_internal_actions == 3:  # presence of energy storage systems
+#             internal_actions[aggregator][2] = internal_state[aggregator][10] + (internal_state[aggregator][11] - internal_state[aggregator][10]) * internal_actions[aggregator][2]  # energy
+#         elif number_of_internal_actions == 2:  # absence of energy storage systems
+#             pass
+#         else:
+#             raise Exception("Attention, the number of natures of actions (consumption, production, storage) is not valid !")
+#     # MLP or Dense layers need flat input
+#     internal_actions = internal_actions.flatten()
+#     internal_actions = internal_actions.tolist()
+#     return_list.extend(internal_actions)
+#
+#     # De-normalizing external actions
+#     external_actions = used_action[-sum(number_of_outside_actions):]
+#     for exchange_index in range(len(number_of_outside_actions)):  # = length of the topology vector
+#         if number_of_outside_actions[exchange_index] == 1:  # if the energy exchange involves just 2 aggregators and corresponds to just one flow
+#             external_actions[exchange_index] = topology[exchange_index][2] + (topology[exchange_index][3] - topology[exchange_index][2]) * external_actions[exchange_index]
+#         else:  # if it a co-generation, tri-generation ...
+#             number_of_actions = number_of_outside_actions[exchange_index]
+#             for i in range(number_of_actions):
+#                 external_actions[exchange_index + i] = topology[exchange_index][number_of_actions + i + 1] + (topology[exchange_index][2 * number_of_actions + i + 1] - topology[exchange_index][number_of_actions + i + 1]) * external_actions[exchange_index + i]
+#     # MLP or Dense layers need flat input
+#     external_actions = external_actions.flatten()
+#     external_actions = external_actions.tolist()
+#     return_list.extend(external_actions)
+#
+#     # Special treatment in case Action Reduction approach is used
+#     if action_reduction_flag:
+#         return_list[action_specific_index] = 0.0
+#         return_list[action_specific_index] = - (sum(return_list[:- sum(number_of_outside_actions)]) - sum(return_list[-sum(number_of_outside_actions):]))
+#
+#     # Finally we return the de-normalized actions
+#     return_list = np.array([return_list])
+#     return_list = return_list.flatten()
+#
+#     if not action_reduction_flag:
+#         return_list.reshape(action.shape)
+#     else:
+#         return_list.reshape(action.shape[0] + 1)
+#
+#     return return_list
+#
+#
+#
+# def actions_related_to_energy_exchange(exchange_list: list) -> list:
+#     """
+#     This function is used to determine how many decisions to take per each energy exchange in the MEG.
+#     """
+#     aggregators_names = []
+#     numerical_values = []
+#     number_of_actions_per_exchange = []  # each value corresponds to an energy exchange in the topology vector
+#     for exchange in exchange_list:  # each tuple in the topology
+#         for element in exchange:
+#             if isinstance(element, str):
+#                 aggregators_names.append(element)  # aggregator names
+#             else:
+#                 numerical_values.append(element)  # Emin, Emax and efficiency
+#         number_of_actions_per_exchange.append(int((len(numerical_values) - len(aggregators_names) + 1) / 2))
+#
+#     return number_of_actions_per_exchange
+#
+# a = np.arange(9)
+# print(a)
+# a = np.insert(a, 9, -100)
+# print(a)
+# print(a[5])
+# a[5] = -9
+# print(a)
+# a = a.reshape(2,5)
+# print(a)
+# a = a.flatten()
+# print(a)
+# a = a.tolist()
+# print(a)
+
+import numpy as np
+
+a = np.arange(3)
+a = np.insert(a, 2-1, 0)
+print(a)
 
 
-comparison_simulation_length = 8760
-performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_bought_inside"]
-coef1 = 1
-coef2 = 1
-def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_bought_inside"]) * coef2
-
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-ref_performance = performance_norm(ref_results)
-
-print(f"Performance of the reference strategy: {ref_performance}")
 
 
