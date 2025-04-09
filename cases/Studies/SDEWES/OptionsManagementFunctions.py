@@ -13,7 +13,7 @@ def assess_storage(strategy: "Strategy", aggregator: "Aggregator", demands: List
     quantity_for_this_option = 0
 
     for demand in demands:
-        if demand["name"] == "BESS":
+        if demand["name"] == "mirror_BESS":
             quantity_for_this_option += demand["quantity"]
 
     return quantity_for_this_option
@@ -25,7 +25,7 @@ def exchanges_storage(strategy: "Strategy", aggregator: "Aggregator", quantity_t
 
 def distribution_storage(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     i = 0
-    name = "BESS"
+    name = "mirror_BESS"
     while sorted_demands[i]["name"] != name:  # as long as the storage is not found
         i += 1
 
@@ -128,7 +128,7 @@ def assess_prod(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dic
     quantity_for_this_option = 0
 
     for demand in offers:
-        if demand["name"] == "localDieselGenerator":
+        if demand["name"] == "mirror_localDieselGenerator":
             quantity_for_this_option -= demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
@@ -141,7 +141,7 @@ def exchanges_prod(strategy: "Strategy", aggregator: "Aggregator", quantity_to_a
 
 def distribution_prod(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
-    name = "localDieselGenerator"
+    name = "mirror_localDieselGenerator"
     while sorted_offers[i]["name"] != name:  # as long as the storage is not found
         i += 1
 
@@ -177,7 +177,7 @@ def assess_unstorage(strategy: "Strategy", aggregator: "Aggregator", offers: Lis
     quantity_for_this_option = 0
 
     for offer in offers:
-        if offer["name"] == "BESS":
+        if offer["name"] == "mirror_BESS":
             quantity_for_this_option -= offer["quantity_min"]
 
     return quantity_for_this_option
@@ -190,7 +190,7 @@ def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity
 
 def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
-    name = "BESS"
+    name = "mirror_BESS"
     while sorted_offers[i]["name"] != name and i < len(sorted_offers) - 1:  # as long as the storage is not found
         i += 1
 

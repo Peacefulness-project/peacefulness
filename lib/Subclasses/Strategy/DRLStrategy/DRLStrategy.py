@@ -152,20 +152,10 @@ class DeepReinforcementLearning(Strategy):
         # todo nouvelle version à checker la logique de la résolution avec Timothé
         # Ensuring communication with the RL agent
         if self.counter % len(self.scope) == 0:
-            updating_grid_state(self._catalog, self.agent)  # communicating the information to the RL agent
+            mirror_aggregator, internal_mirror, external_mirror = identify_mirror_decisions(self._catalog, aggregator)
+            updating_grid_state(self._catalog, self.agent, internal_mirror, external_mirror)  # communicating the information to the RL agent
             getting_agent_decision(self._catalog, self.agent)  # retrieving the decision taken by the RL agent
             self.counter += 1
-
-        # Initialization
-        energy_bought_outside = 0  # the absolute value of energy bought outside
-        energy_sold_outside = 0  # the absolute value of energy sold outside
-        energy_bought_inside = 0  # the absolute value of energy bought inside
-        energy_sold_inside = 0  # the absolute value of energy sold inside
-
-        money_earned_outside = 0  # the absolute value of money earned outside
-        money_spent_outside = 0  # the absolute value of money spent outside
-        money_earned_inside = 0  # the absolute value of money earned inside
-        money_spent_inside = 0  # the absolute value of money spent inside
 
         # Retrieving the energy accorded to each aggregator with the decision taken by the RL agent
         [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage] = extract_decision(self._catalog.get("DRL_Strategy.decision_message"), aggregator)
@@ -173,46 +163,63 @@ class DeepReinforcementLearning(Strategy):
         internal_buying_price, internal_selling_price = self._catalog.get(f"{aggregator.name}.DRL_Strategy.energy_prices").values()
         maximum_energy_consumed, maximum_energy_produced = self._catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities").values()
 
-        # Checking first the superior message todo patchwork solution working for only the case where the superior is the main grid and has infinite exchange capacity
-        if aggregator.superior not in self.scope:  # todo we should check if the message is a list of dicts (multiple messages) or just one dict
-            old_energy_accorded_from_superior = self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
-            # todo est-ce qu'on le laisse decider le prix ?
-            if not isinstance(old_energy_accorded_from_superior, list):
-                for tup in energy_accorded_to_exchange.keys():
-                    if aggregator.superior.name in tup:
-                        old_energy_accorded_from_superior["quantity"] = - energy_accorded_to_exchange[tup]
-                        self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
-            else:  # todo or we should just do a loop over all the elements instead
-                for tup in energy_accorded_to_exchange.keys():
-                    if aggregator.superior.name in tup:
-                        old_energy_accorded_from_superior[0]["quantity"] = - energy_accorded_to_exchange[tup]  # todo patchwork solution ? (what about other outside energy exchanges ?)
-                        self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
-        # balance of the exchanges made with outside (todo check the signs + what about conversion systems ?)
-        [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+        for agg in [aggregator, mirror_aggregator]:
+            # Initialization
+            energy_bought_outside = 0  # the absolute value of energy bought outside
+            energy_sold_outside = 0  # the absolute value of energy sold outside
+            energy_bought_inside = 0  # the absolute value of energy bought inside
+            energy_sold_inside = 0  # the absolute value of energy sold inside
 
-        # Internal balance
-        [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)  # sorting the quantities
+            money_earned_outside = 0  # the absolute value of money earned outside
+            money_spent_outside = 0  # the absolute value of money spent outside
+            money_earned_inside = 0  # the absolute value of money earned inside
+            money_spent_inside = 0  # the absolute value of money spent inside
 
-        # determination of storage usage
-        if energy_accorded_to_storage < 0:  # if the energy storage systems are discharging
-            for message in sorted_storage:
-                self._transform_storage_into_production(message)
-            [energy_accorded_to_storage, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, internal_selling_price, sorted_storage, - energy_accorded_to_storage, money_spent_inside, energy_bought_inside)
+            Econ = deepcopy(energy_accorded_to_consumers)
+            Eprod = deepcopy(energy_accorded_to_producers)
+            Esto = deepcopy(energy_accorded_to_storage)
+            Eexch = deepcopy(energy_accorded_to_exchange)
 
-        else:  # if they are charging
-            for message in sorted_storage:
-                self._transform_storage_into_consumption(message)
-            [energy_accorded_to_storage, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, internal_buying_price, sorted_storage, energy_accorded_to_storage, money_earned_inside, energy_sold_inside)
+            # Checking first the superior message todo patchwork solution working for only the case where the superior is the main grid and has infinite exchange capacity
+            if agg.superior not in self.scope:  # todo we should check if the message is a list of dicts (multiple messages) or just one dict
+                old_energy_accorded_from_superior = self._catalog.get(f"{agg.name}.{agg.superior.nature.name}.energy_accorded")
+                # todo est-ce qu'on le laisse decider le prix ?
+                if not isinstance(old_energy_accorded_from_superior, list):
+                    for tup in Eexch.keys():
+                        if agg.superior.name in tup:
+                            old_energy_accorded_from_superior["quantity"] = - Eexch[tup]
+                            self._catalog.set(f"{agg.name}.{agg.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
+                else:  # todo or we should just do a loop over all the elements instead
+                    for tup in Eexch.keys():
+                        if agg.superior.name in tup:
+                            old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]  # todo patchwork solution ? (what about other outside energy exchanges ?)
+                            self._catalog.set(f"{agg.name}.{agg.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
+            # balance of the exchanges made with outside (todo check the signs + what about conversion systems ?)
+            [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(agg, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
-        # distribution is then decided for the managed devices and subaggregators which are urgent
-        [sorted_demands, energy_accorded_to_consumers, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(aggregator, internal_buying_price, sorted_demands, energy_accorded_to_consumers, money_earned_inside, energy_sold_inside)
-        [sorted_offers, energy_accorded_to_producers, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(aggregator, internal_selling_price, sorted_offers, - energy_accorded_to_producers, money_spent_inside, energy_bought_inside)
+            # Internal balance
+            [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(agg)  # sorting the quantities
 
-        # then the remaining quantities for the non-urgent ones is equally distributed
-        [energy_accorded_to_consumers, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(aggregator, internal_buying_price, sorted_demands, energy_accorded_to_consumers, money_earned_inside, energy_sold_inside)
-        [energy_accorded_to_producers, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(aggregator, internal_selling_price, sorted_offers, energy_accorded_to_producers, money_spent_inside, energy_bought_inside)
+            # determination of storage usage
+            if Esto < 0:  # if the energy storage systems are discharging
+                for message in sorted_storage:
+                    self._transform_storage_into_production(message)
+                [Esto, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(agg, internal_selling_price, sorted_storage, - Esto, money_spent_inside, energy_bought_inside)
 
-        self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
+            else:  # if they are charging
+                for message in sorted_storage:
+                    self._transform_storage_into_consumption(message)
+                [Esto, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(agg, internal_buying_price, sorted_storage, Esto, money_earned_inside, energy_sold_inside)
+
+            # distribution is then decided for the managed devices and subaggregators which are urgent
+            [sorted_demands, Econ, money_earned_inside, energy_sold_inside] = self._serve_emergency_demands(agg, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
+            [sorted_offers, Eprod, money_spent_inside, energy_bought_inside] = self._serve_emergency_offers(agg, internal_selling_price, sorted_offers, - Eprod, money_spent_inside, energy_bought_inside)
+
+            # then the remaining quantities for the non-urgent ones is equally distributed
+            [Econ, money_earned_inside, energy_sold_inside] = self._distribute_consumption_partial_service(agg, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
+            [Eprod, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(agg, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
+
+            self._update_balances(agg, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
 
 
         # TODO voir comment traiter les conversions

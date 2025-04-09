@@ -2835,25 +2835,25 @@
 # #####################################################################################################################
 # todo Running the HEMS case study for the SDEWES conference
 #######################################################################################################################
-# from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
-# from cases.Studies.SDEWES.SimulationScript import create_simulation
-#
-#
-# comparison_simulation_length = 8760
-# performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_sold_outside"]
-# coef1 = 1
-# coef2 = 1
-# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-#     return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_sold_outside"]) * coef2
-#
-#
-# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
-# ref_results = {key: [] for key in performance_metrics}
-# for key in performance_metrics:
-#     ref_results[key] = ref_datalogger._values[key]
-# ref_performance = performance_norm(ref_results)
-#
-# print(f"Performance of the reference strategy: {ref_performance}")
+from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.SDEWES.SimulationScript import create_simulation
+
+
+comparison_simulation_length = 8760
+performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_sold_outside"]
+coef1 = 1
+coef2 = 1
+def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+    return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_sold_outside"]) * coef2
+
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
 #
 #
 # # #####################################################################################################################
@@ -2965,11 +2965,11 @@
 # a = a.tolist()
 # print(a)
 
-import numpy as np
-
-a = np.arange(3)
-a = np.insert(a, 2-1, 0)
-print(a)
+# import numpy as np
+#
+# a = np.arange(3)
+# a = np.insert(a, 2-1, 0)
+# print(a)
 
 
 

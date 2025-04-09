@@ -422,3 +422,29 @@ def actions_related_to_energy_exchange(exchange_list: list) -> list:
         number_of_actions_per_exchange.append(int((len(numerical_values) - len(aggregators_names) + 1) / 2))
 
     return number_of_actions_per_exchange
+
+
+# ##########################################################################################
+# Utilities useful for Behavior Cloning
+# ##########################################################################################
+def identify_mirror_decisions(catalog: "Catalog", aggregator: "Aggregator"):
+    """
+    This function is used to get the action At at state St of the expert strategy.
+    """
+    internal_mirror_actions = {}
+    external_mirror_actions = {}
+    for agg in catalog.aggregators:
+        if agg == "mirror_" + aggregator.name:  # the aggregator managed by the expert operator strategy
+            my_device_list = catalog.aggregators[agg].devices
+            break
+    for device in my_device_list:
+        internal_mirror_actions[device] = catalog.get(f"{device}.{aggregator.nature.name}.energy_accorded")
+    if catalog.aggregators[agg].superior:
+        external_mirror_actions[catalog.aggregators[agg].superior.name] = catalog.get(f"{agg}.{catalog.aggregators[agg].superior.nature.name}.energy_accorded")
+    for subaggregator in catalog.aggregators[agg].subaggregators:
+        external_mirror_actions[subaggregator.name] = catalog.get(f"{subaggregator.name}.{catalog.aggregators[agg].nature.name}.energy_accorded")
+
+    return catalog.aggregators[agg], internal_mirror_actions, external_mirror_actions
+
+
+

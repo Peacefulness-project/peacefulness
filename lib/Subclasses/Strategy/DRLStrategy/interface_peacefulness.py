@@ -21,7 +21,7 @@ sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/Management_Str
 # from support.Methodes.a3c import A3C_agent
 
 
-def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
+def updating_grid_state(catalog: "Catalog", agent: "A3C_agent", internal_mirror:Dict=None, external_mirror:Dict=None):
     """
     This method is used to communicate the information message to the DRL agent.
     """
@@ -48,7 +48,13 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent"):
     last_time = catalog.get("time_limit")
     relevant_time = [last_time, current_time]
 
-    agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions)
+    expert_decision = agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions, internal_mirror, external_mirror)
+
+    # Specific to Behavior Cloning
+    if f"Mirror_Aggregator.expert_decision" not in catalog.keys:
+        catalog.add(f"Mirror_Aggregator.expert_decision", expert_decision)
+    else:
+        catalog.set(f"Mirror_Aggregator.expert_decision", expert_decision)
 
 
 def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):
