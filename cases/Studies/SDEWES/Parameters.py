@@ -42,16 +42,16 @@ def performance_norm(performance_vector: Dict) -> float:
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
 
-consumption_options = ["storage", "nothing"]
-production_options = ["production", "unstorage", "grid"]
+consumption_options = ["sellGrid", "nothing", "storage"]
+production_options = ["production", "unstorage", "buyGrid"]
 assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
 assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
 assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
 
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
-    return ["storage", "nothing"]
+    return ["sellGrid", "nothing", "storage"]
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    return ["production", "unstorage", "grid"]
+    return ["production", "unstorage", "buyGrid"]

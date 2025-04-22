@@ -18,7 +18,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 from cases.Studies.SDEWES.OptionsManagementFunctions import options_consumption, options_production
 
 
-def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation=0.25):
+def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation=0.25, exogen_instruction: Callable = None):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -109,8 +109,8 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     aggregator_name = "grid_aggregator"  # external grid
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, aggregator_manager)
 
-    aggregator_name = "home_aggregator"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, house_manager, aggregator_grid, COOP_elec, efficiency=1, capacity={"buying": 2, "selling": 2})  # creation of an aggregator
+    aggregator_name = "mirror_home_aggregator"  # area with industrials
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy, house_manager, aggregator_grid, COOP_elec, efficiency=1, capacity={"buying": 3.5, "selling": 2})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
@@ -125,11 +125,13 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
             return consumption
 
     # base plant
-    subclasses_dictionary["Device"]["ResidentialDwelling"]("background", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 3, "rng_generator": rng_generator})
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_first_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_second_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_third_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
     # subclasses_dictionary["Device"]["Background"]("background", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "ECOS_5"}, parameters={"rng_generator": rng_generator})
-    subclasses_dictionary["Device"]["Photovoltaics"]("roof_PV", BAU_elec, house_manager, aggregator_elec, {"device": "standard"}, {"panels": 12, "irradiation_daemon": irradiation_daemon.name, "location": "Nantes"})
-    subclasses_dictionary["Device"]["DummyProducer"]("localDieselGenerator", COOP_elec, house_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1.25})
-    subclasses_dictionary["Device"]["ElectricalBattery"]("BESS", COOP_elec, house_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 3, "initial_SOC": 0.3}, filename="cases/Studies/SDEWES/AdditionalData/ElectricalBattery.json")
+    subclasses_dictionary["Device"]["Photovoltaics"]("mirror_roof_PV", BAU_elec, house_manager, aggregator_elec, {"device": "standard"}, {"panels": 12, "irradiation_daemon": irradiation_daemon.name, "location": "Nantes"})
+    subclasses_dictionary["Device"]["DummyProducer"]("mirror_localDieselGenerator", COOP_elec, house_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1.25})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("mirror_BESS", COOP_elec, house_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 3, "initial_SOC": 0.3}, filename="cases/Studies/SDEWES/AdditionalData/ElectricalBattery.json")
 
     # ##############################################################################################
     # Creation of dataloggers
@@ -141,18 +143,20 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     exhaustive_datalogger.add_all()  # add all keys
 
-    my_device_list = ["background", "roof_PV", "localDieselGenerator", "BESS"]
+    my_device_list = ["mirror_first_floor", "mirror_second_floor", "mirror_third_floor", "mirror_roof_PV", "mirror_localDieselGenerator", "mirror_BESS"]
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", my_device_list, period=1)
     subclasses_dictionary["Datalogger"]["MinimumEnergyDatalogger"]("device_min_quantity_frequency_1", "DeviceMinQuantity_frequency_1", my_device_list, period=1)
     subclasses_dictionary["Datalogger"]["MaximumEnergyDatalogger"]("device_max_quantity_frequency_1", "DeviceMaxQuantity_frequency_1", my_device_list, period=1)
-    my_ESS_list = ["BESS"]
+    my_ESS_list = ["mirror_BESS"]
     subclasses_dictionary["Datalogger"]["StateOfChargeDatalogger"]("soc_frequency_1", "SOC_frequency_1", my_ESS_list)
+    subclasses_dictionary["Datalogger"]["MEGstateDatalogger"]("mirror_state_frequency_1", "MEG_state_frequency_1", my_device_list, aggregator_name)
+    subclasses_dictionary["Datalogger"]["ExpertStrategyDatalogger"]("mirror_expert_action_frequency_1", "Expert_data_frequency_1", my_device_list, aggregator_name)
 
     # datalogger used to export chosen metrics
     metrics_datalogger = Datalogger("metrics", "Metrics")
     for key in metrics:
         metrics_datalogger.add(key)
 
-    world.start(verbose=False)
+    world.start(exogen_instruction=exogen_instruction, verbose=False)
 
     return metrics_datalogger

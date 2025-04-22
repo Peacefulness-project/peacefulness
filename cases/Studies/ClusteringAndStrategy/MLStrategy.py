@@ -162,21 +162,21 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
                     strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy - energy_available_production)
                     energy = - energy_available_production  # it is served partially, even if it is urgent
 
-                    message = strategy._create_decision_message()
-                    message["quantity"] = energy
-                    message["price"] = price
+                message = strategy._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
 
-                    if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
-                        quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
-                        quantities_given.append(message)
-                    else:  # if it is a device
-                        quantities_given = message
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                   quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                   quantities_given.append(message)
+                else:  # if it is a device
+                   quantities_given = message
 
-                    strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+                strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
 
-                    money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
-                    energy_bought_inside -= energy  # the absolute value of energy bought inside
-                    energy_available_production += energy  # the difference between the max and the min is consumed
+                money_spent_inside -= energy * price  # money spent by buying energy from the subaggregator
+                energy_bought_inside -= energy  # the absolute value of energy bought inside
+                energy_available_production += energy  # the difference between the max and the min is consumed
 
             else:  # if there is a demand for a min of energy too
                 energy_minimum = sorted_offers[i]["quantity_min"]  # the minimum quantity of energy asked

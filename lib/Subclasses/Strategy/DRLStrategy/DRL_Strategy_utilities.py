@@ -431,20 +431,28 @@ def identify_mirror_decisions(catalog: "Catalog", aggregator: "Aggregator"):
     """
     This function is used to get the action At at state St of the expert strategy.
     """
-    internal_mirror_actions = {}
-    external_mirror_actions = {}
+    internal_mirror_actions = None
+    external_mirror_actions = None
+    my_device_list = []
+    concerned_aggregator = None
     for agg in catalog.aggregators:
         if agg == "mirror_" + aggregator.name:  # the aggregator managed by the expert operator strategy
-            my_device_list = catalog.aggregators[agg].devices
+            internal_mirror_actions = {}
+            external_mirror_actions = {}
+            concerned_aggregator = catalog.aggregators[agg]
+            my_device_list = concerned_aggregator.devices
             break
     for device in my_device_list:
         internal_mirror_actions[device] = catalog.get(f"{device}.{aggregator.nature.name}.energy_accorded")
-    if catalog.aggregators[agg].superior:
-        external_mirror_actions[catalog.aggregators[agg].superior.name] = catalog.get(f"{agg}.{catalog.aggregators[agg].superior.nature.name}.energy_accorded")
-    for subaggregator in catalog.aggregators[agg].subaggregators:
-        external_mirror_actions[subaggregator.name] = catalog.get(f"{subaggregator.name}.{catalog.aggregators[agg].nature.name}.energy_accorded")
 
-    return catalog.aggregators[agg], internal_mirror_actions, external_mirror_actions
+    if concerned_aggregator:
+        if concerned_aggregator.superior:
+            external_mirror_actions[concerned_aggregator.superior.name] = catalog.get(f"{agg}.{concerned_aggregator.superior.nature.name}.energy_accorded")
+        for subaggregator in concerned_aggregator.subaggregators:
+            external_mirror_actions[subaggregator.name] = catalog.get(f"{subaggregator.name}.{concerned_aggregator.nature.name}.energy_accorded")
+
+
+    return concerned_aggregator, internal_mirror_actions, external_mirror_actions
 
 
 

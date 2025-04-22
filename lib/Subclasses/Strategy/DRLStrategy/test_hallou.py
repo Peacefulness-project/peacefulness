@@ -2837,24 +2837,27 @@
 #######################################################################################################################
 from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
 from cases.Studies.SDEWES.SimulationScript import create_simulation
+from cases.Studies.SDEWES.export_expert_data import *
 
+# my memory class
+path_to_export = "cases/Studies/SDEWES/Results"
 
 comparison_simulation_length = 8760
-performance_metrics = ["home_aggregator.energy_bought_outside", "home_aggregator.energy_sold_outside"]
+performance_metrics = ["mirror_home_aggregator.energy_bought_outside", "mirror_home_aggregator.energy_sold_outside"]
 coef1 = 1
 coef2 = 1
 def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return - coef1 * sum(performance_vector["home_aggregator.energy_bought_outside"]) + sum(performance_vector["home_aggregator.energy_sold_outside"]) * coef2
+    return - coef1 * sum(performance_vector["mirror_home_aggregator.energy_bought_outside"]) + sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]) * coef2
 
 
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics, exogen_instruction=other_strategies_results)
 ref_results = {key: [] for key in performance_metrics}
 for key in performance_metrics:
     ref_results[key] = ref_datalogger._values[key]
 ref_performance = performance_norm(ref_results)
 
 print(f"Performance of the reference strategy: {ref_performance}")
-#
+export_expert_data(path_to_export)
 #
 # # #####################################################################################################################
 # # todo tweaking the action denormalization for action masking approach
@@ -2971,6 +2974,67 @@ print(f"Performance of the reference strategy: {ref_performance}")
 # a = np.insert(a, 2-1, 0)
 # print(a)
 
+# import numpy as np
+# from scipy.stats import gamma
+#
+# # Define parameters
+# shape = (1/0.25)**2
+# scale = 0.25**2 * 1.570818982663
+#
+# # Calculate percentiles
+# percentiles = [0.9, 0.99, 0.999, 0.9999, 0.99999, 0.999999]
+# percentile_values = [gamma.ppf(p, shape, scale=scale) for p in percentiles]
+#
+# # Display results
+# for p, value in zip(percentiles, percentile_values):
+#     print(f"{p*100}% percentile: {value}")
+
+# #####################################################################################################################
+# todo defining new reward function with sigmoid for SDEWES
+#######################################################################################################################
+# import math
+#
+# x = 0.0
+#
+# lower = 0.0
+# upper = 0.054411432
+#
+# steepness = 5.0
+#
+# scaled_x = (x - lower) / (upper - lower)
+#
+# # Sigmoid function, then clamped between 0 and 1
+# result = max(0.0, min(1.0, 1 / (1 + math.exp(-steepness * (scaled_x - 0.5)))))
+#
+# print(result)
+#
+# def mySmoothPenalty(x: float, upper_bound: float, steepness: float):
+#     """
+#     This function is used to calculate the penalty related to energy conservation in a smooth way.
+#     """
+#     lower_bound = 0.0
+#     scaled_x = (x - lower_bound) / (upper_bound - lower_bound)
+#     return max(0.0, min(1.0, 1 / (1 + math.exp(-steepness * (scaled_x - 0.5)))))
 
 
-
+# #####################################################################################################################
+# todo generate electricity consumption profile for SDEWES case study
+#######################################################################################################################
+# import pandas as pd
+#
+# fileName = "D:\dossier_y23hallo\PycharmProjects\peacefulness\cases\Studies\SDEWES\AdditionalData/consumption_data.csv"
+# df = pd.read_csv(fileName, sep=";", decimal=",")  # getting data
+#
+# start = pd.Timestamp("2018-01-01 00:00")  # or adjust if a different year
+# df['datetime'] = pd.date_range(start=start, periods=8760, freq='H')
+# df.set_index('datetime', inplace=True)
+# df.rename(columns={df.columns[0]: 'Conso_min'}, inplace=True)
+#
+# # Group by day and take the mean over 24 hours
+# daily_profile = df.resample('D').sum(numeric_only=True)
+#
+# # Optional: reset index if you want plain CSV
+# daily_profile.reset_index(drop=True, inplace=True)
+#
+# # Save to CSV
+# daily_profile.to_csv("daily_profile.csv", sep=",", decimal=".", header=True, index=False)

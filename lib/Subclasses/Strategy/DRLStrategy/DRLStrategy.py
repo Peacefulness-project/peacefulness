@@ -10,13 +10,14 @@ from copy import deepcopy
 
 class DeepReinforcementLearning(Strategy):
 
-    def __init__(self, agent: "A3C_agent"):
+    def __init__(self, agent: "A3C_agent", flag_BC=False):
         super().__init__("deep_reinforcement_learning_strategy", "The optimal energy management strategy that will be learned by the RL agent")
         self.agent = agent
         self.counter = 0  # will be used to send and receive information from the RL agent
         self.scope = None  # list of aggregators managed by this strategy in particular for Multi-Agent purposes
         self._catalog.add(f"DRL_Strategy.decision_message", {})
         self._catalog.add(f"DRL_Strategy.exchanges_message", {})
+        self.behaviour_cloning_flag = flag_BC
 
     # ##################################################################################################################
     # Dynamic behavior
@@ -153,7 +154,7 @@ class DeepReinforcementLearning(Strategy):
         # Ensuring communication with the RL agent
         if self.counter % len(self.scope) == 0:
             mirror_aggregator, internal_mirror, external_mirror = identify_mirror_decisions(self._catalog, aggregator)
-            updating_grid_state(self._catalog, self.agent, internal_mirror, external_mirror)  # communicating the information to the RL agent
+            updating_grid_state(self._catalog, self.agent, internal_mirror, external_mirror, self.behaviour_cloning_flag)  # communicating the information to the RL agent
             getting_agent_decision(self._catalog, self.agent)  # retrieving the decision taken by the RL agent
             self.counter += 1
 
@@ -163,7 +164,12 @@ class DeepReinforcementLearning(Strategy):
         internal_buying_price, internal_selling_price = self._catalog.get(f"{aggregator.name}.DRL_Strategy.energy_prices").values()
         maximum_energy_consumed, maximum_energy_produced = self._catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities").values()
 
-        for agg in [aggregator, mirror_aggregator]:
+        if self.behaviour_cloning_flag:
+            concerned_aggregators = [aggregator, mirror_aggregator]
+        else:
+            concerned_aggregators = [aggregator]
+
+        for agg in concerned_aggregators:
             # Initialization
             energy_bought_outside = 0  # the absolute value of energy bought outside
             energy_sold_outside = 0  # the absolute value of energy sold outside
