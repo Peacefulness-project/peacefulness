@@ -20,13 +20,13 @@ comparison_simulation_length = 8760  # length of the final run aimed at evaluati
 # metrics
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
-    "home_aggregator.energy_bought_outside",
-    "home_aggregator.energy_sold_outside"
+    "mirror_home_aggregator.energy_bought_outside",
+    "mirror_home_aggregator.energy_sold_outside"
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
-    "home_aggregator.energy_bought_outside",
-    "home_aggregator.energy_sold_outside",
+    "mirror_home_aggregator.energy_bought_outside",
+    "mirror_home_aggregator.energy_sold_outside",
     "unwanted_delivery_cuts"
 ]  # critères de performance, spécifiques au cas étudié...
 
@@ -35,7 +35,7 @@ exported_metrics = performance_metrics + clustering_metrics
 
 coef = 1
 def performance_norm(performance_vector: Dict) -> float:
-    return abs(sum(performance_vector["home_aggregator.energy_sold_outside"])) - abs(sum(performance_vector["home_aggregator.energy_bought_outside"])) * coef\
+    return abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"])) - abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"])) * coef\
            - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 # ######################################################################################################################
