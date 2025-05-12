@@ -1,19 +1,22 @@
 # This sheet describes a strategy always refusing to trade with other
 # It can correspond to the strategy of an island, for example
 from src.common.Strategy import Strategy
-from typing import Callable
+from typing import Callable, Dict, List
 
 
-class LightAutarkyFullButFew(Strategy):
+class BiddingStrategy(Strategy):
 
-    def __init__(self, distribution_ranking_function: Callable):
-        super().__init__(f"light_autarky_strategy_{distribution_ranking_function.__name__}", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves totally a restricted number of devices according to the distriburion ranking function.")
+    def __init__(self, name: float, distribution_ranking_function: Callable):
+        super().__init__(f"bidding_strategy_{name}", "makes bids when it comes to exchanging energy with outside.")
 
         self._distribution_ranking_function = distribution_ranking_function
 
     # ##########################################################################################
     # Dynamic behavior
     # ##########################################################################################
+
+    def create_bids(self, minimum_energy_consumed: float, maximum_energy_consumed: float, minimum_energy_produced: float, maximum_energy_produced: float, maximum_energy_charge: float, maximum_energy_discharge: float) -> List[Dict]:
+        pass
 
     def bottom_up_phase(self, aggregator):  # before communicating with the exterior, the aggregator makes its local balances
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
@@ -23,18 +26,14 @@ class LightAutarkyFullButFew(Strategy):
         maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
         maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
 
-        # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
-        quantities_and_prices = []  # a list containing couples energy/prices
-
         # ##########################################################################################
         # calculus of the minimum and maximum quantities of energy involved in the aggregator
 
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = \
             self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
 
-        quantities_and_prices = self._prepare_quantities_emergency_only(maximum_energy_produced, maximum_energy_consumed, minimum_energy_produced, minimum_energy_consumed,
-                                                                        maximum_energy_charge, maximum_energy_discharge,  # storage
-                                                                        quantities_and_prices)  # minimal quantities of energy need to balance the grid are asked
+        quantities_and_prices = self.create_bids(minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced,
+                                                                        maximum_energy_charge, maximum_energy_discharge)  # storage
 
         self._publish_needs(aggregator, quantities_and_prices)  # this function manages the appeals to the superior aggregator regarding capacity and efficiency
 

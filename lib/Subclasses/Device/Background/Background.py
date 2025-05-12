@@ -11,7 +11,10 @@ from src.common.DeviceMainClasses import NonControllableDevice
 class Background(NonControllableDevice):
 
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Background/Background.json"):
-        self._rng_generator = parameters["rng_generator"]
+        self._rng_generator = None
+        if parameters:
+            if "rng_genrator" in parameters.keys():
+                self._rng_generator = parameters["rng_generator"]
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
     # ##########################################################################################
@@ -89,10 +92,11 @@ class Background(NonControllableDevice):
         #                                       2 * data_device["usage_profile"][nature]["weekend"]
         #
         # self._unused_nature_removal()  # remove unused natures
-        for nature_name in self._technical_profile:
-            for i in range(len(self._technical_profile[nature_name])):
-                consumption = self._technical_profile[nature_name][i]
-                self._technical_profile[nature_name][i] = self._rng_generator(consumption)
+        if self._rng_generator:
+            for nature_name in self._technical_profile:
+                for i in range(len(self._technical_profile[nature_name])):
+                    consumption = self._technical_profile[nature_name][i]
+                    self._technical_profile[nature_name][i] = self._rng_generator(consumption)
 
     def description(self, nature_name: str) -> Dict:
         return {"type": "background",

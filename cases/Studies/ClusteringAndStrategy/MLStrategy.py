@@ -63,10 +63,8 @@ class MLStrategy(TrainingStrategy):
             quantity_per_option["consumption"][priority] = self._options_consumption.loc[priority]["assess"](self, aggregator, demands)
             if priority == "nothing":
                 break
-        # print(quantity_per_option)
         for priority in priorities_production:
             quantity_per_option["production"][priority] = self._options_production.loc[priority]["assess"](self, aggregator, offers)
-            # print(quantity_per_option["production"][priority])
             if priority == "nothing":
                 break
 
