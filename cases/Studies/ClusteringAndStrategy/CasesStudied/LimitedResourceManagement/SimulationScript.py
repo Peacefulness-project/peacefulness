@@ -158,12 +158,13 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     my_ESS_list = ["storage"]
     subclasses_dictionary["Datalogger"]["StateOfChargeDatalogger"]("soc_frequency_1", "SOC_frequency_1", my_ESS_list)
+    my_device_list = ["production", "storage", "residential_dwellings", "industrial_process"]
     subclasses_dictionary["Datalogger"]["MinimumEnergyDatalogger"]("device_min_quantity_frequency_1",
-                                                                   "DeviceMinQuantity_frequency_1", my_ESS_list)
+                                                                   "DeviceMinQuantity_frequency_1", my_device_list)
     subclasses_dictionary["Datalogger"]["MaximumEnergyDatalogger"]("device_max_quantity_frequency_1",
-                                                                   "DeviceMaxQuantity_frequency_1", my_ESS_list)
+                                                                   "DeviceMaxQuantity_frequency_1", my_device_list)
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1",
-                                                                    "DeviceQuantity_frequency_1", my_ESS_list,
+                                                                    "DeviceQuantity_frequency_1", my_device_list,
                                                                     period=1)
 
     # datalogger used to export chosen metrics
