@@ -14,7 +14,7 @@ from lib.Subclasses.Strategy.AlwaysSatisfied.AlwaysSatisfied import AlwaysSatisf
 from src.common.World import World
 from src.tools.AgentGenerator import agent_generation
 from src.common.Strategy import *
-from lib.DefaultNatures.DefaultNatures import load_low_temperature_heat
+from lib.DefaultNatures.DefaultNatures import *
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
@@ -46,7 +46,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/" + step_name
+    pathExport = "cases/Studies/ClusteringAndStrategy/Results/Cogeneration/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
@@ -72,17 +72,26 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # domestic heat
     LTH = load_low_temperature_heat()
 
+    # low voltage electricity
+    LVE = load_low_voltage_electricity()
+
+    # gas
+    LPG = load_low_pressure_gas()
+
     # ##############################################################################################
     # Creation of daemons
     location = "Nantes"
 
     # Price Managers
     price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_price", {"buying_price": 0.5, "selling_price": 0.2})  # sets prices for TOU rate
-    # price_manager_heat_TOU = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_heat", {"nature": LTH.name, "buying_price": [0.4, 0.65], "selling_price": [0.25, 0.35], "on-peak_hours": [[12, 24]]})
+    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("elec_price", {"buying_price": 0.2, "selling_price": 0.1})   # sets prices for TOU rate
+    price_manager_gas = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("gas_price", {"buying_price": 0.2, "selling_price": 0.1})   # sets prices for TOU rate
 
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
     limit_prices_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.8, "limit_selling_price": 0.1})  # sets limit price accepted
+    limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.2, "limit_selling_price": 0.05})  # sets limit price accepted
+    limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LPG.name, "limit_buying_price": 0.2, "limit_selling_price": 0.05})  # sets limit price accepted
 
     # Outdoor temperature
     # this daemon is responsible for the value of outside temperature in the catalog
@@ -92,28 +101,42 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # Creation of strategies
     # the Clustering strategy
     strategy_grid = subclasses_dictionary["Strategy"]["Grid"]()
-    strategy_heat = MLStrategy(priorities_conso, priorities_prod)
-    strategy_heat.add_consumption_options(options_consumption)
-    strategy_heat.add_production_options(options_production)
+    strategy_optimized = subclasses_dictionary["Strategy"]["SubaggregatorHeatPartialButAll"]()
+
+    # strategy_optimized = MLStrategy(priorities_conso, priorities_prod)
+    # strategy_optimized.add_consumption_options(options_consumption)
+    # strategy_optimized.add_production_options(options_production)
 
     # ##############################################################################################
     # Manual creation of agents
     DHN_manager = Agent("DHN_manager")  # creation of an agent
+    consumers = Agent("consumers")
+    CHP_owner = Agent("cogeneration_owner")
+    other = Agent("other")
 
     # ##############################################################################################
     # Manual creation of contracts
-    # heat_contract_curtailment = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("heat_well", LTH, price_manager_heat, {"curtailment_hours": 10, "rotation_duration": 168})
-    heat_contract_curtailment = subclasses_dictionary["Contract"]["CurtailmentContract"]("heat_well", LTH, price_manager_heat)
+    BAU_gas = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_gas", LPG, price_manager_gas)
+    BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
+    contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_elec)  # this contract is the one between the local electrical grid and the national one
     heat_contract_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
-    heat_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_heat", LTH, price_manager_heat)
-    # heat_contract_TOU = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_heat_TOU", LTH, price_manager_heat_TOU)
+
+    cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_elec)
+    cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
     # ##############################################################################################
     # Creation of aggregators
     aggregator_name = "peakload_gas_plant"  # external grid
     aggregator_grid = Aggregator(aggregator_name, LTH, strategy_grid, DHN_manager)
+
     aggregator_name = "district_heating_microgrid"
-    aggregator_district = Aggregator(aggregator_name, LTH, strategy_heat, DHN_manager, aggregator_grid, heat_contract, efficiency=1, capacity={"buying": 2000, "selling": 0})
+    aggregator_heat = Aggregator(aggregator_name, LTH, strategy_optimized, DHN_manager, aggregator_grid, contract_grid, efficiency=1, capacity={"buying": 2000000, "selling": 0})
+
+    aggregator_name = "local_network"  # area with industrials
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_optimized, DHN_manager, aggregator_grid, contract_grid, capacity={"buying": 100000, "selling": 0})  # creation of an aggregator
+
+    aggregator_name = "GasNetwork"
+    aggregator_gas = Aggregator(aggregator_name, LPG, strategy_grid, other)
 
     # ##############################################################################################
     # Manual creation of devices
@@ -130,25 +153,29 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     def identity(consumption):
         return consumption
 
-    # dissipation
-    heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_curtailment, DHN_manager, aggregator_district,
-                                                              {"user": "artificial_sink", "device": "artificial_sink"}, parameters={"rng_generator": identity},
-                                                              filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
+    CHP_max_power = 2000  # kW
+    subclasses_dictionary["Device"]["AdvancedCombinedHeatAndPower"]("CHP_unit", [BAU_gas, cooperative_contract_heat,
+                                                                                 cooperative_contract_elec], CHP_owner,
+                                                                    aggregator_gas, [aggregator_heat, aggregator_elec],
+                                                                    {"device": "test_system"},
+                                                                    {"max_power": CHP_max_power})
+
+    # elec loads
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 750, "rng_generator": rng_generator})
+
+    subclasses_dictionary["Device"]["Background"]("industrial_process", BAU_elec, consumers, aggregator_elec, {"user": "yearly_consumer", "device": "industrial_ELMAS_dataset"}, parameters={"rng_generator": rng_generator},
+                                                  filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/Background.json")
+
     # Thermal loads
-    old_houses = subclasses_dictionary["Device"]["Background"]("old_house", heat_contract_BAU, DHN_manager, aggregator_district,
+    old_houses = subclasses_dictionary["Device"]["Background"]("old_house", heat_contract_BAU, consumers, aggregator_heat,
                                                                 {"user": "old_house", "device": "old_house"}, parameters={"rng_generator": rng_generator},
                                                                 filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
-    new_houses = subclasses_dictionary["Device"]["Background"]("new_house", heat_contract_BAU, DHN_manager, aggregator_district,
+    new_houses = subclasses_dictionary["Device"]["Background"]("new_house", heat_contract_BAU, consumers, aggregator_heat,
                                                                {"user": "new_house", "device": "new_house"}, parameters={"rng_generator": rng_generator},
                                                                filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
-    offices = subclasses_dictionary["Device"]["Background"]("office", heat_contract_BAU, DHN_manager, aggregator_district,
+    offices = subclasses_dictionary["Device"]["Background"]("office", heat_contract_BAU, consumers, aggregator_heat,
                                                             {"user": "office", "device": "office"}, parameters={"rng_generator": rng_generator},
                                                             filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
-    # Thermal energy producers
-    biomass_plant = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_manager, aggregator_district, {"device": "Biomass_2_ThP"}, {"max_power": 1300, "recharge_quantity": 1300*12, "autonomy": 12, "initial_energy": 300})
-    # peak_load = subclasses_dictionary["Device"]["DummyProducer"]("fast_gas_boiler", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "heat"}, {"max_power": 1100})
-    # Thermal energy storage
-    # network_pipes = subclasses_dictionary["Device"]["LatentHeatStorage"]("DHN_pipelines", heat_contract_TOU, DHN_manager, aggregator_grid, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 
     # ##############################################################################################
     # Creation of dataloggers

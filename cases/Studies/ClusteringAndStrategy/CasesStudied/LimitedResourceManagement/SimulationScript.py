@@ -139,7 +139,6 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # storage
     subclasses_dictionary["Device"]["ElectricalBattery"]("storage", cooperative_contract_elec, grid_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 1000, "initial_SOC": 0.2},                                                            filename="cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/AdditionalData/ElectricalBattery.json")
 
-
     # consumption
     subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, residential_consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 100, "rng_generator": rng_generator})
 

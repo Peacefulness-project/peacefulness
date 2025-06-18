@@ -145,18 +145,29 @@ def exchanges_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", 
 def distribution_fossil_generation(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
-
-index = ["dissipation", "nothing"]
+index = []
 columns = ["assess", "exchange", "distribute"]
-data = [[assess_dissipation, exchanges_dissipation, distribution_dissipation],
-        [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
+data = [
         ]
 options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["biomass", "gas", "nothing"]
+index = []
 columns = ["assess", "exchange", "distribute"]
-data = [[assess_renewable_generation, exchanges_renewable_generation, distribution_renewable_generation],
-        [assess_fossil_generation, exchanges_fossil_generation, distribution_fossil_generation],
-        [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
+data = [
         ]
 options_production = pd.DataFrame(index=index, columns=columns, data=data)
+
+# index = ["dissipation", "nothing"]
+# columns = ["assess", "exchange", "distribute"]
+# data = [[assess_dissipation, exchanges_dissipation, distribution_dissipation],
+#         [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
+#         ]
+# options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
+#
+# index = ["biomass", "gas", "nothing"]
+# columns = ["assess", "exchange", "distribute"]
+# data = [[assess_renewable_generation, exchanges_renewable_generation, distribution_renewable_generation],
+#         [assess_fossil_generation, exchanges_fossil_generation, distribution_fossil_generation],
+#         [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
+#         ]
+# options_production = pd.DataFrame(index=index, columns=columns, data=data)

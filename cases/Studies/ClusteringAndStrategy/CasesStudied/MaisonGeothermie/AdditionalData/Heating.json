@@ -4,12 +4,18 @@
       "usage_profile": [{"LTH": 1}, 0.25, 18000],
       "consumption_variation": 0.1,
       "max_power": {"LTH": 5}
+    },
+
+    "building_heat": {
+      "usage_profile": [{"LTH": 1}, 2, 9000],
+      "consumption_variation": 0.1,
+      "max_power": {"LTH": 10}
     }
   },
 
   "user_profile":{
     "residential": {
-      "profile": [[[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
+      "profile": [[[5, 5], [19, 19, 25]], [[10, 9], [14, 14, 20]]],
 
       "period": 24,
       "offset": 12,

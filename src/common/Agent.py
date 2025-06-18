@@ -83,7 +83,7 @@ class Agent:
             money_earned_herself = self._catalog.get(f"{self.name}.money_earned")
             money_earned_superior = self._catalog.get(f"{self._superior_name}.money_earned")
             self._catalog.set(f"{self._superior_name}.money_earned", money_earned_herself + money_earned_superior)
-        
+
     # ##########################################################################################
     # Utilities
     # ##########################################################################################

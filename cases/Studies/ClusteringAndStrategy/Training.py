@@ -167,7 +167,7 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
                 print(f"test of strategy {assessed_priorities_consumption[i]}/{assessed_priorities_production[j]}")
                 directory = f"{complement_path}/training/{i}_{j}"
                 datalogger = create_simulation(simulation_length, priorities_consumption,  priorities_production, directory, performance_metrics)
-                shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/", ignore_errors=False, onerror=None)
+                shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/", ignore_errors=True, onerror=None)
 
                 # metering
                 raw_outputs = {}
