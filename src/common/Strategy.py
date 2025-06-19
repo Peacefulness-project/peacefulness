@@ -391,7 +391,7 @@ class Strategy:
         energy_sold_outside = 0
 
         # the minimum to keep available to satisfy the urgent needs
-        if urgent_quantity_to_cover > 0:  # if there more consumption
+        if urgent_quantity_to_cover > 0:  # if there is more consumption
             energy_available = max(0, maximum_energy_produced + outside_buying_capacity - urgent_quantity_to_cover)
         else:
             energy_available = max(0, maximum_energy_consumed - outside_selling_price + urgent_quantity_to_cover)
@@ -628,7 +628,7 @@ class Strategy:
 
         return [sorted_demands, sorted_offers, sorted_storage]
 
-    def _separe_quantities(self, aggregator: "Aggregator"):  # a function calculating the emergency associated, without sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
+    def _separe_quantities(self, aggregator: "Aggregator") -> List[List]:  # a function calculating the emergency associated, without sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
         sorted_demands = []  # a list where the demands of energy are gathered
         sorted_offers = []  # a list where the offers of energy are gathered
         sorted_storage = []  # a list where the offers of storage are gathered
@@ -869,6 +869,7 @@ class Strategy:
         message["quantity_min"] = 0
 
         return message
+
     def _distribute_consumption_full_service(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
         i = 0
 

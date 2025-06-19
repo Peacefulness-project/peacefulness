@@ -27,7 +27,7 @@ class WhenProfitableFullButFew(Strategy):
 
         self._quantities_exchanged_internally[aggregator.name] = {"quantity": 0, "price": 0}  # reinitialization of the quantities exchanged internally
 
-        # once the aggregator has made made local arrangements, it publishes its needs (both in demand and in offer)
+        # once the aggregator has made local arrangements, it publishes its needs (both in demand and in offer)
         quantities_and_prices = []  # a list containing couples energy/prices
 
         [min_price, max_price] = self._limit_prices(aggregator)  # min and max prices allowed

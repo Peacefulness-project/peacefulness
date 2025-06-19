@@ -1,7 +1,6 @@
 {
   "technical_data": {
-    "standard": {
-      "efficiency": {"LVE": 0.3, "LTH": 0.3, "LPG": 1}
-    }
+    "test_system": {
+      "efficiency": 0.4, "heat_power_ratio": 1}
   }
 }

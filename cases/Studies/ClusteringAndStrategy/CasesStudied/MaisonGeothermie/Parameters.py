@@ -9,12 +9,11 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 # ######################################################################################################################
 training_simulation_length = 8760  # length of sequences used for clustering.
 sequences_number = 8760  # number of sequences simulated
-gap = 1  # gap (given in iterations) between 2 sequences simulated
-cluster_number = 5  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
+clustering_batch_size = 4  # number of years simulated for clustering
+cluster_number = 10  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
 
-
-random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
-seed(random_seed)
+# random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
+# seed(random_seed)
 
 
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
@@ -38,26 +37,12 @@ clustering_metrics = [  # prices are not taken into account for now
 performance_metrics = [
     "house_owner.money_earned",
     "house_owner.money_spent",
+    "heat_pump.LVE.energy_bought",
+    "heat_pump.LTH.energy_sold",
 
     "heat_storage.LTH.energy_bought",
     "heat_storage.LTH.energy_sold",
     "unwanted_delivery_cuts",
-
-    # "heat_pump.LVE.energy_bought",
-    # "heat_pump.LTH.energy_sold",
-    #
-    # "heating.LTH.energy_bought",
-    # "heating.LTH.energy_sold",
-    #
-    # "house_owner.LTH.energy_bought",
-    # "house_owner.LTH.energy_sold",
-    # "house_owner.LVE.energy_sold",
-    # "house_owner.LVE.energy_bought",
-    #
-    # "PV.LVE.energy_sold",
-    #
-    # "house_elec.energy_sold",
-    # "house_elec.energy_bought",
 ]  # critères de performance, spécifiques au cas étudié...
 
 exported_metrics = performance_metrics + clustering_metrics
@@ -80,12 +65,19 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 
 
 # reference strategies
-# exchange first, then storage and DSM if nothing else
 def ref_priorities_consumption(strategy: "Strategy"):
-    return ["spatial_heating", "long_term_storage", "nothing", ]
+    efficiency = strategy._catalog.get("heat_pump.LTH.efficiency")
+    prod_PV = strategy._catalog.get("PV.LVE.energy_wanted")["energy_maximum"]
+    local_heat_pump = - efficiency * prod_PV
+    heat_need = strategy._catalog.get("heating.LTH.energy_wanted")["energy_maximum"]
+
+    if local_heat_pump > heat_need:
+        return ["spatial_heating", "long_term_storage", "nothing", ]
+    else:
+        return ["spatial_heating", "nothing", "long_term_storage", ]
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    return ["heat_pump", "long_term_unstorage", ]
+    return ["long_term_unstorage", "heat_pump", ]
 
 

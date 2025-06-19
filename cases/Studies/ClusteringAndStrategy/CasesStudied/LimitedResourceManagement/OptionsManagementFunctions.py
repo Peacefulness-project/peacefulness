@@ -116,7 +116,7 @@ def exchanges_nothing_option(strategy: "Strategy", aggregator: "Aggregator", qua
 
 def distribution_nothing_option(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
 
-    return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
+    return sorted_demands, 0, money_earned_inside, energy_sold_inside
 
 
 # ################################################################################################################
@@ -184,7 +184,6 @@ def assess_unstorage(strategy: "Strategy", aggregator: "Aggregator", offers: Lis
 
 
 def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
-    # quantity_to_affect = max(0, quantity_to_affect - quantity_available_for_this_option)
     return quantity_to_affect, quantities_and_prices
 
 

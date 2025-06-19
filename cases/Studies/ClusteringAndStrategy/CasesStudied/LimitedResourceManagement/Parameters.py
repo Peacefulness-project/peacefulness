@@ -6,12 +6,10 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 # ######################################################################################################################
 #
 # ######################################################################################################################
-training_simulation_length = 8760  # length of sequences used for clustering.
-clustering_sequences_number = 2  # number of sequences simulated
-gap = 1  # gap (given in iterations) between 2 sequences simulated
-
-
+training_simulation_length = 8760  # length of sequences used for training
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
+clustering_batch_size = 2  # number of years simulated for clustering
+cluster_number = 3  # number of clusters wanted for clustering
 
 
 # ######################################################################################################################
@@ -77,3 +75,4 @@ def ref_priorities_consumption(strategy: "Strategy"):
 
 def ref_priorities_production(strategy: "Strategy"):
     return ["production", "unstorage", "grid"]
+

@@ -90,7 +90,7 @@ class Contract:
         message: Dict,
         name: str,
         """
-        pass  # a method to determine the price must be defined in the subclasses
+        return message  # a method to determine the price must be defined in the subclasses
 
     def billing(self, energy_wanted: Dict, energy_accorded: Dict, name: str) -> List:  # the action of the distribution phase
         """

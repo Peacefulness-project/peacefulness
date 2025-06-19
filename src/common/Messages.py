@@ -8,8 +8,8 @@ class MessagesManager:
     """
 
     # the minimum information needed everywhere
-    information_message = {"type": "", "aggregator": "", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": 0}
-    decision_message = {"aggregator": "", "quantity": 0, "price": 0}
+    information_message = {"type": "", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 0, "price": 0}
+    decision_message = {"quantity": 0, "price": 0}
     # the information added to all messages
     added_information = {}
 
