@@ -47,14 +47,18 @@ def updating_grid_state(catalog: "Catalog", agent: "A3C_agent", internal_mirror:
     current_time = catalog.get("simulation_time")
     last_time = catalog.get("time_limit")
     relevant_time = [last_time, current_time]
-    expert_decision = agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions, internal_mirror, external_mirror)
 
     if flag_BH:
         # Specific to Behavior Cloning
+        expert_decision = agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions, internal_mirror, external_mirror)
+
         if f"Mirror_Aggregator.expert_decision" not in catalog.keys:
             catalog.add(f"Mirror_Aggregator.expert_decision", expert_decision)
         else:
             catalog.set(f"Mirror_Aggregator.expert_decision", expert_decision)
+
+    else:
+        agent.update_state(relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions)
 
 
 def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):

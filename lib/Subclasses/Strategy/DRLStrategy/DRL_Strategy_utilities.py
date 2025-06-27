@@ -133,7 +133,7 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
             Emin = Emax
 
         intermediate_dict = {**specific_message}
-        intermediate_dict.pop('aggregator')
+        # intermediate_dict.pop('aggregator')
         intermediate_dict.pop('energy_minimum')
         intermediate_dict.pop('energy_nominal')
         intermediate_dict.pop('energy_maximum')

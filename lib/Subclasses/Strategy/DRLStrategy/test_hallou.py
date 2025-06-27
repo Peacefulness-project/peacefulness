@@ -1165,23 +1165,23 @@
 # import matplotlib.pyplot as plt
 # import numpy as np
 # from copy import deepcopy
-# # # # # #
 # # # # # # #
+# # # # # # # #
 # my_year = np.arange(1, 8761)
-# # # # # # #
-# # Reading data from excel file
+# # # # # # # #
+# # # Reading data from excel file
 # my_df1 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet1", engine='openpyxl')
 # my_df2 = pd.read_excel('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/heatConsumptionData.xlsx', sheet_name="Sheet2", engine='openpyxl')
 # my_data = my_df1.to_dict(orient='list')
-# # # plt.rcParams["font.family"] = "Times New Roman"
-# # # plt.rcParams['font.size'] = 10
-# # # plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
-# # # plt.xlabel('Time in [Hours]')
-# # # plt.ylabel('Outdoor Temperature in [°C]')
-# # # plt.title("Evolution of outdoor temperature during heating season")
-# # # plt.grid(True)
-# # # plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
-# # # plt.show()
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams['font.size'] = 10
+# plt.plot(my_data["Hour"], my_data["OutdoorTemperature"])
+# plt.xlabel('Time in [Hours]')
+# plt.ylabel('Outdoor Temperature in [°C]')
+# plt.title("Evolution of outdoor temperature during heating season")
+# plt.grid(True)
+# # # # plt.savefig('D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/OutdoorTemp.pdf', format="pdf", bbox_inches="tight")
+# plt.show()
 # setpoints = my_df2.to_dict(orient='list')
 # # # # # #
 # # Constructing my setpoints evolution over the year - starts in sunday
@@ -2586,29 +2586,29 @@
 # import sys
 # sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/peacefulness"))
 # chdir("D:/dossier_y23hallo/PycharmProjects/peacefulness")
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
-
-
-comparison_simulation_length = 8760
-performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
-                       "new_house.LTH.energy_bought", "office.LTH.energy_bought",
-                       "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
-coef1 = 1
-coef2 = 1
-def performance_norm(performance_vector: dict) -> float:
-    total_outside = sum(abs(element["outside"]) for element in performance_vector["district_heating_microgrid.energy_bought"])
-    return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - coef1 * abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) - coef2 * total_outside
-
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production,
-                                   f"comparison/reference", performance_metrics)
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-# print(ref_results["district_heating_microgrid.energy_bought"])
-ref_performance = performance_norm(ref_results)
-print(f"Performance of the reference strategy: {ref_performance}")
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.ClusteringAndStrategy.CasesStudied.RampUpManagement.SimulationScript import create_simulation
+#
+#
+# comparison_simulation_length = 5328
+# performance_metrics = ["heat_sink.LTH.energy_bought", "old_house.LTH.energy_bought",
+#                        "new_house.LTH.energy_bought", "office.LTH.energy_bought",
+#                        "biomass_plant.LTH.energy_sold", "district_heating_microgrid.energy_bought"]
+# coef1 = 1
+# coef2 = 0
+# def performance_norm(performance_vector: dict) -> float:
+#     total_outside = sum(abs(element["outside"]) for element in performance_vector["district_heating_microgrid.energy_bought"])
+#     return abs(sum(performance_vector["biomass_plant.LTH.energy_sold"])) - coef1 * abs(sum(performance_vector["heat_sink.LTH.energy_bought"])) - coef2 * total_outside
+#
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production,
+#                                    f"comparison/reference", performance_metrics)
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# # print(ref_results["district_heating_microgrid.energy_bought"])
+# ref_performance = performance_norm(ref_results)
+# print(f"Performance of the reference strategy: {ref_performance}")
 
 
 
@@ -2644,9 +2644,10 @@ print(f"Performance of the reference strategy: {ref_performance}")
 # #####################################################################################################################
 # todo exploitation des résultats Ramp-Up Management & Limited-Resource Management cases
 #######################################################################################################################
-# import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from copy import deepcopy
 # # #
 #
 # # cold_startup = {"time_step": [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -2703,10 +2704,50 @@ print(f"Performance of the reference strategy: {ref_performance}")
 # #
 # #         return interpolated_value
 #
-# filepath = "D:\dossier_y23hallo\Thèse\ECOS/Ramp_up_management\plots_for_ecos"
-# filename = filepath + "/" + "consoXdissipXerror_fall.csv"
+filepath = "D:\dossier_y23hallo\Thèse\ECOS\Presentation/version_finale\limited\Esto"
+filename = filepath + "/" + "penalty.csv"
+curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+curtailment_dict = curtailment_df.to_dict(orient="list")
+# curtailment_dict["heat_load"].sort(reverse=True)
+penalty = deepcopy(curtailment_dict["re"])
+time_penalty = deepcopy(curtailment_dict["ep"])
+filename = filepath + "/" + "rewards.csv"
+curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# curtailment_dict = curtailment_df.to_dict(orient="list")
+# # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
+filename = filepath + "/" + "rewards.csv"
+curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+curtailment_dict = curtailment_df.to_dict(orient="list")
+reward = deepcopy(curtailment_dict["re"])
+time_reward = deepcopy(curtailment_dict["ep"])
+# # curtailment_dict["industrial,max"].sort(reverse=True)
+# # max_indus = deepcopy(curtailment_dict["industrial,max"])
+# filename = filepath + "/" + "ref.csv"
 # curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
 # curtailment_dict = curtailment_df.to_dict(orient="list")
+# # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
+# indu = deepcopy(curtailment_dict["ref"])
+# timost = deepcopy(curtailment_dict["time"])
+# mytime = np.arange(0, len(time_score))
+mytime = np.arange(0,100)
+indu = np.full(len(mytime), 16.0847997)
+
+plt.figure(figsize=(5,5))
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.xlabel("Episode")
+plt.ylabel("Score")
+# plt.plot(time_reward, reward, label="The average cumulated reward obtained during an episode")
+plt.plot(time_reward, reward)
+# plt.plot(time_penalty, penalty, label="The average cumulated penalty term obtained during an episode")
+plt.plot(time_penalty, penalty)
+# plt.plot(mytime, indu, label="Score of the rule-based strategy", linestyle='--')
+plt.plot(mytime, indu, linestyle='--')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig("D:\dossier_y23hallo\Thèse\ECOS/Final_1.pdf", format="pdf", bbox_inches="tight")
+plt.show()
 # #
 # # filename = filepath + "/" + "scoreXepisode.csv"
 # # reward_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
