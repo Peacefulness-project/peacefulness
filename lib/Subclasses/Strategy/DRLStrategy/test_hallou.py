@@ -2704,50 +2704,50 @@ from copy import deepcopy
 # #
 # #         return interpolated_value
 #
-filepath = "D:\dossier_y23hallo\Thèse\ECOS\Presentation/version_finale\limited\Esto"
-filename = filepath + "/" + "penalty.csv"
-curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-curtailment_dict = curtailment_df.to_dict(orient="list")
-# curtailment_dict["heat_load"].sort(reverse=True)
-penalty = deepcopy(curtailment_dict["re"])
-time_penalty = deepcopy(curtailment_dict["ep"])
-filename = filepath + "/" + "rewards.csv"
-curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-# curtailment_dict = curtailment_df.to_dict(orient="list")
-# # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
-filename = filepath + "/" + "rewards.csv"
-curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
-curtailment_dict = curtailment_df.to_dict(orient="list")
-reward = deepcopy(curtailment_dict["re"])
-time_reward = deepcopy(curtailment_dict["ep"])
-# # curtailment_dict["industrial,max"].sort(reverse=True)
-# # max_indus = deepcopy(curtailment_dict["industrial,max"])
-# filename = filepath + "/" + "ref.csv"
+# filepath = "D:\dossier_y23hallo\Thèse\ECOS\Presentation/version_finale\limited\Esto"
+# filename = filepath + "/" + "penalty.csv"
 # curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
 # curtailment_dict = curtailment_df.to_dict(orient="list")
-# # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
-# indu = deepcopy(curtailment_dict["ref"])
-# timost = deepcopy(curtailment_dict["time"])
-# mytime = np.arange(0, len(time_score))
-mytime = np.arange(0,100)
-indu = np.full(len(mytime), 16.0847997)
-
-plt.figure(figsize=(5,5))
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 12
-plt.xlabel("Episode")
-plt.ylabel("Score")
-# plt.plot(time_reward, reward, label="The average cumulated reward obtained during an episode")
-plt.plot(time_reward, reward)
-# plt.plot(time_penalty, penalty, label="The average cumulated penalty term obtained during an episode")
-plt.plot(time_penalty, penalty)
-# plt.plot(mytime, indu, label="Score of the rule-based strategy", linestyle='--')
-plt.plot(mytime, indu, linestyle='--')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("D:\dossier_y23hallo\Thèse\ECOS/Final_1.pdf", format="pdf", bbox_inches="tight")
-plt.show()
+# # curtailment_dict["heat_load"].sort(reverse=True)
+# penalty = deepcopy(curtailment_dict["re"])
+# time_penalty = deepcopy(curtailment_dict["ep"])
+# filename = filepath + "/" + "rewards.csv"
+# curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# # curtailment_dict = curtailment_df.to_dict(orient="list")
+# # # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
+# filename = filepath + "/" + "rewards.csv"
+# curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# curtailment_dict = curtailment_df.to_dict(orient="list")
+# reward = deepcopy(curtailment_dict["re"])
+# time_reward = deepcopy(curtailment_dict["ep"])
+# # # curtailment_dict["industrial,max"].sort(reverse=True)
+# # # max_indus = deepcopy(curtailment_dict["industrial,max"])
+# # filename = filepath + "/" + "ref.csv"
+# # curtailment_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
+# # curtailment_dict = curtailment_df.to_dict(orient="list")
+# # # curtailment_dict["industrial_process,LVE,energy_bought"].sort(reverse=True)
+# # indu = deepcopy(curtailment_dict["ref"])
+# # timost = deepcopy(curtailment_dict["time"])
+# # mytime = np.arange(0, len(time_score))
+# mytime = np.arange(0,100)
+# indu = np.full(len(mytime), 16.0847997)
+#
+# plt.figure(figsize=(5,5))
+# plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.size"] = 12
+# plt.xlabel("Episode")
+# plt.ylabel("Score")
+# # plt.plot(time_reward, reward, label="The average cumulated reward obtained during an episode")
+# plt.plot(time_reward, reward)
+# # plt.plot(time_penalty, penalty, label="The average cumulated penalty term obtained during an episode")
+# plt.plot(time_penalty, penalty)
+# # plt.plot(mytime, indu, label="Score of the rule-based strategy", linestyle='--')
+# plt.plot(mytime, indu, linestyle='--')
+# plt.legend()
+# plt.grid(True)
+# plt.tight_layout()
+# plt.savefig("D:\dossier_y23hallo\Thèse\ECOS/Final_1.pdf", format="pdf", bbox_inches="tight")
+# plt.show()
 # #
 # # filename = filepath + "/" + "scoreXepisode.csv"
 # # reward_df = pd.read_csv(filename, sep=";", decimal=",", header=0)
@@ -3082,3 +3082,65 @@ plt.show()
 #
 # # Save to CSV
 # daily_profile.to_csv("daily_profile.csv", sep=",", decimal=".", header=True, index=False)
+
+
+
+
+# #####################################################################################################################
+# todo testing gurobi optimization fo distribution at devices level
+#######################################################################################################################
+#!/usr/bin/env python3.11
+
+# Copyright 2025, Gurobi Optimization, LLC
+
+# This example formulates and solves the following simple MIP model
+# using the matrix API:
+#  maximize
+#        x +   y + 2 z
+#  subject to
+#        x + 2 y + 3 z <= 4
+#        x +   y       >= 1
+#        x, y, z binary
+
+import gurobipy as gp
+from gurobipy import GRB
+import numpy as np
+import scipy.sparse as sp
+
+try:
+    # Create a new model
+    m = gp.Model("matrix1")
+
+    # Create variables
+    x = m.addMVar(shape=3, vtype=GRB.BINARY, name="x")
+
+    # Set objective
+    obj = np.array([1.0, 1.0, 2.0])
+    m.setObjective(obj @ x, GRB.MAXIMIZE)
+
+    # Build (sparse) constraint matrix
+    val = np.array([1.0, 2.0, 3.0, -1.0, -1.0])
+    row = np.array([0, 0, 0, 1, 1])
+    col = np.array([0, 1, 2, 0, 1])
+
+    A = sp.csr_matrix((val, (row, col)), shape=(2, 3))
+
+    # Build rhs vector
+    rhs = np.array([4.0, -1.0])
+
+    # Add constraints
+    m.addConstr(A @ x <= rhs, name="c")
+
+    # Optimize model
+    m.optimize()
+
+    print(f"my name is : {x}")
+    print(f"my value is : {x.X}")
+    print(f"Obj: {m.ObjVal:g}")
+
+except gp.GurobiError as e:
+    print(f"Error code {e.errno}: {e}")
+
+except AttributeError:
+    print("Encountered an attribute error")
+

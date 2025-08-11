@@ -7,8 +7,11 @@
 import numpy as np
 import pandas as pd
 import random
-from typing import Tuple, Dict, Callable
+from typing import Tuple, Dict, Callable, List
 from copy import deepcopy
+
+from src.common.Aggregator import Aggregator
+from src.common.Strategy import Strategy
 
 
 # ##########################################################################################
@@ -422,6 +425,152 @@ def actions_related_to_energy_exchange(exchange_list: list) -> list:
         number_of_actions_per_exchange.append(int((len(numerical_values) - len(aggregators_names) + 1) / 2))
 
     return number_of_actions_per_exchange
+
+
+def distribute_min_consumption(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], consumption_flow: float, money_earned_inside: float, energy_sold_inside: float):
+    """
+    The minimum quantity of energy demanded from consumption devices is served first.
+    """
+    returned_demands = []
+    for demand in sorted_demands[:]:
+        message = strategy._create_decision_message()
+        message["quantity"] = demand["quantity_min"]
+        message["price"] = min(max_price, demand["price"])
+        if demand["name"] in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+            quantities_given = strategy._catalog.get(f"{demand["name"]}.{aggregator.nature.name}.energy_accorded")
+            quantities_given.append(message)
+        else:  # if it is a device
+            quantities_given = message
+
+        strategy._catalog.set(f"{demand["name"]}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+        money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+        energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
+        consumption_flow -= message["quantity"]  # the energy quantity remained is determined
+
+        # the energy consumption devices which don't provide any flexibility (Emin = Emax = Enom) are fully served
+        if demand["emergency"] == 1:
+            sorted_demands.remove(demand)
+        else:
+            returned_demands.append(strategy._catalog.get(f"{demand["name"]}.{aggregator.nature.name}.energy_wanted"))
+
+    return [sorted_demands, returned_demands, consumption_flow, money_earned_inside, energy_sold_inside]
+
+
+def distribute_consumption_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], consumption_flows: List[float], money_earned_inside: float, energy_sold_inside: float):
+    """
+    To distribute the energy allocated to consumption for all the concerned devices.
+    """
+    for index in range(len(sorted_demands)):
+        name = sorted_demands[index]["name"]
+        price = sorted_demands[index]["price"]  # price of energy
+        message = strategy._create_decision_message()
+        message["quantity"] = consumption_flows[index]
+        message["price"] = min(price, max_price)
+        if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+            quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+            quantities_given.append(message)
+        else:  # if it is a device
+            quantities_given = message
+
+        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+        money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+        energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
+
+    return [money_earned_inside, energy_sold_inside]
+
+
+def distribute_min_production(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], production_flow: float, money_spent_inside: float, energy_bought_inside: float):
+    """
+    The minimum quantity of energy demanded from production devices is served first.
+    """
+    returned_offers = []
+    for offer in sorted_offers[:]:
+        message = strategy._create_decision_message()
+        message["quantity"] = offer["quantity_min"]
+        message["price"] = max(min_price, offer["price"])
+        if offer["name"] in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+            quantities_given = strategy._catalog.get(f"{offer["name"]}.{aggregator.nature.name}.energy_accorded")
+            quantities_given.append(message)
+        else:  # if it is a device
+            quantities_given = message
+
+        strategy._catalog.set(f"{offer["name"]}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+        money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+        energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
+        production_flow += message["quantity"]  # the energy quantity remained is determined
+
+        # the energy production devices which don't provide any flexibility (Emin=Emax=Enom) are fully served
+        if offer["emergency"] == 1:
+            sorted_offers.remove(offer)
+        else:
+            returned_offers.append(strategy._catalog.get(f"{offer["name"]}.{aggregator.nature.name}.energy_wanted"))
+
+    return [sorted_offers, returned_offers, production_flow, money_spent_inside, energy_bought_inside]
+
+
+def distribute_production_decision(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], production_flows: List[float], money_spent_inside: float, energy_bought_inside: float):
+    """
+    To distribute the energy allocated to production for all the concerned devices.
+    """
+    for index in range(len(sorted_offers)):
+        name = sorted_offers[index]["name"]
+        price = sorted_offers[index]["price"]  # price of energy
+        message = strategy._create_decision_message()
+        message["quantity"] = production_flows[index]
+        message["price"] = max(price, min_price)
+        if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+            quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+            quantities_given.append(message)
+        else:  # if it is a device
+            quantities_given = message
+
+        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+        money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+        energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
+
+    return [money_spent_inside, energy_bought_inside]
+
+
+def get_full_storage_message(strategy: "Strategy", aggregator: "Aggregator", sorted_storage: List[Dict]):
+    """
+    This function is used to get the full message of energy storage devices.
+    """
+    returned_storage = []
+    for index in range(len(sorted_storage)):
+        name = sorted_storage[index]["name"]
+        returned_storage.append(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted"))
+
+    return returned_storage
+
+
+def distribute_storage_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, min_price: float, sorted_storage: List[Dict], storage_flows: List[float], money_earned_inside: float, energy_sold_inside: float, money_spent_inside: float, energy_bought_inside: float):
+    """
+    To distribute the energy allocated to storage for all the concerned devices.
+    """
+    for index in range(len(sorted_storage)):
+        name = sorted_storage[index]["name"]
+        price = sorted_storage[index]["price"]  # price of energy
+        message = strategy._create_decision_message()
+        message["quantity"] = storage_flows[index]
+
+        if message["quantity"] < 0:  # if the storage device is discharged
+            message["price"] = max(price, min_price)
+            money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+            energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
+        else:  # if the storage device is charged
+            message["price"] = min(price, max_price)
+            money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+            energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
+
+        quantities_given = message
+
+        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+    return [money_earned_inside, energy_sold_inside, money_spent_inside, energy_bought_inside]
 
 
 # ##########################################################################################
