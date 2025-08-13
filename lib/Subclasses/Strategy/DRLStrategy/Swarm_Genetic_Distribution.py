@@ -109,7 +109,7 @@ def sga_algorithm(total_demand: float, total_offer: float, total_storage: float,
             pso_sub_population = [particle.position for particle in particles]
             population = [*pso_sub_population, *rest_of_population]
 
-        # Updating global best of the entire population
+        # Computing final scores of the entire population
         if objective_function:
             scores = [objective_function(individual) for individual in population]
         else:
@@ -149,5 +149,5 @@ def sga_algorithm(total_demand: float, total_offer: float, total_storage: float,
 #
 #
 # print(sga_algorithm(e_con, e_prod, e_sto, 25, 50, 100, my_demands, my_offers, my_storage, 100, 30, 0.6942, 20, 0.81, 0.89, 0.73))
-
+#
 

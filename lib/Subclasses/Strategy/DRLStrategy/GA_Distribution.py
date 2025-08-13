@@ -94,7 +94,7 @@ def rank_based_selection(population: List[Tuple], fitness: np.ndarray) -> List[T
 
     # selection probabilities
     weights = (len(population) - rank + 1).astype(float)
-    probs = weights / weights.sum()
+    probs = weights / (weights.sum() + 1e-12)
 
     # sampling parents
     indices = np.random.choice(len(population), size=len(population), replace=True, p=probs)
@@ -124,7 +124,7 @@ def roulette_wheel_based_selection(population: List[Tuple], fitness: np.ndarray)
     This function identifies selected parents based on roulette_wheel-based selection technique.
     """
     total = fitness.sum()
-    probs = fitness / total  # drawing probabilities
+    probs = fitness / (total + 1e-12)  # drawing probabilities
 
     # Draw indices
     chosen_indices = np.random.choice(len(population), size=len(population), replace=True, p=probs)
@@ -132,7 +132,7 @@ def roulette_wheel_based_selection(population: List[Tuple], fitness: np.ndarray)
     return [population[i] for i in chosen_indices]
 
 
-def selection_phase(population: List[Tuple], fitness_vector: np.ndarray, tournament_size: int, number_of_elites: int = 0, selection_method: int=2) -> List[Tuple]:
+def selection_phase(population: List[Tuple], fitness_vector: np.ndarray, tournament_size: int, number_of_elites: int = 0, selection_method: int=0) -> List[Tuple]:
     """
     The selection function.
     """

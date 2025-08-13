@@ -452,7 +452,11 @@ def distribute_min_consumption(strategy: "Strategy", aggregator: "Aggregator", m
         if demand["emergency"] == 1:
             sorted_demands.remove(demand)
         else:
-            returned_demands.append(strategy._catalog.get(f"{demand["name"]}.{aggregator.nature.name}.energy_wanted"))
+            my_message = strategy._catalog.get(f"{demand["name"]}.{aggregator.nature.name}.energy_wanted")
+            my_message["energy_nominal"] -= my_message["energy_minimum"]
+            my_message["energy_maximum"] -= my_message["energy_minimum"]
+            my_message["energy_minimum"] -= my_message["energy_minimum"]
+            returned_demands.append(my_message)
 
     return [sorted_demands, returned_demands, consumption_flow, money_earned_inside, energy_sold_inside]
 
@@ -506,7 +510,11 @@ def distribute_min_production(strategy: "Strategy", aggregator: "Aggregator", mi
         if offer["emergency"] == 1:
             sorted_offers.remove(offer)
         else:
-            returned_offers.append(strategy._catalog.get(f"{offer["name"]}.{aggregator.nature.name}.energy_wanted"))
+            my_message = strategy._catalog.get(f"{offer["name"]}.{aggregator.nature.name}.energy_wanted")
+            my_message["energy_nominal"] -= my_message["energy_minimum"]
+            my_message["energy_maximum"] -= my_message["energy_minimum"]
+            my_message["energy_minimum"] -= my_message["energy_minimum"]
+            returned_offers.append(my_message)
 
     return [sorted_offers, returned_offers, production_flow, money_spent_inside, energy_bought_inside]
 

@@ -187,7 +187,6 @@ def update_particles(particles: List[Particle], global_best_position: Tuple, w: 
 
         # Compute position
         particle.position = np.array(particle.position) + particle.velocity
-        # particle.position = np.clip(particle.position, 0, 1)
         particle.position = tuple(ensure_constraints_pso(particle.position, Emin, Emax, E_con, E_prod, E_stor, len_con, len_prod, len_stor))
         particle.velocity = tuple(particle.velocity)
 
