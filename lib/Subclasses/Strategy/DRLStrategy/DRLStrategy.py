@@ -7,12 +7,11 @@ from traceback import format_list
 from src.common.Strategy import Strategy
 from lib.Subclasses.Strategy.DRLStrategy.interface_peacefulness import *
 from copy import deepcopy
-from typing import Callable, Optional
 
 
 class DeepReinforcementLearning(Strategy):
 
-    def __init__(self, agent: "A3C_agent", flag_BC=False, optimized_distribution: Optional[Callable]=None):
+    def __init__(self, agent: "A3C_agent", flag_BC=False, optional_params=None):
         super().__init__("deep_reinforcement_learning_strategy", "The optimal energy management strategy that will be learned by the RL agent")
         self.agent = agent
         self.counter = 0  # will be used to send and receive information from the RL agent
@@ -20,10 +19,15 @@ class DeepReinforcementLearning(Strategy):
         self._catalog.add(f"DRL_Strategy.decision_message", {})
         self._catalog.add(f"DRL_Strategy.exchanges_message", {})
         self.behaviour_cloning_flag = flag_BC
-        if optimized_distribution:  # for hierarchical dispatch
-            self.optimization_distribution = optimized_distribution
+        if optional_params:  # for hierarchical dispatch
+            self.optimized_distribution_flag = True
+            self.sorting_coefficients = optional_params
+            if f"DRL_Strategy.sorting_coefficients" not in self._catalog.keys:
+                self._catalog.add(f"DRL_Strategy.sorting_coefficients", optional_params)
+            else:
+                self._catalog.set(f"DRL_Strategy.sorting_coefficients", optional_params)
         else:
-            self.optimization_distribution = None
+            self.optimized_distribution_flag = False
 
     # ##################################################################################################################
     # Dynamic behavior
@@ -208,10 +212,11 @@ class DeepReinforcementLearning(Strategy):
                             self._catalog.set(f"{agg.name}.{agg.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
             # balance of the exchanges made with outside (todo check the signs + what about conversion systems ?)
             [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(agg, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+            # todo faudra-t-il ajouter les energy sold/bought outside aux quantités intérieures ? (maximum_energy_produced et maximum_energy_consumed)
 
             # Internal balance
             [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(agg)  # sorting the quantities
-            if not self.optimization_distribution: # equal distribution
+            if not self.optimized_distribution_flag: # equal distribution
 
                 # determination of storage usage
                 if Esto < 0:  # if the energy storage systems are discharging
@@ -240,10 +245,24 @@ class DeepReinforcementLearning(Strategy):
                 indirect_optimization_storage = get_full_storage_message(self, agg, sorted_storage)
 
                 # The distribution of energy is optimized for the remaining devices
-                energy_flow_values = self.optimization_distribution(sorted_demands, sorted_offers, sorted_storage, Econ, Eprod, Esto, internal_buying_price, internal_selling_price)
-                [money_earned_inside, energy_sold_inside] = distribute_consumption_decision(self, agg, internal_buying_price, sorted_demands, energy_flow_values[:len(sorted_demands)], money_earned_inside, energy_sold_inside)
-                [money_spent_inside, energy_bought_inside] = distribute_production_decision(self, agg, internal_selling_price, sorted_offers, energy_flow_values[len(sorted_demands):len(sorted_demands) + len(sorted_offers)], money_spent_inside, energy_bought_inside)
-                [money_earned_inside, energy_sold_inside, money_spent_inside, energy_bought_inside] = distribute_storage_decision(self, agg, internal_buying_price, internal_selling_price, sorted_storage, energy_flow_values[len(sorted_demands) + len(sorted_offers):], money_earned_inside, energy_sold_inside, money_spent_inside, energy_bought_inside)
+                [sorted_demands, sorted_offers, sorted_storage] = optimized_sorting(indirect_optimization_demands, indirect_optimization_offers, indirect_optimization_storage,
+                                                                                    sorted_demands, sorted_offers, sorted_storage,
+                                                                                    Econ, Eprod, Esto, internal_buying_price, internal_selling_price, self.sorting_coefficients, compute_output)
+                # determination of storage usage
+                if Esto < 0:  # if the energy storage systems are discharging
+                    for message in sorted_storage:
+                        self._transform_storage_into_production(message)
+                    [Esto, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(agg, internal_selling_price, sorted_storage, - Esto, money_spent_inside, energy_bought_inside)
+
+                else:  # if they are charging
+                    for message in sorted_storage:
+                        self._transform_storage_into_consumption(message)
+                    [Esto, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(agg, internal_buying_price, sorted_storage, Esto, money_earned_inside, energy_sold_inside)
+                # then we distribute the remaining quantities according to our sort
+                # distribution among consumptions
+                [maximum_energy_produced, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
+                # distribution among productions
+                [maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
 
             self._update_balances(agg, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
 

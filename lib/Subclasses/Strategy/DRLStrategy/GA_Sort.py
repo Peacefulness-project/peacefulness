@@ -334,35 +334,35 @@ def optimize_sorting_func(demand_full_message: List[Dict], offer_full_message: L
 
 
 
-my_demands = [{"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 120, "price": 0.85, "flexibility": [12, 27, 35, 41], "interruptibility": 1, "coming_volume": 350},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 110, "price": 0.65, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 90, "price": 0.75, "flexibility": [0, 0], "interruptibility": 0, "coming_volume": 0},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 150, "price": 0.4, "flexibility": [0, 0, 0], "interruptibility": 0, "coming_volume": 0},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 180, "price": 0.45, "flexibility": [12, 27], "interruptibility": 1, "coming_volume": 500},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 300, "price": 0.25, "flexibility": [27, 35, 41], "interruptibility": 1, "coming_volume": 1000},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 20, "price": 1.05, "flexibility": [0, 0, 0, 0], "interruptibility": 0, "coming_volume": 0},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 45, "price": 0.8, "flexibility": [12, 35, 41], "interruptibility": 1, "coming_volume": 140},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 75, "price": 0.78, "flexibility": [1], "interruptibility": 1, "coming_volume": 270},
-              {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 105, "price": 0.7, "flexibility": [0], "interruptibility": 0, "coming_volume": 0}]
-
-my_offers = [{"type": "standard", "energy_minimum": - 120, "energy_nominal": 0, "energy_maximum": 0, "price": 0.5, "flexibility": [-150, -100], "interruptibility": 1, "coming_volume": - 250},
-             {"type": "standard", "energy_minimum": - 110, "energy_nominal": 0, "energy_maximum": 0, "price": 0.69, "flexibility": [-120, -30], "interruptibility": 1, "coming_volume": - 150},
-             {"type": "standard", "energy_minimum": - 90, "energy_nominal": 0, "energy_maximum": 0, "price": 0.89, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
-             {"type": "standard", "energy_minimum": - 150, "energy_nominal": 0, "energy_maximum": 0, "price": 0.42, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
-             {"type": "standard", "energy_minimum": - 180, "energy_nominal": 0, "energy_maximum": 0, "price": 0.4, "flexibility": [0, 0], "interruptibility": 0, "coming_volume": 0},
-             {"type": "standard", "energy_minimum": - 380, "energy_nominal": 0, "energy_maximum": 0, "price": 0.35, "flexibility": [-1000], "interruptibility": 1, "coming_volume": - 1000},
-             {"type": "standard", "energy_minimum": - 20, "energy_nominal": 0, "energy_maximum": 0, "price": 1.05, "flexibility": [0], "interruptibility": 0, "coming_volume": 0}]
-
-my_storage = [{"type": "storage", "energy_minimum": - 120, "energy_nominal": 0, "energy_maximum": 30, "price": 0.1, "state_of_charge": 0.35, "capacity": 1000, "self_discharge_rate": 0.002, "efficiency": 0.89},
-              {"type": "storage", "energy_minimum": - 110, "energy_nominal": 0, "energy_maximum": 15, "price": 0.69, "state_of_charge": 0.47, "capacity": 500, "self_discharge_rate": 0.001, "efficiency": 0.91},
-              {"type": "storage", "energy_minimum": - 90, "energy_nominal": 0, "energy_maximum": 5, "price": 0.89, "state_of_charge": 0.81, "capacity": 250, "self_discharge_rate": 0.003, "efficiency": 0.73},
-              {"type": "storage", "energy_minimum": -150, "energy_nominal": 0, "energy_maximum": 45, "price": 0.42, "state_of_charge": 0.68, "capacity": 1250, "self_discharge_rate": 0.006, "efficiency": 0.61}]
-
-e_con = 850.
-e_prod = - 700.
-e_sto = - 150.
-buy_p = 0.69
-sell_p = 0.42
+# my_demands = [{"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 120, "price": 0.85, "flexibility": [12, 27, 35, 41], "interruptibility": 1, "coming_volume": 350},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 110, "price": 0.65, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 90, "price": 0.75, "flexibility": [0, 0], "interruptibility": 0, "coming_volume": 0},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 150, "price": 0.4, "flexibility": [0, 0, 0], "interruptibility": 0, "coming_volume": 0},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 180, "price": 0.45, "flexibility": [12, 27], "interruptibility": 1, "coming_volume": 500},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 300, "price": 0.25, "flexibility": [27, 35, 41], "interruptibility": 1, "coming_volume": 1000},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 20, "price": 1.05, "flexibility": [0, 0, 0, 0], "interruptibility": 0, "coming_volume": 0},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 45, "price": 0.8, "flexibility": [12, 35, 41], "interruptibility": 1, "coming_volume": 140},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 75, "price": 0.78, "flexibility": [1], "interruptibility": 1, "coming_volume": 270},
+#               {"type": "standard", "energy_minimum": 0, "energy_nominal": 0, "energy_maximum": 105, "price": 0.7, "flexibility": [0], "interruptibility": 0, "coming_volume": 0}]
+#
+# my_offers = [{"type": "standard", "energy_minimum": - 120, "energy_nominal": 0, "energy_maximum": 0, "price": 0.5, "flexibility": [-150, -100], "interruptibility": 1, "coming_volume": - 250},
+#              {"type": "standard", "energy_minimum": - 110, "energy_nominal": 0, "energy_maximum": 0, "price": 0.69, "flexibility": [-120, -30], "interruptibility": 1, "coming_volume": - 150},
+#              {"type": "standard", "energy_minimum": - 90, "energy_nominal": 0, "energy_maximum": 0, "price": 0.89, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
+#              {"type": "standard", "energy_minimum": - 150, "energy_nominal": 0, "energy_maximum": 0, "price": 0.42, "flexibility": [0], "interruptibility": 0, "coming_volume": 0},
+#              {"type": "standard", "energy_minimum": - 180, "energy_nominal": 0, "energy_maximum": 0, "price": 0.4, "flexibility": [0, 0], "interruptibility": 0, "coming_volume": 0},
+#              {"type": "standard", "energy_minimum": - 380, "energy_nominal": 0, "energy_maximum": 0, "price": 0.35, "flexibility": [-1000], "interruptibility": 1, "coming_volume": - 1000},
+#              {"type": "standard", "energy_minimum": - 20, "energy_nominal": 0, "energy_maximum": 0, "price": 1.05, "flexibility": [0], "interruptibility": 0, "coming_volume": 0}]
+#
+# my_storage = [{"type": "storage", "energy_minimum": - 120, "energy_nominal": 0, "energy_maximum": 30, "price": 0.1, "state_of_charge": 0.35, "capacity": 1000, "self_discharge_rate": 0.002, "efficiency": 0.89},
+#               {"type": "storage", "energy_minimum": - 110, "energy_nominal": 0, "energy_maximum": 15, "price": 0.69, "state_of_charge": 0.47, "capacity": 500, "self_discharge_rate": 0.001, "efficiency": 0.91},
+#               {"type": "storage", "energy_minimum": - 90, "energy_nominal": 0, "energy_maximum": 5, "price": 0.89, "state_of_charge": 0.81, "capacity": 250, "self_discharge_rate": 0.003, "efficiency": 0.73},
+#               {"type": "storage", "energy_minimum": -150, "energy_nominal": 0, "energy_maximum": 45, "price": 0.42, "state_of_charge": 0.68, "capacity": 1250, "self_discharge_rate": 0.006, "efficiency": 0.61}]
+#
+# e_con = 850.
+# e_prod = - 700.
+# e_sto = - 150.
+# buy_p = 0.69
+# sell_p = 0.42
 
 # print(genetic_algorithm_alpha(my_demands, e_con, buy_p, sell_p, 100, 100, 0.86, 25, 2, 10))
 # print(genetic_algorithm_alpha(my_offers, e_prod, buy_p, sell_p, 100, 100, 0.86, 25, 2, 10))

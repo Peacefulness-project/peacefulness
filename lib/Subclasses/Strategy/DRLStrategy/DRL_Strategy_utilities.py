@@ -7,7 +7,8 @@
 import numpy as np
 import pandas as pd
 import random
-from typing import Tuple, Dict, Callable, List
+import math
+from typing import Tuple, Dict, Callable, List, Optional
 from copy import deepcopy
 
 from src.common.Aggregator import Aggregator
@@ -612,4 +613,124 @@ def identify_mirror_decisions(catalog: "Catalog", aggregator: "Aggregator"):
     return concerned_aggregator, internal_mirror_actions, external_mirror_actions
 
 
+
+
+# ##########################################################################################
+# Utilities useful for optimization of sorting coefficients for demands, offers and storage
+# ##########################################################################################
+def optimized_sorting(raw_demands: List[Dict], raw_offers: List[Dict], raw_storage: List[Dict], sorted_demands: List[Dict], sorted_offers: List[Dict], sorted_storage: List[Dict], RL_cons: float, RL_prod: float, RL_stor: float, buy_p: float, sell_p: float, sorting_coeffs: Dict, compute_order: Callable):
+    """
+    This function is used to sort the demands/offers/storage devices according to the y-output computed from the sorting coefficients.
+    If the energy system category is not concerned by the optimization of its sorting coefficients, the sorted list resulting from self.separate_quantities is returned.
+    """
+    if "demand" in sorting_coeffs:
+        raw_demands = sorted(raw_demands, key=lambda d: compute_order(d, sorting_coeffs["demand"], RL_cons, buy_p, sell_p), reverse=True)
+    else:
+        raw_demands = sorted_demands
+
+    if "offer" in sorting_coeffs:
+        raw_offers = sorted(raw_offers, key=lambda o: compute_order(o, sorting_coeffs["offer"], RL_prod, buy_p, sell_p), reverse=True)
+    else:
+        raw_offers = sorted_offers
+
+    if "storage" in sorting_coeffs:
+        raw_storage = sorted(raw_storage, key=lambda s: compute_order(s, sorting_coeffs["storage"], RL_stor, buy_p, sell_p), reverse=True)
+    else:
+        raw_storage = sorted_storage
+
+    return [raw_demands, raw_offers, raw_storage]
+
+
+def compute_output(full_message: Dict, sorting_coefficients: Tuple, dispatchable_energy: float, max_price: float, min_price: float):
+    """
+    This function computes the "y" output based on the sorting coefficients.
+    """
+    # 1 - The demand and offer horizons are determined (forecast, flexibility)
+    my_horizon = find_horizon(full_message)
+
+    # 2 - the input is normalized
+    input_vector = normalize_my_input(full_message, dispatchable_energy, max_price, min_price, my_horizon)
+
+    # 3 - the y output of the sorting function is determined
+    return calculate_sort_output(input_vector, sorting_coefficients, my_horizon)
+
+
+def find_horizon(raw_message: Dict) -> int:
+    """
+    This function is used to find the horizon (forecast) for flexibility of standard devices.
+    """
+    if not raw_message["type"] == "standard":  # if storage devices
+        horizon = 0
+    else:  # for energy consumption and production devices
+        horizon = len(raw_message["flexibility"])
+
+    return horizon
+
+
+def normalize_my_input(full_message: Dict, dispatch_RL: float, buying_price: float, selling_price: float, horizon: int) -> Tuple:
+    """
+    The energy dispatch decision by the DRL at the aggregator level is used to normalize the energy values for each category.
+    For prices, the maximum_buying_price and minimum_selling_price are used.
+    """
+    used_price = (buying_price + selling_price) / 2
+
+    if full_message["type"] == "standard":  # energy demand/generation devices
+        temp_dict = []
+        for key in full_message:
+            if key == "price":
+                temp_dict.append(full_message[key] / used_price)
+            elif key == "flexibility":
+                for step in range(horizon):
+                    temp_dict.append(full_message[key][step] / dispatch_RL)
+            elif key == "coming_volume":
+                temp_dict.append(full_message[key] / (horizon * dispatch_RL))
+            elif key == "type":
+                temp_dict.append(full_message[key])
+            else:
+                temp_dict.append(full_message[key] / dispatch_RL)
+        normalized_input = tuple(temp_dict)
+
+    else:  # energy storage
+        temp_dict = []
+        for key in full_message:
+            if key == "type":
+                temp_dict.append(full_message[key])
+            elif key == "state_of_charge" or key == "self_discharge_rate":
+                temp_dict.append(full_message[key])
+            elif key == "efficiency":
+                temp_dict.append(math.prod(full_message[key].values()))
+            elif key == "price":
+                temp_dict.append(full_message[key] / used_price)
+            else:
+                temp_dict.append(full_message[key] / full_message["capacity"])
+        normalized_input = tuple(temp_dict)
+
+    return normalized_input
+
+
+def calculate_sort_output(normalized_input: Tuple, individual: Tuple, horizon: int) -> float:
+    """
+    In this function, for each demand/offer/storage, an output value is computed (alpha_i * msg_i).
+    These values are then sorted in a descending manner.
+    The ordering is 'unique' to each individual (alpha_i) of the population.
+    The list of order of serving is returned.
+    """
+    if "standard" not in normalized_input:  # storage devices
+        normalized_input = list(normalized_input)
+        normalized_input.remove("storage")
+        y_output = np.dot(np.array(individual), np.array(normalized_input))
+
+    else:  # energy demand/generation devices
+        normalized_input = list(normalized_input)
+        normalized_input.remove("standard")
+        if horizon == 1:  # alpha_coefficients and normalized_message have the same length
+            y_output = np.dot(np.array(individual), np.array(normalized_input))
+        else:  # normalized_message has bigger length
+            individual = list(individual)
+            flex_coef = individual[4]
+            for i in range(1, horizon):
+                individual.insert(4 + i, flex_coef)
+            y_output = np.dot(np.array(individual), np.array(normalized_input))
+
+    return y_output
 
