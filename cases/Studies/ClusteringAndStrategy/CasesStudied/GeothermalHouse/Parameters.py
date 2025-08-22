@@ -10,10 +10,7 @@ from cases.Studies.ClusteringAndStrategy.Utilities import *
 training_simulation_length = 8760  # length of sequences used for clustering.
 sequences_number = 8760  # number of sequences simulated
 clustering_batch_size = 4  # number of years simulated for clustering
-cluster_number = 10  # the number of clusters, fixed arbitrarily, can be determined studying the dispersion inside each cluster (see elbow method)
-
-# random_seed = "tournesol"  # random seed is set to have always the same result for 1 given set of parameters
-# seed(random_seed)
+cluster_number = 10  # the number of clusters
 
 
 comparison_simulation_length = 8760  # length of the final run aimed at evaluating the efficiency of the strategy
@@ -49,7 +46,8 @@ exported_metrics = performance_metrics + clustering_metrics
 
 
 def performance_norm(performance_vector: Dict) -> float:
-    return sum(performance_vector["house_owner.money_spent"]) - sum(performance_vector["house_owner.money_earned"]) - \
+    print(sum(performance_vector["heating.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_sold"]))
+    return sum(performance_vector["house_owner.money_earned"]) - sum(performance_vector["house_owner.money_spent"]) - \
            sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 
 

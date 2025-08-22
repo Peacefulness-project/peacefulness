@@ -188,3 +188,44 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
 
     return best_strategies
 
+
+def metaheuristique(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> Dict:
+    """
+    Clusters are sorted by the number of days inside.
+    For the cluster i, all the strategies are tested knowing that:
+    - clusters < i (the less populous) use the best strategies identified
+    - clusters > i (the more populous) use a random strategy
+
+    Parameters
+    ----------
+    find_cluster
+    cluster_centers
+    simulation_length
+    performance_metrics
+    performance_norm
+    assessed_priorities
+    create_simulation
+    case_name
+    clustering_metrics
+
+    Returns
+    -------
+
+    """
+    def compute_score(assessed_priorities_consumption, assessed_priorities_production):
+        # simulation
+        print(f"test of strategy {assessed_priorities_consumption[i]}/{assessed_priorities_production[j]}")
+        directory = f"{complement_path}/training/{i}_{j}"
+        datalogger = create_simulation(simulation_length, assessed_priorities_consumption, assessed_priorities_production, directory, performance_metrics)
+        shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/", ignore_errors=True, onerror=None)
+        # metering
+        raw_outputs = {}
+        for key in performance_metrics:
+            raw_outputs[key] = datalogger.get_values(key)
+        performance = performance_norm(raw_outputs)
+        print(f"performance reached: {performance}")
+
+        return performance
+
+    return best_strategies
+

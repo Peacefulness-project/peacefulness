@@ -20,8 +20,8 @@ if run_name not in os.listdir(f"./cases/Studies/ClusteringAndStrategy/Results/{c
     os.mkdir(f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/")
 
 
-for i in range(1):
-    intermediate_results = open(results_path + f"IntermediateResults_{i}_seed.txt", "w")
+for i in range(10):
+    intermediate_results = open(results_path + f"IntermediateResults_{i}_clustering_seed.txt", "w")
 
     recorded_situations = situations_recording(clustering_metrics, clustering_batch_size, create_simulation,
                                                consumption_options, production_options, run_name)

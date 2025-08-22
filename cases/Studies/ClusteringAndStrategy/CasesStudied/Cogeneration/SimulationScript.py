@@ -109,9 +109,9 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Manual creation of agents
-    DHN_manager = Agent("DHN_manager")  # creation of an agent
+    grid = Agent("grids")
     consumers = Agent("consumers")
-    CHP_owner = Agent("cogeneration_owner")
+    producer = Agent("producer")
     other = Agent("other")
 
     # ##############################################################################################
@@ -126,14 +126,15 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Creation of aggregators
-    aggregator_name = "peakload_gas_plant"  # external grid
-    aggregator_grid = Aggregator(aggregator_name, LTH, strategy_grid, DHN_manager)
+    aggregator_name = "external_grid"  # external grid
+    aggregator_grid = Aggregator(aggregator_name, LVE, strategy_grid, grid)
 
     aggregator_name = "district_heating_microgrid"
-    aggregator_heat = Aggregator(aggregator_name, LTH, strategy_optimized, DHN_manager, aggregator_grid, contract_grid, efficiency=1, capacity={"buying": 2000000, "selling": 0})
+    aggregator_heat = Aggregator(aggregator_name, LTH, strategy_optimized, grid)
 
     aggregator_name = "local_network"  # area with industrials
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_optimized, DHN_manager, aggregator_grid, contract_grid, capacity={"buying": 100000, "selling": 0})  # creation of an aggregator
+    network_peak_power = 100000  # kW, the allowed peak power
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_optimized, grid, aggregator_grid, contract_grid, capacity={"buying": network_peak_power, "selling": network_peak_power})  # creation of an aggregator
 
     aggregator_name = "GasNetwork"
     aggregator_gas = Aggregator(aggregator_name, LPG, strategy_grid, other)
@@ -155,10 +156,21 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     CHP_max_power = 2000  # kW
     subclasses_dictionary["Device"]["AdvancedCombinedHeatAndPower"]("CHP_unit", [BAU_gas, cooperative_contract_heat,
-                                                                                 cooperative_contract_elec], CHP_owner,
+                                                                    cooperative_contract_elec], producer,
                                                                     aggregator_gas, [aggregator_heat, aggregator_elec],
                                                                     {"device": "test_system"},
                                                                     {"max_power": CHP_max_power})
+
+    HP_max_power = 1000  # kW
+    heatpump = subclasses_dictionary["Device"]["AdvancedHeatPump"]("HP_unit", [cooperative_contract_heat, cooperative_contract_elec], producer, aggregator_elec, aggregator_heat,
+                                                                   {"device": "dummy_heat_pump"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "max_power": HP_max_power})
+
+    subclasses_dictionary["Device"]["SensibleHeatStorage"]("thermal_storage", cooperative_contract_heat,
+                                                           producer, aggregator_heat,
+                                                           {"device": "water_tank_no_degradation"}, {
+                                                               "outdoor_temperature_daemon": outdoor_temperature_daemon.name,
+                                                               "initial_temperature": 50},
+                                                           filename="cases/ValidationCases/AdditionalData/DevicesProfiles/SensibleHeatStorage.json")
 
     # elec loads
     subclasses_dictionary["Device"]["ResidentialDwelling"]("residential_dwellings", BAU_elec, consumers, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 750, "rng_generator": rng_generator})

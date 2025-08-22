@@ -7,9 +7,9 @@
     },
 
     "building_heat": {
-      "usage_profile": [{"LTH": 1}, 2, 9000],
+      "usage_profile": [{"LTH": 1}, 10, 9000],
       "consumption_variation": 0.1,
-      "max_power": {"LTH": 10}
+      "max_power": {"LTH": 20}
     }
   },
 

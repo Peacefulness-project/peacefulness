@@ -13,7 +13,7 @@ from src.common.Datalogger import Datalogger
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
 
-from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.OptionsManagementFunctions import options_consumption, options_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.GeothermalHouse.OptionsManagementFunctions import options_consumption, options_production
 
 
 def create_simulation(hours_simulated: int, priorities_conso: Callable, priorities_prod: Callable, step_name: str, metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation: int = 0):
@@ -74,7 +74,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # Price Managers
     # this daemons fix a price for a given nature of energy
-    price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "buying_coefficient": 3, "selling_coefficient": 1}, "cases/Studies/ClusteringAndStrategy/CasesStudied/MaisonGeothermie/AdditionalData/prices.json")  # sets prices for TOU rate
+    price_manager_elec_RTP = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("prices_elec", {"location": "France", "buying_coefficient": 3, "selling_coefficient": 1}, "cases/Studies/ClusteringAndStrategy/CasesStudied/GeothermalHouse/AdditionalData/prices.json")  # sets prices for TOU rate
     price_manager_elec_sell = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("selling_rate", {"buying_price": 0, "selling_price": 0})   # sets prices for TOU rate
 
     price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_price", {"buying_price": 0, "selling_price": 0})  # sets prices for TOU rate
@@ -152,18 +152,14 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     storage = subclasses_dictionary["Device"]["UndergroundThermalStorage"]("heat_storage", heat_contract, house_owner, aggregator_heat, {"device": "domestic_storage"}, {"ground_temperature_daemon": ground_temperature_daemon.name, "initial_storage_temperature": 40})
     heating = subclasses_dictionary["Device"]["Heating"]("heating", heat_contract, house_owner, aggregator_heat, {"user": "residential", "device": "building_heat"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "initial_temperature": 20},
-                                                         "cases/Studies/ClusteringAndStrategy/CasesStudied/MaisonGeothermie/AdditionalData/Heating.json")
-    heatpump = subclasses_dictionary["Device"]["AdvancedHeatPump"]("heat_pump", [heat_contract, BAU_elec], house_owner, aggregator_elec, aggregator_heat,
+                                                         "cases/Studies/ClusteringAndStrategy/CasesStudied/GeothermalHouse/AdditionalData/Heating.json")
+    heatpump = subclasses_dictionary["Device"]["GeothermalHeatPump"]("heat_pump", [heat_contract, BAU_elec], house_owner, aggregator_elec, aggregator_heat,
                                                                    {"device": "dummy_heat_pump"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name, "max_power": 1.5})
     PV = subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV", BAU_elec, house_owner, aggregator_elec, {"device": "standard_field"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name, "irradiation_daemon": irradiation_daemon.name, "panels": 15})
 
     # ##############################################################################################
     # Creation of dataloggers
 
-    # datalogger used to get back producer outputs
-    # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
-
-    # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     # subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)
     exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")

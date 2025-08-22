@@ -5,6 +5,7 @@ import itertools
 
 from cases.Studies.ClusteringAndStrategy.Utilities import *
 
+
 # ######################################################################################################################
 # hyperparameters -
 # ######################################################################################################################
@@ -35,21 +36,25 @@ exported_metrics = performance_metrics + clustering_metrics + [
     "LTH.energy_consumed",
 ]
 
-
 coef = 3
 def performance_norm(performance_vector: Dict) -> float:
     performance = sum(performance_vector["biomass_plant.LTH.energy_sold"]) - sum(performance_vector["heat_sink.LTH.energy_bought"]) * coef\
                   - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
     return performance
 
+
 # ######################################################################################################################
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
+
+
 consumption_options = ["dissipation", "nothing"]
 production_options = ["biomass", "gas", "nothing"]
-assessed_priorities_consumption = [list(toto) for toto in itertools.permutations(consumption_options)]
-assessed_priorities_production = [list(toto) for toto in itertools.permutations(production_options)]
+assessed_priorities_consumption = permute(consumption_options)
+assessed_priorities_production = permute(production_options)
 assessed_priorities = {"consumption": assessed_priorities_consumption, "production": assessed_priorities_production}
+titi = [connard for connard in itertools.product(assessed_priorities_consumption, assessed_priorities_production)]
+
 
 threshold = 0.85
 # reference strategies
