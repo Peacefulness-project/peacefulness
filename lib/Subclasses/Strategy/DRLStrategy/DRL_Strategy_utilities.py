@@ -11,6 +11,9 @@ import math
 from typing import Tuple, Dict, Callable, List, Optional
 from copy import deepcopy
 
+import json
+from collections import defaultdict, deque
+
 from src.common.Aggregator import Aggregator
 from src.common.Strategy import Strategy
 
@@ -188,7 +191,11 @@ def if_it_exists(my_data, my_func: Callable, additional_data_1=None, additional_
 
 def my_basic_share(my_data, max_value, min_value):
     if my_data and max_value and min_value:
-        return sum(my_data) / ((sum(max_value) + sum(min_value)) / 2)
+        if sum(max_value) == 0 and sum(min_value) == 0:
+            return_value = 0.0
+        else:
+            return_value = sum(my_data) / ((sum(max_value) + sum(min_value)) / 2)
+        return return_value
 
 
 def mutualize_formalism_message(formalism_dict: dict) -> dict:
@@ -274,7 +281,7 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
             elif element == 'capacity':
                 capacity.append(storage_dict[device_name][element])
             elif element == 'self_discharge_rate':
-                self_discharge_rate.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
+                self_discharge_rate.append(abs(storage_dict[device_name][element]) * ((energy_min[-1] + energy_max[-1]) / 2))
             else:
                 efficiency.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
 
@@ -462,28 +469,28 @@ def distribute_min_consumption(strategy: "Strategy", aggregator: "Aggregator", m
     return [sorted_demands, returned_demands, consumption_flow, money_earned_inside, energy_sold_inside]
 
 
-def distribute_consumption_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], consumption_flows: List[float], money_earned_inside: float, energy_sold_inside: float):
-    """
-    To distribute the energy allocated to consumption for all the concerned devices.
-    """
-    for index in range(len(sorted_demands)):
-        name = sorted_demands[index]["name"]
-        price = sorted_demands[index]["price"]  # price of energy
-        message = strategy._create_decision_message()
-        message["quantity"] = consumption_flows[index]
-        message["price"] = min(price, max_price)
-        if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
-            quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
-            quantities_given.append(message)
-        else:  # if it is a device
-            quantities_given = message
-
-        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
-
-        money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
-        energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
-
-    return [money_earned_inside, energy_sold_inside]
+# def distribute_consumption_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], consumption_flows: List[float], money_earned_inside: float, energy_sold_inside: float):
+#     """
+#     To distribute the energy allocated to consumption for all the concerned devices.
+#     """
+#     for index in range(len(sorted_demands)):
+#         name = sorted_demands[index]["name"]
+#         price = sorted_demands[index]["price"]  # price of energy
+#         message = strategy._create_decision_message()
+#         message["quantity"] = consumption_flows[index]
+#         message["price"] = min(price, max_price)
+#         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+#             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+#             quantities_given.append(message)
+#         else:  # if it is a device
+#             quantities_given = message
+#
+#         strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+#
+#         money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+#         energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
+#
+#     return [money_earned_inside, energy_sold_inside]
 
 
 def distribute_min_production(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], production_flow: float, money_spent_inside: float, energy_bought_inside: float):
@@ -520,28 +527,28 @@ def distribute_min_production(strategy: "Strategy", aggregator: "Aggregator", mi
     return [sorted_offers, returned_offers, production_flow, money_spent_inside, energy_bought_inside]
 
 
-def distribute_production_decision(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], production_flows: List[float], money_spent_inside: float, energy_bought_inside: float):
-    """
-    To distribute the energy allocated to production for all the concerned devices.
-    """
-    for index in range(len(sorted_offers)):
-        name = sorted_offers[index]["name"]
-        price = sorted_offers[index]["price"]  # price of energy
-        message = strategy._create_decision_message()
-        message["quantity"] = production_flows[index]
-        message["price"] = max(price, min_price)
-        if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
-            quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
-            quantities_given.append(message)
-        else:  # if it is a device
-            quantities_given = message
-
-        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
-
-        money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
-        energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
-
-    return [money_spent_inside, energy_bought_inside]
+# def distribute_production_decision(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], production_flows: List[float], money_spent_inside: float, energy_bought_inside: float):
+#     """
+#     To distribute the energy allocated to production for all the concerned devices.
+#     """
+#     for index in range(len(sorted_offers)):
+#         name = sorted_offers[index]["name"]
+#         price = sorted_offers[index]["price"]  # price of energy
+#         message = strategy._create_decision_message()
+#         message["quantity"] = production_flows[index]
+#         message["price"] = max(price, min_price)
+#         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+#             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+#             quantities_given.append(message)
+#         else:  # if it is a device
+#             quantities_given = message
+#
+#         strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+#
+#         money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+#         energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
+#
+#     return [money_spent_inside, energy_bought_inside]
 
 
 def get_full_storage_message(strategy: "Strategy", aggregator: "Aggregator", sorted_storage: List[Dict]):
@@ -552,34 +559,33 @@ def get_full_storage_message(strategy: "Strategy", aggregator: "Aggregator", sor
     for index in range(len(sorted_storage)):
         name = sorted_storage[index]["name"]
         returned_storage.append(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted"))
-
     return returned_storage
 
 
-def distribute_storage_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, min_price: float, sorted_storage: List[Dict], storage_flows: List[float], money_earned_inside: float, energy_sold_inside: float, money_spent_inside: float, energy_bought_inside: float):
-    """
-    To distribute the energy allocated to storage for all the concerned devices.
-    """
-    for index in range(len(sorted_storage)):
-        name = sorted_storage[index]["name"]
-        price = sorted_storage[index]["price"]  # price of energy
-        message = strategy._create_decision_message()
-        message["quantity"] = storage_flows[index]
-
-        if message["quantity"] < 0:  # if the storage device is discharged
-            message["price"] = max(price, min_price)
-            money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
-            energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
-        else:  # if the storage device is charged
-            message["price"] = min(price, max_price)
-            money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
-            energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
-
-        quantities_given = message
-
-        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
-
-    return [money_earned_inside, energy_sold_inside, money_spent_inside, energy_bought_inside]
+# def distribute_storage_decision(strategy: "Strategy", aggregator: "Aggregator", max_price: float, min_price: float, sorted_storage: List[Dict], storage_flows: List[float], money_earned_inside: float, energy_sold_inside: float, money_spent_inside: float, energy_bought_inside: float):
+#     """
+#     To distribute the energy allocated to storage for all the concerned devices.
+#     """
+#     for index in range(len(sorted_storage)):
+#         name = sorted_storage[index]["name"]
+#         price = sorted_storage[index]["price"]  # price of energy
+#         message = strategy._create_decision_message()
+#         message["quantity"] = storage_flows[index]
+#
+#         if message["quantity"] < 0:  # if the storage device is discharged
+#             message["price"] = max(price, min_price)
+#             money_spent_inside -= message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+#             energy_bought_inside -= message["quantity"]  # the absolute value of energy sold inside
+#         else:  # if the storage device is charged
+#             message["price"] = min(price, max_price)
+#             money_earned_inside += message["quantity"] * message["price"]  # money earned by selling energy to the subaggregator
+#             energy_sold_inside += message["quantity"]  # the absolute value of energy sold inside
+#
+#         quantities_given = message
+#
+#         strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+#
+#     return [money_earned_inside, energy_sold_inside, money_spent_inside, energy_bought_inside]
 
 
 # ##########################################################################################
@@ -624,24 +630,30 @@ def optimized_sorting(raw_demands: List[Dict], raw_offers: List[Dict], raw_stora
     If the energy system category is not concerned by the optimization of its sorting coefficients, the sorted list resulting from self.separate_quantities is returned.
     """
     if "demand" in sorting_coeffs:
-        raw_demands = sorted(raw_demands, key=lambda d: compute_order(d, sorting_coeffs["demand"], RL_cons, buy_p, sell_p), reverse=True)
+        copy_of_demands = deepcopy(raw_demands)
+        raw_demands = sorted(raw_demands, key=lambda d: compute_order(d, {"demand": sorting_coeffs["demand"]}, RL_cons, buy_p, sell_p), reverse=True)
+        raw_demands = apply_sorting(copy_of_demands, raw_demands, sorted_demands)
     else:
         raw_demands = sorted_demands
 
     if "offer" in sorting_coeffs:
-        raw_offers = sorted(raw_offers, key=lambda o: compute_order(o, sorting_coeffs["offer"], RL_prod, buy_p, sell_p), reverse=True)
+        copy_of_offers = deepcopy(raw_offers)
+        raw_offers = sorted(raw_offers, key=lambda o: compute_order(o, {"offer": sorting_coeffs["offer"]}, RL_prod, buy_p, sell_p), reverse=True)
+        raw_offers = apply_sorting(copy_of_offers, raw_offers, sorted_offers)
     else:
         raw_offers = sorted_offers
 
     if "storage" in sorting_coeffs:
-        raw_storage = sorted(raw_storage, key=lambda s: compute_order(s, sorting_coeffs["storage"], RL_stor, buy_p, sell_p), reverse=True)
+        copy_of_storage = deepcopy(raw_storage)
+        raw_storage = sorted(raw_storage, key=lambda s: compute_order(s, {"storage": sorting_coeffs["storage"]}, RL_stor, buy_p, sell_p), reverse=True)
+        raw_storage = apply_sorting(copy_of_storage, raw_storage, sorted_storage)
     else:
         raw_storage = sorted_storage
 
     return [raw_demands, raw_offers, raw_storage]
 
 
-def compute_output(full_message: Dict, sorting_coefficients: Tuple, dispatchable_energy: float, max_price: float, min_price: float):
+def compute_output(full_message: Dict, sorting_coefficients: Dict, dispatchable_energy: float, max_price: float, min_price: float):
     """
     This function computes the "y" output based on the sorting coefficients.
     """
@@ -686,6 +698,8 @@ def normalize_my_input(full_message: Dict, dispatch_RL: float, buying_price: flo
                 temp_dict.append(full_message[key] / (horizon * dispatch_RL))
             elif key == "type":
                 temp_dict.append(full_message[key])
+            elif key == "CO2":  # todo if added make sure the number of coefficients for prod/conso are increased by 1
+                pass
             else:
                 temp_dict.append(full_message[key] / dispatch_RL)
         normalized_input = tuple(temp_dict)
@@ -701,6 +715,8 @@ def normalize_my_input(full_message: Dict, dispatch_RL: float, buying_price: flo
                 temp_dict.append(math.prod(full_message[key].values()))
             elif key == "price":
                 temp_dict.append(full_message[key] / used_price)
+            elif key == "CO2":  # todo if added make sure the number of coefficients for stor are increased by 1
+                pass
             else:
                 temp_dict.append(full_message[key] / full_message["capacity"])
         normalized_input = tuple(temp_dict)
@@ -708,7 +724,7 @@ def normalize_my_input(full_message: Dict, dispatch_RL: float, buying_price: flo
     return normalized_input
 
 
-def calculate_sort_output(normalized_input: Tuple, individual: Tuple, horizon: int) -> float:
+def calculate_sort_output(normalized_input: Tuple, individual: Dict, horizon: int) -> float:
     """
     In this function, for each demand/offer/storage, an output value is computed (alpha_i * msg_i).
     These values are then sorted in a descending manner.
@@ -718,19 +734,47 @@ def calculate_sort_output(normalized_input: Tuple, individual: Tuple, horizon: i
     if "standard" not in normalized_input:  # storage devices
         normalized_input = list(normalized_input)
         normalized_input.remove("storage")
-        y_output = np.dot(np.array(individual), np.array(normalized_input))
+        if "storage" in individual:  # if the message corresponds to a storage device offering both charging and discharging
+            y_output = np.dot(np.array(list(individual.values())[0]), np.array(normalized_input))
+        else:  # if the storage device is either treated as energy production or consumption
+            my_individual = list(list(individual.values())[0])
+            original_individual = deepcopy(my_individual)
+            my_individual[4] = original_individual[4] * original_individual[5]
+            my_individual[5] = original_individual[6]
+            my_individual[6] = original_individual[4] * original_individual[5]
+            my_individual.insert(len(my_individual), original_individual[4] * original_individual[5])
+            y_output = np.dot(np.array(my_individual), np.array(normalized_input))
 
     else:  # energy demand/generation devices
         normalized_input = list(normalized_input)
         normalized_input.remove("standard")
         if horizon == 1:  # alpha_coefficients and normalized_message have the same length
-            y_output = np.dot(np.array(individual), np.array(normalized_input))
+            y_output = np.dot(np.array(list(individual.values())[0]), np.array(normalized_input))
         else:  # normalized_message has bigger length
-            individual = list(individual)
-            flex_coef = individual[4]
+            my_individual = list(list(individual.values())[0])
+            flex_coef = my_individual[4]
             for i in range(1, horizon):
-                individual.insert(4 + i, flex_coef)
-            y_output = np.dot(np.array(individual), np.array(normalized_input))
+                my_individual.insert(4 + i, flex_coef)
+            y_output = np.dot(np.array(my_individual), np.array(normalized_input))
 
     return y_output
+
+
+def apply_sorting(dict_1, sorted_dict_1, dict_2):
+    """
+    This function is used to apply the sorting for the decision message based on the same sorting applied to the information message.
+    """
+    pos = defaultdict(deque)
+    for idx, myData in enumerate(dict_1):
+        key = json.dumps(myData, sort_keys=True)  # deterministic string for dict content
+        pos[key].append(idx)
+    myIndices = []
+    for myData in sorted_dict_1:
+        key = json.dumps(myData, sort_keys=True)
+        if not pos[key]:
+            raise ValueError("sorted_list has a dict not present in original a or counts differ")
+        myIndices.append(pos[key].popleft())
+    sorted_dict_2 = [dict_2[i] for i in myIndices]
+
+    return sorted_dict_2
 

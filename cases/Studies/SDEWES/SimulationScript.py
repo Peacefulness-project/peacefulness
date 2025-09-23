@@ -51,7 +51,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime(year=2018, month=1, day=1, hour=1, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
+    start_date = datetime(year=2023, month=7, day=15, hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=delay_days)
     # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
@@ -72,12 +72,13 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     location = "Nantes"
 
     # Price Managers
-    # this daemons fix a price for a given nature of energy
-    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"buying_price": 0.4, "selling_price": 0.15})   # sets prices for TOU rate
-    TOU_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("tarif_bleu_vert", {"nature": LVE.name, "buying_price": [0.4, 0.6], "selling_price": [0.2, 0.3], "on-peak_hours": [[5, 9], [17, 22]]})
+    price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("prices", {"buying_price": 0.6, "selling_price": 0.3})  # sets prices for TOU rate
+    price_manager_fuel = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("fuel_prices", {"buying_price": 0.0, "selling_price": 0.45})  # sets prices for fuel
+    price_manager_inside = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("insider_prices", {"buying_price": 0.0, "selling_price": 0.0})  # sets prices for TOU rate
+    # TOU_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("coop_prices", {"buying_price": 0.6, "selling_price": 0.3})
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
-    limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.65, "limit_selling_price": 0.1})  # sets limit price accepted
+    limit_prices_elec_grid = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.6, "limit_selling_price": 0.3})  # sets limit price accepted
 
     # Data-related Daemons
     irradiation_daemon = subclasses_dictionary["Daemon"]["IrradiationDaemon"]({"location": location})  # Irradiation
@@ -101,7 +102,11 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     # ##############################################################################################
     # Manual creation of contracts
     BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)
-    COOP_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("COOP_elec", LVE, TOU_manager_elec)
+    BAU_elec_PV = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec_PV", LVE, price_manager_inside)
+    COOP_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("COOP_elec", LVE, price_manager_elec)
+    # curtailment_contract = subclasses_dictionary["Contract"]["LimitedCurtailmentContract"]("curtail_contract", LVE, price_manager_elec, {"curtailment_hours": 5, "rotation_duration": 168})  # a contract
+    COOP_elec_DG = subclasses_dictionary["Contract"]["CooperativeContract"]("COOP_elec_DG", LVE, price_manager_fuel)
+    COOP_elec_BESS = subclasses_dictionary["Contract"]["CooperativeContract"]("COOP_elec_BESS", LVE, price_manager_inside)
 
     # ##############################################################################################
     # Creation of aggregators
@@ -128,15 +133,15 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_first_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
     subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_second_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
     subclasses_dictionary["Device"]["ResidentialDwelling"]("mirror_third_floor", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 1, "rng_generator": rng_generator})
-    # subclasses_dictionary["Device"]["Background"]("background", BAU_elec, house_manager, aggregator_elec, {"user": "yearly_consumer", "device": "ECOS_5"}, parameters={"rng_generator": rng_generator})
-    subclasses_dictionary["Device"]["Photovoltaics"]("mirror_roof_PV", BAU_elec, house_manager, aggregator_elec, {"device": "standard"}, {"panels": 12, "irradiation_daemon": irradiation_daemon.name, "location": "Nantes"})
-    subclasses_dictionary["Device"]["DummyProducer"]("mirror_localDieselGenerator", COOP_elec, house_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1.25})
-    subclasses_dictionary["Device"]["ElectricalBattery"]("mirror_BESS", COOP_elec, house_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 3, "initial_SOC": 0.3}, filename="cases/Studies/SDEWES/AdditionalData/ElectricalBattery.json")
+    subclasses_dictionary["Device"]["Photovoltaics"]("mirror_roof_PV", BAU_elec_PV, house_manager, aggregator_elec, {"device": "standard"}, {"panels": 12, "irradiation_daemon": irradiation_daemon.name, "location": "Nantes"})
+    subclasses_dictionary["Device"]["DummyProducer"]("mirror_localDieselGenerator", COOP_elec_DG, house_manager, aggregator_elec, {"device": "elec"}, {"max_power": 1.25})
+    subclasses_dictionary["Device"]["ElectricalBattery"]("mirror_BESS", COOP_elec_BESS, house_manager, aggregator_elec, {"device": "ECOS2025"}, {"capacity": 3, "initial_SOC": 0.3}, filename="cases/Studies/SDEWES/AdditionalData/ElectricalBattery.json")
 
     # ##############################################################################################
     # Creation of dataloggers
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
-    subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]()
+    subclasses_dictionary['Datalogger']["SelfSufficiencyDatalogger"]()
+    # subclasses_dictionary["Datalogger"]["AgentBalancesDatalogger"]()
 
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
@@ -156,6 +161,16 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     metrics_datalogger = Datalogger("metrics", "Metrics")
     for key in metrics:
         metrics_datalogger.add(key)
+    metrics_datalogger.add("mirror_first_floor.LVE.energy_bought")
+    metrics_datalogger.add("mirror_second_floor.LVE.energy_bought")
+    metrics_datalogger.add("mirror_third_floor.LVE.energy_bought")
+    metrics_datalogger.add("mirror_roof_PV.LVE.energy_sold")
+    metrics_datalogger.add("mirror_localDieselGenerator.LVE.energy_sold")
+    metrics_datalogger.add("mirror_BESS.LVE.energy_bought")
+    metrics_datalogger.add("mirror_BESS.LVE.energy_sold")
+    metrics_datalogger.add("mirror_BESS.energy_stored")
+    metrics_datalogger.add("mirror_home_aggregator.energy_bought_outside")
+    metrics_datalogger.add("mirror_home_aggregator.energy_sold_outside")
 
     world.start(exogen_instruction=exogen_instruction, verbose=False)
 

@@ -108,38 +108,55 @@ class DeepReinforcementLearning(Strategy):
         if aggregator.contract:
             quantities_and_prices.append(message)
             quantities_and_prices = self._publish_needs(aggregator, quantities_and_prices)
-
         # The aggregator publishes its need to the aggregator superior
         # To correct the signs - only for the RL agent
         quantities_and_prices[0]["energy_minimum"] = - aggregator.capacity["buying"]
         quantities_and_prices[0]["energy_maximum"] = aggregator.capacity["selling"]
         if aggregator.superior:  # todo voir comment se passer de cette limite
-            if aggregator.nature.name == aggregator.superior.nature.name:
-                if len(quantities_and_prices) == 1:
-                    if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
-                        self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
-                    else:
-                        self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
+            if len(quantities_and_prices) == 1:  # todo patchwork solution for distribution (we don't check if the energy natures are the same)
+                if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
+                    self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
                 else:
-                    raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
+                    self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
+            else:
+                raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
+            # if aggregator.nature.name == aggregator.superior.nature.name:
+            #     if len(quantities_and_prices) == 1:
+            #         if f"Energy asked from {aggregator.name} to {aggregator.superior.name}" not in self._catalog.keys:
+            #             self._catalog.add(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
+            #         else:
+            #             self._catalog.set(f"Energy asked from {aggregator.name} to {aggregator.superior.name}", deepcopy(quantities_and_prices[0]))
+            #     else:
+            #         raise Exception("The current version of the code doesn't handle more than proposal/message from and aggregator to its superior !")
 
         # Data related to the hierarchical energy exchanges (between subaggregators and superior) - todo need to check the case where subaggregators/superior is also managed by DRL_Strategy (redundancy)
         direct_exchanges = {}
-        for subaggregator in aggregator.subaggregators:
-            if subaggregator.nature.name == aggregator.nature.name:
-                direct_exchanges = {aggregator.name: {subaggregator.name: {}}}
-                if f"Energy asked from {subaggregator.name} to {aggregator.name}" in self._catalog.keys:
-                    direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"Energy asked from {subaggregator.name} to {aggregator.name}")
-                else:
-                    direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
-                if isinstance(direct_exchanges[aggregator.name][subaggregator.name], list):
-                    direct_exchanges[aggregator.name][subaggregator.name] = direct_exchanges[aggregator.name][subaggregator.name][0]
-                direct_exchanges[aggregator.name][subaggregator.name]["efficiency"] = subaggregator.efficiency
-        if aggregator.superior:
-            if aggregator.nature.name == aggregator.superior.nature.name:
-                direct_exchanges = {**direct_exchanges, **{aggregator.superior.name: {aggregator.name: {}}}}
-                direct_exchanges[aggregator.superior.name][aggregator.name] = self._catalog.get(f"Energy asked from {aggregator.name} to {aggregator.superior.name}")
-                direct_exchanges[aggregator.superior.name][aggregator.name]["efficiency"] = aggregator.efficiency
+        for subaggregator in aggregator.subaggregators:  # todo patchwork solution for distribution (we don't check if the energy natures are the same)
+            direct_exchanges = {aggregator.name: {subaggregator.name: {}}}
+            if f"Energy asked from {subaggregator.name} to {aggregator.name}" in self._catalog.keys:
+                direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"Energy asked from {subaggregator.name} to {aggregator.name}")
+            else:
+                direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+            if isinstance(direct_exchanges[aggregator.name][subaggregator.name], list):
+                direct_exchanges[aggregator.name][subaggregator.name] = direct_exchanges[aggregator.name][subaggregator.name][0]
+            direct_exchanges[aggregator.name][subaggregator.name]["efficiency"] = subaggregator.efficiency
+            # if subaggregator.nature.name == aggregator.nature.name:
+                # direct_exchanges = {aggregator.name: {subaggregator.name: {}}}
+                # if f"Energy asked from {subaggregator.name} to {aggregator.name}" in self._catalog.keys:
+                #     direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"Energy asked from {subaggregator.name} to {aggregator.name}")
+                # else:
+                #     direct_exchanges[aggregator.name][subaggregator.name] = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+                # if isinstance(direct_exchanges[aggregator.name][subaggregator.name], list):
+                #     direct_exchanges[aggregator.name][subaggregator.name] = direct_exchanges[aggregator.name][subaggregator.name][0]
+                # direct_exchanges[aggregator.name][subaggregator.name]["efficiency"] = subaggregator.efficiency
+        if aggregator.superior:  # todo patchwork solution for distribution (we don't check if the energy natures are the same)
+            direct_exchanges = {**direct_exchanges, **{aggregator.superior.name: {aggregator.name: {}}}}
+            direct_exchanges[aggregator.superior.name][aggregator.name] = self._catalog.get(f"Energy asked from {aggregator.name} to {aggregator.superior.name}")
+            direct_exchanges[aggregator.superior.name][aggregator.name]["efficiency"] = aggregator.efficiency
+            # if aggregator.nature.name == aggregator.superior.nature.name:
+                # direct_exchanges = {**direct_exchanges, **{aggregator.superior.name: {aggregator.name: {}}}}
+                # direct_exchanges[aggregator.superior.name][aggregator.name] = self._catalog.get(f"Energy asked from {aggregator.name} to {aggregator.superior.name}")
+                # direct_exchanges[aggregator.superior.name][aggregator.name]["efficiency"] = aggregator.efficiency
         if direct_exchanges:
             if aggregator.name in direct_exchanges:
                 if f"{aggregator.name}.DRL_Strategy.direct_energy_exchanges" not in self._catalog.keys:
@@ -163,7 +180,7 @@ class DeepReinforcementLearning(Strategy):
         # todo nouvelle version à checker la logique de la résolution avec Timothé
         # Ensuring communication with the RL agent
         if self.counter % len(self.scope) == 0:
-            mirror_aggregator, internal_mirror, external_mirror = identify_mirror_decisions(self._catalog, aggregator)
+            mirror_aggregator, internal_mirror, external_mirror = identify_mirror_decisions(self._catalog, aggregator)  # specific to Behavior Cloning
             updating_grid_state(self._catalog, self.agent, internal_mirror, external_mirror, self.behaviour_cloning_flag)  # communicating the information to the RL agent
             getting_agent_decision(self._catalog, self.agent)  # retrieving the decision taken by the RL agent
             self.counter += 1
@@ -195,6 +212,7 @@ class DeepReinforcementLearning(Strategy):
             Eprod = deepcopy(energy_accorded_to_producers)
             Esto = deepcopy(energy_accorded_to_storage)
             Eexch = deepcopy(energy_accorded_to_exchange)
+            [min_price, max_price] = self._limit_prices(aggregator)  # thresholds of accepted energy prices
 
             # Checking first the superior message todo patchwork solution working for only the case where the superior is the main grid and has infinite exchange capacity
             if agg.superior not in self.scope:  # todo we should check if the message is a list of dicts (multiple messages) or just one dict
@@ -204,11 +222,23 @@ class DeepReinforcementLearning(Strategy):
                     for tup in Eexch.keys():
                         if agg.superior.name in tup:
                             old_energy_accorded_from_superior["quantity"] = - Eexch[tup]
+                            if Eexch[tup] < 0:  # achat
+                                old_energy_accorded_from_superior["price"] = max_price
+                            else:
+                                old_energy_accorded_from_superior["price"] = min_price
                             self._catalog.set(f"{agg.name}.{agg.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
                 else:  # todo or we should just do a loop over all the elements instead
                     for tup in Eexch.keys():
                         if agg.superior.name in tup:
-                            old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]  # todo patchwork solution ? (what about other outside energy exchanges ?)
+                            if len(old_energy_accorded_from_superior) > 0:
+                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]  # todo patchwork solution ? (what about other outside energy exchanges ?)
+                            else:
+                                old_energy_accorded_from_superior = [self._create_decision_message()]
+                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]
+                                if Eexch[tup] < 0:  # achat
+                                    old_energy_accorded_from_superior[0]["price"] = max_price
+                                else:
+                                    old_energy_accorded_from_superior[0]["price"] = min_price
                             self._catalog.set(f"{agg.name}.{agg.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
             # balance of the exchanges made with outside (todo check the signs + what about conversion systems ?)
             [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(agg, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)

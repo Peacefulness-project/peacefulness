@@ -71,6 +71,7 @@ def getting_agent_decision(catalog: "Catalog", agent: "A3C_agent"):
 
     device_dict = catalog.devices
     decision = agent.act(device_dict)
+    # decision = agent.act()  # todo just for P3O don't forget to comment it
 
     # Translating the RL agent actions into a decision that can be understood by Peacefulness (a dict format)
     decision_message, exchanges_message = from_tensor_to_dict(decision, aggregator_list, agent)

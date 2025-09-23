@@ -21,12 +21,14 @@ comparison_simulation_length = 8760  # length of the final run aimed at evaluati
 # ######################################################################################################################
 clustering_metrics = [  # prices are not taken into account for now
     "mirror_home_aggregator.energy_bought_outside",
-    "mirror_home_aggregator.energy_sold_outside"
+    "mirror_home_aggregator.energy_sold_outside",
+    "mirror_localDieselGenerator.LVE.energy_sold"
 ]  # métriques utilisées au moment de la définition des clusters, spécifiques au cas étudié...
 
 performance_metrics = [
     "mirror_home_aggregator.energy_bought_outside",
     "mirror_home_aggregator.energy_sold_outside",
+    "mirror_localDieselGenerator.LVE.energy_sold",
     "unwanted_delivery_cuts"
 ]  # critères de performance, spécifiques au cas étudié...
 
@@ -35,8 +37,10 @@ exported_metrics = performance_metrics + clustering_metrics
 
 coef = 1
 def performance_norm(performance_vector: Dict) -> float:
-    return abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"])) - abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"])) * coef\
-           - sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
+    return (abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]))
+            - abs(sum(performance_vector["mirror_localDieselGenerator.LVE.energy_sold"])) * coef
+            - abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"])) * coef
+            - sum(performance_vector["unwanted_delivery_cuts"]) * 10)  # non respect of the minimum constraints
 
 # ######################################################################################################################
 # strategies, defined as an ordered list of the available levers
@@ -50,8 +54,35 @@ assessed_priorities = {"consumption": assessed_priorities_consumption, "producti
 
 # reference strategies
 def ref_priorities_consumption(strategy: "Strategy"):
-    return ["sellGrid", "nothing", "storage"]
+    electricity_consumption = 0.0
+    electricity_consumption += strategy._catalog.get("mirror_first_floor.LVE.energy_wanted")["energy_maximum"]
+    electricity_consumption += strategy._catalog.get("mirror_second_floor.LVE.energy_wanted")["energy_maximum"]
+    electricity_consumption += strategy._catalog.get("mirror_third_floor.LVE.energy_wanted")["energy_maximum"]
+    pv_production = strategy._catalog.get("mirror_roof_PV.LVE.energy_wanted")["energy_maximum"]
+    dg_production = strategy._catalog.get("mirror_localDieselGenerator.LVE.energy_wanted")["energy_maximum"]
+    bess_charging = strategy._catalog.get("mirror_BESS.LVE.energy_wanted")["energy_maximum"]
+
+    if abs(electricity_consumption) >= abs(pv_production) + abs(dg_production):
+        return ["nothing", "storage", "sellGrid"]
+    elif abs(electricity_consumption) + abs(bess_charging) >= abs(pv_production):
+        return ["storage", "nothing", "sellGrid"]
+    else:  # L + BESS_charge <= PV
+        return ["storage", "sellGrid", "nothing"]
 
 
 def ref_priorities_production(strategy: "Strategy"):
-    return ["production", "unstorage", "buyGrid"]
+    electricity_consumption = 0.0
+    electricity_consumption += strategy._catalog.get("mirror_first_floor.LVE.energy_wanted")["energy_maximum"]
+    electricity_consumption += strategy._catalog.get("mirror_second_floor.LVE.energy_wanted")["energy_maximum"]
+    electricity_consumption += strategy._catalog.get("mirror_third_floor.LVE.energy_wanted")["energy_maximum"]
+    pv_production = strategy._catalog.get("mirror_roof_PV.LVE.energy_wanted")["energy_maximum"]
+    dg_production = strategy._catalog.get("mirror_localDieselGenerator.LVE.energy_wanted")["energy_maximum"]
+    bess_charging = strategy._catalog.get("mirror_BESS.LVE.energy_wanted")["energy_maximum"]
+    # bess_discharging = strategy._catalog.get("mirror_BESS.LVE.energy_wanted")["energy_minimum"]
+
+    if abs(electricity_consumption) >= abs(pv_production) + abs(dg_production):
+        return ["production", "unstorage", "buyGrid", "nada"]
+    elif abs(electricity_consumption) + abs(bess_charging) >= abs(pv_production):
+        return ["production", "nada", "unstorage", "buyGrid"]
+    else:  # L + BESS_charge <= PV
+        return ["nada", "production", "unstorage", "buyGrid"]

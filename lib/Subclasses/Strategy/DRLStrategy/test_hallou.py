@@ -2879,29 +2879,34 @@ from copy import deepcopy
 # #####################################################################################################################
 # todo Running the HEMS case study for the SDEWES conference
 #######################################################################################################################
-# from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
-# from cases.Studies.SDEWES.SimulationScript import create_simulation
-# from cases.Studies.SDEWES.export_expert_data import *
-#
-# # my memory class
-# path_to_export = "cases/Studies/SDEWES/Results"
-#
-# comparison_simulation_length = 8760
-# performance_metrics = ["mirror_home_aggregator.energy_bought_outside", "mirror_home_aggregator.energy_sold_outside"]
-# coef1 = 1
-# coef2 = 1
-# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-#     return - coef1 * sum(performance_vector["mirror_home_aggregator.energy_bought_outside"]) + sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]) * coef2
-#
-#
-# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics, exogen_instruction=other_strategies_results)
-# ref_results = {key: [] for key in performance_metrics}
-# for key in performance_metrics:
-#     ref_results[key] = ref_datalogger._values[key]
-# ref_performance = performance_norm(ref_results)
-#
-# print(f"Performance of the reference strategy: {ref_performance}")
-# export_expert_data(path_to_export)
+from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.SDEWES.SimulationScript import create_simulation
+from cases.Studies.SDEWES.export_expert_data import *
+
+# my memory class
+path_to_export = "cases/Studies/SDEWES/Results"
+
+comparison_simulation_length = 24
+performance_metrics = ["mirror_home_aggregator.energy_bought_outside", "mirror_home_aggregator.energy_sold_outside", "mirror_localDieselGenerator.LVE.energy_sold"]
+coef1 = 1
+coef2 = 1
+coef3 = 1
+def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+    return (- coef1 * abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"]) * 0.6)
+            + abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]) * 0.3) * coef2
+            - coef3 * abs(sum(performance_vector["mirror_localDieselGenerator.LVE.energy_sold"]) * 0.45))
+
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics
+                                   , exogen_instruction=other_strategies_results
+                                   )
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy: {ref_performance}")
+export_expert_data(path_to_export)
 #
 # # #####################################################################################################################
 # # todo tweaking the action denormalization for action masking approach
@@ -3102,45 +3107,45 @@ from copy import deepcopy
 #        x +   y       >= 1
 #        x, y, z binary
 
-import gurobipy as gp
-from gurobipy import GRB
-import numpy as np
-import scipy.sparse as sp
-
-try:
-    # Create a new model
-    m = gp.Model("matrix1")
-
-    # Create variables
-    x = m.addMVar(shape=3, vtype=GRB.BINARY, name="x")
-
-    # Set objective
-    obj = np.array([1.0, 1.0, 2.0])
-    m.setObjective(obj @ x, GRB.MAXIMIZE)
-
-    # Build (sparse) constraint matrix
-    val = np.array([1.0, 2.0, 3.0, -1.0, -1.0])
-    row = np.array([0, 0, 0, 1, 1])
-    col = np.array([0, 1, 2, 0, 1])
-
-    A = sp.csr_matrix((val, (row, col)), shape=(2, 3))
-
-    # Build rhs vector
-    rhs = np.array([4.0, -1.0])
-
-    # Add constraints
-    m.addConstr(A @ x <= rhs, name="c")
-
-    # Optimize model
-    m.optimize()
-
-    print(f"my name is : {x}")
-    print(f"my value is : {x.X}")
-    print(f"Obj: {m.ObjVal:g}")
-
-except gp.GurobiError as e:
-    print(f"Error code {e.errno}: {e}")
-
-except AttributeError:
-    print("Encountered an attribute error")
+# import gurobipy as gp
+# from gurobipy import GRB
+# import numpy as np
+# import scipy.sparse as sp
+#
+# try:
+#     # Create a new model
+#     m = gp.Model("matrix1")
+#
+#     # Create variables
+#     x = m.addMVar(shape=3, vtype=GRB.BINARY, name="x")
+#
+#     # Set objective
+#     obj = np.array([1.0, 1.0, 2.0])
+#     m.setObjective(obj @ x, GRB.MAXIMIZE)
+#
+#     # Build (sparse) constraint matrix
+#     val = np.array([1.0, 2.0, 3.0, -1.0, -1.0])
+#     row = np.array([0, 0, 0, 1, 1])
+#     col = np.array([0, 1, 2, 0, 1])
+#
+#     A = sp.csr_matrix((val, (row, col)), shape=(2, 3))
+#
+#     # Build rhs vector
+#     rhs = np.array([4.0, -1.0])
+#
+#     # Add constraints
+#     m.addConstr(A @ x <= rhs, name="c")
+#
+#     # Optimize model
+#     m.optimize()
+#
+#     print(f"my name is : {x}")
+#     print(f"my value is : {x.X}")
+#     print(f"Obj: {m.ObjVal:g}")
+#
+# except gp.GurobiError as e:
+#     print(f"Error code {e.errno}: {e}")
+#
+# except AttributeError:
+#     print("Encountered an attribute error")
 

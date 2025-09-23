@@ -1,0 +1,25 @@
+{
+  "template name": "testing_profile",
+
+  "composition": {
+    "DummyConsumer": [{"name": "DummyConsumer", "data_profiles": {"device": "heat"}, "quantity": [1,1], "contract": "LTH_COOP", "parameters": {"max_power": 250}}],
+
+    "Background": [{"name": "Background", "data_profiles": {"user": "new_house", "device": "new_house"}, "quantity": [1,1], "contract": "LTH_BAU",
+      "parameters": {"rng_generator":  "True"},
+      "profile_filename": "cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json"}],
+
+    "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device":  "heat"}, "quantity": [1,1], "contract": "LTH_COOP", "parameters": {"max_power": 125}}],
+
+    "SolarThermalCollector": [{"name": "SolarThermalCollector", "data_profiles": {"device": "standard_field"}, "quantity": [1,1], "contract": "LTH_BAU",
+    "parameters": {"panels": 250}}],
+
+    "SensibleHeatStorage": [{"name": "SensibleHeatStorage", "data_profiles": {"device": "residential_water_tank"}, "quantity": [100,100], "contract": "LTH_COOP",
+      "parameters": {"capacity": 0, "initial_SOC": 0, "initial_temperature": 50}}]
+  },
+
+  "contracts": {
+    "LTH_BAU":  {"nature_name": "LTH", "contract_subclass": "EgoistContract"},
+    "LTH_COOP": {"nature_name": "LTH", "contract_subclass": "CooperativeContract"}
+  }
+
+}

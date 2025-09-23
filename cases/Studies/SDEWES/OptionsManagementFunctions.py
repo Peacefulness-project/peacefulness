@@ -225,6 +225,23 @@ def distribution_buy_outside(strategy: "Strategy", aggregator: "Aggregator", max
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
 
+# nothing (no storage is made and no need to buy from grid for balance)
+def assess_nada_option(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
+    quantity_for_this_option = 0
+
+    return quantity_for_this_option
+
+
+def exchanges_nada_option(strategy: "Strategy", aggregator: "Aggregator", quantity_to_affect: float, quantities_and_prices: List[Dict]) -> Tuple:
+    return quantity_to_affect, quantities_and_prices
+
+
+def distribution_nada_option(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
+
+    return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
+
+
+
 index = ["sellGrid", "nothing", "storage"]
 columns = ["assess", "exchange", "distribute"]
 data = [[assess_sell_outside, exchanges_sell_outside, distribution_sell_outside],
@@ -233,9 +250,10 @@ data = [[assess_sell_outside, exchanges_sell_outside, distribution_sell_outside]
         ]
 options_consumption = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["production", "unstorage", "buyGrid"]
+index = ["production", "unstorage", "buyGrid", "nada"]
 data = [[assess_prod, exchanges_prod, distribution_prod],
         [assess_unstorage, exchanges_unstorage, distribution_unstorage],
         [assess_buy_outside, exchanges_buy_outside, distribution_buy_outside],
+        [assess_nada_option, exchanges_nada_option, distribution_nada_option],
         ]
 options_production = pd.DataFrame(index=index, columns=columns, data=data)

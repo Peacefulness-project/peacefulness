@@ -2,7 +2,7 @@
 import csv
 from copy import deepcopy
 
-normalization_parameters = {"energy_minimum": - 4.0, "energy_maximum": 5.0, "price_minimum": 0.1, "price_maximum": 0.65}
+normalization_parameters = {"energy_minimum": - 4.0, "energy_maximum": 5.0, "price_minimum": 0.3, "price_maximum": 0.6}
 
 class MyMemory:
     def __init__(self):
@@ -43,7 +43,7 @@ def other_strategies_results(world: "World"):
     expertMemory.my_norm_state.append(normalize_state_vector(expertMemory.my_raw_state[-1], world.time_limit))
     expertMemory.my_action.append(get_expert_decision(results))
     expertMemory.my_norm_action.append(normalize_action_vector(expertMemory.my_action[-1], expertMemory.my_raw_state[-1]))
-    expertMemory.my_reward.append(calculate_reward(expertMemory.my_action[-1]))
+    expertMemory.my_reward.append(calculate_reward(results))
 
 
 def get_expert_decision(resulting_dict: dict):  # todo attention case specific
@@ -53,9 +53,15 @@ def get_expert_decision(resulting_dict: dict):  # todo attention case specific
     energy_exchange = []
     for key in resulting_dict:
         if "superior_expert_message" in key:
-            energy_exchange.append(- resulting_dict[key][0]["quantity"])
+            if len(resulting_dict[key]) > 0:  # if there is an exchange of energy with the superior aggregator
+                energy_exchange.append(- resulting_dict[key][0]["quantity"])
+            else:
+                energy_exchange.append(0)
         if "sub_expert_message" in key:
-            energy_exchange.append(- resulting_dict[key][0]["quantity"])
+            if len(resulting_dict[key]) > 0:  # if there is an exchange of energy with the subaggregator
+                energy_exchange.append(- resulting_dict[key][0]["quantity"])
+            else:
+                energy_exchange.append(0)
     return [energy_conso, energy_prod, energy_storage, *energy_exchange]
 
 
@@ -121,7 +127,12 @@ def normalize_action_vector(real_action: list, raw_state: list):  # todo case sp
         return_list[3] = 0.5
     return return_list
 
-def calculate_reward(expertDecision: list):
-    reward_results = expertDecision[-1] - 15 * abs(sum(expertDecision))  # if by chance the Rule-based strategy doesn't respect energy conservation
+def calculate_reward(resulting_dict: dict):
+    reward_results = 0.0  # if by chance the Rule-based strategy doesn't respect energy conservation
+    reward_results -= 20 * abs((resulting_dict["mirror_home_aggregator.energy_sold_inside"] + resulting_dict["mirror_home_aggregator.energy_sold_outside"])
+                               - (resulting_dict["mirror_home_aggregator.energy_bought_inside"] + resulting_dict["mirror_home_aggregator.energy_bought_outside"]))
+    reward_results += resulting_dict["mirror_home_aggregator.energy_sold_outside"] * 0.3  # selling to outside is encouraged
+    reward_results -= resulting_dict["mirror_home_aggregator.energy_bought_outside"] * 0.6  # buying from outside is penalized
+    reward_results -= resulting_dict["mirror_localDieselGenerator.LVE.energy_sold"] * 0.45  # taking into account the fuel cost
 
     return reward_results

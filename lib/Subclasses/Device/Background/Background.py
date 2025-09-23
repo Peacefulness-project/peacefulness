@@ -13,7 +13,7 @@ class Background(NonControllableDevice):
     def __init__(self, name, contracts, agent, aggregators, profiles, parameters=None, filename="lib/Subclasses/Device/Background/Background.json"):
         self._rng_generator = None
         if parameters:
-            if "rng_genrator" in parameters.keys():
+            if "rng_generator" in parameters.keys():
                 self._rng_generator = parameters["rng_generator"]
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 

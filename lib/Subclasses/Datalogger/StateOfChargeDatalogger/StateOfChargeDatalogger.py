@@ -14,10 +14,10 @@ class StateOfChargeDatalogger(Datalogger):  # a subclass of datalogger designed 
         self.add(f"simulation_time", graph_status="X")
         self.add(f"physical_time", graph_status="")
 
-        def create_get_soc_function(device_name, nature_name):
+        def create_get_soc_function(device_name):
 
             def get_soc(name):
-                soc = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["state_of_charge"]
+                soc = self._catalog.get(f"{device_name}.energy_stored")
 
                 return soc
 
@@ -32,4 +32,4 @@ class StateOfChargeDatalogger(Datalogger):  # a subclass of datalogger designed 
         for device_name in self._devices_list.keys():  # for each nature registered into world, the SoC key is added
             for nature_name in self._devices_list[device_name][0]:
                 aggregator_name = self._devices_list[device_name][1][0].name
-                self.add(f"{device_name}.{aggregator_name}.{nature_name}.SoC", create_get_soc_function(device_name, nature_name), graph_status="Y")
+                self.add(f"{device_name}.{aggregator_name}.{nature_name}.stored_energy", create_get_soc_function(device_name), graph_status="Y")
