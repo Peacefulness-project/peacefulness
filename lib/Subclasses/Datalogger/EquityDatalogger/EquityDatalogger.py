@@ -13,9 +13,14 @@ class EquityDatalogger(Datalogger):  # a sub-class of dataloggers designed to ex
 
             def get_accorded(name):
                 given_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_accorded")["quantity"]
-                wanted_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["energy_maximum"]
+                min_wanted_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["energy_minimum"]
+                max_wanted_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["energy_maximum"]
+                if min_wanted_quantity == max_wanted_quantity:
+                    return_value = abs(max_wanted_quantity - given_quantity)
+                else:
+                    return_value = abs((given_quantity - min_wanted_quantity) / (max_wanted_quantity - min_wanted_quantity))
 
-                return abs(wanted_quantity - given_quantity)
+                return return_value
 
             return get_accorded
 

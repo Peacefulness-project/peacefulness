@@ -221,7 +221,7 @@ class DeepReinforcementLearning(Strategy):
                 if not isinstance(old_energy_accorded_from_superior, list):
                     for tup in Eexch.keys():
                         if agg.superior.name in tup:
-                            old_energy_accorded_from_superior["quantity"] = - Eexch[tup]
+                            old_energy_accorded_from_superior["quantity"] = - Eexch[tup] / aggregator.efficiency
                             if Eexch[tup] < 0:  # achat
                                 old_energy_accorded_from_superior["price"] = max_price
                             else:
@@ -231,10 +231,10 @@ class DeepReinforcementLearning(Strategy):
                     for tup in Eexch.keys():
                         if agg.superior.name in tup:
                             if len(old_energy_accorded_from_superior) > 0:
-                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]  # todo patchwork solution ? (what about other outside energy exchanges ?)
+                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup] / aggregator.efficiency  # todo patchwork solution ? (what about other outside energy exchanges ?)
                             else:
                                 old_energy_accorded_from_superior = [self._create_decision_message()]
-                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup]
+                                old_energy_accorded_from_superior[0]["quantity"] = - Eexch[tup] / aggregator.efficiency
                                 if Eexch[tup] < 0:  # achat
                                     old_energy_accorded_from_superior[0]["price"] = max_price
                                 else:

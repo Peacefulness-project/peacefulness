@@ -76,7 +76,7 @@ class World:
 
     def set_directory(self, path):  # definition of a case directory and creation of the directory
         instant_date = datetime.now()  # get the current time
-        instant_date = instant_date.strftime("%Y_%m_%d-%H_%M_%S")  # the directory is named after the date
+        instant_date = instant_date.strftime("%Y_%m_%d-%H_%M_%S_%f")  # the directory is named after the date
 
         path = adapt_path([path, f"Case_{instant_date}"])  # path is the root for all files relative to the case
 
