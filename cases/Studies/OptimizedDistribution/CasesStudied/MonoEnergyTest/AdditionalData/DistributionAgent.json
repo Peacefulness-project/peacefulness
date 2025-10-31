@@ -8,13 +8,13 @@
       "parameters": {"rng_generator":  "True"},
       "profile_filename": "cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json"}],
 
-    "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device":  "heat"}, "quantity": [1,1], "contract": "LTH_COOP", "parameters": {"max_power": 125}}],
+    "DummyProducer": [{"name": "DummyProducer", "data_profiles": {"device":  "heat"}, "quantity": [1,1], "contract": "LTH_COOP", "parameters": {"max_power": 150}}],
 
     "SolarThermalCollector": [{"name": "SolarThermalCollector", "data_profiles": {"device": "standard_field"}, "quantity": [1,1], "contract": "LTH_BAU",
     "parameters": {"panels": 250}}],
 
     "SensibleHeatStorage": [{"name": "SensibleHeatStorage", "data_profiles": {"device": "residential_water_tank"}, "quantity": [100,100], "contract": "LTH_COOP",
-      "parameters": {"capacity": 0, "initial_SOC": 0, "initial_temperature": 50}}]
+      "parameters": {"capacity": 0, "initial_SOC": 0, "initial_temperature": 45}}]
   },
 
   "contracts": {

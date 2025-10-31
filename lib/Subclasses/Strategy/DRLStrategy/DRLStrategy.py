@@ -73,17 +73,11 @@ class DeepReinforcementLearning(Strategy):
         maximum_energy_charge = 0  # the maximum quantity of energy acceptable by storage charge
         maximum_energy_discharge = 0  # the maximum quantity of energy available from storage discharge
         [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge] = self._limit_quantities(aggregator, minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge)
-        if f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
-        else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": deepcopy(maximum_energy_consumed), "production": deepcopy(maximum_energy_produced)})
-        if f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities" not in self._catalog.keys:
-            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
-        else:
-            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
 
         # Storage energy systems are only considered if they provide flexibility
         if maximum_energy_charge == 0 and maximum_energy_discharge == 0:
+            max_conso = deepcopy(maximum_energy_consumed)
+            max_prod = deepcopy(maximum_energy_produced)
             formalism_message['Energy_Consumption']["energy_minimum"] = minimum_energy_consumed
             formalism_message['Energy_Consumption']["energy_maximum"] = maximum_energy_consumed
             formalism_message['Energy_Production']["energy_minimum"] = - minimum_energy_produced
@@ -91,6 +85,18 @@ class DeepReinforcementLearning(Strategy):
             if len(formalism_message['Energy_Storage']) > 0:
                 formalism_message['Energy_Storage']["energy_minimum"] = 0.0
                 formalism_message['Energy_Storage']["energy_maximum"] = 0.0
+        else:
+            max_conso = deepcopy(maximum_energy_consumed) + deepcopy(maximum_energy_charge)
+            max_prod = deepcopy(maximum_energy_produced) + deepcopy(maximum_energy_discharge)
+
+        if f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities" not in self._catalog.keys:
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": max_conso, "production": max_prod})
+        else:
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities", {"consumption": max_conso, "production": max_prod})
+        if f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities" not in self._catalog.keys:
+            self._catalog.add(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
+        else:
+            self._catalog.set(f"{aggregator.name}.DRL_Strategy.direct_energy_minimum_quantities", {"consumption": deepcopy(minimum_energy_consumed), "production": deepcopy(minimum_energy_produced)})
 
         if f"{aggregator.name}.DRL_Strategy.formalism_message" not in self._catalog.keys:
             self._catalog.add(f"{aggregator.name}.DRL_Strategy.formalism_message", deepcopy(formalism_message))
@@ -271,7 +277,7 @@ class DeepReinforcementLearning(Strategy):
 
                 # The Emin are served first for all (except storage devices) - devices which don't provide flexibility (Emin = Emax) are not concerned by optimization (fully served)
                 [sorted_demands, indirect_optimization_demands, Econ, money_earned_inside, energy_sold_inside] = distribute_min_consumption(self, agg, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
-                [sorted_offers, indirect_optimization_offers, Eprod, money_spent_inside, energy_bought_inside] = distribute_min_production(self, agg, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
+                [sorted_offers, indirect_optimization_offers, Eprod, money_spent_inside, energy_bought_inside] = distribute_min_production(self, agg, internal_selling_price, sorted_offers, - Eprod, money_spent_inside, energy_bought_inside)
                 indirect_optimization_storage = get_full_storage_message(self, agg, sorted_storage)
 
                 # The distribution of energy is optimized for the remaining devices
@@ -290,9 +296,9 @@ class DeepReinforcementLearning(Strategy):
                     [Esto, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(agg, internal_buying_price, sorted_storage, Esto, money_earned_inside, energy_sold_inside)
                 # then we distribute the remaining quantities according to our sort
                 # distribution among consumptions
-                [maximum_energy_produced, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
+                [Econ, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
                 # distribution among productions
-                [maximum_energy_consumed, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
+                [Eprod, money_spent_inside, energy_bought_inside] = self._distribute_production_full_service(aggregator, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
 
             self._update_balances(agg, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
 

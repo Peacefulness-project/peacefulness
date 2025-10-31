@@ -191,16 +191,16 @@ def my_exogen_inst(world: "World"):
     for datalogger in world.catalog.dataloggers.values():
         datalogger_keys = datalogger.get_keys  # retrieving the keys to be exported by the datalogger
         results = {**results, **datalogger.request_keys(datalogger_keys)}
-    print(results)
+    # print(results)
 
 # Parameters to run the simulation
 world_name = "MonoEnergyTest"
 world_seed = "sunflower"
 world_path = f"cases/Studies/OptimizedDistribution/Results/{world_name}/"
-my_start = datetime(year=2020, month=3, day=25, hour=12, minute=0, second=0, microsecond=0)
+my_start = datetime(year=2020, month=4, day=1, hour=0, minute=0, second=0, microsecond=0)
 step = 1
-hours_simulated = 2
-my_seed = 1
+hours_simulated = 24
+my_seed = 99
 my_std = 0.25
 
 world = peacefulness_simulation(world_name, world_seed, world_path, my_start, step, hours_simulated, my_seed, my_std)

@@ -6,7 +6,7 @@ from scipy.stats import gamma
 
 
 
-def agent_generation_GA(name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}, my_seed=0, standard_deviation=0, verbose=False):  # this method creates several agents, each with a predefinite set of devices
+def agent_generation_GA(name, quantity, filename, aggregators, price_manager_daemon, data_daemons={}, my_seed=None, standard_deviation=0, verbose=False):  # this method creates several agents, each with a predefinite set of devices
     world = World.ref_world
 
     if verbose:
@@ -36,7 +36,7 @@ def agent_generation_GA(name, quantity, filename, aggregators, price_manager_dae
     data_daemons = {key: data_daemons[key].name for key in data_daemons}  # transform the daemons objects into strings
 
     # Devices
-    if my_seed != 0:
+    if my_seed is not None:
         np.random.seed(seed=my_seed)
     def rng_generator(consumption):
         if bool(standard_deviation) & bool(consumption):

@@ -1,6 +1,6 @@
 # device representing a flexible energy consumer
 from src.common.DeviceMainClasses import NonControllableDevice
-from random import normalvariate
+from random import gauss
 
 
 class DummyConsumer(NonControllableDevice):
@@ -9,8 +9,8 @@ class DummyConsumer(NonControllableDevice):
         super().__init__(name, contracts, agent, aggregators, filename, profiles, parameters)
 
         time_step = self._catalog.get("time_step")
-        self._max_power = parameters["max_power"] * time_step   # the maximum power this device can produce
-
+        self._max_power = max(20, parameters["max_power"] * gauss(1, 0.5) * time_step )  # the maximum power this device can produce
+        # print(f"I am {self.name} and my capacity is {self._max_power}")
     # ##########################################################################################
     # Initialization
     # ##########################################################################################
@@ -39,7 +39,7 @@ class DummyConsumer(NonControllableDevice):
         for nature in energy_wanted:
             energy_wanted[nature]["energy_minimum"] = 0  # energy produced by the device
             energy_wanted[nature]["energy_nominal"] = 0  # energy produced by the device
-            energy_wanted[nature]["energy_maximum"] = self._max_power * normalvariate(1, 0.2)  # energy produced by the device
+            energy_wanted[nature]["energy_maximum"] = self._max_power  # energy produced by the device
             # the value is negative because it is produced
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
