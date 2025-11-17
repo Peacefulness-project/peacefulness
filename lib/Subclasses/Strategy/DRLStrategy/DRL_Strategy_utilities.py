@@ -778,3 +778,89 @@ def apply_sorting(dict_1, sorted_dict_1, dict_2):
 
     return sorted_dict_2
 
+# for optimizing ratios directly instead of sorting coefficients
+def optimized_consumption_ratios(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float, optimized_coeffs: Dict):
+    i = 0
+    # idx = strategy._catalog.get(f"simulation_time")
+    # print(f"i am ratios -> {optimized_coeffs}")
+    # print(f"i am Econ -> {energy_available_consumption}")
+    if len(sorted_demands[0]) >= 1:  # if there are offers
+        energy_to_be_shared = deepcopy(energy_available_consumption)
+        while i <= len(optimized_coeffs["demand"]) - 1:  # as long as there is energy available
+            name = sorted_demands[0][i]["name"]
+            energy = min(max(0, energy_to_be_shared * optimized_coeffs["demand"][i]), sorted_demands[0][i]["quantity"])  # the quantity of energy needed todo static (wrt DRL decision)
+            # energy = min(max(0, energy_available_consumption), sorted_demands[0][i]["quantity"] * optimized_coeffs["demand"][i])  # the quantity of energy needed todo static (wrt device)
+            # energy = min(max(0, energy_available_consumption), sorted_demands[0][i]["quantity"] * optimized_coeffs["demand"][i][idx])  # the quantity of energy needed todo dynamic (wrt device)
+            price = sorted_demands[0][i]["price"]  # the price of energy
+            price = min(price, max_price)
+            # print(f"i am {name} i asked for {sorted_demands[0][i]["quantity"]} and i got {energy} since my coefficient is {optimized_coeffs["demand"][i]}\n")
+            Emin = sorted_demands[0][i]["quantity_min"]  # we get back the minimum, which has already been served
+            message = strategy._create_decision_message()
+            message["quantity"] = Emin + energy
+            message["price"] = price
+
+            if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                quantities_given.append(message)
+            else:  # if it is a device
+                quantities_given = message
+
+            strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+            money_earned_inside += energy * price  # money earned by selling energy to the subaggregator
+            energy_sold_inside += energy  # the absolute value of energy sold inside
+            energy_available_consumption -= energy
+
+            i += 1
+        # print(f"after serving the true demands this is Econ that remains -> {energy_available_consumption}")
+        # this block gives the remaining energy to the storage devices when counted as demand
+        if len(sorted_demands[1]) >= 1 and energy_available_consumption > 0.0:
+            remaining_total = 0.0
+            for element in sorted_demands[1]:  # we sum all the emergency and the energy of demands
+                remaining_total += element["quantity"]
+                # print(f"storage devices are also consumers and in total are asking of {remaining_total}")
+
+            if remaining_total != 0:
+                energy_ratio = min(1, energy_available_consumption / remaining_total)  # the average rate of satisfaction, cannot be superior to 1
+                # print(f"the ratio that they will get is {energy_ratio}")
+                for demand in sorted_demands[1]:  # then we distribute a bit of energy to all demands
+                    name = demand["name"]
+                    energy = demand["quantity"]  # the quantity of energy needed
+                    price = demand["price"]  # the price of energy
+                    price = min(price, max_price)
+                    energy *= energy_ratio
+
+                    # print(f"i am storage device {name} i asked for {demand["quantity"]} and i got {energy}\n")
+
+                    Emin = demand["quantity_min"]  # we get back the minimum, which has already been served
+                    message = strategy._create_decision_message()
+                    message["quantity"] = Emin + energy
+                    message["price"] = price
+                    if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                        quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                        quantities_given.append(message)
+                    else:  # if it is a device
+                        quantities_given = message
+
+                    strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                    money_earned_inside += energy * price  # money earned by selling energy to the subaggregator
+                    energy_sold_inside += energy  # the absolute value of energy sold inside
+                    energy_available_consumption -= energy
+
+    return [energy_available_consumption, money_earned_inside, energy_sold_inside]
+
+
+def identify_storage_devices(sorted_demands_or_offers: List[Dict]):
+    """
+    This function is used to separate storage demands/offers of energy from ones asked by specific devices.
+    """
+    storage_list = []
+    real_list = []
+    for entry in sorted_demands_or_offers:
+        if "Storage" in entry["name"]:
+            storage_list.append(entry)
+        else:
+            real_list.append(entry)
+
+    return real_list, storage_list

@@ -15,10 +15,10 @@ class EquityDatalogger(Datalogger):  # a sub-class of dataloggers designed to ex
                 given_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_accorded")["quantity"]
                 min_wanted_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["energy_minimum"]
                 max_wanted_quantity = self._catalog.get(f"{device_name}.{nature_name}.energy_wanted")["energy_maximum"]
-                if min_wanted_quantity == max_wanted_quantity:
+                if abs(min_wanted_quantity - max_wanted_quantity) < 1e-6 :
                     return_value = abs(max_wanted_quantity - given_quantity)
                 else:
-                    # return_value = abs((given_quantity - min_wanted_quantity) / (max_wanted_quantity - min_wanted_quantity + 1e-8))  # todo equity for bigger consumers
+                    # return_value = abs((given_quantity - min_wanted_quantity) / (max_wanted_quantity - min_wanted_quantity))  # todo equity for bigger consumers
                     return_value = abs(given_quantity - min_wanted_quantity)  # todo equity for smaller consumers
 
                 return return_value

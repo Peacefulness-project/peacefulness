@@ -194,6 +194,10 @@ class DeepReinforcementLearning(Strategy):
         # Retrieving the energy accorded to each aggregator with the decision taken by the RL agent
         [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage] = extract_decision(self._catalog.get("DRL_Strategy.decision_message"), aggregator)
         energy_accorded_to_exchange = retrieve_concerned_energy_exchanges(self._catalog.get(f"DRL_Strategy.exchanges_message"), aggregator)
+        # print(f"i am the decision of consumption -> {energy_accorded_to_consumers}")
+        # print(f"i am the decision of production -> {energy_accorded_to_producers}")
+        # print(f"i am the decision of storage -> {energy_accorded_to_storage}")
+        # print(f"i am the decision of exchange -> {energy_accorded_to_exchange}\n")
         internal_buying_price, internal_selling_price = self._catalog.get(f"{aggregator.name}.DRL_Strategy.energy_prices").values()
         maximum_energy_consumed, maximum_energy_produced = self._catalog.get(f"{aggregator.name}.DRL_Strategy.direct_energy_maximum_quantities").values()
 
@@ -252,6 +256,8 @@ class DeepReinforcementLearning(Strategy):
 
             # Internal balance
             [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(agg)  # sorting the quantities
+            # print(f"i am sorted demands -> {sorted_demands}\n")
+            # print(f"i am sorted offers -> {sorted_offers}\n")
             if not self.optimized_distribution_flag: # equal distribution
 
                 # determination of storage usage
@@ -274,12 +280,13 @@ class DeepReinforcementLearning(Strategy):
                 [Eprod, money_spent_inside, energy_bought_inside] = self._distribute_production_partial_service(agg, internal_selling_price, sorted_offers, Eprod, money_spent_inside, energy_bought_inside)
 
             else:  # optimization-based distribution to individual energy systems inside each area/aggregator
-
+                # print(f"inside the optimization part of the DRL_Strategy\n")
                 # The Emin are served first for all (except storage devices) - devices which don't provide flexibility (Emin = Emax) are not concerned by optimization (fully served)
                 [sorted_demands, indirect_optimization_demands, Econ, money_earned_inside, energy_sold_inside] = distribute_min_consumption(self, agg, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
                 [sorted_offers, indirect_optimization_offers, Eprod, money_spent_inside, energy_bought_inside] = distribute_min_production(self, agg, internal_selling_price, sorted_offers, - Eprod, money_spent_inside, energy_bought_inside)
                 indirect_optimization_storage = get_full_storage_message(self, agg, sorted_storage)
-
+                # print(f"i am sorted demands after distributing the min -> {sorted_demands}\n")
+                # print(f"i am sorted offers after distributing the min -> {sorted_offers}\n")
                 # The distribution of energy is optimized for the remaining devices
                 [sorted_demands, sorted_offers, sorted_storage] = optimized_sorting(indirect_optimization_demands, indirect_optimization_offers, indirect_optimization_storage,
                                                                                     sorted_demands, sorted_offers, sorted_storage,
@@ -294,6 +301,16 @@ class DeepReinforcementLearning(Strategy):
                     for message in sorted_storage:
                         self._transform_storage_into_consumption(message)
                     [Esto, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(agg, internal_buying_price, sorted_storage, Esto, money_earned_inside, energy_sold_inside)
+
+                # print(f"i am what remains of storage -> {Esto}\n")
+                # real_demands, storage_demands = identify_storage_devices(sorted_demands)
+                # [Econ, money_earned_inside, energy_sold_inside] = optimized_consumption_ratios(self, aggregator, internal_buying_price, [real_demands, storage_demands], Econ, money_earned_inside, energy_sold_inside, self.sorting_coefficients)
+                # # print(f"i am what remains of consumption -> {Econ}")
+                # if f"{aggregator.name}.DRL_Strategy.GA_offset" not in self._catalog.keys:
+                #     self._catalog.add(f"{aggregator.name}.DRL_Strategy.GA_offset", deepcopy(Econ))
+                # else:
+                #     self._catalog.set(f"{aggregator.name}.DRL_Strategy.GA_offset", deepcopy(Econ))
+
                 # then we distribute the remaining quantities according to our sort
                 # distribution among consumptions
                 [Econ, money_earned_inside, energy_sold_inside] = self._distribute_consumption_full_service(aggregator, internal_buying_price, sorted_demands, Econ, money_earned_inside, energy_sold_inside)
