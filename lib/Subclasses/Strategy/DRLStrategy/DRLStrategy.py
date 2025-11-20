@@ -1,7 +1,6 @@
 # This file, we create a strategy sub-class that will be used for the Deep Reinforcement Learning method.
 # It updates the balance of each aggregator with the action/decision taken by the RL agent.
 # The decision is taken at each iteration and it is translated with the strategy_interface.
-from traceback import format_list
 
 # Imports
 from src.common.Strategy import Strategy

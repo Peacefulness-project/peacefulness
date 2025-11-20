@@ -1,3 +1,0 @@
-time taken by the device generation phase: 0.0
-time taken by the initialization phase: 0.5
-time taken by the calculation phase: 1.8125

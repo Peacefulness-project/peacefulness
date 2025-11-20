@@ -16,7 +16,7 @@ from lib.Subclasses.Strategy.DRLStrategy.DRL_Strategy_utilities import *
 from os import path
 import sys
 
-sys.path.append(path.abspath("D:/dossier_y23hallo/PycharmProjects/Management_Strategy"))
+sys.path.append(path.abspath("/home/y23hallo/energy_management_system"))
 
 # from support.Methodes.a3c import A3C_agent
 
