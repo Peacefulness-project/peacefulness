@@ -1,0 +1,23 @@
+{
+  "technical_data": {
+    "grand_apartment_heat": {
+      "usage_profile": [{"LTH": 1}, 0.3, 10800],
+      "consumption_variation": 0.1,
+      "max_power": {"LTH": 3}
+    }
+  },
+
+  "user_profile":{
+    "residential_overheat": {
+      "profile": [[[0, 5], [0, 0, 21]], [[5, 5], [19, 20, 21]], [[10, 9], [15, 18, 21]]],
+
+      "period": 24,
+      "offset": 12,
+
+      "start_time_variation": 3,
+      "temperature_variation": 1,
+      "duration_variation": 0.2
+    }
+  }
+
+}

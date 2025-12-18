@@ -286,6 +286,7 @@ class DeepReinforcementLearning(Strategy):
                 [sorted_offers, indirect_optimization_offers, Eprod, money_spent_inside, energy_bought_inside] = distribute_min_production(self, agg, internal_selling_price, sorted_offers, - Eprod, money_spent_inside, energy_bought_inside)
                 indirect_optimization_storage = get_full_storage_message(self, agg, sorted_storage)
                 # print(f"i am sorted demands after distributing the min -> {sorted_demands}\n")
+                # print(f"i am full demands message after distributing the min -> {indirect_optimization_demands}\n")
                 # print(f"i am sorted offers after distributing the min -> {sorted_offers}\n")
                 # The distribution of energy is optimized for the remaining devices
                 [sorted_demands, sorted_offers, sorted_storage] = optimized_sorting(indirect_optimization_demands, indirect_optimization_offers, indirect_optimization_storage,

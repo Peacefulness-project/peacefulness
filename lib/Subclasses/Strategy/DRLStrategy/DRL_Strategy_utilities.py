@@ -14,8 +14,8 @@ from copy import deepcopy
 import json
 from collections import defaultdict, deque
 
-from src.common.Aggregator import Aggregator
-from src.common.Strategy import Strategy
+# from src.common.Aggregator import Aggregator
+# from src.common.Strategy import Strategy
 
 
 # ##########################################################################################
@@ -850,6 +850,14 @@ def optimized_consumption_ratios(strategy: "Strategy", aggregator: "Aggregator",
 
     return [energy_available_consumption, money_earned_inside, energy_sold_inside]
 
+
+def construct_my_complete_message(strategy: "Strategy", aggregator: "Aggregator", incomplete_message: List):
+    complete_message = []
+    for element in incomplete_message:
+        my_message = strategy._catalog.get(f"{element["name"]}.{aggregator.nature.name}.energy_wanted")
+        complete_message.append(my_message)
+
+    return complete_message
 
 def identify_storage_devices(sorted_demands_or_offers: List[Dict]):
     """

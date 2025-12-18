@@ -2,14 +2,19 @@
 # It can correspond to the strategy of an island, for example
 from src.common.Strategy import Strategy
 from typing import Callable
+# from lib.Subclasses.Strategy.DRLStrategy.DRL_Strategy_utilities import construct_my_complete_message, optimized_sorting, compute_output
 
 
 class LightAutarkyFullButFew(Strategy):
 
-    def __init__(self, distribution_ranking_function: Callable):
+    def __init__(self, distribution_ranking_function: Callable
+                 # , optimization_coefficients: Dict=None
+                 ):
         super().__init__(f"light_autarky_strategy_{distribution_ranking_function.__name__}", "buy/sell energy from/to outside only when it cannot serve urgent demands. During distribution, serves totally a restricted number of devices according to the distriburion ranking function.")
 
         self._distribution_ranking_function = distribution_ranking_function
+        # self.sorting_coefficients = optimization_coefficients
+        # print(f"my coefficients -> {self.sorting_coefficients}")
 
     # ##########################################################################################
     # Dynamic behavior
@@ -79,7 +84,27 @@ class LightAutarkyFullButFew(Strategy):
         # distribution of energy
 
         # formulation of needs
+        # print(f"energy_available_consumption -> {energy_available_consumption}")
+        # print(f"energy_available_production -> {energy_available_production}")
+        # print(f"maximum_energy_charge -> {maximum_energy_charge}")
+        # print(f"maximum_energy_discharge -> {maximum_energy_discharge}\n")
+        # [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)
+        # print(f"i am sorted demands before -> {sorted_demands}")
+        # print(f"i am sorted offers before -> {sorted_offers}")
+        # print(f"i am sorted storage before -> {sorted_storage}")
+        # complete_demands = construct_my_complete_message(self, aggregator, sorted_demands)
+        # complete_offers = construct_my_complete_message(self, aggregator, sorted_offers)
+        # complete_storage = construct_my_complete_message(self, aggregator, sorted_storage)
+        # storage_energy = (maximum_energy_charge + maximum_energy_discharge) / 2
+        # [sorted_demands, sorted_offers, sorted_storage] = optimized_sorting(complete_demands, complete_offers, complete_storage,
+        #                                                                     sorted_demands, sorted_offers, sorted_storage,
+        #                                                                     energy_available_consumption, energy_available_production, storage_energy,
+        #                                                                     max_price, min_price,
+        #                                                                     self.sorting_coefficients, compute_output)
         [sorted_demands, sorted_offers, sorted_storage] = self._sort_quantities(aggregator, self._distribution_ranking_function)  # sort the quantities according to their prices
+        # print(f"i am sorted demands after -> {sorted_demands}\n")
+        # print(f"i am sorted offers after -> {sorted_offers}\n")
+        # print(f"i am sorted storage after -> {sorted_storage}\n")
 
         # determination of storage usage
         if minimum_energy_consumed > minimum_energy_produced:  # if there is a lack of local production...

@@ -1,0 +1,21 @@
+{
+  "technical_data": {
+    "medium_consumption": {
+      "usage_profile": [[0.67, {"LVE": 500}, 1], [0.2, {"LVE": 200}, 1]],
+      "consumption_variation": 0.15,
+      "duration_variation": 0.15
+    }
+  },
+
+  "user_profile":{
+
+    "family": {
+      "profile": [[18, 0], [20.999, 1], [21, 0]],
+
+      "period": 24,
+      "offset": 0,
+
+      "start_time_variation": 1
+    }
+  }
+}

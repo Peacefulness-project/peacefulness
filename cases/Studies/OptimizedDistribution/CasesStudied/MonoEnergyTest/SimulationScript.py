@@ -4,7 +4,7 @@
 # Imports
 from datetime import datetime
 from scipy.stats import gamma
-
+from math import inf
 from src.common.World import World
 from lib.DefaultNatures.DefaultNatures import *
 from src.common.Strategy import Strategy
@@ -15,7 +15,7 @@ from src.tools.GraphAndTex import GraphOptions
 from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.AgentGenerator import agent_generation_GA
 import numpy as np
-
+import csv
 
 
 def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: datetime, timestep: float, finish_time: int, my_seed=0.0, standard_deviation=0.25):
@@ -78,7 +78,7 @@ def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: d
     # the strategy grid, which always proposes an infinite quantity to sell and to buy
     grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
-    policy = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
+    policy = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](dummy_order, best_demand_coeffs)
 
 
     # ##############################################################################################
@@ -94,8 +94,8 @@ def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: d
 
     network_contract = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_grids", LVE, price_manager_elec)   # this contract is the one between the local DHN and DSO
 
-    contract_heat_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_prices_BAU", LTH, price_manager_heat)
-    contract_heat_coop = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_prices_COOP", LTH, price_manager_heat)
+    # contract_heat_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("DHN_prices_BAU", LTH, price_manager_heat)
+    # contract_heat_coop = subclasses_dictionary["Contract"]["CooperativeContract"]("DHN_prices_COOP", LTH, price_manager_heat)
     # storage_contract = subclasses_dictionary["Contract"]["StorageThresholdPricesContract"]("cooperative_contract_elec", LTH, price_manager_heat, {"buying_threshold": 0.7, "selling_threshold": 0})
 
 
@@ -105,7 +105,7 @@ def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: d
     aggregator_grid_elec = Aggregator(aggregator_name, LVE, grid_strategy, DSO_manager)
 
     aggregator_name = "district_heating_network"  # area with industrials
-    aggregator_grid_heat = Aggregator(aggregator_name, LTH, policy, DHN_manager, aggregator_grid_elec, network_contract, efficiency=0.85, capacity={"buying": 1000, "selling": 0})  # creation of an aggregator
+    aggregator_grid_heat = Aggregator(aggregator_name, LTH, policy, DHN_manager, aggregator_grid_elec, network_contract, efficiency=0.85, capacity={"buying": 10000, "selling": 0})  # creation of an aggregator
 
 
     # ##############################################################################################
@@ -178,7 +178,7 @@ def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: d
     # energy accorded
     # subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", my_device_list, period=1)
     # subclasses_dictionary["Datalogger"]["AllocationDatalogger"]("energy_allocation_frequency_1", "EnergyAllocation_frequency_1", period=1)
-    # subclasses_dictionary["Datalogger"]["EquityDatalogger"]("energy_unserved_frequency_1", "EnergyUnserved_frequency_1", period=1)
+    subclasses_dictionary["Datalogger"]["EquityDatalogger"]("energy_unserved_frequency_1", "EnergyUnserved_frequency_1", period=1)
     # my_ESS_list = ["sensible_storage"]
     # subclasses_dictionary["Datalogger"]["StateOfChargeDatalogger"]("soc_frequency_1", "SOC_frequency_1", my_ESS_list)
 
@@ -186,25 +186,55 @@ def peacefulness_simulation(name: str, seed: str, pathExport: str, start_time: d
 
 #
 #
+best_demand_coeffs = {'demand': (-0.7654199439352023, 0.08149552559496942, -0.35127676039285727, -0.9218296421899672, 0.9379445586012514, -0.5570861571598043, 0.14795068592391192)}
+device_history = {}
 def my_exogen_inst(world: "World"):
     results = {}
     for datalogger in world.catalog.dataloggers.values():
         datalogger_keys = datalogger.get_keys  # retrieving the keys to be exported by the datalogger
         results = {**results, **datalogger.request_keys(datalogger_keys)}
-    # print(results)
+    for key in results.keys():
+        if "unserved" in key and "DummyConsumer" in key:
+            if key in device_history:
+                device_history[key].append(results[key])
+            else:
+                device_history[key] = [results[key]]
+
+
+def dummy_order(my_message):
+    if my_message["emergency"] == 1:
+        return_value = inf
+    elif my_message["type"] == "consumption":
+        return_value = my_message["quantity"]
+    elif my_message["type"] == "production":
+        return_value = - my_message["quantity"]
+    else:
+        return_value = (my_message["quantity"] - my_message["quantity_min"])
+
+    return return_value
+
+
+def export_results(mypath, myHistory):
+    myFilename = mypath + "/" + "optionalConsumption.csv"
+    with open(myFilename, mode="w", newline="") as myFile:
+        writer = csv.writer(myFile)
+        writer.writerow(myHistory.keys())
+        for row in zip(*myHistory.values()):
+            writer.writerow(row)
+
 
 # Parameters to run the simulation
 world_name = "MonoEnergyTest"
 world_seed = "sunflower"
 world_path = f"cases/Studies/OptimizedDistribution/Results/{world_name}/"
-my_start = datetime(year=2020, month=4, day=1, hour=0, minute=0, second=0, microsecond=0)
+my_start = datetime(year=2025, month=3, day=11, hour=0, minute=0, second=0, microsecond=0)
 step = 1
 hours_simulated = 24
-my_seed = 99
-my_std = 0.25
+my_seed = 1000
+my_std = 0
 
 world = peacefulness_simulation(world_name, world_seed, world_path, my_start, step, hours_simulated, my_seed, my_std)
 world.start(exogen_instruction=my_exogen_inst, verbose=False)
-
+export_results(world_path, device_history)
 
 
