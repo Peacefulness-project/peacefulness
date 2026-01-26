@@ -1,0 +1,13 @@
+{
+  "technical_data": {
+    "electricity_cable": {
+      "efficiency": {"LVE": 1}
+    },
+    "heat_pipe": {
+      "efficiency": {"LTH": 1}
+    },
+    "gas_pipe": {
+      "efficiency": {"LPG": 1}
+    }
+  }
+}

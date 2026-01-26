@@ -11,22 +11,27 @@ def correct_path(input_path: str):
     return output_path.replace("/", ".")
 
 
-def find_my_aggregators(list_of_independent_aggregators) -> list:
+def find_my_aggregators(list_of_independent_aggregators, agent_ID=None) -> list:
     """
     This function is used to identify the aggregators managed by the Gym strategy.
+    In the multi-agent configuration, the ID of the RL agent is also provided to define its scope.
     """
     corrected_list = []
     for aggregator in list_of_independent_aggregators:
-        if aggregator.strategy.name == "gym_strategy":
-            corrected_list.append(aggregator)
-        corrected_list = [*corrected_list, *find_my_aggregators(aggregator.subaggregators)]
+        if not agent_ID:
+            if aggregator.strategy.name == "gym_Strategy":
+                corrected_list.append(aggregator)
+        else:
+            if aggregator.strategy.name == agent_ID:
+                corrected_list.append(aggregator)
+        corrected_list = [*corrected_list, *find_my_aggregators(aggregator.subaggregators, agent_ID)]
 
     return corrected_list
 
 
-def group_components(catalog: "Catalog"):
+def group_components(catalog: "Catalog", agent_ID=None):
     """
-    This method is used to communicate the information message to the RL agent (necessary to construct St).
+    This function is used to communicate the information message to the RL agent (necessary to construct St).
     """
     formalism_message = {}  # here we retrieve the values of the formalism variables
     prediction_message = {}  # here we retrieve the predictions on rigid energy consumption and production
@@ -34,17 +39,23 @@ def group_components(catalog: "Catalog"):
     conversions = {}  # here we retrieve the energy exchanges through energy conversion systems
     direct_exchanges = {}  # here we retrieve the energy exchanges without energy conversion systems
 
+    # Distinction between single agent RL and multi-agent configuration
+    if not agent_ID:
+        ref_name = "gym_Strategy"
+    else:
+        ref_name = agent_ID
+
     # Getting the state of the multi-energy grid
-    for aggregator in catalog.get(f"gym_Strategy.strategy_scope"):
-        formalism_message[aggregator.name] = catalog.get(f"{aggregator.name}.gym_Strategy.formalism_message")
+    for aggregator in catalog.get(f"{ref_name}.strategy_scope"):
+        formalism_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.formalism_message")
         if aggregator.forecaster:
-            prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.gym_Strategy.forecasting_message")
-        prices[aggregator.name] = catalog.get(f"{aggregator.name}.gym_Strategy.energy_prices")
-        conversions[aggregator.name] = catalog.get(f"{aggregator.name}.gym_Strategy.converter_message")
+            prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.forecasting_message")
+        prices[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.energy_prices")
+        conversions[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.converter_message")
         if aggregator.subaggregators:
-            direct_exchanges[aggregator.name] = catalog.get(f"{aggregator.name}.gym_Strategy.direct_energy_exchanges")
+            direct_exchanges[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
         if aggregator.superior:
-            direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.gym_Strategy.direct_energy_exchanges")
+            direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
 
     # Normalization based on the length simulated OR cyclical time with cos/sin
     relevant_time = catalog.get("simulation_time")
@@ -54,6 +65,22 @@ def group_components(catalog: "Catalog"):
 
     return relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions
 
+
+def return_correct_dict(normalization_parameters: Dict, agent_ID: str):
+    """
+    This function is used in case of multi-agent configuration.
+    If the normalization parameters are given globally (the same for all the agents) or agent-specific.
+    """
+    to_return = {}
+    for key, values in normalization_parameters.items():
+        if isinstance(values, dict):  # {"RL_agent": {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }, ...}
+            to_return = normalization_parameters[agent_ID]
+            break
+        else:  # {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }
+            to_return = normalization_parameters
+            break
+
+    return to_return
 
 def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
     """
@@ -234,12 +261,34 @@ def process_conversions(conversion):
     return my_list
 
 
-def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict):
+def get_correct_action_dict(agent_dict: Dict):
+    """
+    This method is used to get a dict of actions for each agent as follows : {"RLagent_ID": {"interior":{"aggregator": , ... }, "exchanges": }, ...}.
+    :param agent_dict: A dict as follows {"RLagent_ID": {"aggregator": (obs_size, action_size), ..., "nb_exchanges": }, ...}.
+    """
+    act_dict = {}
+    for agent in agent_dict:
+        act_dict[agent] = {"interior": {}}
+        for key in agent_dict[agent]:
+            if key != "exchanges":
+               act_dict[agent]["interior"] = {**act_dict[agent]["interior"], **{key: agent_dict[agent][key][1]}}
+            else:
+               act_dict[agent] = {**act_dict[agent], **{key: agent_dict[agent][key]}}
+    return act_dict
+
+
+def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, agent_ID=None):
     """
     This function is used in the step method to distribute the RL agent's action to each corresponding aggregator.
     """
-    raw_state = deepcopy(catalog.get(f"gym_Strategy.raw_state"))
-    managed_aggregators = catalog.get(f"gym_Strategy.strategy_scope")
+    # Distinction between single agent RL and multi-agent configuration
+    if not agent_ID:
+        ref_name = "gym_Strategy"
+    else:
+        ref_name = agent_ID
+
+    raw_state = deepcopy(catalog.get(f"{ref_name}.raw_state"))
+    managed_aggregators = catalog.get(f"{ref_name}.strategy_scope")
     nb_exchange_actions = action_info["exchanges"]
 
     # internal actions
@@ -250,10 +299,10 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict):
         chunk = internal_actions[index: index + nb_interior]
         interior_dict[agg] = chunk
         index += nb_interior
-    if f"gym_Strategy.interior_decision" not in catalog.keys:  # {"aggregator_name": [Econ_norm, Eprod_norm, Esto_norm], ...}
-        catalog.add(f"gym_Strategy.interior_decision", interior_dict)
+    if f"{ref_name}.interior_decision" not in catalog.keys:  # {"aggregator_name": [Econ_norm, Eprod_norm, Esto_norm], ...}
+        catalog.add(f"{ref_name}.interior_decision", interior_dict)  # normalized actions (interior)
     else:
-        catalog.set(f"gym_Strategy.interior_decision", interior_dict)
+        catalog.set(f"{ref_name}.interior_decision", interior_dict)
 
     # external actions
     external_actions = action[-nb_exchange_actions:]
@@ -280,13 +329,13 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict):
         chunk = external_actions[index: index + nb_exchanges]
         exchanges_dict[agg] = chunk
         index += nb_exchanges
-    if f"gym_Strategy.exchange_decision" not in catalog.keys:  # {"aggregator_name": [Eexch_1-norm, Eexch_2-norm, ...], ...}
-        catalog.add(f"gym_Strategy.exchange_decision", exchanges_dict)
+    if f"{ref_name}.exterior_decision" not in catalog.keys:  # {"aggregator_name": [Eexch_1-norm, Eexch_2-norm, ...], ...}
+        catalog.add(f"{ref_name}.exterior_decision", exchanges_dict)  # normalized actions (exterior)
     else:
-        catalog.set(f"gym_Strategy.exchange_decision", exchanges_dict)
+        catalog.set(f"{ref_name}.exterior_decision", exchanges_dict)
 
 
-def implement_my_interior_decision(catalog: "Catalog", aggregator: "Aggregator"):
+def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator"):
     """
     This function is used inside the top_down_phase method of the gym strategy.
     We use it to scale-up the normalized at and return the dict of the internal actions.
@@ -294,15 +343,15 @@ def implement_my_interior_decision(catalog: "Catalog", aggregator: "Aggregator")
     # Initialization
     returned_list = []
     typologies = ["Energy_Consumption", "Energy_Production", "Energy_Storage"]
-    raw_state = catalog.get(f"gym_Strategy.raw_state")
-    interior_decision = catalog.get(f"gym_Strategy.interior_decision")
+    raw_state = catalog.get(f"{agentID}.raw_state")
+    interior_decision = catalog.get(f"{agentID}.interior_decision")
 
     # We retrieve the normalized actions.
     norm_decision = deque(interior_decision[aggregator.name])
 
     # Then, we scale them up.
     for typ in typologies:
-        if typ in raw_state["interior"][aggregator.name]:
+        if len(raw_state["interior"][aggregator.name][typ]) > 0:
             returned_list.append(scale_up_feature(norm_decision.popleft(), raw_state["interior"][aggregator.name][typ]["energy_minimum"], raw_state["interior"][aggregator.name][typ]["energy_maximum"]))
 
     # Final check
@@ -314,15 +363,15 @@ def implement_my_interior_decision(catalog: "Catalog", aggregator: "Aggregator")
     return returned_list
 
 
-def implement_my_exchange_decision(catalog: "Catalog", aggregator: "Aggregator"):
+def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator"):
     """
     This function is used inside the top_down_phase method of the gym strategy.
     We use it to scale-up the normalized at and return the dict of Eexch.
     """
     # Initialization
     exchange_dict = {}
-    raw_state = catalog.get(f"gym_Strategy.raw_state")
-    exchange_decision = catalog.get(f"gym_Strategy.exchange_decision")
+    raw_state = catalog.get(f"{agentID}.raw_state")
+    exchange_decision = catalog.get(f"{agentID}.exterior_decision")
 
     # First, we retrieve the normalized actions.
     nb_conversion_actions = 0
@@ -361,16 +410,26 @@ def implement_my_exchange_decision(catalog: "Catalog", aggregator: "Aggregator")
     return exchange_dict
 
 
-def recapitulate_decision(catalog: "Catalog"):
+def recapitulate_decision(catalog: "Catalog", agent_ID=None) -> Dict:
     """
     This helper function is used in the step method to retrieve all the decisions.
     It is useful to compute the immediate reward.
     """
+    # Distinction between single agent RL and multi-agent configuration
+    if not agent_ID:
+        ref_name = "gym_Strategy"
+    else:
+        ref_name = agent_ID
+
     return_dict = {}
-    managed_aggregators = catalog.get(f"gym_Strategy.strategy_scope")
+    managed_aggregators = catalog.get(f"{ref_name}.strategy_scope")
+    scope_key = ref_name + f".scope"
+    return_dict[scope_key] = []
     for agg in managed_aggregators:
-        interior_decision = catalog.get(f"{agg.name}.gym_Strategy.internal_decision")  # list
-        external_decision = catalog.get(f"{agg.name}.gym_Strategy.exchange_decision")  # dict
-        return_dict[agg.name] = [*interior_decision, *list(external_decision.values())]
+        return_dict[scope_key].append(agg.name)
+        interior_decision = catalog.get(f"{agg.name}.{ref_name}.internal_decision")  # list (scaled-up actions)
+        external_decision = catalog.get(f"{agg.name}.{ref_name}.exchange_decision")  # dict (scaled-up actions)
+        key = agg.name + f".{ref_name}.scaled_up_actions"
+        return_dict[key] = [*interior_decision, *list(external_decision.values())]
 
     return return_dict

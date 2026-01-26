@@ -4,12 +4,14 @@ from gymnasium import spaces
 import numpy as np
 from importlib import import_module
 from random import setstate
-from lib.Subclasses.Strategy.GymStrategy.Utilities import *
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
+from datetime import datetime
+import uuid
 
 
 class PeacefulnessEnv(gym.Env):
 
-    def __init__(self, path_to_case: str, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], verbose=False):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False):
         """
         path_to_case: the path to the case study
         hours_to_simulate: defines the length of each episode of training
@@ -19,6 +21,7 @@ class PeacefulnessEnv(gym.Env):
         normalization_dict: used to normalize states
         objective_dict: used to identify which reward function to apply (and for which agent)
         metrics: list of metrics used to compute the reward
+        std_dev: by default it is set to 25% of noise to validation data
         verbose:
         """
         # Observation space - TODO on peut aussi avoir -inf et +inf comme low/high pour Box en normalisant avec NormalizeEnv de SB3 (à tester plus tard)
@@ -48,11 +51,16 @@ class PeacefulnessEnv(gym.Env):
         # Used to retrieve the correct case study
         path_to_case = correct_path(path_to_case)
         self.case_study = import_module(path_to_case)  # we import the case study
+        self.world_name = world_name
+        self.world_start = start_time
         self.episode_length = hours_to_simulate
         self.dataloggers_path = export_path
         self.metrics = metrics
+        self.std_dev = std_dev
         self.verbose = verbose
         self.grid = None
+        self.ended_episode = False
+        self.env_id = uuid.uuid4().hex
 
 
     def _identify_reward(self, objective_dict: Dict):
@@ -61,7 +69,7 @@ class PeacefulnessEnv(gym.Env):
                         maybe in the multi-agent format, it will have {"reward_function_name": [(agent_ID, *args corresponding)], ...}.
         """
         reward_func_list = []
-        path_to_rewards = "lib/Subclasses/Strategy/GymStrategy/Reward_functions"
+        path_to_rewards = "lib/Subclasses/Strategy/SingleAgentDRLStrategy/Reward_functions"
         path_to_rewards = correct_path(path_to_rewards)
         for name in objective_dict:
             rt_path = path_to_rewards + "." + name
@@ -148,23 +156,27 @@ class PeacefulnessEnv(gym.Env):
 
 
     def _get_info(self):
-        return {}  # TODO voir de quoi remplir
+        info = {}
+        # if self.ended_episode:
+        #     info["is_success"] = True
+
+        return info  # TODO voir de quoi remplir
 
 
-    def reset(self, seed=None, options=None):
+    def reset(self, *, seed=None, options=None):
         """
         We re-initialize the environment with this method.
         """
-        if seed is None:
-            used_seed = 0
-        else:
-            used_seed = seed
-        if options is None:
-            std = 0.25
-        else:
-            std = options
+        super().reset(seed=seed)
+        sim_seed = seed
+        if sim_seed is None:
+            sim_seed = int(self.np_random.integers(0, 2 ** 32 - 1))
 
-        self.grid = self.case_study.create_simulation(self.episode_length, self.dataloggers_path, self.metrics, used_seed, std)  # the Peacefulness World
+        if self.ended_episode:
+            self.final_grid_operation()
+
+        self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{sim_seed}"
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, sim_seed, self.std_dev)  # the Peacefulness World
         self.initial_grid_operation()
 
         observation = self._get_obs()
@@ -235,6 +247,7 @@ class PeacefulnessEnv(gym.Env):
         # Truncated
         if self.grid._catalog.get('simulation_time') == self.grid._catalog.get("time_limit"):
             truncated = True
+            self.ended_episode = True
         else:
             truncated = False
 
@@ -279,28 +292,3 @@ class PeacefulnessEnv(gym.Env):
 
         # reinitialize random state
         setstate(self.grid._random_state)
-
-
-
-
-
-
-# Test my Gym Environement
-# my_path = "cases/Studies/ClusteringAndStrategy/CasesStudied/LimitedResourceManagement/GymScriptTest.py"
-# simulation_length = 24
-# export_path = "Results"
-# obs_size = 23
-# action_info = {"total_size": 4, "exchanges": 1, "interior": {"local_network": 3}}
-# obj = {"skeleton": 0.2}
-# normalizing_parameters = {"energy_minimum": -175.0, "energy_maximum": 1000.0, "price_minimum": 0.05, "price_maximum": 0.2}
-# performance_metrics = [
-#     "local_network.energy_bought_outside",
-#     "industrial_process.LVE.energy_bought",
-# ]
-# my_test_env = PeacefulnessEnv(my_path, simulation_length, export_path, obs_size, action_info, obj,
-#                               normalizing_parameters,
-#                               performance_metrics,
-#                               # True
-#                               )
-# my_test_env.reset()
-# my_test_env.step(my_test_env.action_space.sample())

@@ -5,7 +5,7 @@ import numpy as np
 # ##############################################################################################
 # Importations
 from datetime import datetime
-from lib.Subclasses.Strategy.GymStrategy.Gym_World import GymWorld
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Gym_World import GymWorld
 # from src.common.World import World
 # pre-defined natures
 from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity
@@ -14,9 +14,10 @@ from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
+from datetime import datetime
 
 
-def create_simulation(hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25):
+def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -32,7 +33,7 @@ def create_simulation(hours_simulated: int, path_name: str, metrics: list = [], 
     # Creation of the world
     # a world contains all the other elements of the model
     # a world needs just a name
-    name_world = f"gym_world_{random_seed}"
+    name_world = world_name + f"_{random_seed}"
     world = GymWorld(name_world)  # creation
 
     # ##############################################################################################
@@ -48,8 +49,6 @@ def create_simulation(hours_simulated: int, path_name: str, metrics: list = [], 
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
-    start_date = datetime(year=2018, month=1, day=1, hour=1, minute=0, second=0, microsecond=0)
-    # a start date in the datetime format
     world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
                    hours_simulated)  # number of time steps simulated
@@ -80,7 +79,7 @@ def create_simulation(hours_simulated: int, path_name: str, metrics: list = [], 
     # Creation of strategies
 
     # the training strategy
-    strategy = subclasses_dictionary["Strategy"]["GymStrategy"]()
+    strategy = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]()
 
     # the strategy grid, which always proposes an infinite quantity to sell and to buy
     grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -155,5 +154,3 @@ def create_simulation(hours_simulated: int, path_name: str, metrics: list = [], 
         metrics_datalogger.add(key)
 
     return world
-
-create_simulation(1, "c")
