@@ -62,9 +62,11 @@ class PeacefulnessEnv(ParallelEnv):
         """
         # Seeding
         if seed is not None:
-            self.np_random, self.np_random_seed = seeding.np_random(seed)
-        else:
-            self.np_random_seed = int(self.np_random.integers(0, 2 ** 32 - 1))
+            seed = int(seed) % (2 ** 32)
+        self.np_random, self.np_random_seed = seeding.np_random(seed)
+        self.np_random_seed = int(self.np_random_seed) % (2 ** 32)
+        # else:
+        #     self.np_random_seed = int(self.np_random.integers(0, 2 ** 32 - 1))
 
         # Defining the RL agents present
         self.agents = self.possible_agents[:]

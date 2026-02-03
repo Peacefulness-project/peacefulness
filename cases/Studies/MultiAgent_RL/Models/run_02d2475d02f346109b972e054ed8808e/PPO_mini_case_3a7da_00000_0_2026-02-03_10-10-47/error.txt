@@ -1,0 +1,69 @@
+Failure # 1 (occurred at 2026-02-03_10-11-05)
+The actor died because of an error raised in its creation task, [36mray::PPO.__init__()[39m (pid=30392, ip=127.0.0.1, actor_id=f819f460cafd2bba7c58e54e01000000, repr=PPO(env=mini_case; env-runners=1; learners=1; multi-agent=True))
+  File "python\\ray\\_raylet.pyx", line 1722, in ray._raylet.execute_task
+  File "python\\ray\\_raylet.pyx", line 1665, in ray._raylet.execute_task.function_executor
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\function_manager.py", line 693, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 579, in __init__
+    super().__init__(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\tune\trainable\trainable.py", line 158, in __init__
+    self.setup(copy.deepcopy(self.config))
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 987, in setup
+    self.learner_group = self.config.build_learner_group(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm_config.py", line 1354, in build_learner_group
+    learner_group = LearnerGroup(
+                    ^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\core\learner\learner_group.py", line 195, in __init__
+    backend_executor.start(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\train\_internal\backend_executor.py", line 214, in start
+    self._backend.on_start(self.worker_group, self._backend_config)
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\train\torch\config.py", line 210, in on_start
+    ray.get(setup_futures)
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\auto_init_hook.py", line 22, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\client_mode_hook.py", line 104, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\worker.py", line 2967, in get
+    values, debugger_breakpoint = worker.get_objects(
+                                  ^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\worker.py", line 1015, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::_RayTrainWorker__execute._setup_torch_process_group()[39m (pid=10032, ip=127.0.0.1, actor_id=234b067744b4fb2a9889511701000000, repr=<ray.train._internal.worker_group._WrappedExecutable object at 0x000001080E46E1E0>)
+  File "python\\ray\\_raylet.pyx", line 1722, in ray._raylet.execute_task
+  File "python\\ray\\_raylet.pyx", line 1665, in ray._raylet.execute_task.function_executor
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\function_manager.py", line 693, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\train\_internal\worker_group.py", line 35, in __execute
+    raise skipped from exception_cause(skipped)
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\train\_internal\worker_group.py", line 32, in __execute
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\train\torch\config.py", line 122, in _setup_torch_process_group
+    dist.init_process_group(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\torch\distributed\c10d_logger.py", line 81, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\torch\distributed\c10d_logger.py", line 95, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\torch\distributed\distributed_c10d.py", line 1769, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\torch\distributed\distributed_c10d.py", line 1996, in _new_process_group_helper
+    backend_class = ProcessGroupGloo(
+                    ^^^^^^^^^^^^^^^^^
+RuntimeError: makeDeviceForHostname(): unsupported gloo device

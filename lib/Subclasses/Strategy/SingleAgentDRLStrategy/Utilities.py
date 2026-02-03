@@ -10,6 +10,14 @@ def correct_path(input_path: str):
     output_path = input_path.replace(".py", "")
     return output_path.replace("/", ".")
 
+def modify_path(input_path: str):
+    output_path = input_path.replace("\\", "/")
+    return output_path
+
+def truncate_left(s, word):
+    idx = s.find(word)
+    return s[idx:] if idx != -1 else s
+
 
 def find_my_aggregators(list_of_independent_aggregators, agent_ID=None) -> list:
     """
@@ -48,6 +56,16 @@ def group_components(catalog: "Catalog", agent_ID=None):
     # Getting the state of the multi-energy grid
     for aggregator in catalog.get(f"{ref_name}.strategy_scope"):
         formalism_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.formalism_message")
+
+        # TODO patchwork solution - changing observation size breaks the RLlib loop
+        if "flexibility" not in formalism_message[aggregator.name]["Energy_Production"]:
+            formalism_message[aggregator.name]["Energy_Production"]["flexibility"] = 0.0
+        if "interruptibility" not in formalism_message[aggregator.name]["Energy_Production"]:
+            formalism_message[aggregator.name]["Energy_Production"]["interruptibility"] = 0.0
+        if "coming_volume" not in formalism_message[aggregator.name]["Energy_Production"]:
+            formalism_message[aggregator.name]["Energy_Production"]["coming_volume"] = 0.0
+
+
         if aggregator.forecaster:
             prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.forecasting_message")
         prices[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.energy_prices")
@@ -190,9 +208,9 @@ def normalize_features(feature, min_val, max_val):
     if min_val <= feature <= max_val:
         norm_feature = (feature - min_val) / (max_val - min_val)
     elif feature < min_val:
-        norm_feature = min_val
+        norm_feature = 0.0
     elif feature > max_val:
-        norm_feature = max_val
+        norm_feature = 1.0
     else:
         raise Exception("Normalization error !")
 

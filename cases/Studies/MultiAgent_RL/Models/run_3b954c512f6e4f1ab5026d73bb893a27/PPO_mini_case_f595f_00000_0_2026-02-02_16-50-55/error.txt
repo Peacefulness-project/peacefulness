@@ -1,0 +1,63 @@
+Failure # 1 (occurred at 2026-02-02_16-50-59)
+The actor died because of an error raised in its creation task, [36mray::PPO.__init__()[39m (pid=18924, ip=127.0.0.1, actor_id=bb00d0582f5c363efd57879a01000000, repr=PPO(env=mini_case; env-runners=0; learners=0; multi-agent=True))
+  File "python\\ray\\_raylet.pyx", line 1722, in ray._raylet.execute_task
+  File "python\\ray\\_raylet.pyx", line 1665, in ray._raylet.execute_task.function_executor
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\function_manager.py", line 693, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 579, in __init__
+    super().__init__(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\tune\trainable\trainable.py", line 158, in __init__
+    self.setup(copy.deepcopy(self.config))
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 825, in setup
+    self.env_runner_group = EnvRunnerGroup(
+                            ^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 197, in __init__
+    self._setup(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 291, in _setup
+    self._local_env_runner = self._make_worker(
+                             ^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 1269, in _make_worker
+    return self.env_runner_cls(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\multi_agent_env_runner.py", line 112, in __init__
+    self.make_env()
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\multi_agent_env_runner.py", line 834, in make_env
+    self.env = make_vec(
+               ^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\vector\registration.py", line 69, in make_vec
+    env = SyncVectorMultiAgentEnv(
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\vector\sync_vector_multi_agent_env.py", line 29, in __init__
+    self.envs = [env_fn() for env_fn in self.env_fns]
+                 ^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\vector\registration.py", line 62, in create_single_env
+    single_env = gym.make(env_spec, **env_spec_kwargs.copy())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\gymnasium\envs\registration.py", line 742, in make
+    env = env_creator(**env_spec_kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\lib\Subclasses\Strategy\MultiAgentDRLStrategy\train_agents.py", line 105, in build_env
+    return ParallelPettingZooEnv(PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\wrappers\pettingzoo_env.py", line 196, in __init__
+    self.par_env.reset()
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\lib\Subclasses\Strategy\MultiAgentDRLStrategy\PeacefulnessEnv.py", line 80, in reset
+    self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, self.np_random_seed, self.std_dev)  # the Peacefulness World
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\cases\Studies\MultiAgent_RL\small_scale.py", line 30, in create_simulation
+    subclasses_dictionary = get_subclasses()
+                            ^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\src\tools\SubclassesDictionary.py", line 13, in get_subclasses
+    classes_concerned = list_files_and_folders("lib/Subclasses/")  # the list of all classes concerned by subclasses
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\src\tools\Utilities.py", line 59, in list_files_and_folders
+    files_and_folders = listdir(directory)  # a list of all subclasses of this class
+                        ^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 3] Le chemin d’accès spécifié est introuvable: 'lib/Subclasses/'

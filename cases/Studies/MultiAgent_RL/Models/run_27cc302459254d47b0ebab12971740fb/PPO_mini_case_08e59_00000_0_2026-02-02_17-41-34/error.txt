@@ -1,0 +1,29 @@
+Failure # 1 (occurred at 2026-02-02_17-41-44)
+The actor died because of an error raised in its creation task, [36mray::PPO.__init__()[39m (pid=4860, ip=127.0.0.1, actor_id=6089605609b3ea602c530c7f01000000, repr=PPO(env=mini_case; env-runners=1; learners=0; multi-agent=True))
+  File "python\\ray\\_raylet.pyx", line 1722, in ray._raylet.execute_task
+  File "python\\ray\\_raylet.pyx", line 1665, in ray._raylet.execute_task.function_executor
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\_private\function_manager.py", line 693, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 579, in __init__
+    super().__init__(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\tune\trainable\trainable.py", line 158, in __init__
+    self.setup(copy.deepcopy(self.config))
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\util\tracing\tracing_helper.py", line 461, in _resume_span
+    return method(self, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\algorithms\algorithm.py", line 825, in setup
+    self.env_runner_group = EnvRunnerGroup(
+                            ^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 197, in __init__
+    self._setup(
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 285, in _setup
+    spaces = self.get_spaces()
+             ^^^^^^^^^^^^^^^^^
+  File "D:\dossier_y23hallo\PycharmProjects\peacefulness\.venv\Lib\site-packages\ray\rllib\env\env_runner_group.py", line 313, in get_spaces
+    spaces = self.foreach_env_runner(
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+IndexError: list index out of range
