@@ -4,8 +4,8 @@ import pandas as pd
 
 
 class MLStrategy(TrainingStrategy):
-    def __init__(self, priorities_consumption: Callable, priorities_production: Callable):
-        super().__init__(priorities_consumption, priorities_production)
+    def __init__(self, priorities_consumption: Callable, priorities_production: Callable, strat_name=None):
+        super().__init__(priorities_consumption, priorities_production, strat_name)
 
         index = ["min"]
         columns = ["assess", "exchange", "distribute"]

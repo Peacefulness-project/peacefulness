@@ -33,11 +33,13 @@ agents_dict = {
     "agent_2": {"local_community_2": (17, 2), "exchanges": 1}
 }
 reward_dict = {
-    "agent_1": [("conservation_penalty", 1)
-        , ("aggregator_costs", 1), ("social_cost", 1)
+    "agent_1": [
+        ("conservation_penalty", 5),
+                ("aggregator_costs", 1), ("social_cost", 1)
                 ],
-    "agent_2": [("conservation_penalty", 1)
-        , ("aggregator_costs", 1), ("social_cost", 1)
+    "agent_2": [
+        ("conservation_penalty", 5),
+                ("aggregator_costs", 1), ("social_cost", 1)
                 ]
 }
 normalization_dict = {
@@ -46,8 +48,8 @@ normalization_dict = {
 }
 metrics = [
     "residential_dwellings.LVE.energy_erased", "industrial_process.LVE.energy_erased",
-    "local_community_1.money_spent_outside", "local_community_2.money_spent_outside",
-    "local_community_1.money_earned_outside", "local_community_2.money_earned_outside"
+    "local_community_1.energy_bought_outside", "local_community_2.energy_bought_outside",
+    "local_community_1.energy_sold_outside", "local_community_2.energy_sold_outside"
 ]
 
 ENV_PARAMS = dict(
@@ -131,7 +133,7 @@ if __name__ == "__main__":
     ray.init()
 
     # Resuming training from a previously trained model
-    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_d38dfe31ad504a5b99484c401db666b9/PPO_mini_case_2ad40_00000_0_2026-02-03_10-17-31/checkpoint_000000"
+    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_b8f830dac5c9487a87e55f68ba7506ed/PPO_mini_case_2253d_00000_0_2026-02-03_15-03-36/checkpoint_000000"
 
 
     env_name = "mini_case"
@@ -204,9 +206,11 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
-            stop={"training_iteration": 200, "env_runners/episode_return_mean": -50},  # number of training episodes (stopping criteria)
+            stop={"training_iteration": 200
+                , "episode_return_mean": 1e8
+                  },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
-                checkpoint_score_attribute="env_runners/episode_return_mean",
+                checkpoint_score_attribute="episode_return_mean",
                 checkpoint_score_order="max",
             )
         ),

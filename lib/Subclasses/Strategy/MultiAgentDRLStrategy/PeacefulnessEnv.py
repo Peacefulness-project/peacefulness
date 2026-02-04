@@ -74,6 +74,7 @@ class PeacefulnessEnv(ParallelEnv):
         # The final operation of the Peacefulness world at the end of each episode
         if self.ended_episode:
             self.final_grid_operation()
+            self.ended_episode = False
 
         # Retrieving the Peacefulness world
         self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
@@ -213,6 +214,7 @@ class PeacefulnessEnv(ParallelEnv):
         # Truncation condition
         if self.grid._catalog.get('simulation_time') == self.grid._catalog.get("time_limit"):
             truncations = {agent: True for agent in self.agents}
+            self.ended_episode = True
         else:
             truncations = {agent: False for agent in self.agents}
 

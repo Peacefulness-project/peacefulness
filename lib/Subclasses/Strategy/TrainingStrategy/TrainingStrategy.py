@@ -5,8 +5,12 @@ from typing import List, Dict, Tuple, Callable
 
 class TrainingStrategy(Strategy):
 
-    def __init__(self, priorities_consumption: Callable, priorities_production: Callable):
-        super().__init__("training_strategy", "strategy with parameters used to train a ClusteringAndStrategy algorithm")
+    def __init__(self, priorities_consumption: Callable, priorities_production: Callable, strat_name=None):
+        if not strat_name:
+            name = "training_strategy"
+        else:
+            name = strat_name
+        super().__init__(name, "strategy with parameters used to train a ClusteringAndStrategy algorithm")
         self._priorities_consumption = priorities_consumption
 
         self._priorities_production = priorities_production
@@ -16,7 +20,7 @@ class TrainingStrategy(Strategy):
         self._options_consumption: Callable = None
         self._options_production: Callable = None
 
-        self._catalog.add("unwanted_delivery_cuts", 0)
+        self._catalog.add(f"unwanted_delivery_cuts_{self.name}", 0)
 
     # ##########################################################################################
     # Dynamic behavior
@@ -76,7 +80,7 @@ class TrainingStrategy(Strategy):
         pass
 
     def top_down_phase(self, aggregator):  # after having exchanged with the exterior, the aggregator
-        self._catalog.set("unwanted_delivery_cuts", 0)
+        self._catalog.set(f"unwanted_delivery_cuts_{self.name}", 0)
         energy_bought_outside = 0  # the absolute value of energy bought outside
         energy_sold_outside = 0  # the absolute value of energy sold outside
 

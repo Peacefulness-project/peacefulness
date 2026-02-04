@@ -174,6 +174,7 @@ class PeacefulnessEnv(gym.Env):
 
         if self.ended_episode:
             self.final_grid_operation()
+            self.ended_episode = False
 
         self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{sim_seed}"
         self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, sim_seed, self.std_dev)  # the Peacefulness World

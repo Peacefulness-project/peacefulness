@@ -28,7 +28,7 @@ def define_my_Rt(beta_0: float):
         list_of_keys = []
         for agg in managed_aggregators:
             for metric in metrics:
-                if agg in metric and "money" in metric:
+                if agg in metric and "energy" in metric:
                     list_of_keys.append(metric)
 
         # Finally we can calculate the reward from the values in the iteration dict corresponding to keys
@@ -37,7 +37,7 @@ def define_my_Rt(beta_0: float):
             if metric in iteration_result:
                 reward += (
                     beta_0 * iteration_result[metric]
-                    if "earned" in metric
+                    if "sold" in metric
                     else -beta_0 * iteration_result[metric]
                 )
 

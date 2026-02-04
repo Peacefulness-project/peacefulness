@@ -103,6 +103,7 @@ venv.bak/
 
 # results files
 Results/
+Models/
 
 # mypy
 .mypy_cache/
