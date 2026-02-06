@@ -232,6 +232,8 @@ class PeacefulnessEnv(ParallelEnv):
         for agent in self.agents:
             for reward_function in self.reward_function_list[agent]:
                 rewards[agent] += reward_function(results, self.metrics, agent)
+            # Normalizing the immediate rewards with Emin and Emax
+            # rewards[agent] = normalize_my_rewards(rewards[agent], return_correct_dict(self.normalization_parameters, agent))
 
         # Getting the next observation dict
         observations = self._get_obs()
@@ -249,7 +251,7 @@ class PeacefulnessEnv(ParallelEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return Box(low=-np.inf, high=np.inf, shape=(self.obs_size[agent], ), dtype=np.float32)
+        return Box(low=-2e4, high=2e4, shape=(self.obs_size[agent], ), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):

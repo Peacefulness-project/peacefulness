@@ -90,13 +90,14 @@ def return_correct_dict(normalization_parameters: Dict, agent_ID: str):
     If the normalization parameters are given globally (the same for all the agents) or agent-specific.
     """
     to_return = {}
-    for key, values in normalization_parameters.items():
-        if isinstance(values, dict):  # {"RL_agent": {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }, ...}
-            to_return = normalization_parameters[agent_ID]
-            break
-        else:  # {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }
-            to_return = normalization_parameters
-            break
+    if normalization_parameters:
+        for key, values in normalization_parameters.items():
+            if isinstance(values, dict):  # {"RL_agent": {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }, ...}
+                to_return = normalization_parameters[agent_ID]
+                break
+            else:  # {"energy_minimum": , "energy_maximum": , "price_minimum": , "price_maximum": }
+                to_return = normalization_parameters
+                break
 
     return to_return
 
@@ -228,6 +229,10 @@ def scale_up_feature(feature, min_val, max_val):
         raise Exception("Scale-up error !")
 
     return scaled_feature
+
+
+def normalize_my_rewards(reward, norm_dict):
+    return ((reward - norm_dict["energy_minimum"]) / (norm_dict["energy_maximum"] - norm_dict["energy_minimum"])) * 2 - 1
 
 
 def normal_interconnection(raw_list, min_val, max_val):
