@@ -65,7 +65,7 @@ class PeacefulnessEnv(ParallelEnv):
         # Seeding
         if seed is not None:
             seed = int(seed) % (2 ** 32)
-        self.np_random, self.np_random_seed = seeding.np_random(seed)
+        self.np_random, self.np_random_seed = seeding.np_random(seed)  # instead of passing the seed to the env, the generator is now passed
         self.np_random_seed = int(self.np_random_seed) % (2 ** 32)
 
         # Defining the RL agents present
@@ -79,7 +79,7 @@ class PeacefulnessEnv(ParallelEnv):
         # Retrieving the Peacefulness world
         red_dof_flag = False if self.red_dof_dict is None else True
         self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
-        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, self.np_random_seed, self.std_dev, red_dof_flag)  # the Peacefulness World
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, red_dof_flag)  # the Peacefulness World
         self.initial_grid_operation()  # Initial operation at the start of each episode
 
         # In case we remove 1-degree of freedom per aggregator

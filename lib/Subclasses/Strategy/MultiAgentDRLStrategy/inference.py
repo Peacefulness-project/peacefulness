@@ -4,6 +4,7 @@ import ray
 from ray.tune.registry import register_env
 from ray.rllib.algorithms.ppo import PPO
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.train_agents import ENV_PARAMS, build_env
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
 import torch
 import numpy as np
 
@@ -33,7 +34,8 @@ def get_action(module, observation):
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
 ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_c8404791cbac4b6f9589168db11c079d/PPO_mini_case_2ab71_00000_0_2026-02-03_17-34-10/checkpoint_000000"
+ENV_PARAMS["hours_to_simulate"] = 12
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_80c1c3e09f12494ba3794a8115588b2b/PPO_mini_case_3f893_00000_0_2026-02-10_12-54-26/checkpoint_000000"
 
 if __name__ == "__main__":
     ray.init()
@@ -48,14 +50,33 @@ if __name__ == "__main__":
     pmf = algo.config.multi_agent()["policy_mapping_fn"]  # policy mapping
 
     done = {"__all__": False}
+
+    # Global dicts for export
+    state_dict = {}
+    decision_dict = {}
+
     while not done["__all__"]:
         actions = {}
         for agent_id, agent_obs in obs.items():
+            for k, v in recapitulate_state(my_env.par_env.unwrapped.grid._catalog, agent_id).items():
+                for key, value in v.items():
+                    state_dict.setdefault(k, {}).setdefault(key, []).append(value)
             policy_id = pmf(agent_id)  # first we map each agent to its policy
             module = algo.get_module(policy_id)  # getting the corresponding RLModule
             action = get_action(module, agent_obs)
             actions[agent_id] = np.clip(action, -1.0, 1.0)  # TODO from action space of the environment
 
         obs, rewards, done, truncated, infos = my_env.step(actions)  # the actions of the agents are acted in the env
+        for agent_id in obs:
+            for k, v in recapitulate_decision(my_env.par_env.unwrapped.grid._catalog, agent_id).items():
+                if "scope" not in k:  # we retrieve the decisions per aggregator
+                    decision_dict.setdefault(k, []).append(v)
+
     obs, infos = my_env.reset()  # for datalogger export
 
+# IV - Exporting results in CSV files
+    export_my_state_file(state_dict, ENV_PARAMS["export_path"] + "_energy_intervals")
+    export_my_decision_file(decision_dict, ENV_PARAMS["export_path"] + "_RL_decisions")
+
+# V - Plotting results & saving plots
+    plot_my_results(state_dict, decision_dict, ENV_PARAMS["export_path"])

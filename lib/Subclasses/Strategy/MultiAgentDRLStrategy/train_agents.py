@@ -28,7 +28,7 @@ from pprint import pprint
 path_to_case = "cases/Studies/MultiAgent_RL/small_scale.py"
 world_name = "mini_case"
 start_time = datetime(2023, 1, 1,0, 0, 0)
-simulation_length = 8759
+simulation_length = 8760
 path_to_export = "cases/Studies/MultiAgent_RL/Results"
 agents_dict = {
     "agent_1": {"local_community_1": (23, 3), "exchanges": 1},
@@ -54,7 +54,7 @@ metrics = [
     "local_community_1.energy_sold_outside", "local_community_2.energy_sold_outside"
 ]
 act_red_dict = {
-    "agent_1": {"local_community_1": "Energy_Storage"},
+    "agent_1": {"local_community_1": "Energy_Exchange_1"},
     "agent_2": {"local_community_2": "Energy_Exchange_1"}
 }
 
@@ -115,13 +115,12 @@ def build_env(env_config):
     env = PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
                           env_config["start_time"], env_config["hours_to_simulate"],
                           env_config["export_path"], env_config["agent_dict"], env_config["objective_dict"],
-                          env_config["normalization_dict"], env_config["metrics"], std_dev,
-                          red_dof_dict=env_config["red_dof_dict"]
-                          )  # for reducing one degree of freedom per aggregator
+                          env_config["normalization_dict"], env_config["metrics"], std_dev, False,
+                          env_config["red_dof_dict"])  # for reducing one degree of freedom per aggregator
     # env = normalize_obs_v0(env)
-    # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
+    wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
 
-    return ParallelPettingZooEnv(env)
+    return ParallelPettingZooEnv(wrapped_env)
 
 # Creating a CallBack to restore trained model if we want to resume training (curriculum learning e.g.)
 class RestoreCallback(DefaultCallbacks):
@@ -165,6 +164,7 @@ if __name__ == "__main__":
                   clip_param=0.2,
                   gamma=0.99,
                   lr=3e-4,
+                  train_batch_size=8760,
                   train_batch_size_per_learner=8760,
                   num_epochs=5,
                   minibatch_size=73,
@@ -217,8 +217,8 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
-            stop={"training_iteration": 3
-                , "env_runners/episode_return_mean": 1e8
+            stop={"training_iteration": 100
+                # , "env_runners/episode_return_mean": 1e8
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
                 checkpoint_score_attribute="episode_return_mean",

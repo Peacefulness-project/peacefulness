@@ -17,7 +17,7 @@ from src.common.Datalogger import Datalogger
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.SubclassesDictionary import get_subclasses
 
 
-def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25, red_dof_flag=False):
+def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: list = [], standard_deviation: float = 0.25, red_dof_flag=False):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -33,7 +33,7 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     # Creation of the world
     # a world contains all the other elements of the model
     # a world needs just a name
-    name_world = world_name + f"_{random_seed}"
+    name_world = world_name + f"_{random_seed[0]}"
     world = GymWorld(name_world)  # creation
 
     # ##############################################################################################
@@ -43,7 +43,7 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     # ##############################################################################################
     # Definition of the random seed
     # The default seed is the current time (the value returned by datetime.now())
-    world.set_random_seed(random_seed)
+    world.set_random_seed(random_seed[0])
 
     # ##############################################################################################
     # Time parameters
@@ -133,12 +133,11 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
 
     # ##############################################################################################
     # Manual creation of devices
-    np.random.seed(seed=random_seed)
     def rng_generator(consumption):
         if bool(standard_deviation) & bool(consumption):
             a = (1 / standard_deviation)**2
             b = standard_deviation ** 2 * consumption
-            toto = gamma.rvs(a, scale=b)
+            toto = gamma.rvs(a, scale=b, random_state=random_seed[1])  # Passing the actual generator object (self.np_random) from PeacefulnessEnv
             return toto
         else:
             return consumption

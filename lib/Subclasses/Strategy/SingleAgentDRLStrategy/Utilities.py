@@ -4,7 +4,12 @@ from math import cos, sin
 from typing import Dict, List
 from copy import deepcopy
 from collections import deque
-
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 def correct_path(input_path: str):
     output_path = input_path.replace(".py", "")
@@ -598,3 +603,143 @@ def recapitulate_state(catalog: "Catalog", agent_ID=None) -> Dict:
                 idx += 1
 
     return return_dict
+
+
+def export_my_decision_file(decision_dict: Dict, export_path: str):
+    """
+    This helper function is used to export the decision of the RL agents during inference per aggregator.
+    """
+    max_len = max(len(decs[0]) for decs in decision_dict.values())
+    with open(export_path + ".csv", "w", newline="") as myFile:
+        writer = csv.writer(myFile)
+        # Dynamic header
+        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"] + [f"Energy_Exchange_{idx + 1}" for idx in range(max_len - 3)]
+        writer.writerow(header)
+
+        for agg, dec_list in decision_dict.items():
+            for dec in dec_list:
+                padded = dec + [""] * (max_len - len(dec))  # padding to get a corresponding length to header
+                writer.writerow([agg] + padded)
+
+
+def export_my_state_file(state_dict: Dict, export_path: str):
+    """
+    This helper function is used to export the min/max intervals for energy flow values for each corresponding decision.
+    """
+    max_len = max(len(typ) for typ in state_dict.values())
+    with open(export_path + '.csv', "w", newline="") as myFile:
+        writer = csv.writer(myFile)
+        # Dynamic header
+        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"] + [f"Energy_Exchange_{idx + 1}" for idx in range(max_len - 3)]
+        writer.writerow(header)
+
+        for agg in state_dict:
+            for idx in range(len(state_dict[agg][header[1]])):
+                padded = [agg]
+                for element in header[1:]:
+                    padded += state_dict[agg][element][idx] if len(state_dict[agg][element][idx]) > 0 else ["",""]
+                writer.writerow(padded)
+                padded.clear()
+
+
+def plot_my_results(minmax_dict: Dict, real_dict: Dict, path_to_export: str):
+    """
+    :param minmax_dict: Dictionary containing min/max intervals.
+    :param real_dict: Dictionary containing actual chosen values.
+    """
+    # Apply Scientific Style settings locally
+    with plt.rc_context({
+        'font.family': 'serif',  # Serif fonts are standard for papers
+        'font.size': 11,
+        'axes.grid': True,
+        'grid.alpha': 0.3,  # Light grid
+        'grid.linestyle': '--',
+        'axes.spines.top': False,  # Remove top border
+        'axes.spines.right': False,  # Remove right border
+        'legend.frameon': True,
+        'legend.framealpha': 0.9,
+        'legend.edgecolor': 'white'
+    }):
+
+        for agg in minmax_dict.keys():
+            # Map agent keys
+            common_key = truncate_right(agg, ".")
+
+            # --- Configuration ---
+            # Map the list indices in 'real_dict' to variable names in 'minmax_dict'
+            # Order observed: Consumption, Production, Storage, Exchange
+            quantities_to_plot = []  # Energy consumption, production, storage, exchange
+            for quantity in minmax_dict[agg]:
+                if any(minmax_dict[agg][quantity]):  # if not empty
+                    quantities_to_plot.append(quantity)
+
+            # Extract Data
+            minmax_data = minmax_dict[agg]
+            for k in real_dict:
+                if common_key in k:
+                    real_data = np.array(real_dict[k])
+                    break
+            n_steps = len(real_data)
+            time_steps = np.arange(n_steps)
+
+            # Create Figure (N variables x 1 column)
+            fig, axes = plt.subplots(len(quantities_to_plot), 1, figsize=(8, 10), sharex=True)
+
+            # If only 1 variable, axes is not a list, so we fix that
+            if len(quantities_to_plot) == 1: axes = [axes]
+
+            # Plot title
+            fig.suptitle(f"{common_key} Energy Profile".capitalize(), fontsize=14, fontweight='bold', y=0.96)
+
+            for i, var_name in enumerate(quantities_to_plot):
+                ax = axes[i]
+
+                # 1. Prepare Data
+                actual_vals = real_data[:, i]
+                interval_raw = minmax_data[var_name]
+                # Slice interval data to match the length of real data
+                # (MinMax often has N+1 or different horizon length)
+                current_intervals = interval_raw[:n_steps]
+                lowers = []
+                uppers = []
+                # Process intervals (handle empty lists for cases like Storage in Comm 2)
+                for interval in current_intervals:
+                    lowers.append(min(interval))
+                    uppers.append(max(interval))
+
+                # 2. Plotting
+                # A. Feasible Region (Shaded Band)
+                # 'step="post"' fills the area between steps correctly for discrete time
+                ax.fill_between(time_steps, lowers, uppers, step='post', color='#6996b3', alpha=0.2, label='Feasible Range')
+
+                # B. Bounds (Thin dotted lines for clarity)
+                ax.step(time_steps, lowers, where='post', color='#6996b3', linestyle=':', linewidth=0.8, alpha=0.5)
+                ax.step(time_steps, uppers, where='post', color='#6996b3', linestyle=':', linewidth=0.8, alpha=0.5)
+
+                # C. Actual Action (Solid Line + Markers)
+                # Markers help identify specific decision points
+                ax.step(time_steps, actual_vals, where='post', color='#004c6d', linewidth=1.5, label='RL decision', zorder=5)
+                ax.scatter(time_steps, actual_vals, color='#004c6d', s=15, zorder=6)
+
+                # 3. Labeling
+                formatted_label = var_name.replace('_', ' ')
+                ax.set_ylabel(f"{formatted_label}", fontsize=10)  # Name of the axis
+
+                ax.text(0, 1.02, "[kWh]",  # Unit
+                            transform=ax.transAxes,
+                            fontsize=10,
+                            ha='left',  # Horizontal alignment
+                            va='bottom',  # Vertical alignment
+                            rotation=0)  # Keep it horizontal
+
+                # Only show legend on the first subplot to avoid clutter
+                if i == 0:
+                    ax.legend(loc='upper right', fontsize=9)
+
+                # Only show X-axis label on the bottom subplot
+                if i == len(quantities_to_plot) - 1:
+                    ax.set_xlabel("Time Step - [Hour]", fontsize=12)
+
+            plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust for suptitle
+            # plt.show()
+            plt.savefig(path_to_export + f"{common_key}.pdf", format='pdf', bbox_inches='tight', pad_inches=0.05)
