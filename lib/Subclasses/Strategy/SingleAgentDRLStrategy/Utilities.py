@@ -18,6 +18,10 @@ def truncate_left(s, word):
     idx = s.find(word)
     return s[idx:] if idx != -1 else s
 
+def truncate_right(s, word):
+    idx = s.find(word)
+    return s[:idx] if idx != 0 else s
+
 
 def find_my_aggregators(list_of_independent_aggregators, agent_ID=None) -> list:
     """
@@ -100,6 +104,7 @@ def return_correct_dict(normalization_parameters: Dict, agent_ID: str):
                 break
 
     return to_return
+
 
 def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
     """
@@ -300,7 +305,7 @@ def get_correct_action_dict(agent_dict: Dict):
     return act_dict
 
 
-def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, agent_ID=None):
+def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, agent_ID=None, red_dof_dict=None):
     """
     This function is used in the step method to distribute the RL agent's action to each corresponding aggregator.
     """
@@ -310,21 +315,38 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
     else:
         ref_name = agent_ID
 
+    # In case we remove 1-degree of freedom (1 less action) per aggregator
+    interior_dofr = {}
+    exterior_dofr_dict = {}
+    exterior_dofr = 0
+    if red_dof_dict is not None:
+        for agg, deg in red_dof_dict.items():
+            if "Exchange" in deg or "Conversion" in deg:  # the action removed from the action space of the concerned RLagent is exchange with outside
+                exterior_dofr_dict[agg] = 1
+                exterior_dofr += 1
+            else:  # the removed action is internal (consumption, production or storage)
+                interior_dofr[agg] = 1
+
+    # Initialization
     raw_state = deepcopy(catalog.get(f"{ref_name}.raw_state"))
     managed_aggregators = catalog.get(f"{ref_name}.strategy_scope")
-    nb_exchange_actions = action_info["exchanges"]
+    nb_exchange_actions = action_info["exchanges"] - exterior_dofr  # we remove the number of "removed" exterior actions from original length
 
     # internal actions
-    internal_actions = action[:-nb_exchange_actions]
+    internal_actions = action[:-nb_exchange_actions]  if nb_exchange_actions != 0 else action[:]  # corresponding to the length of "removed" internal actions
     interior_dict = {}
     index = 0
     for agg, nb_interior in action_info["interior"].items():
-        chunk = internal_actions[index: index + nb_interior]
+        if agg in interior_dofr:  # we check if for this aggregator the "removed" action is internal (consumption, production or storage)
+            to_remove = 1
+        else:
+            to_remove = 0
+        chunk = internal_actions[index: index + nb_interior - to_remove]
         interior_dict[agg] = chunk
         index += nb_interior
     if f"{ref_name}.interior_decision" not in catalog.keys:  # {"aggregator_name": [Econ_norm, Eprod_norm, Esto_norm], ...}
         catalog.add(f"{ref_name}.interior_decision", interior_dict)  # normalized actions (interior)
-    else:
+    else:  # the length corresponds correctly to the case where we remove one degree of freedom w.r.t internal actions
         catalog.set(f"{ref_name}.interior_decision", interior_dict)
 
     # external actions
@@ -349,16 +371,20 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
             external_dict[agg] += len(raw_state["conversion"][agg]["Energy_Conversion"])
     index = 0
     for agg, nb_exchanges in external_dict.items():
-        chunk = external_actions[index: index + nb_exchanges]
+        if agg in exterior_dofr_dict:  # we check if for this aggregator the "removed" action is external (exchange)
+            to_remove = 1
+        else:
+            to_remove = 0
+        chunk = external_actions[index: index + nb_exchanges - to_remove]
         exchanges_dict[agg] = chunk
         index += nb_exchanges
     if f"{ref_name}.exterior_decision" not in catalog.keys:  # {"aggregator_name": [Eexch_1-norm, Eexch_2-norm, ...], ...}
         catalog.add(f"{ref_name}.exterior_decision", exchanges_dict)  # normalized actions (exterior)
-    else:
+    else:  # the length corresponds correctly to the case where we remove one degree of freedom w.r.t external actions
         catalog.set(f"{ref_name}.exterior_decision", exchanges_dict)
 
 
-def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator"):
+def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator", red_dof_flag=False):
     """
     This function is used inside the top_down_phase method of the gym strategy.
     We use it to scale-up the normalized at and return the dict of the internal actions.
@@ -368,6 +394,14 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
     typologies = ["Energy_Consumption", "Energy_Production", "Energy_Storage"]
     raw_state = catalog.get(f"{agentID}.raw_state")
     interior_decision = catalog.get(f"{agentID}.interior_decision")
+
+    # In case, we remove one action per aggregator
+    if red_dof_flag:  # Otherwise we get a catalog Exception error
+        reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+    else:
+        reduced_action = None
+    if reduced_action is not None and reduced_action in typologies:
+        typologies.remove(reduced_action)
 
     # We retrieve the normalized actions.
     norm_decision = deque(interior_decision[aggregator.name])
@@ -379,14 +413,14 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
 
     # Final check
     while len(returned_list) < 3:
-            returned_list.append(0.0)
+        returned_list.append(0.0)
     if len(returned_list) > 3:
         raise Exception("Error in defining the interior actions !")
 
     return returned_list
 
 
-def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator"):
+def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator", red_dof_flag=False):
     """
     This function is used inside the top_down_phase method of the gym strategy.
     We use it to scale-up the normalized at and return the dict of Eexch.
@@ -396,10 +430,23 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     raw_state = catalog.get(f"{agentID}.raw_state")
     exchange_decision = catalog.get(f"{agentID}.exterior_decision")
 
+    # In case, we remove one action per aggregator
+    exchange_to_remove = 0
+    conversion_to_remove = 0
+    if red_dof_flag:  # Otherwise we get a catalog Exception error
+        reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+        if "Exchange" in reduced_action:
+            exchange_to_remove = 1
+        elif "Conversion" in reduced_action:
+            conversion_to_remove = 1
+    else:
+        reduced_action = None
+
     # First, we retrieve the normalized actions.
     nb_conversion_actions = 0
     if aggregator.name in raw_state["conversion"]:
         nb_conversion_actions += len(raw_state["conversion"][aggregator.name]["Energy_Conversion"])
+    nb_conversion_actions -= conversion_to_remove
     direct_exchanges = []
     conversions = []
 
@@ -409,28 +456,77 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
             conversions.extend(exchange_decision[aggregator.name][-nb_conversion_actions:])
         else:
             direct_exchanges.extend(exchange_decision[aggregator.name])
-        direct_exchanges = deque(direct_exchanges)
-        conversions = deque(conversions)
+        direct_exchanges = deque(direct_exchanges)  # length corresponding to the removed exchanges
+        conversions = deque(conversions)  # length corresponding to the removed conversions
 
     # Then, we scale-up 'at'.
+    idx_exch = 1
     if aggregator.name in raw_state["interconnection"]:
         for sub in raw_state["interconnection"][aggregator.name]:
-            scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
+            if reduced_action is not None:
+                if exchange_to_remove > 0 and str(idx_exch) in reduced_action:
+                    scaled_up_action = 0.0
+                else:
+                    scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
+                idx_exch += 1
+            else:
+                scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
             exchange_dict = {**exchange_dict, **{tuple([aggregator.name, sub]): scaled_up_action}}
     else:
         for superior in raw_state["interconnection"]:
             if aggregator.name in raw_state["interconnection"][superior]:
-                scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+                if reduced_action is not None:
+                    if exchange_to_remove > 0 and str(idx_exch) in  reduced_action:
+                        scaled_up_action = 0.0
+                    else:
+                        scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+                    idx_exch += 1
+                else:
+                    scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
                 exchange_dict = {**exchange_dict, **{tuple([superior, aggregator.name]): scaled_up_action}}
 
     conversion_list = process_conversions(raw_state["conversion"])
+    idx_cv = 1 + len(exchange_dict)
     for exchange in conversion_list:
         if aggregator.name in exchange[0]:
             my_index = exchange[0].index(aggregator.name)
-            scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+            if reduced_action is not None:
+                if conversion_to_remove > 0 and str(idx_cv) in reduced_action:
+                    scaled_up_action = 0.0
+                else:
+                    scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                idx_cv += 1
+            else:
+                scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
             exchange_dict = {**exchange_dict, **{tuple(exchange[0]): scaled_up_action}}
 
     return exchange_dict
+
+
+def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict, catalog: "Catalog", aggregator: "Aggregator"):
+    """
+    This function is used to complete the reduced decision by computing the removed action/degree of freedom.
+    """
+    # Initialization
+    reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+    energy_exchanges = list(Eexch.values())
+
+    # Internal decision
+    if reduced_action == "Energy_Consumption":
+        Econ = - Eprod - Esto - sum(energy_exchanges)
+    elif reduced_action == "Energy_Production":
+        Eprod = - Econ - Esto - sum(energy_exchanges)
+    elif reduced_action == "Energy_Storage":
+        Esto = - Econ - Eprod - sum(energy_exchanges)
+    # Energy exchange
+    elif "Exchange" in reduced_action or "Conversion" in reduced_action:
+        idx_exch = int(reduced_action[-1])
+        energy_exchanges[idx_exch - 1] = - Econ - Eprod - Esto - sum(energy_exchanges[:idx_exch - 1]) - sum(energy_exchanges[idx_exch:])
+    else:
+        raise Exception("The dict of action removal is not correctly defined !")
+    Eexch = dict(zip(Eexch.keys(), energy_exchanges))  # rebuilding the Eexch dict
+
+    return Econ, Eprod, Esto, Eexch
 
 
 def recapitulate_decision(catalog: "Catalog", agent_ID=None) -> Dict:
@@ -454,5 +550,51 @@ def recapitulate_decision(catalog: "Catalog", agent_ID=None) -> Dict:
         external_decision = catalog.get(f"{agg.name}.{ref_name}.exchange_decision")  # dict (scaled-up actions)
         key = agg.name + f".{ref_name}.scaled_up_actions"
         return_dict[key] = [*interior_decision, *list(external_decision.values())]
+
+    return return_dict
+
+
+def recapitulate_state(catalog: "Catalog", agent_ID=None) -> Dict:
+    """
+    This helper function is used in the step method to retrieve the energy flow intervals raw state.
+    It is useful to compute the immediate reward.
+    """
+    # Distinction between single agent RL and multi-agent configuration
+    if not agent_ID:
+        ref_name = "gym_Strategy"
+    else:
+        ref_name = agent_ID
+    raw_state = catalog.get(f"{ref_name}.raw_state")
+
+    # Internal energy flow values
+    return_dict  = {}
+    for agg in raw_state['interior']:
+        key = agg + '.energy_flow_values_intervals'
+        return_dict[key] = {"Energy_Consumption": [], "Energy_Production": [], "Energy_Storage": []}
+        for tup in raw_state["interior"][agg]:
+            if len(raw_state["interior"][agg][tup]) > 0:
+                return_dict[key][tup].append(raw_state["interior"][agg][tup]['energy_minimum'])
+                return_dict[key][tup].append(raw_state["interior"][agg][tup]['energy_maximum'])
+
+    # External energy flow values (subaggregator ; superior ; conversions)
+    for agg in return_dict:
+        og_key = truncate_right(agg, '.energy_flow_values_intervals')
+        idx = 1
+        if og_key in raw_state["interconnection"]:
+            for sub in raw_state["interconnection"][og_key]:
+                return_dict[agg].update({f"Energy_Exchange_{idx}": [raw_state["interconnection"][og_key][sub]['energy_minimum'],
+                                                                    raw_state["interconnection"][og_key][sub]['energy_maximum']]})
+                idx += 1
+        else:
+            for sup in raw_state["interconnection"]:
+                if og_key in raw_state["interconnection"][sup]:
+                    return_dict[agg].update({f"Energy_Exchange_{idx}": [raw_state["interconnection"][sup][og_key]["energy_minimum"],
+                                                                        raw_state["interconnection"][sup][og_key]["energy_maximum"]]})
+                    idx += 1
+        if len(raw_state["conversion"][og_key]["Energy_Conversion"]) > 0:
+            for conv_sys in raw_state["conversion"][og_key]["Energy_Conversion"]:
+                return_dict[agg].update({f"Energy_Conversion_{idx}": [raw_state["conversion"][og_key]["Energy_Conversion"][conv_sys]["energy_minimum"],
+                                                                      raw_state["conversion"][og_key]["Energy_Conversion"][conv_sys]["energy_maximum"]]})
+                idx += 1
 
     return return_dict

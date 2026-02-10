@@ -6,7 +6,7 @@ from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
 
 class SingleAgentDRLStrategy(Strategy):
 
-    def __init__(self, name=None, optional_params=None):
+    def __init__(self, name=None, optional_params=None, red_dof_flag=False):
         strategy_name = name if name is not None else "gym_Strategy"
         super().__init__(strategy_name, "The strategy that will be learned by the RL agent with the Gym environment")
 
@@ -24,6 +24,9 @@ class SingleAgentDRLStrategy(Strategy):
                 self._catalog.set(f"{self._name}.sorting_coefficients", optional_params)
         else:
             self.optimized_distribution_flag = False
+
+        # In case we remove 1-degree of freedom per aggregator
+        self.red_dof_flag = red_dof_flag
 
     # ##################################################################################################################
     # Dynamic behavior
@@ -160,8 +163,10 @@ class SingleAgentDRLStrategy(Strategy):
 
     def top_down_phase(self, aggregator: "Aggregator"):  # todo à revoir dès avoir Gym + SB3 et PettingZoo + RLRay stable
         # Retrieving the energy accorded to each aggregator with the decision taken by the RL agent (scaled-up actions)
-        [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage] = implement_my_interior_decision(self._name, self._catalog, aggregator)
-        energy_accorded_to_exchange = implement_my_exchange_decision(self._name, self._catalog, aggregator)
+        [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage] = implement_my_interior_decision(self._name, self._catalog, aggregator, self.red_dof_flag)
+        energy_accorded_to_exchange = implement_my_exchange_decision(self._name, self._catalog, aggregator, self.red_dof_flag)
+        if self.red_dof_flag:  # in case of reducing one degree of freedom, we complete the decision here
+            energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage, energy_accorded_to_exchange = complete_reduced_action(energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage, energy_accorded_to_exchange, self._catalog, aggregator)
 
         if f"{aggregator.name}.{self._name}.internal_decision" not in self._catalog.keys:  # scaled up actions (internal)
             self._catalog.add(f"{aggregator.name}.{self._name}.internal_decision", [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage])

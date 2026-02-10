@@ -6,11 +6,12 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t costs for aggregators.
     """
-    def outside_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None):
+    def outside_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
         :param agent_ID: the ID of the RL agent for which the reward is computed.
+        :param action_reduction_dict: the dict in case of action reduction (1 action less per aggregator).
         """
         # Distinction between single agent RL and multi-agent configuration
         if not agent_ID:

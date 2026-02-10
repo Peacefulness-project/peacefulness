@@ -14,7 +14,7 @@ import uuid
 class PeacefulnessEnv(ParallelEnv):
     metadata = {"name": "custom_env_v0", }
 
-    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
         """
         :param path_to_case: the path to the case study
         :param hours_to_simulate: defines the length of each episode of training
@@ -25,10 +25,11 @@ class PeacefulnessEnv(ParallelEnv):
         :param metrics: list of metrics used to compute the reward
         :param std_dev: by default it is set to 25% of noise to validation data
         :param verbose:
+        :param red_dof_dict: if we apply 1-degree less of freedom per agent, a dict should be defined.
         """
         # Defining the possible agents
         self.possible_agents = list(agent_dict.keys())
-        self.obs_size, self.action_size = self.get_my_dicts(agent_dict)  # getting the size of observation and action for each RL agent
+        self.obs_size, self.action_size = self.get_my_dicts(agent_dict, red_dof_dict)  # getting the size of observation and action for each RL agent
 
         # Defining the reward function to use
         self._identify_reward(objective_dict)
@@ -39,7 +40,8 @@ class PeacefulnessEnv(ParallelEnv):
         # Needed for the observation and for the step method
         self.independent_aggregators_list = []
         self.independent_agents_list = []
-        self.action_dict_per_agent = get_correct_action_dict(agent_dict)  # useful to correctly distribute the actions to their corresponding RL agent
+        self.action_dict_per_agent = get_correct_action_dict(agent_dict)  # useful to correctly distribute the actions to their corresponding RL agent (original length without reduction)
+        self.red_dof_dict = red_dof_dict  # None if no degree of freedom is reduced
 
         # Used to retrieve the correct case study
         path_to_case = correct_path(path_to_case)
@@ -65,8 +67,6 @@ class PeacefulnessEnv(ParallelEnv):
             seed = int(seed) % (2 ** 32)
         self.np_random, self.np_random_seed = seeding.np_random(seed)
         self.np_random_seed = int(self.np_random_seed) % (2 ** 32)
-        # else:
-        #     self.np_random_seed = int(self.np_random.integers(0, 2 ** 32 - 1))
 
         # Defining the RL agents present
         self.agents = self.possible_agents[:]
@@ -77,9 +77,19 @@ class PeacefulnessEnv(ParallelEnv):
             self.ended_episode = False
 
         # Retrieving the Peacefulness world
+        red_dof_flag = False if self.red_dof_dict is None else True
         self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
-        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, self.np_random_seed, self.std_dev)  # the Peacefulness World
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, self.np_random_seed, self.std_dev, red_dof_flag)  # the Peacefulness World
         self.initial_grid_operation()  # Initial operation at the start of each episode
+
+        # In case we remove 1-degree of freedom per aggregator
+        if self.red_dof_dict is not None:
+            for agent in self.red_dof_dict:
+                for agg in self.red_dof_dict[agent]:
+                    if f"Action removed for {agg}" not in self.grid._catalog.keys:  # Energy_Consumption, Energy_Production, Energy_Storage, Energy_Exchange, Energy_Conversion
+                        self.grid._catalog.add(f"Action removed for {agg}", self.red_dof_dict[agent][agg])
+                    else:
+                        self.grid._catalog.set(f"Action removed for {agg}", self.red_dof_dict[agent][agg])
 
         observations = self._get_obs()  # The observation of each RL agent
         infos = self._get_infos()
@@ -153,14 +163,17 @@ class PeacefulnessEnv(ParallelEnv):
         """
         # Writing in the catalog the dicts of actions/aggregator
         for RL_agent in self.agents:
-            distribute_my_action(actions[RL_agent].tolist(), self.grid._catalog, self.action_dict_per_agent[RL_agent], RL_agent)
+            if self.red_dof_dict is not None:
+                distribute_my_action(actions[RL_agent].tolist(), self.grid._catalog, self.action_dict_per_agent[RL_agent], RL_agent, self.red_dof_dict[RL_agent])
+            else:
+                distribute_my_action(actions[RL_agent].tolist(), self.grid._catalog, self.action_dict_per_agent[RL_agent], RL_agent)
 
         # descendant phase: balances with remote energy
         for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
             aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
             # the method is recursive
         # multi-energy devices management
-        # as multi-energy devices state depends on different aggreators, a second round of distribution is performed in case of an incompability
+        # as multi-energy devices state depends on different aggregators, a second round of distribution is performed in case of an incompability
         # multi-energy devices update their balances first and correct potential incompatibilities
         for device in self.grid._catalog.devices.values():
             device.second_update()
@@ -222,6 +235,7 @@ class PeacefulnessEnv(ParallelEnv):
         # Getting the scaled-up decision made by the RL agent as understood by the environment
         results = {}
         for RL_agent in self.agents:
+            results.update(recapitulate_state(self.grid._catalog, RL_agent))
             results.update(recapitulate_decision(self.grid._catalog, RL_agent))
         # Getting the list of the dataloggers defined for the study_case with respect of operational objectives.
         for datalogger in self.grid._catalog.dataloggers.values():
@@ -231,8 +245,11 @@ class PeacefulnessEnv(ParallelEnv):
         rewards = {agent: 0.0 for agent in self.agents}  # todo maybe a distinct penalty term for P3O ?
         for agent in self.agents:
             for reward_function in self.reward_function_list[agent]:
-                rewards[agent] += reward_function(results, self.metrics, agent)
-            # Normalizing the immediate rewards with Emin and Emax
+                if self.red_dof_dict is not None:
+                    rewards[agent] += reward_function(results, self.metrics, agent, self.red_dof_dict[agent])
+                else:
+                    rewards[agent] += reward_function(results, self.metrics, agent)
+            # Normalizing the immediate rewards with Emin and Emax - did not achieve better learning
             # rewards[agent] = normalize_my_rewards(rewards[agent], return_correct_dict(self.normalization_parameters, agent))
 
         # Getting the next observation dict
@@ -251,16 +268,17 @@ class PeacefulnessEnv(ParallelEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return Box(low=-2e4, high=2e4, shape=(self.obs_size[agent], ), dtype=np.float32)
+        return Box(low=-np.inf, high=np.inf, shape=(self.obs_size[agent], ), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
         return Box(low=-1.0, high=1.0, shape=(self.action_size[agent], ), dtype=np.float32)
 
-    def get_my_dicts(self, agent_dict: Dict):
+    def get_my_dicts(self, agent_dict: Dict, red_dof_dict=None):
         """
         This method is used to retrieve the size of observation and action for each RL agent in the environment.
         :param agent_dict: A dict as follows {"RLagent_ID": {"aggregator": (obs_size, action_size), ..., "nb_exchanges": }, ...}.
+        :param red_dof_dict: A dict as follows {"RLagent_ID": {"aggregator": "demand"/"supply"/"storage"/"exchange"/"conversion", ...}, ...}.
         """
         obs_dict = {}
         act_dict = {}
@@ -275,6 +293,8 @@ class PeacefulnessEnv(ParallelEnv):
                     nb_actions += agent_dict[agent][key]
             obs_dict[agent] = obs_size
             act_dict[agent] = nb_actions
+            if red_dof_dict is not None:
+                act_dict[agent] -= len(red_dof_dict[agent])
 
         return obs_dict, act_dict
 

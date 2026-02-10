@@ -17,7 +17,7 @@ from src.common.Datalogger import Datalogger
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.SubclassesDictionary import get_subclasses
 
 
-def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25):
+def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25, red_dof_flag=False):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -89,8 +89,8 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
 
     # the training strategy
     # strategy_1 = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
-    strategy_1 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_1")
-    strategy_2 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_2")
+    strategy_1 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_1", red_dof_flag=red_dof_flag)
+    strategy_2 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_2", red_dof_flag=red_dof_flag)
 
     # the strategy grid, which always proposes an infinite quantity to sell and to buy
     grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()

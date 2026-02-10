@@ -5,7 +5,7 @@ from pathlib import Path
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.PeacefulnessEnv import PeacefulnessEnv, datetime
 # from pettingzoo.test import parallel_api_test, parallel_seed_test  # TODO for testing the PettingZoo environment
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper
-from supersuit import normalize_obs_v0
+# from supersuit import normalize_obs_v0
 
 # RLlib ray imports for training
 from ray import tune
@@ -45,14 +45,18 @@ reward_dict = {
                 ]
 }
 normalization_dict = {
-    # "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
-    # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
+    "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
+    "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
 metrics = [
     "residential_dwellings.LVE.energy_erased", "industrial_process.LVE.energy_erased",
     "local_community_1.energy_bought_outside", "local_community_2.energy_bought_outside",
     "local_community_1.energy_sold_outside", "local_community_2.energy_sold_outside"
 ]
+act_red_dict = {
+    "agent_1": {"local_community_1": "Energy_Storage"},
+    "agent_2": {"local_community_2": "Energy_Exchange_1"}
+}
 
 ENV_PARAMS = dict(
     path_to_case = path_to_case,
@@ -63,7 +67,8 @@ ENV_PARAMS = dict(
     agent_dict = agents_dict,
     objective_dict = reward_dict,
     normalization_dict = normalization_dict,
-    metrics = metrics
+    metrics = metrics,
+    red_dof_dict = act_red_dict
 )
 
 # Env creation
@@ -110,11 +115,13 @@ def build_env(env_config):
     env = PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
                           env_config["start_time"], env_config["hours_to_simulate"],
                           env_config["export_path"], env_config["agent_dict"], env_config["objective_dict"],
-                          env_config["normalization_dict"], env_config["metrics"], std_dev)
-    env = normalize_obs_v0(env)
-    wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
+                          env_config["normalization_dict"], env_config["metrics"], std_dev,
+                          red_dof_dict=env_config["red_dof_dict"]
+                          )  # for reducing one degree of freedom per aggregator
+    # env = normalize_obs_v0(env)
+    # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
 
-    return ParallelPettingZooEnv(wrapped_env)
+    return ParallelPettingZooEnv(env)
 
 # Creating a CallBack to restore trained model if we want to resume training (curriculum learning e.g.)
 class RestoreCallback(DefaultCallbacks):
@@ -210,8 +217,8 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
-            stop={"training_iteration": 30
-                # , "episode_return_mean": 1e8
+            stop={"training_iteration": 3
+                , "env_runners/episode_return_mean": 1e8
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
                 checkpoint_score_attribute="episode_return_mean",

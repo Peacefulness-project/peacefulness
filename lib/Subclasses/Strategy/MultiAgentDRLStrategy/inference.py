@@ -8,7 +8,7 @@ import torch
 import numpy as np
 
 
-# helper function
+# helper function to compute actions
 def get_action(module, observation):
     """
     Runs a single inference step.
@@ -32,7 +32,7 @@ def get_action(module, observation):
 
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
-ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"
+ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
 path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_c8404791cbac4b6f9589168db11c079d/PPO_mini_case_2ab71_00000_0_2026-02-03_17-34-10/checkpoint_000000"
 
 if __name__ == "__main__":
