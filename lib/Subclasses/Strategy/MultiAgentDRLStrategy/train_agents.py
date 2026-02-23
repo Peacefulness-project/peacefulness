@@ -4,7 +4,7 @@ from pathlib import Path
 # PettingZoo environment creation imports
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.PeacefulnessEnv import PeacefulnessEnv, datetime
 # from pettingzoo.test import parallel_api_test, parallel_seed_test  # TODO for testing the PettingZoo environment
-from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper
+# from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper  # TODO Rt normalization
 # from supersuit import normalize_obs_v0
 
 # RLlib ray imports for training
@@ -36,12 +36,12 @@ agents_dict = {
 }
 reward_dict = {
     "agent_1": [
-        ("conservation_penalty", 10),
-                ("aggregator_costs", 1), ("social_cost", 1)
+        ("conservation_penalty", 5),
+                # ("aggregator_costs", 1), ("social_cost", 1)
                 ],
     "agent_2": [
-        ("conservation_penalty", 10),
-                ("aggregator_costs", 1), ("social_cost", 1)
+        ("conservation_penalty", 5),
+                # ("aggregator_costs", 1), ("social_cost", 1)
                 ]
 }
 normalization_dict = {
@@ -50,11 +50,13 @@ normalization_dict = {
 }
 metrics = [
     "residential_dwellings.LVE.energy_erased", "industrial_process.LVE.energy_erased",
-    "local_community_1.energy_bought_outside", "local_community_2.energy_bought_outside",
-    "local_community_1.energy_sold_outside", "local_community_2.energy_sold_outside"
+    "residential_dwellings.LVE.money_spent", "residential_dwellings.LVE.energy_bought",
+    "industrial_process.LVE.money_spent", "industrial_process.LVE.energy_bought",
+    "local_community_1.money_spent_outside", "local_community_2.money_spent_outside",
+    "local_community_1.money_earned_outside", "local_community_2.money_earned_outside"
 ]
 act_red_dict = {
-    "agent_1": {"local_community_1": "Energy_Exchange_1"},
+    "agent_1": {"local_community_1": "Energy_Storage"},
     "agent_2": {"local_community_2": "Energy_Exchange_1"}
 }
 
@@ -118,9 +120,9 @@ def build_env(env_config):
                           env_config["normalization_dict"], env_config["metrics"], std_dev, False,
                           env_config["red_dof_dict"])  # for reducing one degree of freedom per aggregator
     # env = normalize_obs_v0(env)
-    wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
+    # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
 
-    return ParallelPettingZooEnv(wrapped_env)
+    return ParallelPettingZooEnv(env)
 
 # Creating a CallBack to restore trained model if we want to resume training (curriculum learning e.g.)
 class RestoreCallback(DefaultCallbacks):
@@ -143,7 +145,7 @@ if __name__ == "__main__":
     ray.init()
 
     # Resuming training from a previously trained model
-    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_b8f830dac5c9487a87e55f68ba7506ed/PPO_mini_case_2253d_00000_0_2026-02-03_15-03-36/checkpoint_000000"
+    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_e9612893242a4ad3a4bf47877aa183e5/PPO_mini_case_9a9e0_00000_0_2026-02-11_17-49-17/checkpoint_000000"
 
 
     env_name = "mini_case"
@@ -170,11 +172,11 @@ if __name__ == "__main__":
                   minibatch_size=73,
                   shuffle_batch_per_epoch=True
                   )
-        .evaluation(evaluation_interval=25,
-                    evaluation_num_env_runners=1,
-                    evaluation_duration_unit="episodes",
-                    evaluation_duration=1,
-                    evaluation_config={"env_config": {"std_dev": 0}})
+        # .evaluation(evaluation_interval=25,
+        #             evaluation_num_env_runners=1,
+        #             evaluation_duration_unit="episodes",
+        #             evaluation_duration=1,
+        #             evaluation_config={"env_config": {"std_dev": 0}})
         .env_runners(num_env_runners=4,
                      num_cpus_per_env_runner=1,
                      rollout_fragment_length="auto",
@@ -218,7 +220,7 @@ if __name__ == "__main__":
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
             stop={"training_iteration": 100
-                # , "env_runners/episode_return_mean": 1e8
+                , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
                 checkpoint_score_attribute="episode_return_mean",

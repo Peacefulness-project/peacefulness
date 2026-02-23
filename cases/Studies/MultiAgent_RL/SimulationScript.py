@@ -6,7 +6,8 @@ import numpy as np
 # ##############################################################################################
 # Importations
 from datetime import datetime, timedelta
-from src.common.World import World
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Gym_World import GymWorld
+# from src.common.World import World
 # pre-defined natures
 from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity
 from src.common.Agent import Agent
@@ -36,7 +37,7 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # a world contains all the other elements of the model
     # a world needs just a name
     name_world = f"clustering_case_day_{delay_days}"
-    world = World(name_world)  # creation
+    world = GymWorld(name_world)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
@@ -111,6 +112,8 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
 
     community_2 = Agent("community_2")
 
+    elec_inter = Agent("electric_interconnection")
+
     # ##############################################################################################
     # Manual creation of contracts
 
@@ -161,6 +164,9 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     subclasses_dictionary["Device"]["ElectricDam"]("Step", COOP_elec, community_2, aggregator_elec_2, {"device": "Pelton"}, {"height": 60, "max_power": 12000, "water_flow_daemon": water_flow_daemon.name})
     subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract_industrial, community_2, aggregator_elec_2, {"user": "yearly_consumer", "device": "industrial_mini_case"}, parameters={"rng_generator": rng_generator}, filename="cases/Studies/MultiAgent_RL/AdditionalData/Background.json")
 
+    # Interconnection between the two communities
+    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec", [COOP_elec, COOP_elec_residential], elec_inter, aggregator_elec_2, aggregator_elec_1, {"device": "electricity_cable"}, parameters={"max_power": 4000})
+
     # ##############################################################################################
     # Creation of dataloggers
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
@@ -171,6 +177,8 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     # exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     # exhaustive_datalogger.add_all()  # add all keys
+    device_list = ["cable_elec"]
+    subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", device_list, period=1)
     #
     # my_device_list = ["mirror_first_floor", "mirror_second_floor", "mirror_third_floor", "mirror_roof_PV", "mirror_localDieselGenerator", "mirror_BESS"]
     # subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", my_device_list, period=1)
@@ -185,6 +193,10 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     metrics_datalogger = Datalogger("metrics", "Metrics")
     for key in metrics:
         metrics_datalogger.add(key)
+    metrics_datalogger.add("residential_dwellings.LVE.money_spent")
+    metrics_datalogger.add("residential_dwellings.LVE.energy_bought")
+    metrics_datalogger.add("industrial_process.LVE.money_spent")
+    metrics_datalogger.add("industrial_process.LVE.energy_bought")
     # metrics_datalogger.add("mirror_first_floor.LVE.energy_bought")
     # metrics_datalogger.add("mirror_second_floor.LVE.energy_bought")
     # metrics_datalogger.add("mirror_third_floor.LVE.energy_bought")

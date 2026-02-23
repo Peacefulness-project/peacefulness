@@ -174,6 +174,9 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     for key in metrics:
         metrics_datalogger.add(key)
 
+    metrics_datalogger.add("heat_pump.LVE.energy_erased")
+    metrics_datalogger.add("heat_pump.LTH.energy_erased")
+
     world.start(False)
 
     return metrics_datalogger

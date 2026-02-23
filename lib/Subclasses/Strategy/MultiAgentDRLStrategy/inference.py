@@ -6,6 +6,7 @@ from ray.rllib.algorithms.ppo import PPO
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.train_agents import ENV_PARAMS, build_env
 from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
 import torch
+from datetime import datetime
 import numpy as np
 
 
@@ -34,8 +35,9 @@ def get_action(module, observation):
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
 ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
-ENV_PARAMS["hours_to_simulate"] = 12
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_80c1c3e09f12494ba3794a8115588b2b/PPO_mini_case_3f893_00000_0_2026-02-10_12-54-26/checkpoint_000000"
+ENV_PARAMS["start_time"] = datetime(2023, 9, 1, 0)
+ENV_PARAMS["hours_to_simulate"] = 24
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_a887c3703e8e404880311b044d50d74a/PPO_mini_case_3cbbf_00000_0_2026-02-12_09-38-42/checkpoint_000000"
 
 if __name__ == "__main__":
     ray.init()

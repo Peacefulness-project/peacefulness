@@ -8,21 +8,23 @@ path_to_export = "cases/Studies/MultiAgent_RL/Results/RBS"
 
 comparison_simulation_length = 8759
 performance_metrics = [
-                        "residential_dwellings.LVE.energy_erased",
-                       "industrial_process.LVE.energy_erased",
-                       "local_community_1.energy_bought_outside",
-                       "local_community_2.energy_bought_outside",
-                       "local_community_1.energy_sold_outside",
-                       "local_community_2.energy_sold_outside"
+                       "residential_dwellings.LVE.energy_erased", "residential_dwellings.LVE.money_spent", "residential_dwellings.LVE.energy_bought",
+                       "industrial_process.LVE.energy_erased", "industrial_process.LVE.money_spent", "industrial_process.LVE.energy_bought",
+                       "community_1.money_spent", "community_2.money_spent",
+                       "community_1.money_earned", "community_2.money_earned"
                        ]
 coef1 = 1
 coef2 = 1
 coef3 = 1
 def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+    resi_price = [performance_vector["residential_dwellings.LVE.money_spent"][i] / performance_vector["residential_dwellings.LVE.energy_bought"][i] for i in range(len(performance_vector["residential_dwellings.LVE.energy_bought"]))]
+    res_erased = [resi_price[idx] * performance_vector["residential_dwellings.LVE.energy_erased"][idx] for idx in range(len(resi_price))]
+    indus_price = [performance_vector["industrial_process.LVE.money_spent"][i] / performance_vector["industrial_process.LVE.energy_bought"][i] for i in range(len(performance_vector["industrial_process.LVE.energy_bought"]))]
+    indus_erased = [indus_price[idx] * performance_vector["industrial_process.LVE.energy_erased"][idx] for idx in range(len(indus_price))]
     return (
-            (abs(sum(performance_vector["local_community_1.energy_sold_outside"])) - abs(sum(performance_vector["local_community_1.energy_bought_outside"]))) * coef1
-            + (abs(sum(performance_vector["local_community_2.energy_sold_outside"])) - abs(sum(performance_vector["local_community_2.energy_bought_outside"]))) * coef2
-            - (abs(sum(performance_vector["residential_dwellings.LVE.energy_erased"])) + abs(sum(performance_vector["industrial_process.LVE.energy_erased"]))) * coef3
+            (abs(sum(performance_vector["community_1.money_earned"])) - abs(sum(performance_vector["community_1.money_spent"]))) * coef1
+            + (abs(sum(performance_vector["community_1.money_earned"])) - abs(sum(performance_vector["community_2.money_spent"]))) * coef2
+            - (abs(sum(res_erased)) + abs(sum(indus_erased))) * coef3
             )
 
 

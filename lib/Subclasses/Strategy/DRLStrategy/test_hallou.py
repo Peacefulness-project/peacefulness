@@ -2610,7 +2610,36 @@
 # ref_performance = performance_norm(ref_results)
 # print(f"Performance of the reference strategy: {ref_performance}")
 
+# #####################################################################################
+# todo Running the maison geothermie management case study with the rule-based strategy
+#######################################################################################
+from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.Parameters import ref_priorities_consumption, ref_priorities_production
+from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.SimulationScript import create_simulation
 
+
+comparison_simulation_length = 24
+performance_metrics = [
+    "house_owner.money_earned",
+    "house_owner.money_spent",
+    "heat_pump.LVE.energy_bought",
+    "heat_pump.LTH.energy_sold",
+
+    "heat_storage.LTH.energy_bought",
+    "heat_storage.LTH.energy_sold",
+]
+
+def performance_norm(performance_vector) -> float:
+    return sum(performance_vector["house_owner.money_spent"]) - sum(performance_vector["house_owner.money_earned"])
+
+ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics)
+
+ref_results = {key: [] for key in performance_metrics}
+for key in performance_metrics:
+    ref_results[key] = ref_datalogger._values[key]
+
+ref_performance = performance_norm(ref_results)
+
+print(f"Performance of the reference strategy for the geothermal house case study : {ref_performance}")
 
 # #####################################################################################################################
 # todo Running the limited resource management case study with the rule-based strategy
@@ -2879,34 +2908,34 @@ from copy import deepcopy
 # #####################################################################################################################
 # todo Running the HEMS case study for the SDEWES conference
 #######################################################################################################################
-from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
-from cases.Studies.SDEWES.SimulationScript import create_simulation
-from cases.Studies.SDEWES.export_expert_data import *
-
-# my memory class
-path_to_export = "cases/Studies/SDEWES/Results"
-
-comparison_simulation_length = 24
-performance_metrics = ["mirror_home_aggregator.energy_bought_outside", "mirror_home_aggregator.energy_sold_outside", "mirror_localDieselGenerator.LVE.energy_sold"]
-coef1 = 1
-coef2 = 1
-coef3 = 1
-def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
-    return (- coef1 * abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"]) * 0.6)
-            + abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]) * 0.3) * coef2
-            - coef3 * abs(sum(performance_vector["mirror_localDieselGenerator.LVE.energy_sold"]) * 0.45))
-
-
-ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics
-                                   , exogen_instruction=other_strategies_results
-                                   )
-ref_results = {key: [] for key in performance_metrics}
-for key in performance_metrics:
-    ref_results[key] = ref_datalogger._values[key]
-ref_performance = performance_norm(ref_results)
-
-print(f"Performance of the reference strategy: {ref_performance}")
-export_expert_data(path_to_export)
+# from cases.Studies.SDEWES.Parameters import ref_priorities_consumption, ref_priorities_production
+# from cases.Studies.SDEWES.SimulationScript import create_simulation
+# from cases.Studies.SDEWES.export_expert_data import *
+#
+# # my memory class
+# path_to_export = "cases/Studies/SDEWES/Results"
+#
+# comparison_simulation_length = 24
+# performance_metrics = ["mirror_home_aggregator.energy_bought_outside", "mirror_home_aggregator.energy_sold_outside", "mirror_localDieselGenerator.LVE.energy_sold"]
+# coef1 = 1
+# coef2 = 1
+# coef3 = 1
+# def performance_norm(performance_vector: dict) -> float:  # on peut bien évidemment prendre une norme plus complexe
+#     return (- coef1 * abs(sum(performance_vector["mirror_home_aggregator.energy_bought_outside"]) * 0.6)
+#             + abs(sum(performance_vector["mirror_home_aggregator.energy_sold_outside"]) * 0.3) * coef2
+#             - coef3 * abs(sum(performance_vector["mirror_localDieselGenerator.LVE.energy_sold"]) * 0.45))
+#
+#
+# ref_datalogger = create_simulation(comparison_simulation_length, ref_priorities_consumption, ref_priorities_production, f"comparison/reference", performance_metrics
+#                                    , exogen_instruction=other_strategies_results
+#                                    )
+# ref_results = {key: [] for key in performance_metrics}
+# for key in performance_metrics:
+#     ref_results[key] = ref_datalogger._values[key]
+# ref_performance = performance_norm(ref_results)
+#
+# print(f"Performance of the reference strategy: {ref_performance}")
+# export_expert_data(path_to_export)
 #
 # # #####################################################################################################################
 # # todo tweaking the action denormalization for action masking approach

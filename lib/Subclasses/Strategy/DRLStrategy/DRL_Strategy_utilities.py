@@ -32,10 +32,21 @@ def determine_energy_prices(catalog: "Catalog", aggregator: "Aggregator", min_pr
     managed_devices_selling_energies = []
     for device_name in aggregator.devices:
         message = catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")
-        price = message["price"]
-        Emax = message["energy_maximum"]
-        Emin = message["energy_minimum"]
-        if message["type"] != "storage":
+        if isinstance(message, dict):  # for normal devices
+            price = message["price"]
+            Emax = message["energy_maximum"]
+            Emin = message["energy_minimum"]
+            typo = message["type"]
+        else:  # for dummy converters with the same energy carrier/vector
+            for element in message:
+                if element['aggregator'] == aggregator.name:
+                    price = element["price"]
+                    Emax = element["energy_maximum"]
+                    Emin = element["energy_minimum"]
+                    typo = element["type"]
+                    break
+
+        if typo != "storage":
             if Emax < 0:  # if the device wants to sell energy
                 managed_devices_selling_prices.append(price)
                 if Emax != Emin:
@@ -132,7 +143,14 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
 
     # Getting the specific message from the devices
     for device in devices_list:
-        specific_message = deepcopy(catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted"))
+        if isinstance(catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted"), dict):
+            specific_message = deepcopy(catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted"))
+        else:  # to manage dummy converters with the same energy carrier/vector
+            for element in catalog.get(f"{device.name}.{aggregator.nature.name}.energy_wanted"):
+                if element['aggregator'] == aggregator.name:
+                    specific_message = deepcopy(element)
+                    break
+
         Emax = specific_message["energy_maximum"]
         Enom = specific_message["energy_nominal"]
         Emin = specific_message["energy_minimum"]
@@ -169,6 +187,8 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
             specific_message.clear()
         elif specific_message["type"] == "converter":  # if the device/energy system is for conversion
             intermediate_dict.pop('type')  # todo voir comment traiter les systèmes de conversion si efficiency est donnée de la meme maniere que le stockage
+            if 'aggregator' in intermediate_dict.keys():
+                intermediate_dict.pop('aggregator')
             converter_message[aggregator.name]["Energy_Conversion"] = {**converter_message[aggregator.name]["Energy_Conversion"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             specific_message.clear()
 

@@ -162,9 +162,15 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
                     strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy - energy_available_production)
                     energy = - energy_available_production  # it is served partially, even if it is urgent
 
-                message = strategy._create_decision_message()
-                message["quantity"] = energy
-                message["price"] = price
+                if not isinstance(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")['aggregator'], list):  # traitement normal
+                    message = strategy._create_decision_message()
+                    message["quantity"] = energy
+                    message["price"] = price
+                else:  # si c'est un convertisseur gardant le même vecteur énergétique (DummyConverter)
+                    message = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = message['aggregator'].index(aggregator.name)
+                    message["quantity"][idx] = energy
+                    message["price"][idx] = price
 
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                    quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -245,9 +251,15 @@ def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_p
                     strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts + energy-energy_available_consumption)
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
 
-                message = strategy._create_decision_message()
-                message["quantity"] = energy
-                message["price"] = price
+                if not isinstance(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")['aggregator'], list):  # traitement normal
+                    message = strategy._create_decision_message()
+                    message["quantity"] = energy
+                    message["price"] = price
+                else:  # si c'est un convertisseur gardant le même vecteur énergétique (DummyConverter)
+                    message = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = message['aggregator'].index(aggregator.name)
+                    message["quantity"][idx] = energy
+                    message["price"][idx] = price
 
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                     quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -272,9 +284,15 @@ def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_p
                 else:
                     energy = energy_minimum
 
-                message = strategy._create_decision_message()
-                message["quantity"] = energy
-                message["price"] = price
+                if not isinstance(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")['aggregator'], list):  # traitement normal
+                    message = strategy._create_decision_message()
+                    message["quantity"] = energy
+                    message["price"] = price
+                else:  # si c'est un convertisseur gardant le même vecteur énergétique (DummyConverter)
+                    message = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = message['aggregator'].index(aggregator.name)
+                    message["quantity"][idx] = energy
+                    message["price"][idx] = price
 
                 if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
                     quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")

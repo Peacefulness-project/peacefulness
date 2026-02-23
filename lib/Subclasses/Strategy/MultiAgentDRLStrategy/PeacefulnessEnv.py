@@ -91,6 +91,12 @@ class PeacefulnessEnv(ParallelEnv):
                     else:
                         self.grid._catalog.set(f"Action removed for {agg}", self.red_dof_dict[agent][agg])
 
+        # adding the existing RL agents to the grid catalog (useful for managing energy conversion systems)
+        if f"existing_RL_agents" not in self.grid._catalog.keys:
+            self.grid._catalog.add(f"existing_RL_agents", self.agents)
+        else:
+            self.grid._catalog.set(f"existing_RL_agents", self.agents)
+
         observations = self._get_obs()  # The observation of each RL agent
         infos = self._get_infos()
 

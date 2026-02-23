@@ -233,10 +233,11 @@ def scale_up_feature(feature, min_val, max_val):
     This is a helper function used to scale up actions.
     By default, actions are normalized between -1 and 1 interval.
     """
-    if -1.0 <= feature <= 1.0:
-        scaled_feature = min_val + (max_val - min_val) * ((feature + 1) / 2)
-    else:
-        raise Exception("Scale-up error !")
+    # if -1.0 <= feature <= 1.0:
+    #     scaled_feature = min_val + (max_val - min_val) * ((feature + 1) / 2)
+    # else:
+    #     raise Exception("Scale-up error !")
+    scaled_feature = min_val + (max_val - min_val) * ((feature + 1) / 2)
 
     return scaled_feature
 
@@ -286,7 +287,7 @@ def process_conversions(conversion):
                 efficiency.append(device_efficiency)
             else:
                 efficiency.append(list(device_efficiency.values()))
-        my_list.append((exchanging_aggregators, Emin, Emax, efficiency))
+        my_list.append(deepcopy((exchanging_aggregators, Emin, Emax, efficiency)))
         Emin.clear()
         Emax.clear()
         efficiency.clear()
@@ -355,7 +356,7 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
         catalog.set(f"{ref_name}.interior_decision", interior_dict)
 
     # external actions
-    external_actions = action[-nb_exchange_actions:]
+    external_actions = action[-nb_exchange_actions:] if nb_exchange_actions != 0 else []
     exchanges_dict = {}
     external_dict = {agg.name: 0 for agg in managed_aggregators}
     for agg in external_dict:
@@ -433,7 +434,7 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     # Initialization
     exchange_dict = {}
     raw_state = catalog.get(f"{agentID}.raw_state")
-    exchange_decision = catalog.get(f"{agentID}.exterior_decision")
+    exchange_decision = catalog.get(f"{agentID}.exterior_decision")  # normalized actions with length reduced if action reduction
 
     # In case, we remove one action per aggregator
     exchange_to_remove = 0
@@ -451,14 +452,29 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     nb_conversion_actions = 0
     if aggregator.name in raw_state["conversion"]:
         nb_conversion_actions += len(raw_state["conversion"][aggregator.name]["Energy_Conversion"])
+        list_of_converters = list(raw_state["conversion"][aggregator.name]["Energy_Conversion"].keys())
     nb_conversion_actions -= conversion_to_remove
+    nb_direct_exchanges = len(aggregator.subaggregators)
+    if aggregator.superior and aggregator.superior.nature == aggregator.nature:
+        nb_direct_exchanges += 1
+    nb_direct_exchanges -= exchange_to_remove
+
+    if f"{aggregator.name}.net_number_of_direct_energy_exchanges" not in catalog.keys:  # useful to get the downstream action for converters
+        catalog.add(f"{aggregator.name}.net_number_of_direct_energy_exchanges", nb_direct_exchanges)
+    else:
+        catalog.set(f"{aggregator.name}.net_number_of_direct_energy_exchanges", nb_direct_exchanges)
+
     direct_exchanges = []
     conversions = []
 
     if aggregator.name in exchange_decision:
         if nb_conversion_actions != 0:
-            direct_exchanges.extend(exchange_decision[aggregator.name][:-nb_conversion_actions])
-            conversions.extend(exchange_decision[aggregator.name][-nb_conversion_actions:])
+            if len(exchange_decision[aggregator.name]) == nb_direct_exchanges + nb_conversion_actions:  # the aggregator is upstream w.r.t energy converters
+                direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+                conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
+            else:
+                direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+                conversions.extend(complete_conversion_norm_action(catalog, agentID, list_of_converters))
         else:
             direct_exchanges.extend(exchange_decision[aggregator.name])
         direct_exchanges = deque(direct_exchanges)  # length corresponding to the removed exchanges
@@ -481,7 +497,7 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
         for superior in raw_state["interconnection"]:
             if aggregator.name in raw_state["interconnection"][superior]:
                 if reduced_action is not None:
-                    if exchange_to_remove > 0 and str(idx_exch) in  reduced_action:
+                    if exchange_to_remove > 0 and str(idx_exch) in reduced_action:
                         scaled_up_action = 0.0
                     else:
                         scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
@@ -506,6 +522,43 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
             exchange_dict = {**exchange_dict, **{tuple(exchange[0]): scaled_up_action}}
 
     return exchange_dict
+
+
+def complete_conversion_norm_action(catalog: "Catalog", agentID: str, list_of_converters: List):
+    """
+    This function is used to get the decision corresponding to the conversion systems for the downstream aggregator from
+    the decision taken in the upstream.
+    """
+    existing_agents = deepcopy(catalog.get(f"existing_RL_agents"))
+    existing_agents.remove(agentID)
+    managed_agg = {}
+    for agent in existing_agents:
+        agg_list = catalog.get(f"{agent}.strategy_scope")
+        managed_agg[agent] = [agg.name for agg in agg_list]
+
+    relevant_decision = []
+    for converter_name in list_of_converters:
+        converter = catalog.devices[converter_name]
+        upstream_agg = [upstream['name'] for upstream in converter._upstream_aggregators_list]
+        for agg in upstream_agg:
+            for agent in managed_agg:
+                if agg in managed_agg[agent]:
+                    other_exterior_decision = catalog.get(f"{agent}.exterior_decision")[agg]
+                    other_interval = catalog.get(f"{agent}.raw_state")['conversion'][agg]["Energy_Conversion"]
+                    num_direct_exchanges = catalog.get(f"{agg}.net_number_of_direct_energy_exchanges")
+                    for idx, key in enumerate(other_interval):  # todo limit (can't apply to conversions, unless the strategy of the upstream aggregator is executed first) !
+                        if key == converter_name:
+                            relevant_idx = idx + num_direct_exchanges
+                            break
+                    if len(other_exterior_decision) == len(other_interval) + num_direct_exchanges:  # no direct exchange or conversion action was removed for the upstream aggregator
+                        relevant_decision.append(other_exterior_decision[relevant_idx])
+                    else:  # we get the scaled up actions already computed during the strategy run for the upstream aggregator
+                        other_scaled_up_exterior_decision = list(catalog.get(f"{agg}.{agent}.exchange_decision").values())[relevant_idx]
+                        Emin = other_interval[converter_name]["energy_minimum"]
+                        Emax = other_interval[converter_name]["energy_maximum"]
+                        relevant_decision.append(2 * ((other_scaled_up_exterior_decision - Emin) / (Emax - Emin)) - 1)
+
+    return relevant_decision
 
 
 def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict, catalog: "Catalog", aggregator: "Aggregator"):
@@ -647,6 +700,7 @@ def plot_my_results(minmax_dict: Dict, real_dict: Dict, path_to_export: str):
     :param minmax_dict: Dictionary containing min/max intervals.
     :param real_dict: Dictionary containing actual chosen values.
     """
+    # internal_quantities = ["Energy_Consumption", "Energy_Production", "Energy_Storage"]
     # Apply Scientific Style settings locally
     with plt.rc_context({
         'font.family': 'serif',  # Serif fonts are standard for papers
@@ -669,15 +723,20 @@ def plot_my_results(minmax_dict: Dict, real_dict: Dict, path_to_export: str):
             # Map the list indices in 'real_dict' to variable names in 'minmax_dict'
             # Order observed: Consumption, Production, Storage, Exchange
             quantities_to_plot = []  # Energy consumption, production, storage, exchange
-            for quantity in minmax_dict[agg]:
+            idx_to_remove = None
+            for idx, quantity in enumerate(minmax_dict[agg]):
                 if any(minmax_dict[agg][quantity]):  # if not empty
                     quantities_to_plot.append(quantity)
+                else:
+                    idx_to_remove = idx
 
             # Extract Data
             minmax_data = minmax_dict[agg]
             for k in real_dict:
                 if common_key in k:
                     real_data = np.array(real_dict[k])
+                    if idx_to_remove is not None:
+                        real_data = np.delete(real_data, idx_to_remove, 1)
                     break
             n_steps = len(real_data)
             time_steps = np.arange(n_steps)

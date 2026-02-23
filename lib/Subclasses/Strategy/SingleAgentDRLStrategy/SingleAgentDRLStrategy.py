@@ -288,3 +288,334 @@ class SingleAgentDRLStrategy(Strategy):
 
     def multi_energy_balance_check(self, aggregator):  # TODO - maybe to be modified to terminate the episode if "incompatibility"
         pass
+
+    # #################################################################################################################
+    # Strategy blocks
+    # #################################################################################################################
+
+    def _limit_quantities(self, aggregator: "Aggregator",
+                          minimum_energy_consumed: float, maximum_energy_consumed: float,
+                          minimum_energy_produced: float, maximum_energy_produced: float,
+                          maximum_energy_charge: float, maximum_energy_discharge: float):  # compute the minimum an maximum quantities of energy needed to be consumed and produced locally
+        energy_stored = 0  # kWh
+        energy_storable = 0  # kWh
+
+        # quantities concerning devices
+        for device_name in aggregator.devices:
+            if isinstance(self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted"), dict):
+                message = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")
+            else:  # for dummy converters (with the same energy nature)
+                for element in self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted"):
+                    if element['aggregator'] == aggregator.name:
+                        message = element
+                        break
+            energy_minimum = message["energy_minimum"]  # the minimum quantity of energy asked
+            energy_nominal = message["energy_nominal"]  # the nominal quantity of energy asked
+            energy_maximum = message["energy_maximum"]  # the maximum quantity of energy asked
+
+            # balances
+            if message["type"] == "storage" and energy_minimum < 0 < energy_maximum:  # it is both consumer and producer
+                # storage
+                maximum_energy_charge += energy_maximum
+                maximum_energy_discharge -= energy_minimum
+                energy_stored += message["state_of_charge"] * message["capacity"]
+                energy_storable += (1 - message["state_of_charge"]) * message["capacity"]
+
+            elif energy_maximum > 0:  # the device wants to consume energy
+                if energy_nominal == energy_maximum:  # if it is urgent
+                    minimum_energy_consumed += energy_maximum
+
+                else:  # if there is a minimum
+                    minimum_energy_consumed += energy_minimum
+                maximum_energy_consumed += energy_maximum
+
+            elif energy_maximum < 0:  # the device wants to sell energy
+                if energy_nominal == energy_maximum:  # if it is urgent
+                    minimum_energy_produced -= energy_maximum
+                else:
+                    minimum_energy_produced -= energy_minimum
+                maximum_energy_produced -= energy_maximum
+
+        # quantities concerning subaggregators
+        for subaggregator in aggregator.subaggregators:  # quantities concerning aggregators
+            quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+
+            for element in quantities_and_prices:
+                energy_minimum = element["energy_minimum"]  # the minimum quantity of energy asked
+                energy_nominal = element["energy_nominal"]  # the nominal quantity of energy asked
+                energy_maximum = element["energy_maximum"]  # the maximum quantity of energy asked
+
+                # balances
+                if energy_maximum > 0:  # the device wants to consume energy
+                    if energy_nominal == energy_maximum:  # if it is urgent
+                        minimum_energy_consumed += energy_maximum
+
+                    else:  # if there is a minimum
+                        minimum_energy_consumed += energy_minimum
+                    maximum_energy_consumed += energy_maximum
+
+                elif energy_maximum < 0:  # the device wants to sell energy
+                    if energy_nominal == energy_maximum:  # if it is urgent
+                        minimum_energy_produced -= energy_maximum
+                    else:
+                        minimum_energy_produced -= energy_minimum
+                    maximum_energy_produced -= energy_maximum
+
+        # decision-making values recording
+        self._catalog.set(f"{aggregator.name}.minimum_energy_consumption", minimum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_consumption", maximum_energy_consumed)
+        self._catalog.set(f"{aggregator.name}.minimum_energy_production", minimum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.maximum_energy_production", maximum_energy_produced)
+        self._catalog.set(f"{aggregator.name}.energy_stored", energy_stored)
+        self._catalog.set(f"{aggregator.name}.energy_storable", energy_storable)
+
+        return [minimum_energy_consumed, maximum_energy_consumed, minimum_energy_produced, maximum_energy_produced, maximum_energy_charge, maximum_energy_discharge]
+
+    def _separe_quantities(self, aggregator: "Aggregator") -> List[List]:  # a function calculating the emergency associated, without sort, with devices and returning 2 sorted lists: one for the demands and one for the offers
+        sorted_demands = []  # a list where the demands of energy are gathered
+        sorted_offers = []  # a list where the offers of energy are gathered
+        sorted_storage = []  # a list where the offers of storage are gathered
+
+        for device_name in aggregator.devices:  # if there is missing energy
+            if isinstance(self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted"), dict):
+                Emin = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
+                Enom = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
+                Emax = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]
+                price = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["price"]
+                device_type = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["type"]
+            else:
+                for element in self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted"):
+                    if element['aggregator'] == aggregator.name:
+                        Emin = element["energy_minimum"]
+                        Enom = element["energy_nominal"]
+                        Emax = element["energy_maximum"]
+                        price = element["price"]
+                        device_type = element["type"]
+                        break
+
+            if Emax == Emin:  # if the min energy is equal to the maximum, it means that this quantity is necessary
+                emergency = 1  # an indicator of how much the quantity is urgent
+            else:
+                emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
+
+            if device_type == "storage" and Emin < 0 < Emax:  # it is both consumer and producer
+                message = self._create_empty_sorted_lists()
+                message["emergency"] = 0
+                message["quantity"] = Emax
+                message["quantity_min"] = Emin
+                message["price"] = price
+                message["name"] = device_name
+                message["type"] = "storage"
+                sorted_storage.append(message)
+            elif Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+                message = self._create_empty_sorted_lists()
+                message["emergency"] = emergency
+                message["quantity"] = Emax
+                message["quantity_min"] = Emin
+                message["price"] = price
+                message["name"] = device_name
+                message["type"] = "consumption"
+                sorted_demands.append(message)
+            elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+                message = self._create_empty_sorted_lists()
+                message["emergency"] = emergency
+                message["quantity"] = Emax
+                message["quantity_min"] = Emin
+                message["price"] = price
+                message["name"] = device_name
+                message["type"] = "production"
+                sorted_offers.append(message)
+            # if the energy = 0, then there is no need to add it to one of the list
+
+        for subaggregator in aggregator.subaggregators:
+            quantities_and_prices = self._catalog.get(f"{subaggregator.name}.{aggregator.nature.name}.energy_wanted")
+
+            for element in quantities_and_prices:
+                Emin = element["energy_minimum"]  # the minimum quantity of energy asked
+                Enom = element["energy_nominal"]  # the nominal quantity of energy asked
+                Emax = element["energy_maximum"]  # the maximum quantity of energy asked
+                price = element["price"]
+
+                if Emax == Emin:  # if the min energy is equal to the maximum, it means that this quantity is necessary
+                    emergency = 1  # an indicator of how much the quantity is urgent
+                else:
+                    emergency = (Enom - Emin) / (Emax - Emin)  # an indicator of how much the quantity is urgent
+
+                if Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+                    message = self._create_empty_sorted_lists()
+                    message["emergency"] = emergency
+                    message["quantity"] = Emax
+                    message["quantity_min"] = Emin
+                    message["price"] = price
+                    message["name"] = subaggregator.name
+                    sorted_demands.append(message)
+                elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+                    message = self._create_empty_sorted_lists()
+                    message["emergency"] = emergency
+                    message["quantity"] = Emax
+                    message["quantity_min"] = Emin
+                    message["price"] = price
+                    message["name"] = subaggregator.name
+                    sorted_offers.append(message)
+
+        return [sorted_demands, sorted_offers, sorted_storage]
+
+    # ##########################################################################################
+    # emergency distribution functions
+
+    def _serve_emergency_demands(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
+        lines_to_remove = []  # a list containing the number of lines having to be removed
+        for i in range(len(sorted_demands)):  # demands
+            energy = sorted_demands[i]["quantity"]
+
+            name = sorted_demands[i]["name"]
+            price = sorted_demands[i]["price"]
+            price = min(price, max_price)
+
+            if sorted_demands[i]["emergency"] == 1:  # if it is urgent
+                lines_to_remove.append(i)
+
+                if energy > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    energy = energy_available_consumption  # it is served partially, even if it is urgent
+
+                message = self._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                else:  # if it is a device
+                    quantities_given = message
+
+                self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+
+                energy_available_consumption -= energy
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+
+            else:
+                energy_minimum = sorted_demands[i]["quantity_min"]  # the minimum quantity of energy asked
+                energy_maximum = sorted_demands[i]["quantity"]  # the maximum quantity of energy asked
+
+                if energy_minimum > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
+                    energy = energy_available_consumption  # it is served partially, even if it is urgent
+                else:
+                    energy = energy_minimum
+
+                message = self._create_decision_message()
+                message["quantity"] = energy
+                message["price"] = price
+
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                    sorted_demands[i]["quantity_min"] = 0
+                    sorted_demands[i]["quantity"] = energy_maximum-energy_minimum  # the need is updated
+                else:  # if it is a device
+                    quantities_given = message
+
+                if isinstance(self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted"), dict):  # for normal devices
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+                else:  # for dummy converters (with the same energy nature)
+                    dummy_message = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = dummy_message['aggregator'].index(aggregator.name)
+                    dummy_message['quantity'][idx] = message["quantity"]
+                    dummy_message['price'][idx] = message["price"]
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", dummy_message)  # it is served
+
+                energy_available_consumption -= energy
+                money_earned_inside += energy * price  # money earned by selling energy to the device
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+                sorted_demands[i]["quantity"] = energy_maximum - energy
+
+        lines_to_remove.reverse()  # we reverse the list, otherwise the indices will move during the deletion
+        for line_index in lines_to_remove:  # removing the already served elements
+            sorted_demands.pop(line_index)
+
+        return [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside]
+
+    def _distribute_consumption_partial_service(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):  # distribution among consumptions
+        energy_total = 0
+
+        for element in sorted_demands:  # we sum all the emergency and the energy of demands1
+            energy_total += element["quantity"]
+
+        if energy_total != 0:
+
+            energy_ratio = min(1, energy_available_consumption / energy_total)  # the average rate of satisfaction, cannot be superior to 1
+
+            for demand in sorted_demands:  # then we distribute a bit of energy to all demands
+                name = demand["name"]
+                energy = demand["quantity"]  # the quantity of energy needed
+                price = demand["price"]  # the price of energy
+                price = min(price, max_price)
+                energy *= energy_ratio
+
+                Emin = demand["quantity_min"]  # we get back the minimum, which has already been served
+                message = self._create_decision_message()
+                message["quantity"] = Emin + energy
+                message["price"] = price
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                else:  # if it is a device
+                    quantities_given = message
+                if isinstance(self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted"), dict):  # for normal devices
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+                else:  # for dummy converters (with the same energy nature)
+                    dummy_message = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = dummy_message['aggregator'].index(aggregator.name)
+                    dummy_message['quantity'][idx] = message["quantity"]
+                    dummy_message['price'][idx] = message["price"]
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", dummy_message)  # it is served
+
+                money_earned_inside += energy * price  # money earned by selling energy to the subaggregator
+                energy_sold_inside += energy  # the absolute value of energy sold inside
+                energy_available_consumption -= energy
+
+        return [energy_available_consumption, money_earned_inside, energy_sold_inside]
+
+    def _distribute_production_partial_service(self, aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
+        # distribution among productions
+        energy_total = 0
+
+        for element in sorted_offers:  # we sum all the emergency and the energy of offers
+            energy_total -= element["quantity"]
+
+        if energy_total != 0:
+
+            energy_ratio = min(1, energy_available_production / energy_total)  # the average rate of satisfaction, cannot be superior to 1
+
+            for offer in sorted_offers:  # then we distribute a bit of energy to all offers
+                name = offer["name"]
+                energy = offer["quantity"]  # the quantity of energy needed
+                price = offer["price"]  # the price of energy
+                price = max(price, min_price)
+                energy *= energy_ratio
+
+                Emin = offer["quantity_min"]  # we get back the minimum, which has already been served
+                message = self._create_decision_message()
+                message["quantity"] = Emin + energy
+                message["price"] = price
+                if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+                    quantities_given = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    quantities_given.append(message)
+                else:  # if it is a device
+                    quantities_given = message
+
+                if isinstance(self._catalog.get(f"{name}.{aggregator.nature.name}.energy_wanted"), dict):  # for normal devices
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+                else:  # for dummy converters (with the same energy nature)
+                    dummy_message = self._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+                    idx = dummy_message['aggregator'].index(aggregator.name)
+                    dummy_message['quantity'][idx] = message["quantity"]
+                    dummy_message['price'][idx] = message["price"]
+                    self._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", dummy_message)  # it is served
+
+                money_spent_inside -= energy * price  # money earned by selling energy to the subaggregator
+                energy_bought_inside -= energy  # the absolute value of energy sold inside
+                energy_available_production += energy
+
+        return [energy_available_production, money_spent_inside, energy_bought_inside]
+

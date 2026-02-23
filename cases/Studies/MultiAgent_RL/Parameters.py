@@ -51,7 +51,7 @@ def performance_norm(performance_vector: Dict) -> float:
 
 consumption_options_1 = ["residential", "nothing", "storage", "sellGrid"]
 consumption_options_2 = ["industrial", "nothing", "sellGrid"]
-production_options_1 = ["Diesel_generator", "unstorage", "buyGrid"]
+production_options_1 = ["Diesel_generator", "unstorage", "elecCable", "buyGrid"]
 production_options_2 = ["Step", "buyGrid"]
 assessed_priorities_consumption_1 = [list(toto) for toto in itertools.permutations(consumption_options_1)]
 assessed_priorities_consumption_2 = [list(toto) for toto in itertools.permutations(consumption_options_2)]
@@ -79,13 +79,13 @@ def ref_priorities_consumption_2(strategy: "Strategy"):
     electricity_production = strategy._catalog.get("Step.LVE.energy_wanted")["energy_maximum"]
 
     if abs(electricity_consumption) >= abs(electricity_production):
-        return ["industrial", "nothing", "sellGrid"]
+        return ["industrial", "nothing", "elecCableSell", "sellGrid"]
     else:
-        return ["industrial", "sellGrid", "nothing"]
+        return ["industrial", "elecCableSell", "sellGrid", "nothing"]
 
 
 def ref_priorities_production_1(strategy: "Strategy"):
-    return ["Diesel_generator", "unstorage", "buyGrid"]
+    return ["Diesel_generator", "unstorage", "elecCableBuy", "buyGrid"]
 
 
 def ref_priorities_production_2(strategy: "Strategy"):
