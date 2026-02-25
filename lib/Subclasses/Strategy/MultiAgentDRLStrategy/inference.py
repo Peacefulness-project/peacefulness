@@ -35,9 +35,12 @@ def get_action(module, observation):
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
 ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
-ENV_PARAMS["start_time"] = datetime(2023, 9, 1, 0)
+ENV_PARAMS["start_time"] = datetime(2023, 4, 25, 0)
 ENV_PARAMS["hours_to_simulate"] = 24
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_a887c3703e8e404880311b044d50d74a/PPO_mini_case_3cbbf_00000_0_2026-02-12_09-38-42/checkpoint_000000"
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_f16a3d44a5134d00ad59ef8bce1b5fd0/PPO_mini_case_ec168_00000_0_2026-02-24_13-32-46/checkpoint_000000"
+
+max_nb_exchanges = 1
+max_nb_conversions = 1
 
 if __name__ == "__main__":
     ray.init()
@@ -77,8 +80,8 @@ if __name__ == "__main__":
     obs, infos = my_env.reset()  # for datalogger export
 
 # IV - Exporting results in CSV files
-    export_my_state_file(state_dict, ENV_PARAMS["export_path"] + "_energy_intervals")
-    export_my_decision_file(decision_dict, ENV_PARAMS["export_path"] + "_RL_decisions")
+    export_my_state_file(state_dict, ENV_PARAMS["export_path"] + "_energy_intervals", max_nb_exchanges, max_nb_conversions)
+    export_my_decision_file(decision_dict, ENV_PARAMS["export_path"] + "_RL_decisions", max_nb_exchanges, max_nb_conversions)
 
 # V - Plotting results & saving plots
     plot_my_results(state_dict, decision_dict, ENV_PARAMS["export_path"])

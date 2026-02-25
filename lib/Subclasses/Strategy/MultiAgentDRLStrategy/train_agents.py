@@ -4,8 +4,8 @@ from pathlib import Path
 # PettingZoo environment creation imports
 from lib.Subclasses.Strategy.MultiAgentDRLStrategy.PeacefulnessEnv import PeacefulnessEnv, datetime
 # from pettingzoo.test import parallel_api_test, parallel_seed_test  # TODO for testing the PettingZoo environment
-# from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper  # TODO Rt normalization
-# from supersuit import normalize_obs_v0
+from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper  # TODO Rt normalization
+# from supersuit import normalize_obs_v0  # todo for St normalization
 
 # RLlib ray imports for training
 from ray import tune
@@ -28,25 +28,26 @@ from pprint import pprint
 path_to_case = "cases/Studies/MultiAgent_RL/small_scale.py"
 world_name = "mini_case"
 start_time = datetime(2023, 1, 1,0, 0, 0)
-simulation_length = 8760
+simulation_length = 8759
 path_to_export = "cases/Studies/MultiAgent_RL/Results"
 agents_dict = {
-    "agent_1": {"local_community_1": (23, 3), "exchanges": 1},
-    "agent_2": {"local_community_2": (17, 2), "exchanges": 1}
+    "agent_1": {"local_community_1": (25, 3), "exchanges": 1},
+    "agent_2": {"local_community_2": (19, 2), "exchanges": 2}
 }
 reward_dict = {
     "agent_1": [
         ("conservation_penalty", 5),
-                # ("aggregator_costs", 1), ("social_cost", 1)
+                ("aggregator_costs", 1), ("social_cost", 1)
                 ],
     "agent_2": [
         ("conservation_penalty", 5),
-                # ("aggregator_costs", 1), ("social_cost", 1)
+                ("aggregator_costs", 1), ("social_cost", 1)
                 ]
 }
 normalization_dict = {
-    "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
-    "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
+    "energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25
+    # "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
+    # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
 metrics = [
     "residential_dwellings.LVE.energy_erased", "industrial_process.LVE.energy_erased",
@@ -57,7 +58,7 @@ metrics = [
 ]
 act_red_dict = {
     "agent_1": {"local_community_1": "Energy_Storage"},
-    "agent_2": {"local_community_2": "Energy_Exchange_1"}
+    "agent_2": {"local_community_2": "Energy_Conversion_2"}
 }
 
 ENV_PARAMS = dict(
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     ray.init()
 
     # Resuming training from a previously trained model
-    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_e9612893242a4ad3a4bf47877aa183e5/PPO_mini_case_9a9e0_00000_0_2026-02-11_17-49-17/checkpoint_000000"
+    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_8f0f6f89e492491fa5584260a04b95e4/PPO_mini_case_0b593_00000_0_2026-02-24_12-14-53/checkpoint_000000"
 
 
     env_name = "mini_case"
@@ -189,7 +190,7 @@ if __name__ == "__main__":
                      policy_mapping_fn=policy_mapping_fn,
                      policy_states_are_swappable=False  # todo set this to true if agents share the same obs/act sizes
                      )
-        # .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
+        .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
         .framework("torch")
         .debugging(log_level="ERROR")
     )
@@ -219,8 +220,8 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
-            stop={"training_iteration": 100
-                , "episode_return_mean": 0.0
+            stop={"training_iteration": 70
+                # , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
                 checkpoint_score_attribute="episode_return_mean",

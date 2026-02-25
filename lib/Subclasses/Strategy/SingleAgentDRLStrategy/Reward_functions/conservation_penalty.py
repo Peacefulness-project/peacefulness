@@ -105,6 +105,7 @@ def define_my_Rt(beta_0: float):
                                 offset = 0.0
                 # Finally the reward is computed based on the offset
                 reward -= beta_0 * offset
+                reward = ((reward + 12000) / 20100) * 2 - 1
 
         return reward
 

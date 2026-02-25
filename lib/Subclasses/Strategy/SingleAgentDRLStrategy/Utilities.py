@@ -85,10 +85,10 @@ def group_components(catalog: "Catalog", agent_ID=None):
             direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
 
     # Normalization based on the length simulated OR cyclical time with cos/sin
-    relevant_time = catalog.get("simulation_time")
-    # current_time = catalog.get("simulation_time")
-    # last_time = catalog.get("time_limit")
-    # relevant_time = [last_time, current_time]
+    # relevant_time = catalog.get("simulation_time")
+    current_time = catalog.get("simulation_time")
+    last_time = catalog.get("time_limit")
+    relevant_time = [last_time, current_time]
 
     return relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions
 
@@ -287,6 +287,7 @@ def process_conversions(conversion):
                 efficiency.append(device_efficiency)
             else:
                 efficiency.append(list(device_efficiency.values()))
+        exchanging_aggregators.append(key)
         my_list.append(deepcopy((exchanging_aggregators, Emin, Emax, efficiency)))
         Emin.clear()
         Emax.clear()
@@ -658,7 +659,7 @@ def recapitulate_state(catalog: "Catalog", agent_ID=None) -> Dict:
     return return_dict
 
 
-def export_my_decision_file(decision_dict: Dict, export_path: str):
+def export_my_decision_file(decision_dict: Dict, export_path: str, number_of_direct_energy_exchanges: int, number_of_conversions: int):
     """
     This helper function is used to export the decision of the RL agents during inference per aggregator.
     """
@@ -666,7 +667,11 @@ def export_my_decision_file(decision_dict: Dict, export_path: str):
     with open(export_path + ".csv", "w", newline="") as myFile:
         writer = csv.writer(myFile)
         # Dynamic header
-        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"] + [f"Energy_Exchange_{idx + 1}" for idx in range(max_len - 3)]
+        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"]
+        if number_of_direct_energy_exchanges > 0:
+            header += [f"Energy_Exchange_{idx + 1}" for idx in range(number_of_direct_energy_exchanges)]
+        if number_of_conversions > 0:
+            header += [f"Energy_Conversion_{idx + 1}" for idx in range(number_of_direct_energy_exchanges, number_of_direct_energy_exchanges + number_of_conversions)]
         writer.writerow(header)
 
         for agg, dec_list in decision_dict.items():
@@ -675,7 +680,7 @@ def export_my_decision_file(decision_dict: Dict, export_path: str):
                 writer.writerow([agg] + padded)
 
 
-def export_my_state_file(state_dict: Dict, export_path: str):
+def export_my_state_file(state_dict: Dict, export_path: str, number_of_direct_energy_exchanges: int, number_of_conversions: int):
     """
     This helper function is used to export the min/max intervals for energy flow values for each corresponding decision.
     """
@@ -683,7 +688,11 @@ def export_my_state_file(state_dict: Dict, export_path: str):
     with open(export_path + '.csv', "w", newline="") as myFile:
         writer = csv.writer(myFile)
         # Dynamic header
-        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"] + [f"Energy_Exchange_{idx + 1}" for idx in range(max_len - 3)]
+        header = ["aggregator"] + ["Energy_Consumption", "Energy_Production", "Energy_Storage"]
+        if number_of_direct_energy_exchanges > 0:
+            header += [f"Energy_Exchange_{idx + 1}" for idx in range(number_of_direct_energy_exchanges)]
+        if number_of_conversions > 0:
+            header += [f"Energy_Conversion_{idx + 1}" for idx in range(number_of_direct_energy_exchanges, number_of_direct_energy_exchanges + number_of_conversions)]
         writer.writerow(header)
 
         for agg in state_dict:

@@ -194,7 +194,8 @@ class SingleAgentDRLStrategy(Strategy):
 
         [min_price, max_price] = self._limit_prices(aggregator)  # thresholds of accepted energy prices
 
-        # Checking first the superior message
+        # I.- External balance
+        # Checking first the superior message (subaggregators are counted with the internal devices)
         if aggregator.superior not in self._catalog.get(f"{self._name}.strategy_scope"):
             old_energy_accorded_from_superior = self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
             if not isinstance(old_energy_accorded_from_superior, list):
@@ -220,12 +221,17 @@ class SingleAgentDRLStrategy(Strategy):
                                 old_energy_accorded_from_superior[0]["price"] = max(min_price, old_energy_accorded_from_superior[0]["price"])
                         self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
 
-        # Balance of the exchanges made with outside
+        # Balance of the exchanges made with outside (superior, since subaggregators are counted with internal devices)
         [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
 
-
-        # Internal balance
+        # II.- Internal balance
         [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)  # sorting the quantities
+
+        # 1) Deciding the energy flow values for converters
+        [sorted_demands, sorted_offers, converters] = self._isolate_conversion_systems(sorted_demands, sorted_offers)
+        [money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside] = self._serve_energy_conversion(aggregator, converters, energy_accorded_to_exchange, money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside, min_price, max_price, internal_buying_price, internal_selling_price)
+
+        # 2) The energy flow values are then decided for the internal devices (consumers, producers and storage)
         if not self.optimized_distribution_flag:  # equal distribution
             # determination of storage usage
             if energy_accorded_to_storage < 0:  # if the energy storage systems are discharging
@@ -414,7 +420,7 @@ class SingleAgentDRLStrategy(Strategy):
                 message["quantity_min"] = Emin
                 message["price"] = price
                 message["name"] = device_name
-                message["type"] = "consumption"
+                message["type"] = "consumption" if not device_type == "converter" else device_type
                 sorted_demands.append(message)
             elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
                 message = self._create_empty_sorted_lists()
@@ -423,7 +429,7 @@ class SingleAgentDRLStrategy(Strategy):
                 message["quantity_min"] = Emin
                 message["price"] = price
                 message["name"] = device_name
-                message["type"] = "production"
+                message["type"] = "production" if not device_type == "converter" else device_type
                 sorted_offers.append(message)
             # if the energy = 0, then there is no need to add it to one of the list
 
@@ -460,8 +466,9 @@ class SingleAgentDRLStrategy(Strategy):
 
         return [sorted_demands, sorted_offers, sorted_storage]
 
-    # ##########################################################################################
+    # #################################################################################################################
     # emergency distribution functions
+    ###################################################################################################################
 
     def _serve_emergency_demands(self, aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
         lines_to_remove = []  # a list containing the number of lines having to be removed
@@ -618,4 +625,50 @@ class SingleAgentDRLStrategy(Strategy):
                 energy_available_production += energy
 
         return [energy_available_production, money_spent_inside, energy_bought_inside]
+
+    # #################################################################################################################
+    # energy conversion devices specific functions
+    ###################################################################################################################
+    def _isolate_conversion_systems(self, sorted_demands: List[Dict], sorted_offers: List[Dict]):
+        """
+        This method is used to isolate the converter devices from the other internal devices.
+        """
+        my_condition = lambda x: x['type'] == "converter"
+        moved = list(filter(my_condition, sorted_demands))
+        moved.extend(list(filter(my_condition, sorted_offers)))
+        sorted_demands = list(filter(lambda x: not my_condition(x), sorted_demands))
+        sorted_offers = list(filter(lambda x: not my_condition(x), sorted_offers))
+
+        return sorted_demands, sorted_offers, moved
+
+    def _serve_energy_conversion(self, aggregator: "Aggregator", converters: List[Dict], energy_exchange_dict: Dict, money_spent_inside: float, energy_bought_inside: float, money_earned_inside: float, energy_sold_inside: float, min_price: float, max_price: float, internal_buying_price: float, internal_selling_price: float):
+        """
+        This method is used to attribute energy to conversion systems.
+        """
+        for element in converters:
+            for exchange in energy_exchange_dict:
+                if element['name'] in exchange:
+                    energy_to_attribute = energy_exchange_dict[exchange]
+                    if energy_to_attribute < 0:  # energy offer/supply
+                        energy_bought_inside += abs(energy_to_attribute)
+                        price = max(min_price, internal_selling_price)
+                        money_spent_inside += abs(energy_bought_inside) * price
+                    else:  # energy demand/consumption
+                        energy_sold_inside += energy_to_attribute
+                        price = min(max_price, internal_buying_price)
+                        money_earned_inside += energy_to_attribute * price
+
+                    og_msg = self._catalog.get(f"{element['name']}.{aggregator.nature.name}.energy_accorded")
+                    if "aggregator" in og_msg.keys():  # for dummy converters (with the same energy nature)
+                        my_idx = og_msg["aggregator"].index(aggregator.name)
+                        og_msg['quantity'][my_idx] = energy_to_attribute
+                        og_msg['price'][my_idx] = price
+                        self._catalog.set(f"{element['name']}.{aggregator.nature.name}.energy_accorded", og_msg)
+                    else:  # for normal converter (with different energy natures) - todo à confirmer
+                        og_msg['quantity'] = energy_to_attribute
+                        og_msg['price'] = price
+                        self._catalog.set(f"{element['name']}.{aggregator.nature.name}.energy_accorded", og_msg)
+                    break
+
+        return money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside
 

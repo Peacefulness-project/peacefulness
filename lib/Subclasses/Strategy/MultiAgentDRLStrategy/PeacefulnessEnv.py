@@ -274,7 +274,7 @@ class PeacefulnessEnv(ParallelEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return Box(low=-np.inf, high=np.inf, shape=(self.obs_size[agent], ), dtype=np.float32)
+        return Box(low=-12000, high=8100, shape=(self.obs_size[agent], ), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
