@@ -46,7 +46,7 @@ exported_metrics = performance_metrics + clustering_metrics
 
 
 def performance_norm(performance_vector: Dict) -> float:
-    print(sum(performance_vector["heating.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_sold"]))
+    # print(sum(performance_vector["heating.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_bought"]), sum(performance_vector["heat_storage.LTH.energy_sold"]))
     return sum(performance_vector["house_owner.money_earned"]) - sum(performance_vector["house_owner.money_spent"]) - \
            sum(performance_vector["unwanted_delivery_cuts"]) * 10  # non respect of the minimum constraints
 

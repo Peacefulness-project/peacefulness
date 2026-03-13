@@ -174,6 +174,15 @@ class Aggregator:
         for managed_aggregator in self.subaggregators:  # recursive function to reach all aggregators
             managed_aggregator.check()
 
+    def reinitialise_decisions(self):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
+        # # message = self._create_decision_message()
+        #
+        # for device_name in self.devices:  # if there is missing energy
+        #     self._catalog.set(f"{device_name}.{self.nature.name}.energy_accorded", None)
+
+        for subaggregator in self.subaggregators:
+            self._catalog.set(f"{subaggregator.name}.{self.nature.name}.energy_accorded", [])
+
     def make_balances(self):
         """
         Method used to make energy and money balances.

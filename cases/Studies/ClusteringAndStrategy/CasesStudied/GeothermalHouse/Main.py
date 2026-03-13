@@ -24,10 +24,10 @@ ref_performance = assess_reference(comparison_simulation_length, performance_nor
 intermediate_results.write("reference performance\n" + str(ref_performance) + "\n")
 intermediate_results.close()
 
-for i in range(3):  # seed for batch
+for i in range(1):  # seed for batch
     recorded_situations = situations_recording(clustering_metrics, clustering_batch_size, create_simulation, consumption_options, production_options, run_name, random_seed=i * 100)
 
-    for j in range(3):  # seed for cluster initialisation
+    for j in range(1):  # seed for cluster initialisation
         # clustering
         intermediate_results = open(results_path + f"IntermediateResults_{i}_{j}.txt", "w")
         print("--- CLUSTERING PHASE ---")

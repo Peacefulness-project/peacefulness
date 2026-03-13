@@ -77,4 +77,24 @@ class PerformanceRecord:  # records of performances observed for the different s
         return self._records
 
 
+class MultiPerformanceRecord:  # records of performances observed for the different strategies applied to a cluster type
+    def __init__(self):
+        self._strategy_records: List = []
+        self._performance_records: List = []
+
+    def add_to_record(self, assessed_strategies, performance: Dict):
+        self._strategy_records.append(assessed_strategies)
+        self._performance_records.append(performance)
+
+    def sort_strategies(self) -> List:
+        unsorted_couples = [(self._performance_records[i], self._strategy_records[i]) for i in range(len(self._performance_records))]
+
+        def get_perf(run_record: Tuple):
+            return run_record[0]
+
+        sorted_couples = sorted(unsorted_couples, key=get_perf, reverse=True)
+        sorted_performance = (sorted_couple[0] for sorted_couple in sorted_couples)
+        sorted_strategies = (sorted_couple[1] for sorted_couple in sorted_couples)
+
+        return sorted_couples
 

@@ -1,13 +1,16 @@
-from skopt import gp_minimize
+import discrete_optimization
 import shutil
 from cases.Studies.ClusteringAndStrategy.Utilities import *
 import math
+import multiprocess as mp
+import random as rd
+from copy import deepcopy
 
 
 def training(simulation_length: int, cluster_centers: List, performance_norm: Callable, performance_metrics: List, assessed_priorities: Dict, create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> (Dict, Callable, Callable):
     # performance assessment phase
     print("identification of the relevant strategy for each cluster")
-    research_method = bricolage
+    research_method = pseudo_greedy_search
     best_strategies = research_method(cluster_centers, simulation_length,
                                       performance_metrics, performance_norm, assessed_priorities,
                                       create_simulation, find_cluster, case_name, complement_path)
@@ -186,15 +189,14 @@ def bricolage(cluster_centers: List, simulation_length: int, performance_metrics
         print(f"best strategy name: {best_strategies[k][1]}")
         print(best_strategies)
 
+        # if True:
+        #     pseudo_greedy_search()
+
     return best_strategies
 
 
-def metaheuristique(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> Dict:
+def pseudo_greedy_search(cluster_centers: List, simulation_length: int, performance_metrics: List, performance_norm: Callable, assessed_priorities: Dict[str, List], create_simulation: Callable, find_cluster: Callable, case_name: str, complement_path: str) -> Dict:
     """
-    Clusters are sorted by the number of days inside.
-    For the cluster i, all the strategies are tested knowing that:
-    - clusters < i (the less populous) use the best strategies identified
-    - clusters > i (the more populous) use a random strategy
 
     Parameters
     ----------
@@ -203,29 +205,121 @@ def metaheuristique(cluster_centers: List, simulation_length: int, performance_m
     simulation_length
     performance_metrics
     performance_norm
-    assessed_priorities
+    best_strategies
     create_simulation
     case_name
     clustering_metrics
 
     Returns
     -------
-
+    best_strategies, couples of strategy/cluster
     """
-    def compute_score(assessed_priorities_consumption, assessed_priorities_production):
+    # assessed_priorities_consumption = create_list_combinations(assessed_priorities["consumption"])
+    # assessed_priorities_production = create_list_combinations(assessed_priorities["production"])
+    # assessed_priorities_consumption = assessed_priorities["consumption"]
+    # assessed_priorities_production = assessed_priorities["production"]
+    multi_cluster_performances_record = MultiPerformanceRecord()  # performance record for all clusters
+
+    def random_permutate(assessed_strategy):  # permutate 2 options in the lists randomly
+        modified_priorities = deepcopy(assessed_strategy[1])
+
+        # cluster_index = rd.randint(0, len(cluster_centers) - 1)
+        cluster_indexes = [rd.randint(0, len(cluster_centers) - 1) for _ in range(len(cluster_centers)*2)]
+        for cluster_index in cluster_indexes:
+
+            # side randomization
+            if rd.randint(0, 1):  # consumption modif if 0, production if 1
+                side = "production"
+            else:
+                side = "consumption"
+            option_number = len(modified_priorities[side])
+
+            # options randomization
+            option_index = rd.randint(0, option_number - 2)
+
+            # strategy modification
+            modified_priorities[side][cluster_index][option_index], modified_priorities[side][cluster_index][option_index+1] = \
+            modified_priorities[side][cluster_index][option_index+1], modified_priorities[side][cluster_index][option_index]  # permutation
+
+        return modified_priorities
+
+    def compute_score(needed_arguments):
+        "score function"
+        assessed_strategy = needed_arguments[0]
+        thread_number = needed_arguments[1]
+        assessed_priorities_consumption, assessed_priorities_production = assessed_strategy.values()
+
+        def priorities_consumption(strategy: "Strategy"):
+            cluster_id = find_cluster(strategy)
+            return assessed_priorities_consumption[cluster_id]
+
+        def priorities_production(strategy: "Strategy"):
+            cluster_id = find_cluster(strategy)
+            return assessed_priorities_production[cluster_id]
+
         # simulation
-        print(f"test of strategy {assessed_priorities_consumption[i]}/{assessed_priorities_production[j]}")
-        directory = f"{complement_path}/training/{i}_{j}"
-        datalogger = create_simulation(simulation_length, assessed_priorities_consumption, assessed_priorities_production, directory, performance_metrics)
-        shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/", ignore_errors=True, onerror=None)
+        directory = f"{complement_path}/training/iteration_{thread_number}"
+        datalogger = create_simulation(simulation_length, priorities_consumption, priorities_production, directory,
+                                       performance_metrics)
+        shutil.rmtree(f"cases/Studies/ClusteringAndStrategy/Results/{case_name}/{complement_path}/training/",
+                      ignore_errors=True, onerror=None)
+
         # metering
         raw_outputs = {}
         for key in performance_metrics:
             raw_outputs[key] = datalogger.get_values(key)
         performance = performance_norm(raw_outputs)
-        print(f"performance reached: {performance}")
 
-        return performance
+        return [assessed_priorities_consumption, assessed_priorities_production], performance
+
+    best_strategies = (-math.inf, {"consumption": [["industrial", "nothing", "storage"] for _ in range(len(cluster_centers))], "production": [["production", "unstorage", "grid"]for _ in range(len(cluster_centers))]})
+
+    for i in range(20):
+        print(f"step {i}")
+        threads = 7
+        # modification of strategies
+        tested_combinations = [(random_permutate(best_strategies), i) for i in range(5*threads)]
+
+        # parallelized simulation
+        # compute_score(tested_combinations[0])
+        with mp.Pool(threads) as p:
+            performance_and_strategies = p.map(compute_score, tested_combinations)
+        for couple in performance_and_strategies:
+            multi_cluster_performances_record.add_to_record(couple[0], couple[1])
+
+        sorted_couples = multi_cluster_performances_record.sort_strategies()  # the maximum value is retained
+        performance = sorted_couples[0][0]
+        strategy_indices = sorted_couples[0][1]
+        best_strategies = (performance, {"consumption": strategy_indices[0], "production": strategy_indices[1]})
+        print(f"best performance: {performance}")
+
+    print(f"best strategy performance: {best_strategies[0]}")
+    print(f"best strategy priorities: {best_strategies[1]}")
+    best_strategies = {i: (best_strategies[0], {"consumption": best_strategies[1]["consumption"][i], "production": best_strategies[1]["production"][i]}) for i in range(len(cluster_centers))}
+    print(best_strategies)
 
     return best_strategies
+
+
+# def create_list_combinations(combination: List) -> List[List]:
+#     natural_sens_reading = 1  # used mostly as boolean
+#     i = 1  # index
+#     comb_init = combination  # initial combination, serving as the stop combination for the
+#     old_comb = comb_init  # comb from which you permutate
+#     new_comb = None  # comb obtained after permutation
+#     while new_comb != comb_init:
+#         if i != len(comb_init) and i != 0:  # if we're in the middle of the combination, we permutate
+#             j = i - 1 + 2 * natural_sens_reading  # second index for the permutation
+#             new_comb = old_comb
+#
+#             # permutation
+#             new_comb[i] = old_comb[j]
+#             new_comb[j] = old_comb[i]
+#
+#         elif not i:  # if we reach the beginning of the line, we reverse the reading sense and update i
+#             natural_sens_reading = 1
+#             i = 1
+#         else:  # if we reach the end of the line, we reverse the reading sense and update i
+#             natural_sens_reading = 0
+#             i -= 1
 
