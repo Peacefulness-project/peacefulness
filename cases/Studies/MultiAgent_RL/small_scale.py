@@ -127,11 +127,11 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     aggregator_name = "national_electricity_distribution_network"  # external electricity grid
     aggregator_grid = Aggregator(aggregator_name, LVE, grid_strategy, grid_manager)
 
-    aggregator_name = "local_community_2"
-    aggregator_elec_2 = Aggregator(aggregator_name, LVE, strategy_2, community_2, aggregator_grid, grid_contract, capacity={"buying": 8000, "selling": 9000})  # creation of an aggregator
-
     aggregator_name = "local_community_1"
     aggregator_elec_1 = Aggregator(aggregator_name, LVE, strategy_1, community_1, aggregator_grid, grid_contract, capacity={"buying": 4000, "selling": 2500})  # creation of an aggregator
+
+    aggregator_name = "local_community_2"
+    aggregator_elec_2 = Aggregator(aggregator_name, LVE, strategy_2, community_2, aggregator_grid, grid_contract, capacity={"buying": 8000, "selling": 9000})  # creation of an aggregator
 
     # ##############################################################################################
     # Manual creation of devices
@@ -156,13 +156,14 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract_industrial, community_2, aggregator_elec_2, {"user": "yearly_consumer", "device": "industrial_mini_case"}, parameters={"rng_generator": rng_generator}, filename="cases/Studies/MultiAgent_RL/AdditionalData/Background.json")
 
     # Interconnection between the two communities
-    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec", [COOP_elec, COOP_elec_residential], elec_inter, aggregator_elec_2, aggregator_elec_1, {"device": "electricity_cable"}, parameters={"max_power": 4000})
+    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec_1", [COOP_elec, COOP_elec_residential], elec_inter, aggregator_elec_2, aggregator_elec_1, {"device": "electricity_cable"}, parameters={"max_power": 4000})
+    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec_2", [COOP_elec_residential, COOP_elec], elec_inter, aggregator_elec_1, aggregator_elec_2, {"device": "electricity_cable"}, parameters={"max_power": 4000})
 
     # ##############################################################################################
     # Creation of dataloggers
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
 
-    list_of_devices = ["cable_elec"]
+    list_of_devices = ["cable_elec_1", "cable_elec_2"]
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", list_of_devices)
 
     # datalogger for balances

@@ -2,9 +2,9 @@
 from pathlib import Path
 
 # PettingZoo environment creation imports
-from lib.Subclasses.Strategy.MultiAgentDRLStrategy.PeacefulnessEnv import PeacefulnessEnv, datetime
+from PeacefulnessEnv import PeacefulnessEnv, datetime
 # from pettingzoo.test import parallel_api_test, parallel_seed_test  # TODO for testing the PettingZoo environment
-from lib.Subclasses.Strategy.MultiAgentDRLStrategy.Wrappers import ScaleRewardsWrapper  # TODO Rt normalization
+# from Wrappers import ScaleRewardsWrapper  # TODO Rt normalization
 # from supersuit import normalize_obs_v0  # todo for St normalization
 
 # RLlib ray imports for training
@@ -15,6 +15,12 @@ from ray.tune.registry import register_env
 from ray.rllib.algorithms.ppo import PPOConfig
 # from ray.tune.schedulers import PopulationBasedTraining  # TODO for hyper-parameters tuning
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
+
+# todo Imports for action mapping
+from ray.rllib.models import ModelCatalog
+from ray.rllib.models.torch.torch_action_dist import TorchSquashedGaussian
+from Wrappers import ActionMappingWrapper
+from feasibility_policy import FeasibilityPolicy, feasibility_relevant_state
 
 # For printing results
 import uuid
@@ -31,16 +37,16 @@ start_time = datetime(2023, 1, 1,0, 0, 0)
 simulation_length = 8759
 path_to_export = "cases/Studies/MultiAgent_RL/Results"
 agents_dict = {
-    "agent_1": {"local_community_1": (25, 3), "exchanges": 1},
-    "agent_2": {"local_community_2": (19, 2), "exchanges": 2}
+    "agent_1": {"local_community_1": (28, 3), "exchanges": 3},
+    "agent_2": {"local_community_2": (22, 2), "exchanges": 3}
 }
 reward_dict = {
     "agent_1": [
-        ("conservation_penalty", 5),
+        ("conservation_penalty", 2.5), ("converters_offset_costs", 2.5),
                 ("aggregator_costs", 1), ("social_cost", 1)
                 ],
     "agent_2": [
-        ("conservation_penalty", 5),
+        ("conservation_penalty", 2.5), ("converters_offset_costs", 2.5),
                 ("aggregator_costs", 1), ("social_cost", 1)
                 ]
 }
@@ -53,13 +59,18 @@ metrics = [
     "residential_dwellings.LVE.energy_erased", "industrial_process.LVE.energy_erased",
     "residential_dwellings.LVE.money_spent", "residential_dwellings.LVE.energy_bought",
     "industrial_process.LVE.money_spent", "industrial_process.LVE.energy_bought",
-    "local_community_1.money_spent_outside", "local_community_2.money_spent_outside",
-    "local_community_1.money_earned_outside", "local_community_2.money_earned_outside"
+    "local_community_1.energy_bought_outside", "local_community_2.energy_bought_outside",
+    "local_community_1.energy_sold_outside", "local_community_2.energy_sold_outside"
 ]
-act_red_dict = {
-    "agent_1": {"local_community_1": "Energy_Storage"},
-    "agent_2": {"local_community_2": "Energy_Conversion_2"}
-}
+# act_red_dict = {
+#     "agent_1": {"local_community_1": "Energy_Storage"},
+#     "agent_2": {"local_community_2": "Energy_Exchange_1"}
+# }
+
+# Specific to action mapping
+my_pi_f = FeasibilityPolicy(state_dim=22, latent_dim=11)
+path_to_weights = "cases/Studies/MultiAgent_RL/Results/action_mapper/feasibility_policy.pt"
+state_sampler = feasibility_relevant_state
 
 ENV_PARAMS = dict(
     path_to_case = path_to_case,
@@ -71,7 +82,10 @@ ENV_PARAMS = dict(
     objective_dict = reward_dict,
     normalization_dict = normalization_dict,
     metrics = metrics,
-    red_dof_dict = act_red_dict
+    # red_dof_dict = act_red_dict,
+    feasibility_policy = my_pi_f,
+    pi_f_path = path_to_weights,
+    relevant_state = state_sampler
 )
 
 # Env creation
@@ -118,10 +132,12 @@ def build_env(env_config):
     env = PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
                           env_config["start_time"], env_config["hours_to_simulate"],
                           env_config["export_path"], env_config["agent_dict"], env_config["objective_dict"],
-                          env_config["normalization_dict"], env_config["metrics"], std_dev, False,
-                          env_config["red_dof_dict"])  # for reducing one degree of freedom per aggregator
-    # env = normalize_obs_v0(env)
-    # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)
+                          env_config["normalization_dict"], env_config["metrics"], std_dev, False
+                          # env_config["red_dof_dict"]
+                          )  # for reducing one degree of freedom per aggregator
+    # env = normalize_obs_v0(env)  # todo state normalization wrapper
+    # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)  # todo Reward normalization wrapper
+    env = ActionMappingWrapper(env, env_config['feasibility_policy'], env_config['pi_f_path'], env_config['relevant_state'])  # todo Action Mapping wrapper
 
     return ParallelPettingZooEnv(env)
 
@@ -146,16 +162,19 @@ if __name__ == "__main__":
     ray.init()
 
     # Resuming training from a previously trained model
-    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_8f0f6f89e492491fa5584260a04b95e4/PPO_mini_case_0b593_00000_0_2026-02-24_12-14-53/checkpoint_000000"
-
+    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_0be381d40f6f42fbb0ae5a57a26d78b9/PPO_mini_case_93f69_00000_0_2026-03-01_20-41-01/checkpoint_000000"
 
     env_name = "mini_case"
     register_env(env_name, build_env)
+
+    # Action mapping
+    ModelCatalog.register_custom_action_dist("squashed_gaussian", TorchSquashedGaussian)
 
     config = (
         PPOConfig()
         .environment("mini_case",
                      env_config=ENV_PARAMS,
+                     normalize_actions=False
                      # disable_env_checking=True,
                      # is_atari=False
                      )
@@ -171,7 +190,10 @@ if __name__ == "__main__":
                   train_batch_size_per_learner=8760,
                   num_epochs=5,
                   minibatch_size=73,
-                  shuffle_batch_per_epoch=True
+                  shuffle_batch_per_epoch=True,
+                  model={
+                      "custom_action_dist": "squashed_gaussian",  # todo for action mapping
+                  }
                   )
         # .evaluation(evaluation_interval=25,
         #             evaluation_num_env_runners=1,
@@ -190,10 +212,11 @@ if __name__ == "__main__":
                      policy_mapping_fn=policy_mapping_fn,
                      policy_states_are_swappable=False  # todo set this to true if agents share the same obs/act sizes
                      )
-        .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
+        # .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
         .framework("torch")
         .debugging(log_level="ERROR")
     )
+
 
     # Training without using Ray Tune
     # myPPO = config.build_algo()
@@ -220,7 +243,7 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
-            stop={"training_iteration": 70
+            stop={"training_iteration": 100
                 # , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training

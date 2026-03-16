@@ -217,9 +217,9 @@ def normalize_features(feature, min_val, max_val):
     In contrast, agent-level normalization is made using VecNormalize from Stable Baselines 3.
     """
     if min_val <= feature <= max_val:
-        norm_feature = (feature - min_val) / (max_val - min_val)
+        norm_feature = ((feature - min_val) / (max_val - min_val)) * 2 - 1
     elif feature < min_val:
-        norm_feature = 0.0
+        norm_feature = - 1.0
     elif feature > max_val:
         norm_feature = 1.0
     else:
@@ -324,20 +324,25 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
 
     # In case we remove 1-degree of freedom (1 less action) per aggregator
     interior_dofr = {}
-    exterior_dofr_dict = {}
-    exterior_dofr = 0
+    direct_exterior_dofr_dict = {}
+    direct_exterior_dofr = 0
+    conversion_exterior_dofr_dict = {}
+    conversion_exterior_dofr = 0
     if red_dof_dict is not None:
         for agg, deg in red_dof_dict.items():
-            if "Exchange" in deg or "Conversion" in deg:  # the action removed from the action space of the concerned RLagent is exchange with outside
-                exterior_dofr_dict[agg] = 1
-                exterior_dofr += 1
+            if "Exchange" in deg:  # the action removed from the action space of the concerned RLagent is exchange with outside
+                direct_exterior_dofr_dict[agg] = 1
+                direct_exterior_dofr += 1
+            elif "Conversion" in deg:
+                conversion_exterior_dofr_dict[agg] = 1
+                conversion_exterior_dofr += 1
             else:  # the removed action is internal (consumption, production or storage)
                 interior_dofr[agg] = 1
 
     # Initialization
     raw_state = deepcopy(catalog.get(f"{ref_name}.raw_state"))
     managed_aggregators = catalog.get(f"{ref_name}.strategy_scope")
-    nb_exchange_actions = action_info["exchanges"] - exterior_dofr  # we remove the number of "removed" exterior actions from original length
+    nb_exchange_actions = action_info["exchanges"] - direct_exterior_dofr - conversion_exterior_dofr  # we remove the number of "removed" exterior actions from original length
 
     # internal actions
     internal_actions = action[:-nb_exchange_actions]  if nb_exchange_actions != 0 else action[:]  # corresponding to the length of "removed" internal actions
@@ -373,12 +378,18 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
                     key_to_remove.append(sup)
             for sup in key_to_remove:
                 raw_state["interconnection"][sup].pop(agg)
+
+        if f"{agg}.net_number_of_direct_energy_exchanges" not in catalog.keys:  # useful to get the downstream action for converters
+            catalog.add(f"{agg}.net_number_of_direct_energy_exchanges", external_dict[agg] - direct_exterior_dofr)
+        else:
+            catalog.set(f"{agg}.net_number_of_direct_energy_exchanges", external_dict[agg] - direct_exterior_dofr)
+
         # Then energy exchanges using energy conversion systems
         if agg in raw_state["conversion"]:
             external_dict[agg] += len(raw_state["conversion"][agg]["Energy_Conversion"])
     index = 0
     for agg, nb_exchanges in external_dict.items():
-        if agg in exterior_dofr_dict:  # we check if for this aggregator the "removed" action is external (exchange)
+        if agg in direct_exterior_dofr_dict or agg in conversion_exterior_dofr_dict:  # we check if for this aggregator the "removed" action is external (exchange)
             to_remove = 1
         else:
             to_remove = 0
@@ -460,22 +471,19 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
         nb_direct_exchanges += 1
     nb_direct_exchanges -= exchange_to_remove
 
-    if f"{aggregator.name}.net_number_of_direct_energy_exchanges" not in catalog.keys:  # useful to get the downstream action for converters
-        catalog.add(f"{aggregator.name}.net_number_of_direct_energy_exchanges", nb_direct_exchanges)
-    else:
-        catalog.set(f"{aggregator.name}.net_number_of_direct_energy_exchanges", nb_direct_exchanges)
-
     direct_exchanges = []
     conversions = []
 
     if aggregator.name in exchange_decision:
-        if nb_conversion_actions != 0:
-            if len(exchange_decision[aggregator.name]) == nb_direct_exchanges + nb_conversion_actions:  # the aggregator is upstream w.r.t energy converters
-                direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
-                conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
-            else:
-                direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
-                conversions.extend(complete_conversion_norm_action(catalog, agentID, list_of_converters))
+        if nb_conversion_actions != 0:  # in case where agents/aggregators decide on both ends of energy conversion systems
+            direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+            conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
+            # if len(exchange_decision[aggregator.name]) == nb_direct_exchanges + nb_conversion_actions:  # the aggregator is upstream w.r.t energy converters
+            #     direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+            #     conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
+            # else:  # if a degree of freedom is removed
+            #     direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+            #     conversions.extend(complete_conversion_norm_action(catalog, agentID, list_of_converters, exchange_decision[aggregator.name][nb_direct_exchanges:]))
         else:
             direct_exchanges.extend(exchange_decision[aggregator.name])
         direct_exchanges = deque(direct_exchanges)  # length corresponding to the removed exchanges
@@ -525,13 +533,13 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     return exchange_dict
 
 
-def complete_conversion_norm_action(catalog: "Catalog", agentID: str, list_of_converters: List):
+def complete_conversion_norm_action(catalog: "Catalog", agentID: str, list_of_converters: List, rest_of_action: List):
     """
     This function is used to get the decision corresponding to the conversion systems for the downstream aggregator from
     the decision taken in the upstream.
     """
+    rest_of_action.reverse()
     existing_agents = deepcopy(catalog.get(f"existing_RL_agents"))
-    existing_agents.remove(agentID)
     managed_agg = {}
     for agent in existing_agents:
         agg_list = catalog.get(f"{agent}.strategy_scope")
@@ -543,21 +551,27 @@ def complete_conversion_norm_action(catalog: "Catalog", agentID: str, list_of_co
         upstream_agg = [upstream['name'] for upstream in converter._upstream_aggregators_list]
         for agg in upstream_agg:
             for agent in managed_agg:
-                if agg in managed_agg[agent]:
+                if agg in managed_agg[agent] and agent != agentID:
                     other_exterior_decision = catalog.get(f"{agent}.exterior_decision")[agg]
                     other_interval = catalog.get(f"{agent}.raw_state")['conversion'][agg]["Energy_Conversion"]
                     num_direct_exchanges = catalog.get(f"{agg}.net_number_of_direct_energy_exchanges")
-                    for idx, key in enumerate(other_interval):  # todo limit (can't apply to conversions, unless the strategy of the upstream aggregator is executed first) !
+                    for idx, key in enumerate(other_interval):  # todo limit (can't apply action reduction to conversions, unless the strategy of the upstream aggregator is executed first) !
                         if key == converter_name:
                             relevant_idx = idx + num_direct_exchanges
                             break
                     if len(other_exterior_decision) == len(other_interval) + num_direct_exchanges:  # no direct exchange or conversion action was removed for the upstream aggregator
                         relevant_decision.append(other_exterior_decision[relevant_idx])
+                        # relevant_decision.append(other_exterior_decision[-1])  # todo -1 is a patchwork for the mini-case with 2 dummy converters (o remove if 1 converter only)
+                        break
                     else:  # we get the scaled up actions already computed during the strategy run for the upstream aggregator
                         other_scaled_up_exterior_decision = list(catalog.get(f"{agg}.{agent}.exchange_decision").values())[relevant_idx]
                         Emin = other_interval[converter_name]["energy_minimum"]
                         Emax = other_interval[converter_name]["energy_maximum"]
                         relevant_decision.append(2 * ((other_scaled_up_exterior_decision - Emin) / (Emax - Emin)) - 1)
+                        break
+                elif agg in managed_agg[agent] and agent == agentID:
+                    relevant_decision.append(rest_of_action.pop())
+                    break
 
     return relevant_decision
 
@@ -655,6 +669,18 @@ def recapitulate_state(catalog: "Catalog", agent_ID=None) -> Dict:
                 return_dict[agg].update({f"Energy_Conversion_{idx}": [raw_state["conversion"][og_key]["Energy_Conversion"][conv_sys]["energy_minimum"],
                                                                       raw_state["conversion"][og_key]["Energy_Conversion"][conv_sys]["energy_maximum"]]})
                 idx += 1
+
+    return return_dict
+
+
+def converters_recap(catalog: "Catalog", agent_ID=None) -> Dict:
+    """
+    This helper function is used to return a dict of converters offsets.
+    """
+    return_dict = {f"{agent_ID}.converters_offset": []}  # todo patchwork solution
+    for key in catalog.keys:
+        if agent_ID in key and "converters_offset" in key:
+            return_dict[f"{agent_ID}.converters_offset"].extend(catalog.get(key))
 
     return return_dict
 

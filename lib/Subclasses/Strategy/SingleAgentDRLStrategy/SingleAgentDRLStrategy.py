@@ -28,11 +28,19 @@ class SingleAgentDRLStrategy(Strategy):
         # In case we remove 1-degree of freedom per aggregator
         self.red_dof_flag = red_dof_flag
 
+        # For the second update in case for converters both ends take a decision
+        self._second_call = False
+
     # ##################################################################################################################
     # Dynamic behavior
     ####################################################################################################################
 
     def bottom_up_phase(self, aggregator: "Aggregator"):
+
+        # In case of 2nd call to aggregator.ask() -> strategy.bottom_up_phase() after aggregator.check()
+        if self._second_call:
+            return self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_wanted")
+
         # Before publishing quantities and prices to the superior aggregator, we gather relevant information to send to the RL agent
         # Namely, the data needed : energy prices, formalism variables representing the state of the MEG, energy exchanges and forecasting
         quantities_and_prices = []
@@ -67,6 +75,7 @@ class SingleAgentDRLStrategy(Strategy):
         else:
             self._catalog.set(f"{aggregator.name}.{self._name}.converter_message", deepcopy(converter_message[aggregator.name]))
         formalism_message = mutualize_formalism_message(formalism_message)
+        conversion_consumptions, conversion_productions = correction_to_formalism(converter_message[aggregator.name]["Energy_Conversion"])
 
         # Correction of the considered quantities
         minimum_energy_consumed = 0  # the minimum quantity of energy needed to be consumed
@@ -80,9 +89,9 @@ class SingleAgentDRLStrategy(Strategy):
             max_conso = deepcopy(maximum_energy_consumed)
             max_prod = deepcopy(maximum_energy_produced)
             formalism_message['Energy_Consumption']["energy_minimum"] = minimum_energy_consumed
-            formalism_message['Energy_Consumption']["energy_maximum"] = maximum_energy_consumed
+            formalism_message['Energy_Consumption']["energy_maximum"] = maximum_energy_consumed - conversion_consumptions
             formalism_message['Energy_Production']["energy_minimum"] = - minimum_energy_produced
-            formalism_message['Energy_Production']["energy_maximum"] = - maximum_energy_produced
+            formalism_message['Energy_Production']["energy_maximum"] = - (maximum_energy_produced + conversion_productions)
             if len(formalism_message['Energy_Storage']) > 0:
                 formalism_message['Energy_Storage']["energy_minimum"] = 0.0
                 formalism_message['Energy_Storage']["energy_maximum"] = 0.0
@@ -162,6 +171,51 @@ class SingleAgentDRLStrategy(Strategy):
 
 
     def top_down_phase(self, aggregator: "Aggregator"):  # todo à revoir dès avoir Gym + SB3 et PettingZoo + RLRay stable
+
+        # In case of 2nd call to aggregator.distribute() -> strategy.top_down_phase() after aggregator.check()
+        if self._second_call:
+            self._second_call = False  # resetting the flag for next 'normal' call
+
+            # Initialization
+            energy_bought_outside = self._catalog.get(f"{aggregator.name}.energy_bought")['outside']
+            energy_bought_inside = self._catalog.get(f"{aggregator.name}.energy_bought")['inside']
+            energy_sold_outside = self._catalog.get(f"{aggregator.name}.energy_sold")['outside']
+            energy_sold_inside = self._catalog.get(f"{aggregator.name}.energy_sold")['inside']
+            money_earned_outside = self._catalog.get(f"{aggregator.name}.money_earned")['outside']
+            money_earned_inside = self._catalog.get(f"{aggregator.name}.money_earned")['inside']
+            money_spent_outside = self._catalog.get(f"{aggregator.name}.money_spent")['outside']
+            money_spent_inside = self._catalog.get(f"{aggregator.name}.money_spent")['inside']
+
+            maximum_energy_consumed, maximum_energy_produced = self._catalog.get(f"{aggregator.name}.{self._name}.energy_maximum_quantities").values()
+
+            offset_dict, conso_dict, prod_dict = self._catalog.get(f"{aggregator.name}.{self._name}.converters_offset")
+
+            # the energy excess/deficit of consumption/production is absorbed by energy exchange with superior
+            old_energy_accorded_from_superior = self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
+            if isinstance(old_energy_accorded_from_superior, list):
+                if old_energy_accorded_from_superior[0]['quantity'] > 0:
+                    money_spent_outside -= old_energy_accorded_from_superior[0]['quantity'] * old_energy_accorded_from_superior[0]['price']
+                    energy_bought_outside -= old_energy_accorded_from_superior[0]['quantity'] * aggregator.efficiency
+                else:
+                    money_earned_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * old_energy_accorded_from_superior[0]['price']
+                    energy_sold_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * aggregator.efficiency
+                old_energy_accorded_from_superior[0]['quantity'] += (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+            else:
+                if old_energy_accorded_from_superior['quantity'] > 0:
+                    money_spent_outside -= old_energy_accorded_from_superior['quantity'] * old_energy_accorded_from_superior['price']
+                    energy_bought_outside -= old_energy_accorded_from_superior['quantity'] * aggregator.efficiency
+                else:
+                    money_earned_outside -= abs(old_energy_accorded_from_superior['quantity']) * old_energy_accorded_from_superior['price']
+                    energy_sold_outside -= abs(old_energy_accorded_from_superior['quantity']) * aggregator.efficiency
+                old_energy_accorded_from_superior['quantity'] += (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+            self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
+            # updating external balance
+            [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
+
+            # Re-updating the internal and external balances
+            self._update_balances(aggregator, energy_bought_inside, energy_bought_outside, energy_sold_inside, energy_sold_outside, money_spent_inside, money_spent_outside, money_earned_inside, money_earned_outside, maximum_energy_consumed, maximum_energy_produced)
+            return
+
         # Retrieving the energy accorded to each aggregator with the decision taken by the RL agent (scaled-up actions)
         [energy_accorded_to_consumers, energy_accorded_to_producers, energy_accorded_to_storage] = implement_my_interior_decision(self._name, self._catalog, aggregator, self.red_dof_flag)
         energy_accorded_to_exchange = implement_my_exchange_decision(self._name, self._catalog, aggregator, self.red_dof_flag)
@@ -293,7 +347,46 @@ class SingleAgentDRLStrategy(Strategy):
 
 
     def multi_energy_balance_check(self, aggregator):  # TODO - maybe to be modified to terminate the episode if "incompatibility"
-        pass
+        energy_bought_dict = self._catalog.get(f"{aggregator.name}.energy_bought")
+        energy_bought_outside = energy_bought_dict["outside"]
+        energy_bought_inside = energy_bought_dict["inside"]
+
+        energy_sold_dict = self._catalog.get(f"{aggregator.name}.energy_sold")
+        energy_sold_outside = energy_sold_dict["outside"]
+        energy_sold_inside = energy_sold_dict["inside"]
+
+        money_spent_dict = self._catalog.get(f"{aggregator.name}.money_spent")
+        money_spent_outside = money_spent_dict["outside"]
+        money_spent_inside = money_spent_dict["inside"]
+
+        money_earned_dict = self._catalog.get(f"{aggregator.name}.money_earned")
+        money_earned_outside = money_earned_dict["outside"]
+        money_earned_inside = money_earned_dict["inside"]
+
+        # getting the old decision w.r.t energy exchanges with superior, subaggregators and converters
+        Eexch_old = self._catalog.get(f"{aggregator.name}.{self._name}.exchange_decision")
+
+        # getting the offset between the old decision and the energy accorded to converters after second update
+        [sorted_demands, sorted_offers, sorted_storage] = self._separe_quantities(aggregator)
+        [sorted_demands, sorted_offers, converters] = self._isolate_conversion_systems(sorted_demands, sorted_offers)
+        [offset_dict, conso_offset, prod_offset, money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside] = self._identify_converter_offset(aggregator, converters, Eexch_old, money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside)
+        if f"{aggregator.name}.{self._name}.converters_offset" not in self._catalog.keys:
+            self._catalog.add(f"{aggregator.name}.{self._name}.converters_offset", [offset_dict, conso_offset, prod_offset])
+        else:
+            self._catalog.set(f"{aggregator.name}.{self._name}.converters_offset", [offset_dict, conso_offset, prod_offset])
+
+        if abs(energy_bought_outside + energy_bought_inside - (energy_sold_outside + energy_sold_inside)) >= 1e-6:  # if balances do not match, a second round of distribution is performed
+            self._catalog.set(f"{aggregator.name}.incompatibility", True)
+            self._second_call = True
+
+        energy_bought_dict["inside"] = energy_bought_inside
+        energy_sold_dict["inside"] = energy_sold_inside
+        money_spent_dict["inside"] = money_spent_inside
+        money_earned_dict["inside"] = money_earned_inside
+        self._catalog.set(f"{aggregator.name}.energy_bought", energy_bought_dict)
+        self._catalog.set(f"{aggregator.name}.energy_sold", energy_sold_dict)
+        self._catalog.set(f"{aggregator.name}.money_spent", money_spent_dict)
+        self._catalog.set(f"{aggregator.name}.money_earned", money_earned_dict)
 
     # #################################################################################################################
     # Strategy blocks
@@ -672,3 +765,44 @@ class SingleAgentDRLStrategy(Strategy):
 
         return money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside
 
+    def _identify_converter_offset(self, aggregator: "Aggregator", converters: List[Dict], old_decision: Dict, money_spent_inside: float, energy_bought_inside: float, money_earned_inside: float, energy_sold_inside: float):
+        """
+        This helper function is used in the 2nd top down phase call.
+        It is used to calculate the difference between the original decision w.r.t converters & their second update.
+        """
+        offset = {}
+        conso_plus = 0.0
+        conso_minus = 0.0
+        prod_plus = 0.0
+        prod_minus = 0.0
+
+        for element in converters:  # todo patchwork solution for dummy converters (probably would work for standard converters as well but need to be checked)
+            for exchange in old_decision:
+                if element['name'] in exchange:
+                    old_exch = old_decision[exchange]
+                    acc_msg = self._catalog.get(f"{element['name']}.{aggregator.nature.name}.energy_accorded")
+                    if 'aggregator' in acc_msg.keys():
+                        my_idx = acc_msg["aggregator"].index(aggregator.name)
+                        offset[element['name']] = old_exch - acc_msg["quantity"][my_idx]
+                        price = acc_msg["price"][my_idx]
+                        if old_exch > 0 and offset[element['name']] < 0:
+                            conso_plus += offset[element['name']]
+                            energy_sold_inside += abs(offset[element['name']])
+                            money_earned_inside += abs(offset[element['name']]) * price
+                        elif old_exch > 0 and offset[element['name']] > 0:
+                            conso_minus += offset[element['name']]
+                            energy_sold_inside -= abs(offset[element['name']])
+                            money_earned_inside -= abs(offset[element['name']]) * price
+                        elif old_exch < 0 and offset[element['name']] < 0:
+                            prod_minus += offset[element['name']]
+                            energy_bought_inside -= abs(offset[element['name']])
+                            money_spent_inside -= abs(offset[element['name']]) * price
+                        elif old_exch < 0 and offset[element['name']] > 0:
+                            prod_plus += offset[element['name']]
+                            energy_bought_inside += abs(offset[element['name']])
+                            money_spent_inside += abs(offset[element['name']]) * price
+
+        consumption_offset = {"deficit": conso_minus, "excess": conso_plus}
+        production_offset = {"deficit": prod_minus, "excess": prod_plus}
+
+        return offset, consumption_offset, production_offset, money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside

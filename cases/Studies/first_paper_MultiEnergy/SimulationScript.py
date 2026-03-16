@@ -13,6 +13,7 @@ from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity, load
 from src.common.Agent import Agent
 from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
+from src.tools.AgentGenerator import agent_generation
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
 
@@ -119,7 +120,7 @@ def create_simulation(world_name: str, path_name: str, start_time: datetime, hou
 
 
     # ##############################################################################################
-    # Manual creation of contracts todo confirmer avec Timothé
+    # Manual creation of contracts
     BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_elec)  # contract for electricity rigid consumers and producers
     COOP_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("COOP_elec", LVE, price_manager_elec)  # contract for electric devices that accept to be shifted/flexible
     BAU_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)  # contract for heat rigid consumers
@@ -138,10 +139,10 @@ def create_simulation(world_name: str, path_name: str, start_time: datetime, hou
     aggregator_name = "national_gas_distribution_network"  # external gas grid
     aggregator_gas = Aggregator(aggregator_name, LPG, grid_strategy, grid_gas)
 
-    aggregator_name = "electric_microgrid"  # electric microgrid todo revoir le dimensionnement de l'interconnexion
-    aggregator_elec = Aggregator(aggregator_name, LVE, common_strategy, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 15000, "selling": 10000})
+    aggregator_name = "electric_microgrid"  # electric microgrid
+    aggregator_elec = Aggregator(aggregator_name, LVE, common_strategy, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 11000, "selling": 18000})
 
-    aggregator_name = "district_heating_network"  # district heating network todo confirmer avec timothé
+    aggregator_name = "district_heating_network"  # district heating network
     aggregator_heat = Aggregator(aggregator_name, LTH, common_strategy, heat_network_manager, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 0, "selling": 0})
 
 
@@ -159,42 +160,47 @@ def create_simulation(world_name: str, path_name: str, start_time: datetime, hou
 
     # Energy conversion systems
     subclasses_dictionary["Device"]["ModifiedHeatPump"]("heat_pump", [COOP_elec, COOP_heat], hp_owner, aggregator_elec, aggregator_heat,
-                                                {"device": "heat_pump_solar_supported"},
-                                                parameters={"max_power": 2000, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name})
+                                                {"device": "dual_source_heat_pump_air_mode"},
+                                                parameters={"max_power": 1500, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name})
     subclasses_dictionary["Device"]["ModifiedCombinedHeatAndPower"]("combined_heat_power", [gas_contract, COOP_elec, COOP_heat],
                                                                     chp_owner, aggregator_gas, [aggregator_elec, aggregator_heat],
-                                                                    {"device": "test_system"}, parameters={"max_power": 15000})
-
-    # Electricity microgrid devices
+                                                                    {"device": "test_system"}, parameters={"max_power": 16000})
+    #
+    # # Electricity microgrid devices
+    # agent_generation("flexible_consumers", 1, "cases/Studies/first_paper_MultiEnergy/AdditionalData/FlexibleConsumers.json", aggregator_elec,
+    #                  {"LVE": price_manager_elec}, {"cold_water_temperature_daemon": cold_water_temperature_daemon})
+    # subclasses_dictionary["Device"]["HotWaterTank"]("hot_water", BAU_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "5_people_elec"}, parameters={"cold_water_temperature_daemon": cold_water_temperature_daemon.name})
+    subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "flexible_chargers"},
+                                               filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flexibleLoads.json")
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field_1", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"}, parameters={"panels": 25000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field_2", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"}, parameters={"panels": 25000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
     subclasses_dictionary["Device"]["WindTurbineAdvanced"]("WT_field_1", BAU_elec, microgrid_manager, aggregator_elec, {"device": "ECOS_high"}, parameters={"wind_speed_daemon": wind_speed_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "rugosity": "flat"})
     subclasses_dictionary["Device"]["WindTurbineAdvanced"]("WT_field_2", BAU_elec, microgrid_manager, aggregator_elec, {"device": "ECOS_high"}, parameters={"wind_speed_daemon": wind_speed_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "rugosity": "flat"})
-
-    subclasses_dictionary["Device"]["Dryer"]("flex_consumers_1", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
-                                             filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_1.json")
-    subclasses_dictionary["Device"]["WashingMachine"]("flex_consumers_2", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
-                                                      filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_2.json")
-    subclasses_dictionary["Device"]["Dishwasher"]("flex_consumers_3", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
-                                                  filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_3.json")
-
-    subclasses_dictionary["Device"]["ResidentialDwelling"]("rigid_electricity_consumption", BAU_elec, microgrid_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 20000, "rng_generator": rng_generator})
-    subclasses_dictionary["Device"]["ResidentialDwelling"]("electric_vehicles_charging", BAU_elec, microgrid_manager, aggregator_elec,
-                                                           {"user": "yearly_consumer", "device": "electric_vehicle"},
-                                                           parameters={"number": 100000, "rng_generator": rng_generator},
-                                                           filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/ElectricVehicles.json")
-
-    subclasses_dictionary["Device"]["ResidentialDwelling"]("domestic_hot_water", COOP_elec, microgrid_manager, aggregator_elec,
-                                                           {"user": "yearly_consumer", "device": "representative_load"},
-                                                           parameters={"number": 1800, "rng_generator": rng_generator},
-                                                           filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/DomesticHotWater.json")
+    #
+    # subclasses_dictionary["Device"]["Dryer"]("flex_consumers_1", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
+    #                                          filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_1.json")
+    # subclasses_dictionary["Device"]["WashingMachine"]("flex_consumers_2", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
+    #                                                   filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_2.json")
+    # subclasses_dictionary["Device"]["Dishwasher"]("flex_consumers_3", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "medium_consumption"},
+    #                                               filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flex_consumers_3.json")
+    #
+    subclasses_dictionary["Device"]["ResidentialDwelling"]("rigid_electricity_consumption", BAU_elec, microgrid_manager, aggregator_elec, {"user": "yearly_consumer", "device": "representative_dwelling"}, parameters={"number": 8000, "rng_generator": rng_generator})
+    # subclasses_dictionary["Device"]["ResidentialDwelling"]("electric_vehicles_charging", BAU_elec, microgrid_manager, aggregator_elec,
+    #                                                        {"user": "yearly_consumer", "device": "electric_vehicle"},
+    #                                                        parameters={"number": 100000, "rng_generator": rng_generator},
+    #                                                        filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/ElectricVehicles.json")
+    #
+    # subclasses_dictionary["Device"]["ResidentialDwelling"]("domestic_hot_water", COOP_elec, microgrid_manager, aggregator_elec,
+    #                                                        {"user": "yearly_consumer", "device": "representative_load"},
+    #                                                        parameters={"number": 1800, "rng_generator": rng_generator},
+    #                                                        filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/DomesticHotWater.json")
 
 
     # District heating network devices
-    subclasses_dictionary["Device"]["DummyProducer"]("Waste_to_heat", COOP_waste, heat_network_manager, aggregator_heat, {"device": "heat"}, {"max_power": 9430})
+    subclasses_dictionary["Device"]["DummyProducer"]("Waste_to_heat", COOP_waste, heat_network_manager, aggregator_heat, {"device": "heat"}, {"max_power": 12000})
     subclasses_dictionary["Device"]["SensibleHeatStorage"]("Heat_storage", COOP_heat, heat_network_manager, aggregator_heat,
                                                            {"device": "district_heating_network_TES"},
-                                                           parameters={"capacity": 0, "initial_SOC": 0, "initial_temperature": 60, "outdoor_temperature_daemon": outdoor_temperature_daemon.name},
+                                                           parameters={"capacity": 0, "initial_SOC": 0, "initial_temperature": 80, "outdoor_temperature_daemon": outdoor_temperature_daemon.name},
                                                            filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/TES.json")
     # subclasses_dictionary["Device"]["Heating"]("space_heating", BAU_heat, heat_network_manager, aggregator_heat, {"user": "residential_overheat", "device": "grand_apartment_heat"}, parameters={"initial_temperature": 5, "outdoor_temperature_daemon": outdoor_temperature_daemon.name},
     #                                            filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/space_heating.json")
@@ -210,17 +216,22 @@ def create_simulation(world_name: str, path_name: str, start_time: datetime, hou
 
     subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()  # to verify energy conservation constraint
     # for computing the rewards
-    list_of_devices = ["heat_pump", "combined_heat_power",
+    list_of_devices = ["flexible_loads",
+        "heat_pump", "combined_heat_power",
                        "PV_field_1", "WT_field_1", "PV_field_2", "WT_field_2",
-                       "rigid_electricity_consumption", "electric_vehicles_charging",
-                       "flex_consumers_1", "flex_consumers_2", "flex_consumers_3", "domestic_hot_water",
-                       "Waste_to_heat", "Heat_storage", "space_heating"]
+                       "rigid_electricity_consumption",
+                       # , "electric_vehicles_charging"
+        #                "flex_consumers_1", "flex_consumers_2", "flex_consumers_3", "domestic_hot_water",
+                       "Waste_to_heat",
+                       "Heat_storage",
+                       "space_heating"
+    ]
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", list_of_devices)
 
     world.start(exogen_instruction=exogen_instruction, verbose=False)
 
 
-create_simulation("multi_energy", "cases/Studies/1st_paper_MultiEnergy/Results/",
+create_simulation("multi_energy", "cases/Studies/1st_paper_MultiEnergy/sizing/",
                   datetime(2021, 1, 1, 0), 8759,
                   "AlwaysSatisfied")
 

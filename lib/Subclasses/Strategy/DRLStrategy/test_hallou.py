@@ -2617,7 +2617,7 @@ from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.Parameter
 from cases.Studies.ClusteringAndStrategy.CasesStudied.MaisonGeothermie.SimulationScript import create_simulation
 
 
-comparison_simulation_length = 24
+comparison_simulation_length = 168
 performance_metrics = [
     "house_owner.money_earned",
     "house_owner.money_spent",

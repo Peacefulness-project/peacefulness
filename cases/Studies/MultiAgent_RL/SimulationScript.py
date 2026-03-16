@@ -92,11 +92,11 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # Creation of strategies
 
     # the training strategy
-    strategy_1 = MLStrategy(priorities_conso[0], priorities_prod[0], "startegy_1")
+    strategy_1 = MLStrategy(priorities_conso[0], priorities_prod[0], "strategy_1")
     strategy_1.add_consumption_options(options_consumption_1)
     strategy_1.add_production_options(options_production_1)
 
-    strategy_2 = MLStrategy(priorities_conso[1], priorities_prod[1],  "startegy_2")
+    strategy_2 = MLStrategy(priorities_conso[1], priorities_prod[1],  "strategy_2")
     strategy_2.add_consumption_options(options_consumption_2)
     strategy_2.add_production_options(options_production_2)
 
@@ -165,7 +165,8 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     subclasses_dictionary["Device"]["Background"]("industrial_process", curtailment_contract_industrial, community_2, aggregator_elec_2, {"user": "yearly_consumer", "device": "industrial_mini_case"}, parameters={"rng_generator": rng_generator}, filename="cases/Studies/MultiAgent_RL/AdditionalData/Background.json")
 
     # Interconnection between the two communities
-    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec", [COOP_elec, COOP_elec_residential], elec_inter, aggregator_elec_2, aggregator_elec_1, {"device": "electricity_cable"}, parameters={"max_power": 4000})
+    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec_1", [COOP_elec, COOP_elec_residential], elec_inter, aggregator_elec_2, aggregator_elec_1, {"device": "electricity_cable"}, parameters={"max_power": 4000})
+    subclasses_dictionary["Device"]["DummyConverter"]("cable_elec_2", [COOP_elec_residential, COOP_elec], elec_inter, aggregator_elec_1, aggregator_elec_2, {"device": "electricity_cable"}, parameters={"max_power": 4000})
 
     # ##############################################################################################
     # Creation of dataloggers
@@ -177,7 +178,7 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     # exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
     # exhaustive_datalogger.add_all()  # add all keys
-    device_list = ["cable_elec"]
+    device_list = ["PV_field_1", "WT_field_1", "Diesel_generator", "storage", "residential_dwellings", "cable_elec_1", "cable_elec_2", "Step", "industrial_process"]
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", device_list, period=1)
     #
     # my_device_list = ["mirror_first_floor", "mirror_second_floor", "mirror_third_floor", "mirror_roof_PV", "mirror_localDieselGenerator", "mirror_BESS"]
@@ -208,6 +209,6 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # metrics_datalogger.add("mirror_home_aggregator.energy_bought_outside")
     # metrics_datalogger.add("mirror_home_aggregator.energy_sold_outside")
 
-    world.start(exogen_instruction=exogen_instruction, verbose=False)
+    world.start(exogen_instruction=exogen_instruction, verbose=True)
 
     return metrics_datalogger

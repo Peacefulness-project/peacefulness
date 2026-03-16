@@ -33,22 +33,23 @@ def define_my_Rt(beta_0: float):
             if agent_ID == "agent_1":
                 if "residential" in key and "erased" in key:
                     energy_erased = iteration_result[key]
-                elif "residential" in key and "money" in key:
-                    money_spent = iteration_result[key]
-                elif "residential" in key and "energy" in key:
-                    energy_bought = iteration_result[key]
+                # elif "residential" in key and "money" in key:
+                #     money_spent = iteration_result[key]
+                # elif "residential" in key and "energy" in key:
+                #     energy_bought = iteration_result[key]
             elif agent_ID == "agent_2":
                 if "industrial" in key and "erased" in key:
                     energy_erased = iteration_result[key]
-                elif "industrial" in key and "money" in key:
-                    money_spent = iteration_result[key]
-                elif "industrial" in key and "energy" in key:
-                    energy_bought = iteration_result[key]
+                # elif "industrial" in key and "money" in key:
+                #     money_spent = iteration_result[key]
+                # elif "industrial" in key and "energy" in key:
+                #     energy_bought = iteration_result[key]
 
         # Finally we compute the reward
-        energy_price = money_spent / energy_bought if energy_bought != 0 else 0.0
-        erased_price = energy_price * energy_erased
-        reward += - beta_0 * abs(erased_price)
+        # energy_price = money_spent / energy_bought if energy_bought != 0 else 0.0
+        # erased_price = energy_price * energy_erased
+        # reward += - beta_0 * abs(erased_price)
+        reward += - beta_0 * abs(energy_erased)
 
         return reward
 

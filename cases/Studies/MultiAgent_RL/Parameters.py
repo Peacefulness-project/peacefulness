@@ -49,10 +49,10 @@ def performance_norm(performance_vector: Dict) -> float:
 # strategies, defined as an ordered list of the available levers
 # ######################################################################################################################
 
-consumption_options_1 = ["residential", "nothing", "storage", "sellGrid"]
-consumption_options_2 = ["industrial", "nothing", "sellGrid"]
-production_options_1 = ["Diesel_generator", "unstorage", "elecCable", "buyGrid"]
-production_options_2 = ["Step", "buyGrid"]
+consumption_options_1 = ["residential", "nothing", "storage", "sellGrid", "elecCableSell"]
+consumption_options_2 = ["industrial", "nothing", "elecCableSell", "sellGrid"]
+production_options_1 = ["Diesel_generator", "unstorage", "elecCableBuy", "buyGrid"]
+production_options_2 = ["Step", "elecCableBuy", "buyGrid", "nothing"]
 assessed_priorities_consumption_1 = [list(toto) for toto in itertools.permutations(consumption_options_1)]
 assessed_priorities_consumption_2 = [list(toto) for toto in itertools.permutations(consumption_options_2)]
 assessed_priorities_production_1 = [list(toto) for toto in itertools.permutations(production_options_1)]
@@ -68,10 +68,10 @@ def ref_priorities_consumption_1(strategy: "Strategy"):
     wt_production = strategy._catalog.get("WT_field_1.LVE.energy_wanted")["energy_maximum"]
     dg_production = strategy._catalog.get("Diesel_generator.LVE.energy_wanted")["energy_maximum"]
 
-    if abs(electricity_consumption) >= abs(pv_production) + abs(wt_production) + abs(dg_production):
-        return ["residential", "nothing", "storage", "sellGrid"]
+    if abs(electricity_consumption) >= abs(pv_production + wt_production + dg_production):
+        return ["residential", "nothing", "storage", "elecCableSell", "sellGrid"]
     else:
-        return ["residential", "storage", "sellGrid", "nothing"]
+        return ["residential", "storage", "elecCableSell", "sellGrid", "nothing"]
 
 
 def ref_priorities_consumption_2(strategy: "Strategy"):
@@ -89,4 +89,8 @@ def ref_priorities_production_1(strategy: "Strategy"):
 
 
 def ref_priorities_production_2(strategy: "Strategy"):
-    return ["Step", "buyGrid"]
+    step_production = strategy._catalog.get("Step.LVE.energy_wanted")['energy_maximum']
+    if abs(step_production) > 0:
+        return ["Step", "elecCableBuy", "buyGrid", "nothing"]
+    else:
+        return ["elecCableBuy", "buyGrid", "nothing", "Step"]

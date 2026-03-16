@@ -6,7 +6,7 @@ from cases.Studies.MultiAgent_RL.SimulationScript import create_simulation
 # my memory class
 path_to_export = "cases/Studies/MultiAgent_RL/Results/RBS"
 
-comparison_simulation_length = 8759
+comparison_simulation_length = 8760
 performance_metrics = [
                        "residential_dwellings.LVE.energy_erased", "residential_dwellings.LVE.money_spent", "residential_dwellings.LVE.energy_bought",
                        "industrial_process.LVE.energy_erased", "industrial_process.LVE.money_spent", "industrial_process.LVE.energy_bought",

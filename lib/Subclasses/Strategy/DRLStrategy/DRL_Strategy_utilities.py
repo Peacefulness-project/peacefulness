@@ -314,6 +314,20 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
 
     return return_dict
 
+def correction_to_formalism(converter_dict: Dict) -> Tuple[float, float]:
+    """
+    This helper function is used to determine the total energy consumed & produced by all the energy conversion systems inside a given aggregator.
+    It is used to correct the values of the formalism message in cases when the storage is either pure consumer or pure producer.
+    """
+    total_consumption = 0.0
+    total_production = 0.0
+    for key, value in converter_dict.items():
+        if value['energy_maximum'] < 0:  # downstream converter (supply)
+            total_production += value['energy_maximum']
+        else:
+            total_consumption += value['energy_maximum']
+
+    return total_consumption, total_production
 
 # ##########################################################################################
 # Descending interface/top_down_phase utilities

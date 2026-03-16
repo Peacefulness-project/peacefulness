@@ -187,16 +187,17 @@ class DummyConverter(Converter):
             nature_name = aggregator["nature"]
             aggregator_name = aggregator["name"]
             idx = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["aggregator"].index(aggregator_name)
-            energy_wanted_downstream.append(-self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"][idx] / self._efficiency[nature_name])  # the energy asked by the downstream aggregator
+            energy_wanted_downstream.append(abs(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"][idx]) / self._efficiency[nature_name])  # the energy asked by the downstream aggregator
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
             aggregator_name = aggregator["name"]
             idx = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["aggregator"].index(aggregator_name)
-            energy_available_upstream.append(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"][idx] / self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
+            energy_available_upstream.append(abs(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"][idx]) / self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
 
         limit_energy_upstream = min(energy_available_upstream)
         limit_energy_downstream = min(energy_wanted_downstream)
         raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        # raw_energy_transformed = (limit_energy_upstream + limit_energy_downstream) / 2  # todo try the mean as well
 
         # downstream side
         for aggregator in range(len(self ._downstream_aggregators_list)):

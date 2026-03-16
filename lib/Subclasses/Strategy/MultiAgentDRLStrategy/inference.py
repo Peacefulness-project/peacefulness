@@ -35,12 +35,12 @@ def get_action(module, observation):
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
 ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
-ENV_PARAMS["start_time"] = datetime(2023, 4, 25, 0)
+ENV_PARAMS["start_time"] = datetime(2023, 1, 1, 0, 0, 0)
 ENV_PARAMS["hours_to_simulate"] = 24
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_f16a3d44a5134d00ad59ef8bce1b5fd0/PPO_mini_case_ec168_00000_0_2026-02-24_13-32-46/checkpoint_000000"
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_07f9cb45075a407cae14c21a92b2ef99/PPO_mini_case_a64ec_00000_0_2026-03-12_11-02-59/checkpoint_000000"
 
 max_nb_exchanges = 1
-max_nb_conversions = 1
+max_nb_conversions = 2
 
 if __name__ == "__main__":
     ray.init()

@@ -32,7 +32,7 @@ def define_my_Rt(beta_0: float):
             for agg in managed_aggregators:
                 key = agg + f".{ref_name}.scaled_up_actions"
                 if key in iteration_result:
-                    scaled_actions[agg] = - beta_0 * abs(sum(iteration_result[key]))
+                    scaled_actions[agg] = - beta_0 * (abs(sum(iteration_result[key])) ** 2)
 
             # We can also retrieve energy flow values for each aggregator from the datalogger
             from_datalogger = {}
@@ -49,7 +49,7 @@ def define_my_Rt(beta_0: float):
                     bought_inside = iteration_result[agg + f".energy_sold_inside"]
                 if agg + f".energy_bought_outside" in iteration_result:
                     bought_outside = iteration_result[agg + f".energy_sold_inside"]
-                from_datalogger[agg] = - beta_0 * abs((bought_inside + bought_outside) - (sold_inside + sold_outside))
+                from_datalogger[agg] = - beta_0 * (abs((bought_inside + bought_outside) - (sold_inside + sold_outside)) ** 2)
 
             # Finally the reward is calculated and returned
             reward = 0.0
@@ -78,9 +78,9 @@ def define_my_Rt(beta_0: float):
                     else:
                         offset = 0.0
                 elif masked_action == "Energy_Production":
-                    if scaled_actions[1] > dynamic_intervals["Energy_Production"][1]:
+                    if scaled_actions[1] < dynamic_intervals["Energy_Production"][1]:
                         offset = abs(scaled_actions[1] - dynamic_intervals["Energy_Production"][1])
-                    elif scaled_actions[1] < dynamic_intervals["Energy_Production"][0]:
+                    elif scaled_actions[1] > dynamic_intervals["Energy_Production"][0]:
                         offset = abs(dynamic_intervals["Energy_Production"][0] - scaled_actions[1])
                     else:
                         offset = 0.0
@@ -97,15 +97,24 @@ def define_my_Rt(beta_0: float):
                             for key in dynamic_intervals:
                                 if str(idx) in key:
                                     interval_key = dynamic_intervals[key]
-                            if scaled_actions[idx + 2] > interval_key[1]:
-                                offset = abs(scaled_actions[idx + 2] - interval_key[1])
-                            elif scaled_actions[idx + 2] < interval_key[0]:
-                                offset = abs(interval_key[0] - scaled_actions[idx + 2])
-                            else:
-                                offset = 0.0
+                            if interval_key[1] >= 0:  # upstream converters and grid selling only
+                                if scaled_actions[idx + 2] > interval_key[1]:
+                                    offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                elif scaled_actions[idx + 2] < interval_key[0]:
+                                    offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                else:
+                                    offset = 0.0
+                            else:  # downstream converters and grid buying only
+                                if scaled_actions[idx + 2] < interval_key[1]:
+                                    offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                elif scaled_actions[idx + 2] > interval_key[0]:
+                                    offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                else:
+                                    offset = 0.0
+
                 # Finally the reward is computed based on the offset
+                # reward -= beta_0 * (offset ** 2)
                 reward -= beta_0 * offset
-                reward = ((reward + 12000) / 20100) * 2 - 1
 
         return reward
 

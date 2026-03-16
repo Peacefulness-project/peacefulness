@@ -108,7 +108,7 @@ def assess_sell_elec_cable(strategy: "Strategy", aggregator: "Aggregator", deman
     quantity_for_this_option = 0
 
     for demand in demands:
-        if demand["name"] == "cable_elec":
+        if "cable_elec_" in demand["name"]:
             quantity_for_this_option += demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
@@ -120,11 +120,12 @@ def exchanges_sell_elec_cable(strategy: "Strategy", aggregator: "Aggregator", qu
 
 def distribution_sell_elec_cable(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     i = 0
-    name = "cable_elec"
-    while sorted_demands[i]["name"] != name:  # as long as the storage is not found
+    name = "cable_elec_"
+    while not name in sorted_demands[i]["name"]:  # as long as the storage is not found
         i += 1
 
-    if sorted_demands[i]["name"] == name:
+    if name in sorted_demands[i]["name"]:
+        name = sorted_demands[i]["name"]
         if energy_available_consumption > sorted_demands[i]["quantity"]:  # if there is enough energy
             energy = sorted_demands[i]["quantity"]  # the quantity of energy needed
         else:  # if there is not enough energy available
@@ -306,7 +307,7 @@ def assess_buy_elec_cable(strategy: "Strategy", aggregator: "Aggregator", offers
     quantity_for_this_option = 0
 
     for demand in offers:
-        if demand["name"] == "cable_elec":
+        if "cable_elec_" in demand["name"]:
             quantity_for_this_option -= demand["quantity"] - demand["quantity_min"]
 
     return quantity_for_this_option
@@ -318,11 +319,12 @@ def exchanges_buy_elec_cable(strategy: "Strategy", aggregator: "Aggregator", qua
 
 def distribution_buy_elec_cable(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
-    name = "cable_elec"
-    while sorted_offers[i]["name"] != name:  # as long as the storage is not found
+    name = "cable_elec_"
+    while not name in sorted_offers[i]["name"]:  # as long as the storage is not found
         i += 1
 
-    if sorted_offers[i]["name"] == name:
+    if name in sorted_offers[i]["name"]:
+        name = sorted_offers[i]["name"]
         if energy_available_production > - sorted_offers[i]["quantity"]:  # if there is enough energy
             energy = sorted_offers[i]["quantity"]  # the quantity of energy needed
         else:  # if there is not enough energy available
@@ -478,11 +480,12 @@ def distribution_buy_outside(strategy: "Strategy", aggregator: "Aggregator", max
     return sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside
 
 
-index = ["residential", "nothing", "storage", "sellGrid"]
+index = ["residential", "nothing", "elecCableSell", "storage", "sellGrid"]
 columns = ["assess", "exchange", "distribute"]
 data = [[assess_residential, exchanges_residential, distribution_residential],
         [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
-	    [assess_storage, exchanges_storage, distribution_storage],
+        [assess_sell_elec_cable, exchanges_sell_elec_cable, distribution_sell_elec_cable],
+        [assess_storage, exchanges_storage, distribution_storage],
         [assess_sell_outside, exchanges_sell_outside, distribution_sell_outside],
         ]
 options_consumption_1 = pd.DataFrame(index=index, columns=columns, data=data)
@@ -504,8 +507,10 @@ data = [[assess_prod_DG, exchanges_prod_DG, distribution_prod_DG],
         ]
 options_production_1 = pd.DataFrame(index=index, columns=columns, data=data)
 
-index = ["Step", "buyGrid"]
+index = ["Step", "buyGrid", "elecCableBuy", "nothing"]
 data = [[assess_prod_step, exchanges_prod_step, distribution_prod_step],
         [assess_buy_outside, exchanges_buy_outside, distribution_buy_outside],
+        [assess_buy_elec_cable, exchanges_buy_elec_cable, distribution_buy_elec_cable],
+        [assess_nothing_option, exchanges_nothing_option, distribution_nothing_option],
         ]
 options_production_2 = pd.DataFrame(index=index, columns=columns, data=data)

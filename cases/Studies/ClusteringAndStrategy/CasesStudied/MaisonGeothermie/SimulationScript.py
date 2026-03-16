@@ -162,7 +162,9 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # datalogger used to get back producer outputs
     # producer_datalogger = Datalogger("performances_evaluation", "PerformancesEvaluation.txt")
-
+    subclasses_dictionary["Datalogger"]["AggregatorBalancesDatalogger"]()
+    device_list = ["heat_pump"]
+    subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", device_list, period=1)
     # datalogger for balances
     # these dataloggers record the balances for each agent, contract, nature and  cluster
     # subclasses_dictionary["Datalogger"]["ClusteringMetricsDatalogger"](period=1)

@@ -133,12 +133,15 @@ class PeacefulnessEnv(ParallelEnv):
 
         for aggregator in self.grid._catalog.aggregators.values():
             aggregator.reinitialize()
+            if not f"{aggregator.name}.incompatibility" in self.grid._catalog.keys:  # the flag indicating if a second round of decision is needed due to multi-energy devices
+                self.grid._catalog.add(f"{aggregator.name}.incompatibility", False)
+            else:
+                self.grid._catalog.set(f"{aggregator.name}.incompatibility", False)
 
         for device in self.grid._catalog.devices.values():
             device.reinitialize()
             device.update()  # devices publish the quantities they are interested in (both in demand and in offer)
 
-        self.grid._catalog.set("incompatibility", False)  # the flag indicating if a second round of decision is needed due to multi-energy devices
 
         # ###########################
         # Calculus phase
@@ -189,11 +192,12 @@ class PeacefulnessEnv(ParallelEnv):
             aggregator.check()
             # the method is recursive
 
-        if self.grid._catalog.get("incompatibility"):  # if a second round is needed
-           for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
-               aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
-           for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
-               aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+        # todo patchwork solution - for now superior absorbs the excess/deficit thus if incompatible aggregator its superior should also become incompatible ?
+        incompatibility_aggregators = self.find_incompatibility_aggregators()  # if a second round is needed
+        for aggregator in incompatibility_aggregators:  # aggregators are called according to the predefined order
+            aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+        for aggregator in incompatibility_aggregators:  # aggregators are called according to the predefined order
+            aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
 
         # ###########################
         # End of the turn
@@ -243,6 +247,7 @@ class PeacefulnessEnv(ParallelEnv):
         for RL_agent in self.agents:
             results.update(recapitulate_state(self.grid._catalog, RL_agent))
             results.update(recapitulate_decision(self.grid._catalog, RL_agent))
+            results.update(converters_recap(self.grid._catalog, RL_agent))
         # Getting the list of the dataloggers defined for the study_case with respect of operational objectives.
         for datalogger in self.grid._catalog.dataloggers.values():
             datalogger_keys = datalogger.get_keys  # retrieving the keys to be exported by the datalogger
@@ -274,7 +279,7 @@ class PeacefulnessEnv(ParallelEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return Box(low=-12000, high=8100, shape=(self.obs_size[agent], ), dtype=np.float32)
+        return Box(low=-1.0, high=1.0, shape=(self.obs_size[agent], ), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
@@ -361,3 +366,13 @@ class PeacefulnessEnv(ParallelEnv):
 
         # reinitialize random state
         setstate(self.grid._random_state)
+
+    def find_incompatibility_aggregators(self):
+        concerned_aggregators = []
+        for RL_agent in self.agents:
+            managed_aggregators = self.grid._catalog.get(f"{RL_agent}.strategy_scope")
+            for agg in managed_aggregators:
+                if self.grid._catalog.get(f"{agg.name}.incompatibility"):
+                    concerned_aggregators.append(agg)
+
+        return concerned_aggregators

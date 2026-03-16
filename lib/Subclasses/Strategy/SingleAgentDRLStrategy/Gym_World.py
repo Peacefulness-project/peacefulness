@@ -32,7 +32,7 @@ class GymWorld(World):
         self._catalog.devices[device.name] = device  # registering the device in the dedicated dictionary
         self._used_names.append(device.name)  # adding the name to the list of used names
 
-    def start(self, verbose=True, exogen_instruction: Callable = None):  # TODO uncomment for rule-based comparison
-        pass
+    # def start(self, verbose=True, exogen_instruction: Callable = None):  # TODO uncomment for rule-based comparison
+    #     pass
 
 
