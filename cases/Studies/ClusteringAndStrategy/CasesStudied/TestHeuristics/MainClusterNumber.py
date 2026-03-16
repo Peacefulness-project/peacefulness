@@ -1,3 +1,5 @@
+import datetime
+
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
 from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
 from cases.Studies.ClusteringAndStrategy.EuclidianDistanceClustering import clustering, situations_recording
@@ -9,8 +11,8 @@ import os
 
 
 # export management
-run_name = "RandomClustering"
-case = "LimitedResource"
+run_name = "Test"
+case = "LimitedResourceTestHeuristics"
 results_path = f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/"
 if "Results" not in os.listdir("./cases/Studies/ClusteringAndStrategy"):
     os.mkdir("cases/Studies/ClusteringAndStrategy/Results/")
@@ -19,17 +21,20 @@ if case not in os.listdir("./cases/Studies/ClusteringAndStrategy/Results/"):
 if run_name not in os.listdir(f"./cases/Studies/ClusteringAndStrategy/Results/{case}"):
     os.mkdir(f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/")
 
+intermediate_results = open(results_path + f"IntermediateResults_common.txt", "w")
+ref_performance = assess_reference(comparison_simulation_length, performance_norm, ref_priorities_consumption, ref_priorities_production, exported_metrics, create_simulation)
+intermediate_results.write("reference performance\n" + str(ref_performance) + "\n")
+intermediate_results.close()
+recorded_situations = situations_recording(clustering_metrics, clustering_batch_size, create_simulation, consumption_options, production_options, "ClusterNumber")
 
-for i in range(10):
-    intermediate_results = open(results_path + f"IntermediateResults_{i}_clustering_seed.txt", "w")
-
-    recorded_situations = situations_recording(clustering_metrics, clustering_batch_size, create_simulation,
-                                               consumption_options, production_options, run_name)
+for i in range(7):
+    cluster_number = i + 3
+    intermediate_results = open(results_path + f"IntermediateResults_{cluster_number}_clusters.txt", "w")
 
     # clustering
     print("--- CLUSTERING PHASE ---")
     start_time = time.process_time()
-    cluster_centers, center_sequences, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_batch_size, random_seed=i * 100)
+    cluster_centers, center_sequences, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_batch_size)
     intermediate_results.write("cluster centers:\n" + str(cluster_centers) + "\n")
     intermediate_results.write("center sequences:\n" + str(center_sequences) + "\n")
     clustering_duration = time.process_time() - start_time
@@ -42,6 +47,7 @@ for i in range(10):
                  create_simulation, find_cluster, case, run_name)
     intermediate_results.write("best couples strategies/clusters:\n" + str(best_strategies) + "\n")
     training_duration = time.process_time() - start_time
+    print(datetime.datetime.now())
 
     # comparison
     print("--- COMPARISON PHASE ---")

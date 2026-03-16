@@ -733,6 +733,8 @@ class Converter(Device):
         limit_energy_upstream = min(energy_available_upstream)
         limit_energy_downstream = min(energy_wanted_downstream)
         raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        if raw_energy_transformed != limit_energy_upstream or raw_energy_transformed != limit_energy_downstream:
+            self._catalog.set("incompatibility", True)
 
         # downstream side
         for aggregator in self._downstream_aggregators_list:
@@ -746,11 +748,6 @@ class Converter(Device):
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
             energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
 
-            # forcing the energy accorded
-            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
-            energy_accorded["quantity"] = - raw_energy_transformed * self._efficiency[nature_name]
-            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
-
         # upstream side
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
@@ -762,11 +759,6 @@ class Converter(Device):
             energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
             energy_wanted[nature_name]["efficiency"] = self._efficiency[nature_name]
-
-            # forcing the energy accorded
-            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
-            energy_accorded["quantity"] = raw_energy_transformed * self._efficiency[nature_name]
-            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
 
     def react(self):
         super().react()  # actions needed for all the devices

@@ -237,15 +237,6 @@ class Strategy:
 
         return [demands, offers]
 
-    def _reinitialise_decisions(self, aggregator: "Aggregator"):  # a method used when a second round is necessary to reset the decisions taken by the aggregator
-        message = self._create_decision_message()
-
-        for device_name in aggregator.devices:  # if there is missing energy
-            self._catalog.set(f"{device_name}.{aggregator.nature.name}.energy_accorded", message)
-
-        for subaggregator in aggregator.subaggregators:
-            self._catalog.set(f"{subaggregator.name}.{aggregator.nature.name}.energy_accorded", [])
-
     def _remove_emergencies(self, aggregator: "Aggregator", sorted_demands: List[Dict], sorted_offers: List[Dict]):  # remove all the demands and offers who are urgent
         lines_to_remove = []  # a list containing the number of lines having to be removed
 
@@ -303,7 +294,7 @@ class Strategy:
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
     def _prepare_quantitites_subaggregator(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # this function prepare the quantities and prices asked or proposed to the grid
-        message = self._create_information_message()
+        message = self._te_information_message()
 
         if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
             energy_difference = max(minimum_energy_consumed - maximum_energy_produced, 0)
@@ -625,6 +616,8 @@ class Strategy:
         sorted_demands = sorted(sorted_demands, key=sort_function, reverse=True)
         sorted_offers = sorted(sorted_offers, key=sort_function, reverse=True)
         sorted_storage = sorted(sorted_storage, key=sort_function, reverse=True)
+        # print(sorted_demands)
+        # print(sorted_offers)
 
         return [sorted_demands, sorted_offers, sorted_storage]
 
@@ -634,6 +627,7 @@ class Strategy:
         sorted_storage = []  # a list where the offers of storage are gathered
 
         for device_name in aggregator.devices:  # if there is missing energy
+            # print(device_name, self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted"))
             Emin = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_minimum"]
             Enom = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_nominal"]
             Emax = self._catalog.get(f"{device_name}.{aggregator.nature.name}.energy_wanted")["energy_maximum"]

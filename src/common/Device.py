@@ -224,15 +224,24 @@ class Device:
         """
         Method called by world to reinitialize energy and money balances at the beginning of each round.
         """
+        self._reinitialize_information_message()
+        self.reinitialize_decision_message()
 
+        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
+            self._catalog.set(f"{self.name}.{element_name}", default_value)
+
+    def _reinitialize_information_message(self):
         for nature in self.natures:
             # message exchanged
-            decision_message = self.__class__.decision_message()
-            decision_message["aggregator"] = self._natures[nature]["aggregator"].name
-            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", decision_message)
             information_message = self.__class__.information_message()
             information_message["aggregator"] = self._natures[nature]["aggregator"].name
             self._catalog.set(f"{self.name}.{nature.name}.energy_wanted", information_message)
+
+    def reinitialize_decision_message(self):
+        for nature in self.natures:
+            decision_message = self.__class__.decision_message()
+            decision_message["aggregator"] = self._natures[nature]["aggregator"].name
+            self._catalog.set(f"{self.name}.{nature.name}.energy_accorded", decision_message)
 
             # results
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", 0)
@@ -240,9 +249,6 @@ class Device:
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", 0)
             self._catalog.set(f"{self.name}.{nature.name}.money_earned", 0)
             self._catalog.set(f"{self.name}.{nature.name}.money_spent", 0)
-
-        for element_name, default_value in MessagesManager.added_information.items():  # for all added elements
-            self._catalog.set(f"{self.name}.{element_name}", default_value)
 
     def update(self):  # method updating needs of the devices before the supervision
         """
@@ -285,6 +291,7 @@ class Device:
             energy_accorded = self.get_energy_accorded(nature)
             [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent] = self.natures[nature]["contract"].billing(energy_wanted, energy_accorded, self.name)  # the contract may adjust things
             self.set_energy_accorded(nature, energy_accorded)
+            # print(self.name, energy_accorded)
 
             # update of the data at the level of the device
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", energy_erased)  # TODO: à faire comptabiliser par les contrats

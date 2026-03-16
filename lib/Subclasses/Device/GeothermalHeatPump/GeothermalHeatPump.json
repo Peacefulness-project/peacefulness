@@ -1,0 +1,9 @@
+{
+  "technical_data": {
+    "dummy_heat_pump": {
+      "isentropic_efficiency":0.6,
+      "network_temperature": 35,
+      "conductance": 22.5
+    }
+  }
+}

@@ -1,5 +1,5 @@
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.Parameters import *
-from cases.Studies.ClusteringAndStrategy.CasesStudied.LimitedResourceManagement.SimulationScript import create_simulation
+from cases.Studies.ClusteringAndStrategy.CasesStudied.GeothermalHouse.Parameters import *
+from cases.Studies.ClusteringAndStrategy.CasesStudied.GeothermalHouse.SimulationScript import create_simulation
 from cases.Studies.ClusteringAndStrategy.EuclidianDistanceClustering import clustering, situations_recording
 from cases.Studies.ClusteringAndStrategy.Training import training
 from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, assess_reference
@@ -7,10 +7,9 @@ from cases.Studies.ClusteringAndStrategy.Comparison import assess_performance, a
 import time
 import os
 
-
 # export management
 run_name = "RandomClustering"
-case = "LimitedResource"
+case = "GeothermalHouse"
 results_path = f"cases/Studies/ClusteringAndStrategy/Results/{case}/{run_name}/"
 if "Results" not in os.listdir("./cases/Studies/ClusteringAndStrategy"):
     os.mkdir("cases/Studies/ClusteringAndStrategy/Results/")
@@ -29,7 +28,7 @@ for i in range(10):
     # clustering
     print("--- CLUSTERING PHASE ---")
     start_time = time.process_time()
-    cluster_centers, center_sequences, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_batch_size, random_seed=i * 100)
+    cluster_centers, center_sequences, find_cluster = clustering(cluster_number, clustering_metrics, recorded_situations, clustering_batch_size, random_seed=100 * i)
     intermediate_results.write("cluster centers:\n" + str(cluster_centers) + "\n")
     intermediate_results.write("center sequences:\n" + str(center_sequences) + "\n")
     clustering_duration = time.process_time() - start_time

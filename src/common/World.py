@@ -361,17 +361,16 @@ class World:
                 # the method is recursive
 
             # multi-energy devices management
-            # as multi-energy devices state depends on different aggreators, a second round of distribution is performed in case of an incompability
+            # as multi-energy devices state depends on different aggregators, a second round of distribution is performed in case of an incompability
             # multi-energy devices update their balances first and correct potential incompatibilities
             for device in self._catalog.devices.values():
                 device.second_update()
 
-            # aggregators then check if everything is fine and correct potential problems
-            for aggregator in independent_aggregators_list:
-                aggregator.check()
-                # the method is recursive
-
             if self._catalog.get("incompatibility"):  # if a second round is needed
+                for device in self._catalog.devices.values():
+                    device.reinitialize_decision_message()
+                for aggregator in self._catalog.aggregators.values():
+                    aggregator.reinitialise_decisions()
                 for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order
                     aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
                 for aggregator in independent_aggregators_list:  # aggregators are called according to the predefined order

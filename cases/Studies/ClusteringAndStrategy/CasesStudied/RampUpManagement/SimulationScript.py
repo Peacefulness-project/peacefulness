@@ -46,7 +46,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
 
     # ##############################################################################################
     # Definition of the path to the files
-    pathExport = "cases/Studies/ClusteringAndStrategy/Results/RampUpManagement/" + step_name
+    pathExport = "cases/Studies/ClusteringAndStrategy/Results/RampUpManagement2/" + step_name
     world.set_directory(pathExport)  # registration
 
     # ##############################################################################################
