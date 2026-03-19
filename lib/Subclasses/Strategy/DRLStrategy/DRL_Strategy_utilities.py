@@ -214,7 +214,7 @@ def my_basic_share(my_data, max_value, min_value):
         if sum(max_value) == 0 and sum(min_value) == 0:
             return_value = 0.0
         else:
-            return_value = sum(my_data) / ((sum(max_value) + sum(min_value)) / 2)
+            return_value = sum(my_data) / ((abs(sum(max_value)) + abs(sum(min_value))) / 2)
         return return_value
 
 
@@ -297,13 +297,13 @@ def mutualize_formalism_message(formalism_dict: dict) -> dict:
             elif element == 'energy_maximum':
                 energy_max.append(storage_dict[device_name][element])
             elif element == 'state_of_charge':
-                state_of_charge.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
+                state_of_charge.append(storage_dict[device_name][element] * ((abs(energy_min[-1]) + abs(energy_max[-1])) / 2))
             elif element == 'capacity':
                 capacity.append(storage_dict[device_name][element])
             elif element == 'self_discharge_rate':
-                self_discharge_rate.append(abs(storage_dict[device_name][element]) * ((energy_min[-1] + energy_max[-1]) / 2))
+                self_discharge_rate.append(abs(storage_dict[device_name][element]) * ((abs(energy_min[-1]) + abs(energy_max[-1])) / 2))
             else:
-                efficiency.append(storage_dict[device_name][element] * ((energy_min[-1] + energy_max[-1]) / 2))
+                efficiency.append(storage_dict[device_name][element] * ((abs(energy_min[-1]) + abs(energy_max[-1])) / 2))
 
     if len(energy_min) != 0:  # at least one storage device is managed by the aggregator
         return_dict["Energy_Storage"] = {'energy_minimum': if_it_exists(energy_min, sum), 'energy_maximum': if_it_exists(energy_max, sum),

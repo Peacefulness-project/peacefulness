@@ -193,13 +193,21 @@ class SingleAgentDRLStrategy(Strategy):
             # the energy excess/deficit of consumption/production is absorbed by energy exchange with superior
             old_energy_accorded_from_superior = self._catalog.get(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded")
             if isinstance(old_energy_accorded_from_superior, list):
-                if old_energy_accorded_from_superior[0]['quantity'] > 0:
-                    money_spent_outside -= old_energy_accorded_from_superior[0]['quantity'] * old_energy_accorded_from_superior[0]['price']
-                    energy_bought_outside -= old_energy_accorded_from_superior[0]['quantity'] * aggregator.efficiency
-                else:
-                    money_earned_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * old_energy_accorded_from_superior[0]['price']
-                    energy_sold_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * aggregator.efficiency
-                old_energy_accorded_from_superior[0]['quantity'] += (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+                if len(old_energy_accorded_from_superior) > 0:  # if the superior aggregator has the same energy carrier
+                    if old_energy_accorded_from_superior[0]['quantity'] > 0:
+                        money_spent_outside -= old_energy_accorded_from_superior[0]['quantity'] * old_energy_accorded_from_superior[0]['price']
+                        energy_bought_outside -= old_energy_accorded_from_superior[0]['quantity'] * aggregator.efficiency
+                    else:
+                        money_earned_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * old_energy_accorded_from_superior[0]['price']
+                        energy_sold_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * aggregator.efficiency
+                    old_energy_accorded_from_superior[0]['quantity'] -= (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+                else:  # if the aggregator has to make the balance inside by itself
+                    deficit_to_manage = conso_dict["excess"] + prod_dict["deficit"]  # < 0 surplus of production / reduction of consumption needed
+                    excess_to_manage = conso_dict["deficit"] + prod_dict["excess"]  # > 0 reduction of production / surplus of consumption needed
+                    # todo patchwork solution for the MEG MARL case study - the incinerator absorbs the offset
+                    energy_produced = self._catalog.get("Waste_to_heat.LTH.energy_accorded")
+                    energy_produced["quantity"] += excess_to_manage + deficit_to_manage
+                    self._catalog.set("Waste_to_heat.LTH.energy_accorded", energy_produced)
             else:
                 if old_energy_accorded_from_superior['quantity'] > 0:
                     money_spent_outside -= old_energy_accorded_from_superior['quantity'] * old_energy_accorded_from_superior['price']
@@ -207,7 +215,7 @@ class SingleAgentDRLStrategy(Strategy):
                 else:
                     money_earned_outside -= abs(old_energy_accorded_from_superior['quantity']) * old_energy_accorded_from_superior['price']
                     energy_sold_outside -= abs(old_energy_accorded_from_superior['quantity']) * aggregator.efficiency
-                old_energy_accorded_from_superior['quantity'] += (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+                old_energy_accorded_from_superior['quantity'] -= (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
             self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
             # updating external balance
             [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
@@ -752,12 +760,12 @@ class SingleAgentDRLStrategy(Strategy):
                         money_earned_inside += energy_to_attribute * price
 
                     og_msg = self._catalog.get(f"{element['name']}.{aggregator.nature.name}.energy_accorded")
-                    if "aggregator" in og_msg.keys():  # for dummy converters (with the same energy nature)
+                    if isinstance(og_msg['quantity'], list):  # for dummy converters (with the same energy nature)
                         my_idx = og_msg["aggregator"].index(aggregator.name)
                         og_msg['quantity'][my_idx] = energy_to_attribute
                         og_msg['price'][my_idx] = price
                         self._catalog.set(f"{element['name']}.{aggregator.nature.name}.energy_accorded", og_msg)
-                    else:  # for normal converter (with different energy natures) - todo à confirmer
+                    else:  # for normal converter (with different energy natures)
                         og_msg['quantity'] = energy_to_attribute
                         og_msg['price'] = price
                         self._catalog.set(f"{element['name']}.{aggregator.nature.name}.energy_accorded", og_msg)
@@ -776,31 +784,36 @@ class SingleAgentDRLStrategy(Strategy):
         prod_plus = 0.0
         prod_minus = 0.0
 
-        for element in converters:  # todo patchwork solution for dummy converters (probably would work for standard converters as well but need to be checked)
+        for element in converters:
             for exchange in old_decision:
                 if element['name'] in exchange:
                     old_exch = old_decision[exchange]
                     acc_msg = self._catalog.get(f"{element['name']}.{aggregator.nature.name}.energy_accorded")
-                    if 'aggregator' in acc_msg.keys():
+                    if isinstance(acc_msg['quantity'], list):  # for dummy converters (same energy carrier)
                         my_idx = acc_msg["aggregator"].index(aggregator.name)
                         offset[element['name']] = old_exch - acc_msg["quantity"][my_idx]
                         price = acc_msg["price"][my_idx]
-                        if old_exch > 0 and offset[element['name']] < 0:
-                            conso_plus += offset[element['name']]
-                            energy_sold_inside += abs(offset[element['name']])
-                            money_earned_inside += abs(offset[element['name']]) * price
-                        elif old_exch > 0 and offset[element['name']] > 0:
-                            conso_minus += offset[element['name']]
-                            energy_sold_inside -= abs(offset[element['name']])
-                            money_earned_inside -= abs(offset[element['name']]) * price
-                        elif old_exch < 0 and offset[element['name']] < 0:
-                            prod_minus += offset[element['name']]
-                            energy_bought_inside -= abs(offset[element['name']])
-                            money_spent_inside -= abs(offset[element['name']]) * price
-                        elif old_exch < 0 and offset[element['name']] > 0:
-                            prod_plus += offset[element['name']]
-                            energy_bought_inside += abs(offset[element['name']])
-                            money_spent_inside += abs(offset[element['name']]) * price
+                    else:  # for normal converters
+                        offset[element['name']] = old_exch - acc_msg["quantity"]
+                        price = acc_msg["price"]
+
+                    if old_exch > 0 and offset[element['name']] < 0:
+                        conso_plus += offset[element['name']]
+                        energy_sold_inside += abs(offset[element['name']])
+                        money_earned_inside += abs(offset[element['name']]) * price
+                    elif old_exch > 0 and offset[element['name']] > 0:
+                        conso_minus += offset[element['name']]
+                        energy_sold_inside -= abs(offset[element['name']])
+                        money_earned_inside -= abs(offset[element['name']]) * price
+                    elif old_exch < 0 and offset[element['name']] < 0:
+                        prod_minus += offset[element['name']]
+                        energy_bought_inside -= abs(offset[element['name']])
+                        money_spent_inside -= abs(offset[element['name']]) * price
+                    elif old_exch < 0 and offset[element['name']] > 0:
+                        prod_plus += offset[element['name']]
+                        energy_bought_inside += abs(offset[element['name']])
+                        money_spent_inside += abs(offset[element['name']]) * price
+
 
         consumption_offset = {"deficit": conso_minus, "excess": conso_plus}
         production_offset = {"deficit": prod_minus, "excess": prod_plus}

@@ -123,8 +123,6 @@ class TrainingStrategy(Strategy):
         # storage management
         sorted_demands = sorted_demands + sorted_storage
         sorted_offers = sorted_offers + sorted_storage
-        if self._catalog.get('simulation_time') == 5900:
-            print("toto")
 
         energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside = self._apply_priorities_distribution(aggregator, min_price, max_price, sorted_demands, sorted_offers, energy_available_consumption, energy_available_production)
 

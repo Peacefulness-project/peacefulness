@@ -6,7 +6,7 @@ import numpy as np
 # ##############################################################################################
 # Importations
 from datetime import datetime, timedelta
-from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Gym_World import GymWorld
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Gym_World import GymWorld  # for the special case of using same nature converter
 # from src.common.World import World
 # pre-defined natures
 from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity

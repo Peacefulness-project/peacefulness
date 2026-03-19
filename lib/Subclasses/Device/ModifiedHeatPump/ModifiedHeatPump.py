@@ -46,3 +46,21 @@ class ModifiedHeatPump(Converter):
         self._efficiency = {"LVE": 1, "LTH": self._instant_efficiency}
         super().update()
 
+    def second_update(self):  # todo special case for RL since we can't ask a different action during the same state (step)
+        super().second_update()
+        # downstream side
+        for aggregator in self._downstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            # forcing the energy accorded
+            energy_wanted = self._catalog.get(f"{self.name}.{nature_name}.energy_wanted")["energy_maximum"]
+            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            energy_accorded['quantity'] = energy_wanted
+            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
+        # upstream side
+        for aggregator in self._upstream_aggregators_list:
+            nature_name = aggregator["nature"]
+            # forcing the energy accorded
+            energy_wanted = self._catalog.get(f"{self.name}.{nature_name}.energy_wanted")["energy_maximum"]
+            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            energy_accorded['quantity'] = energy_wanted
+            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)

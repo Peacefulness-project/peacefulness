@@ -294,7 +294,7 @@ class Strategy:
         return [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside]
 
     def _prepare_quantitites_subaggregator(self, maximum_energy_produced: float, maximum_energy_consumed: float, minimum_energy_produced: float, minimum_energy_consumed: float, quantities_and_prices: List[Dict]):  # this function prepare the quantities and prices asked or proposed to the grid
-        message = self._te_information_message()
+        message = self._create_information_message()
 
         if maximum_energy_consumed > maximum_energy_produced:  # if energy is lacking
             energy_difference = max(minimum_energy_consumed - maximum_energy_produced, 0)

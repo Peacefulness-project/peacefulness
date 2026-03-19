@@ -32,7 +32,7 @@ def define_my_Rt(beta_0: float):
             for agg in managed_aggregators:
                 key = agg + f".{ref_name}.scaled_up_actions"
                 if key in iteration_result:
-                    scaled_actions[agg] = - beta_0 * (abs(sum(iteration_result[key])) ** 2)
+                    scaled_actions[agg] = - beta_0 * abs(sum(iteration_result[key]))
 
             # We can also retrieve energy flow values for each aggregator from the datalogger
             from_datalogger = {}
@@ -49,7 +49,7 @@ def define_my_Rt(beta_0: float):
                     bought_inside = iteration_result[agg + f".energy_sold_inside"]
                 if agg + f".energy_bought_outside" in iteration_result:
                     bought_outside = iteration_result[agg + f".energy_sold_inside"]
-                from_datalogger[agg] = - beta_0 * (abs((bought_inside + bought_outside) - (sold_inside + sold_outside)) ** 2)
+                from_datalogger[agg] = - beta_0 * abs((bought_inside + bought_outside) - (sold_inside + sold_outside))
 
             # Finally the reward is calculated and returned
             reward = 0.0

@@ -158,8 +158,8 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
                 lines_to_remove.append(i)
 
                 if energy < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
-                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
-                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy - energy_available_production)
+                    unwanted_cuts = strategy._catalog.get(f"unwanted_delivery_cuts_{strategy.name}")
+                    strategy._catalog.set(f"unwanted_delivery_cuts_{strategy.name}", unwanted_cuts - energy - energy_available_production)
                     energy = - energy_available_production  # it is served partially, even if it is urgent
 
                 if not isinstance(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")['aggregator'], list):  # traitement normal
@@ -189,8 +189,8 @@ def distribution_min_prod(strategy: "Strategy", aggregator: "Aggregator", min_pr
                 energy_maximum = sorted_offers[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum < - energy_available_production:  # if the quantity offered is superior to the rest of energy available
-                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
-                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts - energy_minimum - energy_available_production)
+                    unwanted_cuts = strategy._catalog.get(f"unwanted_delivery_cuts_{strategy.name}")
+                    strategy._catalog.set(f"unwanted_delivery_cuts_{strategy.name}", unwanted_cuts - energy_minimum - energy_available_production)
                     energy = - energy_available_production  # it is served partially, even if it is urgent
                 else:
                     energy = energy_minimum
@@ -247,8 +247,8 @@ def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_p
                 lines_to_remove.append(i)
 
                 if energy > energy_available_consumption + 1e-6:  # if the quantity demanded is superior to the rest of energy available
-                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
-                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts + energy-energy_available_consumption)
+                    unwanted_cuts = strategy._catalog.get(f"unwanted_delivery_cuts_{strategy.name}")
+                    strategy._catalog.set(f"unwanted_delivery_cuts_{strategy.name}", unwanted_cuts + energy-energy_available_consumption)
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
 
                 if not isinstance(strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")['aggregator'], list):  # traitement normal
@@ -278,8 +278,8 @@ def distribution_min_conso(strategy: "Strategy", aggregator: "Aggregator", max_p
                 energy_maximum = sorted_demands[i]["quantity"]  # the maximum quantity of energy asked
 
                 if energy_minimum > energy_available_consumption:  # if the quantity demanded is superior to the rest of energy available
-                    unwanted_cuts = strategy._catalog.get("unwanted_delivery_cuts")
-                    strategy._catalog.set("unwanted_delivery_cuts", unwanted_cuts + energy_minimum - energy_available_consumption)
+                    unwanted_cuts = strategy._catalog.get(f"unwanted_delivery_cuts_{strategy.name}")
+                    strategy._catalog.set(f"unwanted_delivery_cuts_{strategy.name}", unwanted_cuts + energy_minimum - energy_available_consumption)
                     energy = energy_available_consumption  # it is served partially, even if it is urgent
                 else:
                     energy = energy_minimum

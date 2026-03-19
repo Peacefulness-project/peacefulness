@@ -66,7 +66,7 @@ def group_components(catalog: "Catalog", agent_ID=None):
     for aggregator in catalog.get(f"{ref_name}.strategy_scope"):
         formalism_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.formalism_message")
 
-        # TODO patchwork solution - changing observation size breaks the RLlib loop
+        # TODO patchwork solution - changing observation size breaks the RLlib loop (hydro-electricity)
         if "flexibility" not in formalism_message[aggregator.name]["Energy_Production"]:
             formalism_message[aggregator.name]["Energy_Production"]["flexibility"] = 0.0
         if "interruptibility" not in formalism_message[aggregator.name]["Energy_Production"]:
@@ -74,15 +74,25 @@ def group_components(catalog: "Catalog", agent_ID=None):
         if "coming_volume" not in formalism_message[aggregator.name]["Energy_Production"]:
             formalism_message[aggregator.name]["Energy_Production"]["coming_volume"] = 0.0
 
+        # TODO patchwork solution - changing observation size breaks the RLlib loop (heat demand during off-season)
+        if len(formalism_message[aggregator.name]["Energy_Consumption"]) == 0:
+            formalism_message[aggregator.name]["Energy_Consumption"]["energy_minimum"] = 0.0
+            formalism_message[aggregator.name]["Energy_Consumption"]["energy_maximum"] = 0.0
+            formalism_message[aggregator.name]["Energy_Consumption"]["flexibility"] = 0.0
+            formalism_message[aggregator.name]["Energy_Consumption"]["interruptibility"] = 0.0
+            formalism_message[aggregator.name]["Energy_Consumption"]["coming_volume"] = 0.0
 
         if aggregator.forecaster:
             prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.forecasting_message")
         prices[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.energy_prices")
         conversions[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.converter_message")
-        if aggregator.subaggregators:
-            direct_exchanges[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
-        if aggregator.superior:
-            direct_exchanges[aggregator.superior.name] = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
+        if f"{aggregator.name}.{ref_name}.direct_energy_exchanges" in catalog.keys:
+            exchanges = catalog.get(f"{aggregator.name}.{ref_name}.direct_energy_exchanges")
+            for subaggregator in aggregator.subaggregators:
+                if subaggregator.name in exchanges.keys():
+                    direct_exchanges[aggregator.name] = {subaggregator.name: exchanges[subaggregator.name]}
+            if aggregator.superior and aggregator.superior.nature == aggregator.nature:
+                direct_exchanges[aggregator.superior.name] = {aggregator.name: exchanges[aggregator.name]}
 
     # Normalization based on the length simulated OR cyclical time with cos/sin
     # relevant_time = catalog.get("simulation_time")
@@ -461,12 +471,16 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
         reduced_action = None
 
     # First, we retrieve the normalized actions.
+    nb_direct_exchanges = 0
     nb_conversion_actions = 0
     if aggregator.name in raw_state["conversion"]:
         nb_conversion_actions += len(raw_state["conversion"][aggregator.name]["Energy_Conversion"])
         list_of_converters = list(raw_state["conversion"][aggregator.name]["Energy_Conversion"].keys())
     nb_conversion_actions -= conversion_to_remove
-    nb_direct_exchanges = len(aggregator.subaggregators)
+    if aggregator.subaggregators:
+        for subaggregator in aggregator.subaggregators:
+            if aggregator.nature == subaggregator.nature:
+                nb_direct_exchanges += 1
     if aggregator.superior and aggregator.superior.nature == aggregator.nature:
         nb_direct_exchanges += 1
     nb_direct_exchanges -= exchange_to_remove
@@ -600,6 +614,21 @@ def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict,
     Eexch = dict(zip(Eexch.keys(), energy_exchanges))  # rebuilding the Eexch dict
 
     return Econ, Eprod, Esto, Eexch
+
+
+def second_ask(aggregator: "Aggregator"):
+    # forecast update
+    if aggregator._forecaster:
+        aggregator._forecaster.update_forecast()
+
+    quantities_and_prices = aggregator._strategy.bottom_up_phase(aggregator)
+    if quantities_and_prices and aggregator._contract:
+        quantities_and_prices = [aggregator._contract.contract_modification(element, aggregator.name) for element in quantities_and_prices]
+        aggregator._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_wanted", quantities_and_prices)
+
+
+def second_distribute(aggregator: "Aggregator"):
+    aggregator._strategy.top_down_phase(aggregator)  # distribute the energy acquired from or sold to the exterior
 
 
 def recapitulate_decision(catalog: "Catalog", agent_ID=None) -> Dict:

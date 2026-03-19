@@ -195,9 +195,9 @@ class PeacefulnessEnv(ParallelEnv):
         # todo patchwork solution - for now superior absorbs the excess/deficit thus if incompatible aggregator its superior should also become incompatible ?
         incompatibility_aggregators = self.find_incompatibility_aggregators()  # if a second round is needed
         for aggregator in incompatibility_aggregators:  # aggregators are called according to the predefined order
-            aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+            second_ask(aggregator)  # aggregators make local balances and then publish their needs (both in demand and in offer)
         for aggregator in incompatibility_aggregators:  # aggregators are called according to the predefined order
-            aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+            second_distribute(aggregator)  # aggregators make local balances and then publish their needs (both in demand and in offer)
 
         # ###########################
         # End of the turn
@@ -232,7 +232,7 @@ class PeacefulnessEnv(ParallelEnv):
            print(f"End of the iteration {self.grid._catalog.get('simulation_time')}")
 
         # Termination condition
-        terminations = {agent: False for agent in self.agents}  # TODO maybe add later the multi-energy check phase in the corresponding strategy
+        terminations = {agent: False for agent in self.agents}
 
         # Truncation condition
         if self.grid._catalog.get('simulation_time') == self.grid._catalog.get("time_limit"):

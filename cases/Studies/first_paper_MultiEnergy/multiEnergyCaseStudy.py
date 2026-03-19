@@ -1,13 +1,12 @@
 # This script is the one deconstructed in the tuto to create a case on the wiki.
-from itertools import islice
-from typing import Callable, List
 from scipy.stats import gamma
 import numpy as np
 
 # ##############################################################################################
 # Importations
-from datetime import datetime, timedelta
-from src.common.World import World
+from datetime import datetime
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Gym_World import GymWorld
+# from src.common.World import World
 # pre-defined natures
 from lib.DefaultNatures.DefaultNatures import load_low_voltage_electricity, load_low_temperature_heat, load_low_pressure_gas
 from src.common.Agent import Agent
@@ -15,12 +14,9 @@ from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
-from cases.Studies.first_paper_MultiEnergy.OptionsManagementFunctions import options_consumption_1, options_production_1, options_consumption_2, options_production_2
 
 
-def create_simulation(hours_simulated: int, priorities_conso: List, priorities_prod: List, step_name: str,
-                      metrics: list = [], delay_days: int = 0, random_seed: int = 0, standard_deviation: int = 0,
-                      exogen_instruction: Callable = None):
+def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: list = [], standard_deviation: float = 0.25, red_dof_flag=False):
     # ##############################################################################################
     # Minimum
     # the following objects are necessary for the simulation to be performed
@@ -31,31 +27,28 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # Importation of subclasses
     # all the subclasses are imported in the following dictionary
     subclasses_dictionary = get_subclasses()
-    from cases.Studies.ClusteringAndStrategy.MLStrategy import MLStrategy
 
     # ##############################################################################################
     # Creation of the world
     # a world contains all the other elements of the model
     # a world needs just a name
-    world_name = f"clustering_case_day_{delay_days}"
-    world = World(world_name)  # creation
+    world_name = world_name + f"_{random_seed[0]}"
+    world = GymWorld(world_name)  # creation
 
     # ##############################################################################################
     # Definition of the path to the files
-    path_name = "cases/Studies/first_paper_MultiEnergy/Results/RBS" + step_name
     world.set_directory(path_name)  # registration
 
     # ##############################################################################################
     # Definition of the random seed
     # The default seed is the current time (the value returned by datetime.now())
-    world.set_random_seed(random_seed)
+    world.set_random_seed(random_seed[0])
 
     # ##############################################################################################
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
     # a start date in the datetime format
-    start_time = datetime(year=2021, month=1, day=1, hour=0, minute=0, second=0) + timedelta(hours=delay_days)
-    world.set_time(start_time,  # time management: start date
+    world.set_time(start_date,  # time management: start date
                    1,  # value of a time step (in hours)
                    hours_simulated)  # number of time steps simulated
 
@@ -102,13 +95,8 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     # Creation of strategies
 
     # the training strategy
-    strategy_1 = MLStrategy(priorities_conso[0], priorities_prod[0], "strategy_elec")
-    strategy_1.add_consumption_options(options_consumption_1)
-    strategy_1.add_production_options(options_production_1)
-
-    strategy_2 = MLStrategy(priorities_conso[1], priorities_prod[1], "strategy_therm")
-    strategy_2.add_consumption_options(options_consumption_2)
-    strategy_2.add_production_options(options_production_2)
+    strategy_1 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_1", red_dof_flag=red_dof_flag)
+    strategy_2 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_2", red_dof_flag=red_dof_flag)
 
     # the strategy grid, which always proposes an infinite quantity to sell and to buy
     grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -149,13 +137,11 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
 
     # ##############################################################################################
     # Manual creation of devices
-    np.random.seed(seed=random_seed)
-
     def rng_generator(consumption):
         if bool(standard_deviation) & bool(consumption):
             a = (1 / standard_deviation) ** 2
             b = standard_deviation ** 2 * consumption
-            toto = gamma.rvs(a, scale=b)
+            toto = gamma.rvs(a, scale=b, random_state=random_seed[1])
             return toto
         else:
             return consumption
@@ -207,11 +193,9 @@ def create_simulation(hours_simulated: int, priorities_conso: List, priorities_p
     for key in metrics:
         metrics_datalogger.add(key)
 
-    exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
-    exhaustive_datalogger.add_all()  # add all keys
+    # exhaustive_datalogger = Datalogger("exhaustive_datalogger", "logs")
+    # exhaustive_datalogger.add_all()  # add all keys
 
-    world.start(exogen_instruction=exogen_instruction, verbose=False)
-
-    return metrics_datalogger
+    return world
 
 
