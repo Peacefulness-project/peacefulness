@@ -38,9 +38,9 @@ def define_my_Rt(beta_0: float):
         for metric in list_of_keys:
             if metric in iteration_result:
                 reward += (
-                    beta_0 * iteration_result[metric]
+                    beta_0 * iteration_result[metric] / 18000.0
                     if "sold" in metric
-                    else -beta_0 * iteration_result[metric]
+                    else -beta_0 * iteration_result[metric] / 11000.0
                 )
                 # reward += (
                 #     beta_0 * iteration_result[metric]

@@ -2,11 +2,13 @@
 
 # Imports
 from pettingzoo.utils.wrappers import BaseParallelWrapper
+from gymnasium.spaces import Box
+import functools
 import numpy as np
 import torch
 # from feasibility_policy import FeasibilityPolicy
 from gymnasium import spaces
-from typing import Callable
+from typing import Callable, Dict, List
 # from AmUtilities import feasibility_relevant_state
 
 class ScaleRewardsWrapper(BaseParallelWrapper):
@@ -146,3 +148,125 @@ class ActionMappingWrapper(BaseParallelWrapper):
         self._last_obs = {agent: self.state_sampler(self.env.grid._catalog, self.env.normalization_parameters, agent) for agent in self.env.agents}
 
         return obs, rewards, terminations, truncations, infos
+
+
+class PotentialBasedShapingWrapper(BaseParallelWrapper):
+    """
+    Using Potential-Based Reward Shaping (PBRS) to guide the training.
+    """
+    def __init__(self, env, gamma, exponential, base, potential_shift, reset_to_bias, reset_value, worst_imbalance: Dict, norm_score: Dict, goal_metrics: List, delayed_reward: Callable):
+        super().__init__(env)
+        self.delayed_reward_metrics = {}
+        self.goal_metrics = goal_metrics
+        self.norm_reward = norm_score
+        self.goal = delayed_reward
+        self.gamma = gamma
+        self.exponential = exponential
+        self.base = base
+        self.potential_shift = potential_shift
+        self.reset_to_bias = reset_to_bias
+        self.reset_value = reset_value
+        self.max_potential = worst_imbalance
+
+    def potential(self, state_info):
+        potential = {}
+        for agent_id in state_info:
+            potential[agent_id] = state_info[agent_id][-1]
+        return potential
+
+    def rescale_potential(self, potential):
+        scaled_potential = {}
+        for agent_id in potential:
+            scaled_potential[agent_id] = abs(potential[agent_id]) / self.max_potential[agent_id]
+        return scaled_potential
+
+    def exponential_potential(self, potential):
+        exp_pot = {}
+        for agent_id in potential:
+            exp_pot[agent_id] = self.base ** (potential[agent_id] - 1)
+        return exp_pot
+
+    def shift_potential(self, potential):
+        shift_pot = {}
+        for agent_id in potential:
+            shift_pot[agent_id] = potential[agent_id] + self.potential_shift / (self.gamma - 1)
+        return shift_pot
+
+    def is_terminal(self, potential, done):
+        if done:
+            term_pot = {}
+            if not self.reset_to_bias:
+                for agent in potential:
+                    term_pot[agent] = 0
+            else:
+                for agent in potential:
+                    term_pot[agent] = self.reset_value
+            return term_pot
+        else:
+            return potential
+
+    def shaped_rewards(self, rewards, prev_pot, cur_pot):
+        for agent in rewards:
+            rewards[agent] = rewards[agent] + (self.gamma * cur_pot[agent] - prev_pot[agent])
+        return rewards
+
+    def reset(self, seed=None, options=None):
+        obs, infos = self.env.reset(seed=seed, options=options)
+        for agent_id in obs:
+            obs[agent_id] = np.insert(obs[agent_id], len(obs[agent_id]), 0)
+        for metric in self.goal_metrics:
+            self.delayed_reward_metrics[metric] = []
+        return obs, infos
+
+    def obs_in_step(self):
+        obs = {}
+        for agent in self.env.agents:
+            obs[agent] = self.env.grid._catalog.get(f"{agent}.observation")
+        return obs
+
+    def update_goal_metrics(self, results):
+        for key, val in results.items():
+            if key not in self.delayed_reward_metrics:
+                continue
+            else:
+                self.delayed_reward_metrics[key].append(val)
+
+    def step(self, actions):
+        done = False
+        obs = self.obs_in_step()
+        next_obs, rewards, terminated, truncated, infos = self.env.step(actions)
+        self.update_goal_metrics(infos["agent_1"])
+
+        for agent_id in obs:
+            obs[agent_id] = np.insert(obs[agent_id], len(obs[agent_id]), rewards[agent_id])
+            next_obs[agent_id] = np.insert(next_obs[agent_id], len(next_obs[agent_id]), 0)
+
+        for v in terminated.values():
+            if v == True:
+                done = True
+        for v in truncated.values():
+            if v == True:
+                done = True
+
+        cur_pot, prev_pot = self.potential(next_obs), self.potential(obs)
+        cur_pot, prev_pot = self.rescale_potential(cur_pot), self.rescale_potential(prev_pot)
+        if self.exponential:
+            cur_pot, prev_pot = self.exponential_potential(cur_pot), self.exponential_potential(prev_pot)
+        # cur_pot = self.is_terminal(self.shift_potential(cur_pot), done)
+        # prev_pot = self.is_terminal(self.shift_potential(prev_pot), False)
+        rewards = {agent: 0.0 for agent in obs}
+        if done:
+            cur_pot = {agent: 0.0 for agent in obs}
+            rewards = self.goal(rewards, self.delayed_reward_metrics, self.norm_reward)
+
+        rewards = self.shaped_rewards(rewards, prev_pot, cur_pot)
+
+        for agent in obs:
+            next_obs[agent][-1] = obs[agent][-1]
+
+        return next_obs, rewards, terminated, truncated, infos
+
+    @functools.lru_cache(maxsize=None)
+    def observation_space(self, agent):
+        return Box(low=-1.0, high=1.0, shape=(self.obs_size[agent] + 1, ), dtype=np.float32)
+

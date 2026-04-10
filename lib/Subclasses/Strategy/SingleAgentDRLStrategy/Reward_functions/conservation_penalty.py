@@ -44,11 +44,11 @@ def define_my_Rt(beta_0: float):
                 if agg + f".energy_sold_inside" in iteration_result:
                     sold_inside = iteration_result[agg + f".energy_sold_inside"]
                 if agg + f".energy_sold_outside" in iteration_result:
-                    sold_outside = iteration_result[agg + f".energy_sold_inside"]
+                    sold_outside = iteration_result[agg + f".energy_sold_outside"]
                 if agg + f".energy_bought_inside" in iteration_result:
-                    bought_inside = iteration_result[agg + f".energy_sold_inside"]
+                    bought_inside = iteration_result[agg + f".energy_bought_inside"]
                 if agg + f".energy_bought_outside" in iteration_result:
-                    bought_outside = iteration_result[agg + f".energy_sold_inside"]
+                    bought_outside = iteration_result[agg + f".energy_bought_outside"]
                 from_datalogger[agg] = - beta_0 * abs((bought_inside + bought_outside) - (sold_inside + sold_outside))
 
             # Finally the reward is calculated and returned
@@ -72,25 +72,29 @@ def define_my_Rt(beta_0: float):
                 # We then compute the offset per aggregator
                 if masked_action == "Energy_Consumption":
                     if scaled_actions[0] > dynamic_intervals["Energy_Consumption"][1]:
-                        offset = abs(scaled_actions[0] - dynamic_intervals["Energy_Consumption"][1])
+                        offset = abs(scaled_actions[0] - dynamic_intervals["Energy_Consumption"][1]) / (abs(dynamic_intervals["Energy_Consumption"][0]) + abs(dynamic_intervals["Energy_Consumption"][1]))
                     elif scaled_actions[0] < dynamic_intervals["Energy_Consumption"][0]:
-                        offset = abs(dynamic_intervals["Energy_Consumption"][0] - scaled_actions[0])
+                        offset = abs(dynamic_intervals["Energy_Consumption"][0] - scaled_actions[0]) / (abs(dynamic_intervals["Energy_Consumption"][0]) + abs(dynamic_intervals["Energy_Consumption"][1]))
                     else:
                         offset = 0.0
                 elif masked_action == "Energy_Production":
                     if scaled_actions[1] < dynamic_intervals["Energy_Production"][1]:
-                        offset = abs(scaled_actions[1] - dynamic_intervals["Energy_Production"][1])
+                        offset = abs(scaled_actions[1] - dynamic_intervals["Energy_Production"][1]) / (abs(dynamic_intervals["Energy_Production"][0]) + abs(dynamic_intervals["Energy_Production"][1]))
                     elif scaled_actions[1] > dynamic_intervals["Energy_Production"][0]:
-                        offset = abs(dynamic_intervals["Energy_Production"][0] - scaled_actions[1])
+                        offset = abs(dynamic_intervals["Energy_Production"][0] - scaled_actions[1]) / (abs(dynamic_intervals["Energy_Production"][0]) + abs(dynamic_intervals["Energy_Production"][1]))
                     else:
                         offset = 0.0
                 elif masked_action == "Energy_Storage":
-                    if scaled_actions[2] > dynamic_intervals["Energy_Storage"][1]:
-                        offset = abs(scaled_actions[2] - dynamic_intervals["Energy_Storage"][1])
-                    elif scaled_actions[2] < dynamic_intervals["Energy_Storage"][0]:
-                        offset = abs(dynamic_intervals["Energy_Storage"][0] - scaled_actions[2])
+                    ref = max(abs(dynamic_intervals["Energy_Storage"][0]), abs(dynamic_intervals["Energy_Storage"][1]))
+                    if ref != 0:
+                        if scaled_actions[2] > dynamic_intervals["Energy_Storage"][1]:
+                            offset = abs(scaled_actions[2] - dynamic_intervals["Energy_Storage"][1]) / ref
+                        elif scaled_actions[2] < dynamic_intervals["Energy_Storage"][0]:
+                            offset = abs(dynamic_intervals["Energy_Storage"][0] - scaled_actions[2]) / ref
+                        else:
+                            offset = 0.0
                     else:
-                        offset = 0.0
+                        offset = abs(scaled_actions[2]) / 5000.0  # todo patchwork solution for multi-energy MARL case study
                 else:
                     for idx in range(1, len(scaled_actions) - 2):
                         if str(idx) in masked_action:
@@ -99,16 +103,16 @@ def define_my_Rt(beta_0: float):
                                     interval_key = dynamic_intervals[key]
                             if interval_key[1] >= 0:  # upstream converters and grid selling only
                                 if scaled_actions[idx + 2] > interval_key[1]:
-                                    offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                    offset = abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[0]) + abs(interval_key[1]))
                                 elif scaled_actions[idx + 2] < interval_key[0]:
-                                    offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                    offset = abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[0]) + abs(interval_key[1]))
                                 else:
                                     offset = 0.0
                             else:  # downstream converters and grid buying only
                                 if scaled_actions[idx + 2] < interval_key[1]:
-                                    offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                    offset = abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[0]) + abs(interval_key[1]))
                                 elif scaled_actions[idx + 2] > interval_key[0]:
-                                    offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                    offset = abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[0]) + abs(interval_key[1]))
                                 else:
                                     offset = 0.0
 

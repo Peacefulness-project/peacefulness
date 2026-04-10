@@ -174,6 +174,10 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
                 intermediate_dict.pop('type')
                 formalism_message[aggregator.name]["Energy_Consumption"] = {**formalism_message[aggregator.name]["Energy_Consumption"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
                 specific_message.clear()
+            elif intermediate_dict["interruptibility"] != 0:  # todo patchwork for MARL MEG case study
+                intermediate_dict.pop('type')
+                formalism_message[aggregator.name]["Energy_Consumption"] = {**formalism_message[aggregator.name]["Energy_Consumption"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
+                specific_message.clear()
         elif specific_message["type"] == "storage":  # if the device/energy system is for storage
             intermediate_dict.pop('type')
             # Calculating the total efficiency of the storage cycle

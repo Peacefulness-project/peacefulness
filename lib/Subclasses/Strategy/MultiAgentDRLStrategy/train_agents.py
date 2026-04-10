@@ -1,5 +1,6 @@
 # Imports
 from pathlib import Path
+import math
 
 # PettingZoo environment creation imports
 from PeacefulnessEnv import PeacefulnessEnv, datetime
@@ -22,6 +23,10 @@ from ray.rllib.models.torch.torch_action_dist import TorchSquashedGaussian
 from Wrappers import ActionMappingWrapper
 from feasibility_policy import FeasibilityPolicy, feasibility_relevant_state
 
+# todo for Potential-based Rewards Shaping
+from Wrappers import PotentialBasedShapingWrapper
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_test import MARL_MECS_Rt
+
 # For printing results
 import uuid
 from pprint import pprint
@@ -33,8 +38,8 @@ from pprint import pprint
 # Parameters
 path_to_case = "cases/Studies/first_paper_MultiEnergy/multiEnergyCaseStudy.py"
 world_name = "MEG"
-start_time = datetime(2021, 1, 1,0, 0, 0)
-simulation_length = 8759
+start_time = datetime(2020, 1, 1, 0, 0, 0)
+simulation_length = 8760
 path_to_export = "cases/Studies/first_paper_MultiEnergy/Results"
 agents_dict = {
     "agent_1": {"electric_microgrid": (22, 2), "exchanges": 3},
@@ -42,12 +47,14 @@ agents_dict = {
 }
 reward_dict = {
     "agent_1": [
-        ("conservation_penalty", 2.5), ("social_cost", 1), ("green_injection", 1),
-        ("aggregator_costs", 0.5), ("gas_cost", 0.5)
+        ("conservation_penalty", 1),
+        # ("social_cost", 1), ("green_injection", 2),
+        # ("aggregator_costs", 0.5), ("gas_cost", 0.1)
                 ],
     "agent_2": [
-        ("conservation_penalty", 2.5), ("green_injection", 1),
-        ("gas_cost", 0.5), ("waste_cost", 0.5)
+        ("conservation_penalty", 1),
+        # ("green_injection", 2),
+        # ("gas_cost", 0.1), ("waste_cost", 0.1)
                 ]
 }
 normalization_dict = {
@@ -56,9 +63,11 @@ normalization_dict = {
     # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
 metrics = [
-    "electric_microgrid.energy_bought_outside", "electric_microgrid.energy_sold_outside",
-    "flexible_loads.LVE.energy_erased", "Waste_to_heat.LTH.energy_sold",
-    "combined_heat_power.LPG.energy_bought", "combined_heat_power.LVE.energy_sold", "combined_heat_power.LTH.energy_sold",
+    "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",
+    "flexible_loads.LVE.energy_erased",
+    # "Waste_to_heat.LTH.energy_sold",
+    "combined_heat_power.LPG.energy_bought",
+    # "combined_heat_power.LVE.energy_sold", "combined_heat_power.LTH.energy_sold",
     "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold"
 ]
 act_red_dict = {
@@ -71,6 +80,22 @@ act_red_dict = {
 # path_to_weights = "cases/Studies/MultiAgent_RL/Results/action_mapper/feasibility_policy.pt"
 # state_sampler = feasibility_relevant_state
 
+# Parameters for the PBRS wrapper.
+gamma = 0.99
+expn = True
+exp_base = 32
+pot_shift = - 0.1
+bias_reset = False
+bias_reset_val = 0
+worst_pot = {"agent_1": 33566.5519, "agent_2": 35465.3909}
+ref_rt = {"agent_1": 20352833.315, "agent_2": 6953289.515}
+needed_for_goal = metrics + ['flexible_loads.LVE.money', 'combined_heat_power.LPG.money',
+                             'rigid_electricity_consumption.LVE.energy',
+                             'PV_field_1.LVE.energy', 'PV_field_2.LVE.energy',
+                             'WT_field_1.LVE.energy', 'WT_field_2.LVE.energy',
+                             'heat_pump.LVE.money', 'heat_pump.LTH.money']
+
+
 ENV_PARAMS = dict(
     path_to_case = path_to_case,
     world_name = world_name,
@@ -82,9 +107,23 @@ ENV_PARAMS = dict(
     normalization_dict = normalization_dict,
     metrics = metrics,
     red_dof_dict = act_red_dict,
+
+    # Specific to action mapping
     # feasibility_policy = my_pi_f,
     # pi_f_path = path_to_weights,
     # relevant_state = state_sampler
+
+    # Specific to PBRS wrapper
+    gamma = gamma,
+    expn = expn,
+    exp_base = exp_base,
+    pot_shift = pot_shift,
+    bias_reset = bias_reset,
+    bias_reset_val = bias_reset_val,
+    worst_pot = worst_pot,
+    ref_rt = ref_rt,
+    needed_mets = needed_for_goal,
+    goal_func = MARL_MECS_Rt
 )
 
 # Env creation
@@ -118,7 +157,7 @@ ENV_PARAMS = dict(
 #     print(iter)
 #     for agent in obs:
 #         print(obs[agent].shape)
-#     obs, rewards, terminateds, truncateds, infos = libEnv.step(actions)
+#     obs, rewards, terminated, truncated, infos = libEnv.step(actions)
 
 # #############################
 # Training with RLlib Ray
@@ -146,6 +185,10 @@ def build_env(env_config):
     # env = normalize_obs_v0(env)  # todo state normalization wrapper
     # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)  # todo Reward normalization wrapper
     # env = ActionMappingWrapper(env, env_config['feasibility_policy'], env_config['pi_f_path'], env_config['relevant_state'])  # todo Action Mapping wrapper
+    # todo PBRS wrapper
+    env = PotentialBasedShapingWrapper(env, env_config["gamma"], env_config["expn"], env_config["exp_base"],
+                                       env_config["pot_shift"], env_config["bias_reset"], env_config["bias_reset_val"],
+                                       env_config["worst_pot"], env_config["ref_rt"], env_config["needed_mets"], env_config["goal_func"])
 
     return ParallelPettingZooEnv(env)
 
@@ -190,28 +233,29 @@ if __name__ == "__main__":
                   use_gae=True,
                   lambda_=0.97,
                   vf_loss_coeff=0.5,
+                  vf_clip_param=math.inf,
                   entropy_coeff=0.01,
                   clip_param=0.2,
                   gamma=0.99,
                   lr=3e-4,
-                  train_batch_size=8760,
-                  train_batch_size_per_learner=8760,
+                  train_batch_size=5304,
+                  train_batch_size_per_learner=5304,
                   num_epochs=5,
-                  minibatch_size=73,
+                  minibatch_size=52,
                   shuffle_batch_per_epoch=True,
                   # model={
                   #     "custom_action_dist": "squashed_gaussian",  # todo for action mapping
                   # }
                   )
-        .evaluation(evaluation_interval=50,
-                    evaluation_num_env_runners=1,
-                    evaluation_duration_unit="episodes",
-                    evaluation_duration=1,
-                    evaluation_config={"env_config": {"std_dev": 0}})
+        # .evaluation(evaluation_interval=50,
+        #             evaluation_num_env_runners=1,
+        #             evaluation_duration_unit="episodes",
+        #             evaluation_duration=1,
+        #             evaluation_config={"env_config": {"std_dev": 0}})
         .env_runners(num_env_runners=4,
                      num_cpus_per_env_runner=1,
                      rollout_fragment_length="auto",
-                     batch_mode="complete_episodes")
+                     batch_mode="truncate_episodes")
         .learners(num_learners=0,
                   # num_cpus_per_learner=1,
                   # num_aggregator_actors_per_learner=1
@@ -250,7 +294,7 @@ if __name__ == "__main__":
         param_space=config.to_dict(),
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
-            storage_path=Path("cases/Studies/MultiAgent_RL/Models").resolve(),
+            storage_path=Path("cases/Studies/first_paper_MultiEnergy/Models").resolve(),
             stop={"training_iteration": 100
                 # , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)

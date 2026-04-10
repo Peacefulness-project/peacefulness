@@ -200,14 +200,54 @@ class SingleAgentDRLStrategy(Strategy):
                     else:
                         money_earned_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * old_energy_accorded_from_superior[0]['price']
                         energy_sold_outside -= abs(old_energy_accorded_from_superior[0]['quantity']) * aggregator.efficiency
-                    old_energy_accorded_from_superior[0]['quantity'] -= (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+                    old_energy_accorded_from_superior[0]['quantity'] -= sum(offset_dict.values()) / aggregator.efficiency
+
+
+                    # todo modified decision to get true reward
+                    Eexch = self._catalog.get(f"{aggregator.name}.{self._name}.exchange_decision")
+                    for exchange in Eexch:
+                        if f"{aggregator.superior.name}" in exchange:
+                            Eexch[exchange] = - old_energy_accorded_from_superior[0]['quantity']
+                            break
+                    self._catalog.set(f"{aggregator.name}.{self._name}.exchange_decision", Eexch)
+
                 else:  # if the aggregator has to make the balance inside by itself
                     deficit_to_manage = conso_dict["excess"] + prod_dict["deficit"]  # < 0 surplus of production / reduction of consumption needed
                     excess_to_manage = conso_dict["deficit"] + prod_dict["excess"]  # > 0 reduction of production / surplus of consumption needed
+
                     # todo patchwork solution for the MEG MARL case study - the incinerator absorbs the offset
-                    energy_produced = self._catalog.get("Waste_to_heat.LTH.energy_accorded")
-                    energy_produced["quantity"] += excess_to_manage + deficit_to_manage
-                    self._catalog.set("Waste_to_heat.LTH.energy_accorded", energy_produced)
+                    # energy_produced = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")[1]
+                    # energy_wanted = self._catalog.get(f"Waste_to_heat.LTH.energy_accorded")
+                    # # energy_produced += excess_to_manage + deficit_to_manage
+                    # energy_produced += sum(offset_dict.values())
+                    # energy_wanted["quantity"] = energy_produced
+                    # self._catalog.set("Waste_to_heat.LTH.energy_accorded", energy_wanted)
+                    # energy_bought_inside +=  abs(excess_to_manage + deficit_to_manage)
+                    # money_spent_inside += abs(excess_to_manage + deficit_to_manage) * energy_wanted["price"]
+                    # todo patchwork solution for the MEG MARL case study - the heat storage absorbs the offset
+                    heat_stored = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")[2]
+                    heat_wanted = self._catalog.get(f"Heat_storage.LTH.energy_accorded")
+                    if heat_stored < 0:
+                        energy_bought_inside -= abs(heat_stored)
+                        money_spent_inside -= abs(heat_stored) * heat_wanted["price"]
+                    else:
+                        energy_sold_inside -= heat_stored
+                        money_earned_inside -= heat_stored * heat_wanted["price"]
+                    heat_stored += sum(offset_dict.values())
+                    heat_wanted['quantity'] = max(heat_stored, -5000.0) if heat_stored < 0 else min(heat_stored, 5000.0)
+                    self._catalog.set("Heat_storage.LTH.energy_accorded", heat_wanted)
+                    if heat_stored < 0:
+                        energy_bought_inside += abs(heat_stored)
+                        money_spent_inside += abs(heat_stored) * heat_wanted["price"]
+                    else:
+                        energy_sold_inside += heat_stored
+                        money_earned_inside += heat_stored * heat_wanted["price"]
+
+                    # todo modified decision to get true reward
+                    C, P, S = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")
+                    S = heat_stored
+                    self._catalog.set(f"{aggregator.name}.{self._name}.internal_decision", [C, P, S])
+
             else:
                 if old_energy_accorded_from_superior['quantity'] > 0:
                     money_spent_outside -= old_energy_accorded_from_superior['quantity'] * old_energy_accorded_from_superior['price']
@@ -216,6 +256,16 @@ class SingleAgentDRLStrategy(Strategy):
                     money_earned_outside -= abs(old_energy_accorded_from_superior['quantity']) * old_energy_accorded_from_superior['price']
                     energy_sold_outside -= abs(old_energy_accorded_from_superior['quantity']) * aggregator.efficiency
                 old_energy_accorded_from_superior['quantity'] -= (sum(conso_dict.values()) + sum(prod_dict.values())) / aggregator.efficiency
+
+
+                # todo modified decision to get true reward
+                Eexch = self._catalog.get(f"{aggregator.name}.{self._name}.exchange_decision")
+                for exchange in Eexch:
+                    if f"{aggregator.superior.name}" in exchange:
+                        Eexch[exchange] = - old_energy_accorded_from_superior['quantity']
+                        break
+                self._catalog.set(f"{aggregator.name}.{self._name}.exchange_decision", Eexch)
+
             self._catalog.set(f"{aggregator.name}.{aggregator.superior.nature.name}.energy_accorded", old_energy_accorded_from_superior)
             # updating external balance
             [money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside] = self._exchanges_balance(aggregator, money_spent_outside, energy_bought_outside, money_earned_outside, energy_sold_outside)
@@ -292,6 +342,12 @@ class SingleAgentDRLStrategy(Strategy):
         # 1) Deciding the energy flow values for converters
         [sorted_demands, sorted_offers, converters] = self._isolate_conversion_systems(sorted_demands, sorted_offers)
         [money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside] = self._serve_energy_conversion(aggregator, converters, energy_accorded_to_exchange, money_spent_inside, energy_bought_inside, money_earned_inside, energy_sold_inside, min_price, max_price, internal_buying_price, internal_selling_price)
+
+        # Additional layer of checking
+        if energy_accorded_to_consumers < 0:
+            energy_accorded_to_consumers = 0.0
+        if energy_accorded_to_producers > 0:
+            energy_accorded_to_producers = 0.0
 
         # 2) The energy flow values are then decided for the internal devices (consumers, producers and storage)
         if not self.optimized_distribution_flag:  # equal distribution
@@ -514,7 +570,7 @@ class SingleAgentDRLStrategy(Strategy):
                 message["name"] = device_name
                 message["type"] = "storage"
                 sorted_storage.append(message)
-            elif Emax > 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
+            elif Emax >= 0:  # if the energy is strictly positive, it means that the device or the aggregator is asking for energy
                 message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax
@@ -523,7 +579,7 @@ class SingleAgentDRLStrategy(Strategy):
                 message["name"] = device_name
                 message["type"] = "consumption" if not device_type == "converter" else device_type
                 sorted_demands.append(message)
-            elif Emax < 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
+            elif Emax <= 0:  # if the energy is strictly negative, it means that the device or the aggregator is proposing energy
                 message = self._create_empty_sorted_lists()
                 message["emergency"] = emergency
                 message["quantity"] = Emax
@@ -797,19 +853,33 @@ class SingleAgentDRLStrategy(Strategy):
                         offset[element['name']] = old_exch - acc_msg["quantity"]
                         price = acc_msg["price"]
 
-                    if old_exch > 0 and offset[element['name']] < 0:
+                    device = self._catalog.devices[element['name']]
+                    upstream_aggregator = device.upstream_aggregators
+                    downstream_aggregators = device.downstream_aggregators
+                    upstream_signal = False
+                    downstream_signal = False
+                    for agg in upstream_aggregator:
+                        if aggregator.name == agg['name']:
+                            upstream_signal = True
+                            break
+                    for agg in downstream_aggregators:
+                        if aggregator.name == agg['name']:
+                            downstream_signal = True
+                            break
+
+                    if upstream_signal and offset[element['name']] < 0:
                         conso_plus += offset[element['name']]
                         energy_sold_inside += abs(offset[element['name']])
                         money_earned_inside += abs(offset[element['name']]) * price
-                    elif old_exch > 0 and offset[element['name']] > 0:
+                    elif upstream_signal and offset[element['name']] > 0:
                         conso_minus += offset[element['name']]
                         energy_sold_inside -= abs(offset[element['name']])
                         money_earned_inside -= abs(offset[element['name']]) * price
-                    elif old_exch < 0 and offset[element['name']] < 0:
+                    elif downstream_signal and offset[element['name']] < 0:
                         prod_minus += offset[element['name']]
                         energy_bought_inside -= abs(offset[element['name']])
                         money_spent_inside -= abs(offset[element['name']]) * price
-                    elif old_exch < 0 and offset[element['name']] > 0:
+                    elif downstream_signal and offset[element['name']] > 0:
                         prod_plus += offset[element['name']]
                         energy_bought_inside += abs(offset[element['name']])
                         money_spent_inside += abs(offset[element['name']]) * price

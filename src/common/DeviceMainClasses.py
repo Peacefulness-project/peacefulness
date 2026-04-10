@@ -7,7 +7,7 @@ from src.tools.Utilities import into_list
 from src.common.Messages import MessagesManager
 from src.tools.ReadingFunctions import reading_functions
 from typing import Dict
-
+from lib.Subclasses.Device.DummyHeatNetwork.DummyHeatNetwork import DummyHeatNetwork
 from math import ceil
 
 
@@ -730,9 +730,21 @@ class Converter(Device):
             nature_name = aggregator["nature"]
             energy_available_upstream.append(self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] / self._efficiency[nature_name])  # the energy accorded by the upstream aggregator
 
-        limit_energy_upstream = min(energy_available_upstream)
-        limit_energy_downstream = min(energy_wanted_downstream)
-        raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        tau, switch_signal = self.identify_priority()
+        if not tau:
+            limit_energy_upstream = min(energy_available_upstream)
+            limit_energy_downstream = min(energy_wanted_downstream)
+            raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        else:
+            if tau < switch_signal:  # priority to the DHN
+                limit_energy_upstream = min(energy_available_upstream)
+                limit_energy_downstream = min(energy_wanted_downstream)
+                raw_energy_transformed = limit_energy_downstream
+            else:  # priority to the EMG
+                limit_energy_upstream = min(energy_available_upstream)
+                limit_energy_downstream = min(energy_wanted_downstream)
+                raw_energy_transformed = limit_energy_upstream
+
         if raw_energy_transformed != limit_energy_upstream or raw_energy_transformed != limit_energy_downstream:
             self._catalog.set("incompatibility", True)
 
@@ -779,6 +791,31 @@ class Converter(Device):
     def get_capacity_min(self):
         return self._energy_physical_limits["minimum_energy"]
 
+    @property
+    def upstream_aggregators(self):
+        return self._upstream_aggregators_list
+
+    @property
+    def downstream_aggregators(self):
+        return self._downstream_aggregators_list
+
+    def identify_priority(self):
+        aggregators = self.device_aggregators
+        tau = None
+        switch_signal = None
+        break_signal = False
+        for aggregator in aggregators:
+            device_names = aggregator.devices
+            for device_name in device_names:
+                device = self._catalog.devices[device_name]
+                if isinstance(device, DummyHeatNetwork):
+                    tau = device.get_flexibility
+                    switch_signal = device.get_switch
+                    break_signal = True
+                    break
+            if break_signal:
+                break
+        return tau, switch_signal
 
 # ##############################################################################################
 class Storage(Device):

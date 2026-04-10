@@ -22,14 +22,12 @@ def define_my_Rt(beta_0: float):
 
         # We then retrieve the correct value from the iteration dict
         reward = 0.0
-        electricity_consumed = 0.0
-        heat_produced = 0.0
+        HP_value = 0.0
         for key in key_list:
             if "bought" in key:
-                electricity_consumed += iteration_result[key]
+                HP_value += iteration_result[key] / 1500.0
             else:
-                heat_produced += iteration_result[key]
-        HP_value = (electricity_consumed + heat_produced) / 2
+                HP_value += iteration_result[key] / 6910.33163265306
 
         # Checking the condition for green injection
         elec_conso = abs(iteration_result["rigid_electricity_consumption.LVE.energy"])

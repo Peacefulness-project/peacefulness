@@ -34,17 +34,17 @@ def get_action(module, observation):
 
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
-ENV_PARAMS["export_path"] ="cases/Studies/MultiAgent_RL/Results/Inference"  # path to save the results
-ENV_PARAMS["start_time"] = datetime(2023, 1, 1, 0, 0, 0)
-ENV_PARAMS["hours_to_simulate"] = 24
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_07f9cb45075a407cae14c21a92b2ef99/PPO_mini_case_a64ec_00000_0_2026-03-12_11-02-59/checkpoint_000000"
+ENV_PARAMS["export_path"] ="cases/Studies/first_paper_MultiEnergy/Results/Inference"  # path to save the results
+ENV_PARAMS["start_time"] = datetime(2020, 9, 22, 0, 0, 0)
+ENV_PARAMS["hours_to_simulate"] = 5304
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_92d27a5cc7794626ab1b1b2d10a415b2/PPO_MEG_caseStudy_14e9c_00000_0_2026-03-30_16-31-04/checkpoint_000000"
 
 max_nb_exchanges = 1
 max_nb_conversions = 2
 
 if __name__ == "__main__":
     ray.init()
-    register_env("mini_case", build_env)
+    register_env("MEG_caseStudy", build_env)
 
 # II - The trained model is retrieved via checkpoint
     algo = PPO.from_checkpoint(path_to_trained_model, num_env_runners=0, evaluation_num_env_runners=0)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             action = get_action(module, agent_obs)
             actions[agent_id] = np.clip(action, -1.0, 1.0)  # TODO from action space of the environment
 
-        obs, rewards, done, truncated, infos = my_env.step(actions)  # the actions of the agents are acted in the env
+        obs, rewards, truncated, done, infos = my_env.step(actions)  # the actions of the agents are acted in the env
         for agent_id in obs:
             for k, v in recapitulate_decision(my_env.par_env.unwrapped.grid._catalog, agent_id).items():
                 if "scope" not in k:  # we retrieve the decisions per aggregator

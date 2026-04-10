@@ -24,7 +24,7 @@ def define_my_Rt(beta_0: float):
         reward = 0.0
         for key in key_list:
             if "Waste_to_heat" in key:
-                energy_erased = iteration_result[key]
+                energy_erased = iteration_result[key] / 12000.0
 
         # Finally we compute the reward
         reward += - beta_0 * abs(energy_erased)

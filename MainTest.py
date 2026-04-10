@@ -45,7 +45,7 @@ from src.tools.SubclassesDictionary import get_subclasses
 from src.tools.GraphAndTex import GraphOptions
 
 
-
+from scipy.stats import gamma
 
 # ##############################################################################################
 # Performance measurement
@@ -110,7 +110,7 @@ world.complete_message("CO2", 0)
 # this object represents a nature of energy present in world
 
 # low voltage electricity
-# LVE = load_low_voltage_electricity()
+LVE = load_low_voltage_electricity()
 
 # low temperature heat
 LTH = load_low_temperature_heat()
@@ -130,9 +130,9 @@ LTH = load_low_temperature_heat()
 # Price Managers
 # these daemons fix a price for a given nature of energy
 # price_manager_owned_by_the_aggregator = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("owned_by_aggregator_daemon", {"nature": LVE.name, "buying_price": 0, "selling_price": 0})  # as these devices are owned by the aggregator, energy is free
-# price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France", "buying_coefficient": 1, "selling_coefficient": 1})  # sets prices for flat rate
+price_manager_RTP_elec = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("RTP_prices", {"location": "France", "buying_coefficient": 1, "selling_coefficient": 1})  # sets prices for flat rate
 # price_manager_TOU_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_elec", {"nature": LVE.name, "buying_price": [0.1, 0.2], "selling_price": [0.1, 0.2], "on-peak_hours": [[12, 24]]})  # sets prices for TOU rate
-# price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_grid", {"nature": LVE.name, "buying_price": 0.5, "selling_price": 0.1})  # sets prices for flat rate
+price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_grid", {"nature": LVE.name, "buying_price": 0.5, "selling_price": 0.1})  # sets prices for flat rate
 # price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("flat_prices_elec", {"nature": LVE.name, "buying_price": 0.1, "selling_price": 0.1})  # sets prices for flat rate
 
 price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat_price", {"buying_price": 0.5,
@@ -143,7 +143,7 @@ price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("heat
 # price_manager_TOU_heat = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("TOU_prices_heat", {"nature": LTH.name, "buying_price": [0.1, 0.2], "selling_price": [0.1, 0.2], "on-peak_hours": [[12, 24]]})  # sets prices for TOU rate
 
 
-# limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
+limit_price_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 1, "limit_selling_price": 0})  # sets prices for the system operator
 limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.8, "limit_selling_price": 0.1})  # sets prices for the system operator
 # limit_price_gas = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LPG.name, "limit_buying_price": 0.30, "limit_selling_price": 0.00})  # sets prices for the system operator
 
@@ -154,7 +154,7 @@ limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature
 
 # Outdoor temperature
 # this daemon is responsible for the value of outside temperature in the catalog
-# outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Zaragoza"})
+outdoor_temperature_daemon = subclasses_dictionary["Daemon"]["OutdoorTemperatureDaemon"]({"location": "Nantes"})
 
 # Water temperature
 # this daemon is responsible for the value of the water temperature in the catalog
@@ -162,7 +162,7 @@ limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature
 
 # ground temperature
 # this daemon is responsible for the value of the ground temperature in the catalog
-# ground_temperature_daemon = subclasses_dictionary["Daemon"]["GroundTemperatureDaemon"]({"location": "France"})
+ground_temperature_daemon = subclasses_dictionary["Daemon"]["GroundTemperatureDaemon"]({"location": "France"})
 
 # Irradiation
 # this daemon is responsible for updating the value of raw solar irradiation
@@ -185,10 +185,10 @@ limit_price_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature
 # this object defines a strategy of supervision through 3 steps: local distribution, formulation of its needs, remote distribution
 
 # the BAU strategy
-# strategy_elec = subclasses_dictionary["Strategy"]["LightAutarkyFullButFew"](get_emergency)
+strategy_elec = subclasses_dictionary["Strategy"]["AlwaysSatisfied"]()
 
 # the heat strategy
-strategy_heat = subclasses_dictionary["Strategy"]["WhenProfitablePartialButAll"]()
+strategy_heat = subclasses_dictionary["Strategy"]["AutarkyPartialButAll"]()
 
 # the strategy grid, which always proposes an infinite quantity to sell and to buy
 grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -202,13 +202,13 @@ grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
 
 # WT_producer = Agent("WT_producer")  # creation of an agent
 
-# producer = Agent("producer")  # creation of an agent
+producer = Agent("producer")  # creation of an agent
 
 DHN_producer = Agent("DHN_producer")  # creation of an agent
 
 # heat_pump_owner = Agent("heat_pump_owner")
 
-# aggregator_manager = Agent("aggregator_manager")
+aggregator_manager = Agent("aggregator_manager")
 
 # CO2_producer = Agent("CO2_producer")
 
@@ -227,14 +227,14 @@ heat_contract_curtailment = subclasses_dictionary["Contract"]["CurtailmentContra
 heat_contract_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
 
 # producers
-# BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_grid)
+BAU_elec = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_elec", LVE, price_manager_grid)
 # BAU_gas = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_gas", LPG, price_manager_grid)
 
 # BAU_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
 
-# cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
+cooperative_contract_heat = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_heat", LTH, price_manager_heat)
 
-# cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_RTP_elec)
+cooperative_contract_elec = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_elec", LVE, price_manager_RTP_elec)
 
 # cooperative_contract_gas = subclasses_dictionary["Contract"]["CooperativeContract"]("cooperative_contract_gas", LPG, price_manager_RTP_elec)
 
@@ -247,11 +247,13 @@ heat_contract_BAU = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_hea
 
 # ##############################################################################################
 # Aggregator
-aggregator_name = "peakload_gas_plant"  # external grid
-aggregator_grid = Aggregator(aggregator_name, LTH, grid_strategy, DHN_producer)
+enedis = Aggregator("enedis", LVE, grid_strategy, aggregator_manager)
+aggregator_name = "elec_mg"  # external grid
+aggregator_grid = Aggregator(aggregator_name, LVE, strategy_elec, producer, enedis, BAU_elec,
+                             efficiency=1, capacity={"buying": 11000, "selling": 18000})
 aggregator_name = "district_heating_microgrid"
 aggregator_district = Aggregator(aggregator_name, LTH, strategy_heat, DHN_producer, aggregator_grid, heat_contract,
-                                 efficiency=1, capacity={"buying": 1100, "selling": 0})
+                                 efficiency=1, capacity={"buying": 0, "selling": 0})
 
 # this object is a collection of devices wanting to isolate themselves as much as they can
 # aggregators need 2 arguments: a name and a nature of energy
@@ -277,17 +279,35 @@ aggregator_district = Aggregator(aggregator_name, LTH, strategy_heat, DHN_produc
 # these objects regroup production, consumption, storage and transformation devices
 # they at least need a name and a nature
 # some devices are pre-defined (such as Photovoltaics) but user can add some by creating new classes in lib
-heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_curtailment, DHN_producer,
-                                                          aggregator_district,
-                                                          {"user": "artificial_sink", "device": "artificial_sink"},
-                                                          filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
+# heat_sink = subclasses_dictionary["Device"]["Background"]("heat_sink", heat_contract_curtailment, DHN_producer,
+#                                                           aggregator_district,
+#                                                           {"user": "artificial_sink", "device": "artificial_sink"},
+#                                                           filename="cases/Studies/ClusteringAndStrategy/CasesStudied/RampUpManagement/AdditionalData/BackgroundAlternative.json")
+standard_deviation = 0.0
+random_seed = 0.0
+def rng_generator(consumption):
+    if bool(standard_deviation) & bool(consumption):
+        a = (1 / standard_deviation) ** 2
+        b = standard_deviation ** 2 * consumption
+        toto = gamma.rvs(a, scale=b, random_state=random_seed)
+        return toto
+    else:
+        return consumption
 
-base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_producer,
-                                                                          aggregator_district,
-                                                                          {"device": "Biomass_2_ThP"},
-                                                                          {"max_power": 1300, "recharge_quantity": 1500,
-                                                                           "autonomy": 12, "initial_energy": 1000})
-
+# base_load = subclasses_dictionary["Device"]["BiomassGasPlantAlternative"]("biomass_plant", heat_contract, DHN_producer,
+#                                                                           aggregator_district,
+#                                                                           {"device": "Biomass_2_ThP"},
+#                                                                           {"max_power": 1300, "recharge_quantity": 1500,
+#                                                                            "autonomy": 12, "initial_energy": 1000})
+subclasses_dictionary["Device"]["ModifiedHeatPump"]("heat_pump", [cooperative_contract_elec, cooperative_contract_heat],
+                                                    producer, aggregator_grid, aggregator_district, {"device": "dual_source_heat_pump_air_mode"},
+                                                        parameters={"max_power": 1500, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name})
+subclasses_dictionary["Device"]["DummyProducer"]("Waste_to_heat", heat_contract, DHN_producer, aggregator_district, {"device": "heat"}, {"max_power": 36000})
+subclasses_dictionary["Device"]["Background"]("space_heating", heat_contract_BAU, DHN_producer, aggregator_district,
+                                              {"user": "space_heating", "device": "space_heating"},
+                                              parameters={"rng_generator": rng_generator},
+                                              filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/SpaceHeating.json")
+subclasses_dictionary["Device"]["DummyHeatNetwork"]("artificial_DHN", BAU_elec, producer, aggregator_grid, {"device": "artificial_network"}, {"pipe_diameter": 0.5, "network_length": 5000, "switch": 2, "nominal_power": 30465.39088, "rng_generator": rng_generator})
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
 # subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
 # subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
@@ -394,7 +414,7 @@ file.close()
 # ##############################################################################################
 # simulation
 CPU_time = process_time()  # CPU time measurement
-world.start()
+world.start(verbose=False)
 
 
 # CPU time measurement

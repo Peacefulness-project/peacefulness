@@ -32,7 +32,7 @@ def define_my_Rt(beta_0: float):
         for key in key_list:
             if agent_ID == "agent_1":
                 if "flexible_loads" in key and "erased" in key:
-                    energy_erased = iteration_result[key]
+                    energy_erased = iteration_result[key] / 1500.0
                 # elif "residential" in key and "money" in key:
                 #     money_spent = iteration_result[key]
                 # elif "residential" in key and "energy" in key:

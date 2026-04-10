@@ -107,6 +107,7 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     grid_gas = Agent("GDF")  # representative of the gas distribution network
     chp_owner = Agent("CHP")  # representative of the owner of the CHP facility
     hp_owner = Agent("HP")  # representative of the owner of the HP
+    dhn_proxy = Agent("proxyDHN")
     microgrid_manager = Agent("MG")  # representative of the electricity microgrid manager
     heat_network_manager = Agent("DHN")  # representative of the district heating network manager
 
@@ -175,6 +176,10 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     subclasses_dictionary["Device"]["Background"]("space_heating", BAU_heat, heat_network_manager, aggregator_heat, {"user": "space_heating", "device": "space_heating"},
                                                   parameters={"rng_generator": rng_generator},
                                                   filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/SpaceHeating.json")
+
+    # Proxy model of the DHN
+    subclasses_dictionary["Device"]["DummyHeatNetwork"]("artificial_DHN", COOP_elec, dhn_proxy,aggregator_elec, {"device": "artificial_network"},
+                                                        parameters={"pipe_diameter": 0.6, "network_length": 10000, "switch": 2, "nominal_power": 30465.39088, "rng_generator": rng_generator})
 
     # ##############################################################################################
     # Creation of dataloggers

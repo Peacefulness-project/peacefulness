@@ -1,1 +1,0 @@
-simulation_time	physical_time	LTH.energy_consumed	LTH.energy_produced	LTH.energy_erased	LTH.money_spent	LTH.money_earned	

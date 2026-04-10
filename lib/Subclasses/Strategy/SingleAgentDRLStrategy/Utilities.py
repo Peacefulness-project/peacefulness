@@ -82,6 +82,14 @@ def group_components(catalog: "Catalog", agent_ID=None):
             formalism_message[aggregator.name]["Energy_Consumption"]["interruptibility"] = 0.0
             formalism_message[aggregator.name]["Energy_Consumption"]["coming_volume"] = 0.0
 
+        # TODO patchwork solution - changing observation size breaks the RLlib loop (heat demand during off-season + storage must be charged)
+        if "flexibility" not in formalism_message[aggregator.name]["Energy_Consumption"]:
+            formalism_message[aggregator.name]["Energy_Consumption"]["flexibility"] = 0.0
+        if "interruptibility" not in formalism_message[aggregator.name]["Energy_Consumption"]:
+            formalism_message[aggregator.name]["Energy_Consumption"]["interruptibility"] = 0.0
+        if "coming_volume" not in formalism_message[aggregator.name]["Energy_Consumption"]:
+            formalism_message[aggregator.name]["Energy_Consumption"]["coming_volume"] = 0.0
+
         if aggregator.forecaster:
             prediction_message[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.forecasting_message")
         prices[aggregator.name] = catalog.get(f"{aggregator.name}.{ref_name}.energy_prices")
@@ -424,11 +432,13 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
     interior_decision = catalog.get(f"{agentID}.interior_decision")
 
     # In case, we remove one action per aggregator
+    idx_removed = None
     if red_dof_flag:  # Otherwise we get a catalog Exception error
         reduced_action = catalog.get(f"Action removed for {aggregator.name}")
     else:
         reduced_action = None
     if reduced_action is not None and reduced_action in typologies:
+        idx_removed = typologies.index(reduced_action)
         typologies.remove(reduced_action)
 
     # We retrieve the normalized actions.
@@ -440,8 +450,11 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
             returned_list.append(scale_up_feature(norm_decision.popleft(), raw_state["interior"][aggregator.name][typ]["energy_minimum"], raw_state["interior"][aggregator.name][typ]["energy_maximum"]))
 
     # Final check
-    while len(returned_list) < 3:
-        returned_list.append(0.0)
+    if len(returned_list) < 3:
+        if idx_removed is not None:
+            returned_list.insert(idx_removed, 0.0)
+        else:
+            returned_list.append(0.0)
     if len(returned_list) > 3:
         raise Exception("Error in defining the interior actions !")
 
@@ -754,7 +767,10 @@ def export_my_state_file(state_dict: Dict, export_path: str, number_of_direct_en
             for idx in range(len(state_dict[agg][header[1]])):
                 padded = [agg]
                 for element in header[1:]:
-                    padded += state_dict[agg][element][idx] if len(state_dict[agg][element][idx]) > 0 else ["",""]
+                    if element not in state_dict[agg]:
+                        padded += ["",""]
+                    else:
+                        padded += state_dict[agg][element][idx] if len(state_dict[agg][element][idx]) > 0 else ["",""]
                 writer.writerow(padded)
                 padded.clear()
 

@@ -1,7 +1,6 @@
 # This subclass of Converter is supposed to represent a combined heat and power device. Meanwhile, for the moment, it is considered possible to put it on/off instantly.
 from src.common.DeviceMainClasses import Converter
 from src.tools.Utilities import into_list
-from src.common.Device import Device
 from scipy.optimize import root_scalar
 
 
@@ -114,23 +113,30 @@ class ModifiedCombinedHeatAndPower(Converter):
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
-    def second_update(self):  # a method used to harmonize aggregator's decisions concerning multi-energy devices
+    def second_update(self):  # todo special case for RL since we can't ask a different action during the same state (step)
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
         # determination of the energy consumed/produced
-        energy_wanted_downstream = []
-        energy_available_upstream = []
+        energy_wanted_downstream = {}
+        energy_available_upstream = {}
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
             gas_ratio = self._calculate_gas_ratio(self._max_efficiency[nature_name] * (-self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"] / self.CHP_nominal_power[nature_name]), nature_name)
-            energy_wanted_downstream.append(gas_ratio * self.CHP_nominal_power["LPG"])  # the energy asked by the downstream aggregator
+            energy_wanted_downstream[nature_name] = gas_ratio * self.CHP_nominal_power["LPG"]  # the energy asked by the downstream aggregator
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
-            energy_available_upstream.append(self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")["quantity"] / self._nominal_efficiency)  # the energy accorded by the upstream aggregator
+            energy_available_upstream[nature_name] = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")["quantity"] / self._nominal_efficiency  # the energy accorded by the upstream aggregator
 
-        limit_energy_upstream = min(energy_available_upstream)
-        limit_energy_downstream = min(energy_wanted_downstream)
-        raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        tau, switch_signal = self.identify_priority()
+        if tau is None:
+            limit_energy_upstream = min(energy_available_upstream.values())
+            limit_energy_downstream = min(energy_wanted_downstream.values())
+            raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+        else:
+            if tau < switch_signal:  # priority to the DHN
+                raw_energy_transformed = energy_wanted_downstream["LTH"]
+            else:  # priority to the EMG
+                raw_energy_transformed = energy_wanted_downstream["LVE"]
 
         # downstream side
         for aggregator in self._downstream_aggregators_list:

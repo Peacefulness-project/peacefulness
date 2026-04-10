@@ -102,8 +102,11 @@ class PeacefulnessEnv(ParallelEnv):
 
         return observations, infos
 
-    def _get_infos(self):
-        info = {agent: {} for agent in self.agents}
+    def _get_infos(self, **kwargs):
+        if not kwargs:
+            info = {agent: {} for agent in self.agents}
+        else:
+            info = {agent: deepcopy(kwargs["info"]) for agent in self.agents}
         return info
 
     def _get_obs(self):
@@ -163,6 +166,10 @@ class PeacefulnessEnv(ParallelEnv):
                 self.grid._catalog.set(f"{agent}.raw_state", state_dict)
             norm_obs = construct_state(state_dict, return_correct_dict(self.normalization_parameters, agent))
             observations[agent] = np.asarray(norm_obs, dtype=np.float32)
+            if f"{agent}.observation" not in self.grid._catalog.keys:
+                self.grid._catalog.add(f"{agent}.observation", observations[agent])
+            else:
+                self.grid._catalog.set(f"{agent}.observation", observations[agent])
 
         return observations
 
@@ -263,11 +270,16 @@ class PeacefulnessEnv(ParallelEnv):
             # Normalizing the immediate rewards with Emin and Emax - did not achieve better learning
             # rewards[agent] = normalize_my_rewards(rewards[agent], return_correct_dict(self.normalization_parameters, agent))
 
+        # Getting the information dict - todo special for potential based rewards shaping
+        infos = self._get_infos(info=results)
+
         # Getting the next observation dict
         observations = self._get_obs()
 
-        # Getting the informations dict
-        infos = self._get_infos()
+        # assert observations["agent_2"].shape == (25,), f"CRASH! At time step {self.grid._catalog.get("simulation_time")} Agents return {observations} and {self.grid._catalog.get("agent_2.raw_state")}"
+
+        # Getting the information dict
+        # infos = self._get_infos()
 
         if any(terminations.values()) or all(truncations.values()):
             self.agents = []
