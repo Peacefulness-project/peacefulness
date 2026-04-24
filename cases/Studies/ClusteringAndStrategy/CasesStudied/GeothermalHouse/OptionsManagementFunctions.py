@@ -141,32 +141,36 @@ def exchanges_heat_pump(strategy: "Strategy", aggregator: "Aggregator", quantity
 def distribution_heat_pump(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
     name = "heat_pump"
-    while sorted_offers[i]["name"] != name:  # as long as the storage is not found
-        i += 1
+    # while sorted_offers[i]["name"] != name and i < len(sorted_offers) - 1:  # as long as the heat pump is not found
+    #     i += 1
+    # print(sorted_offers, energy_available_production)
 
-    if sorted_offers[i]["name"] == name:
-        if energy_available_production > - sorted_offers[i]["quantity"]:  # if there is enough energy
-            energy = sorted_offers[i]["quantity"]  # the quantity of energy needed
-        else:  # if there is not enough energy available
-            energy = max(sorted_offers[i]["quantity"], - energy_available_production)  # the quantity of energy needed
-        price = sorted_offers[i]["price"]  # the price of energy
-        price = max(price, min_price)
+    while i < len(sorted_offers) - 1:
+        if sorted_offers[i]["name"] == name:
+            if energy_available_production > - sorted_offers[i]["quantity"]:  # if there is enough energy
+                energy = sorted_offers[i]["quantity"]  # the quantity of energy needed
+            else:  # if there is not enough energy available
+                energy = max(sorted_offers[i]["quantity"], - energy_available_production)  # the quantity of energy needed
+            price = sorted_offers[i]["price"]  # the price of energy
+            price = max(price, min_price)
 
-        message = {element: strategy.__class__.decision_message()[element] for element in strategy.__class__.decision_message()}
-        message["quantity"] = energy
-        message["price"] = price
+            message = {element: strategy.__class__.decision_message()[element] for element in strategy.__class__.decision_message()}
+            message["quantity"] = energy
+            message["price"] = price
 
-        if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
-            quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
-            quantities_given.append(message)
-        else:  # if it is a device
+            # if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
+            #     quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
+            #     quantities_given.append(message)
+            # else:  # if it is a device
             quantities_given = message
 
-        strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+            strategy._catalog.set(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)  # it is served
+            # print(f"{name}.{aggregator.nature.name}.energy_accorded", quantities_given)
 
-        money_spent_inside -= energy * price  # money spent by buying energy from the device
-        energy_bought_inside -= energy  # the absolute value of energy bought inside
-        energy_available_production += energy  # the difference between the max and the min is consumed
+            money_spent_inside -= energy * price  # money spent by buying energy from the device
+            energy_bought_inside -= energy  # the absolute value of energy bought inside
+            energy_available_production += energy  # the difference between the max and the min is consumed
+        i += 1
 
     return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
@@ -189,6 +193,7 @@ def exchanges_unstorage(strategy: "Strategy", aggregator: "Aggregator", quantity
 def distribution_unstorage(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
     name = "heat_storage"
+
     while sorted_offers[i]["name"] != name and i < len(sorted_offers) - 1:  # as long as the storage is not found
         i += 1
 

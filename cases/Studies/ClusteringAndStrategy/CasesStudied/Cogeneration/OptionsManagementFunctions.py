@@ -168,6 +168,7 @@ def distribution_HP(strategy: "Strategy", aggregator: "Aggregator", min_price: f
 
     return sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside
 
+
 # unstore
 def assess_unstorage(strategy: "Strategy", aggregator: "Aggregator", offers: List[Dict]) -> float:
     quantity_for_this_option = 0

@@ -291,9 +291,9 @@ class Device:
             energy_accorded = self.get_energy_accorded(nature)
             [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent] = self.natures[nature]["contract"].billing(energy_wanted, energy_accorded, self.name)  # the contract may adjust things
             self.set_energy_accorded(nature, energy_accorded)
-            # print(self.name, energy_accorded)
 
             # update of the data at the level of the device
+            # print(self.name, energy_accorded)
             self._catalog.set(f"{self.name}.{nature.name}.energy_erased", energy_erased)  # TODO: à faire comptabiliser par les contrats
             self._catalog.set(f"{self.name}.{nature.name}.energy_bought", energy_bought)
             self._catalog.set(f"{self.name}.{nature.name}.energy_sold", energy_sold)
