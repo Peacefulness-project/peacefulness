@@ -82,7 +82,7 @@ world.set_random_seed("tournesol")
 start_date = datetime(year=2019, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 world.set_time(start_date,  # time management: start date
                1,  # value of a time step (in hours)
-               168)  # number of time steps simulated
+               48)  # number of time steps simulated
 
 
 # ##############################################################################################
@@ -259,15 +259,16 @@ aggregator_gas = Aggregator(name, LPG, strategy_elec, aggregator_manager, aggreg
 
 
 # subclasses_dictionary["Device"]["LatentHeatStorage"]("heat_storage_3", contract_storage_heat, storer_owner, aggregator_heat, {"device": "industrial_water_tank"}, {"outdoor_temperature_daemon": outdoor_temperature_daemon.name})
-subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
-subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
+# subclasses_dictionary["Device"]["BiomassGasPlant"]("biomass_plant", cooperative_contract_gas, producer, aggregator_gas, {"device": "MSW_Rao"}, {"max_power": 1000, "waste_recharge": 8000, "recharge_period": 24, "storage_capacity": 40000})  # creation of an usine à gaz
+# subclasses_dictionary["Device"]["Background"]("background", contract_test, dummy_agent, aggregator_elec, {"user": "ECOS", "device": "ECOS_5"})
+subclasses_dictionary["Device"]["Charger"]("background", cooperative_contract_elec, dummy_agent, aggregator_elec, {"user": "default", "device": "laptop_charger"})
 
 # Performance measurement
 CPU_time_generation_of_device = process_time()
 # the following method create "n" agents with a predefined set of devices based on a JSON file
-agent_generation("single", 200, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
+# agent_generation("single", 200, "lib/AgentTemplates/EgoistSingle.json", aggregator_elec, {"LVE": price_manager_TOU_elec}, {"outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
 # agent_generation("family", 200, "lib/AgentTemplates/EgoistFamily.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_TOU_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon})
-agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
+# agent_generation("dummy", 1, "lib/AgentTemplates/DummyAgent.json", [aggregator_elec, aggregator_heat], {"LVE": price_manager_RTP_elec, "LTH": price_manager_heat}, {"irradiation_daemon": irradiation_daemon, "outdoor_temperature_daemon": outdoor_temperature_daemon, "cold_water_temperature_daemon": cold_water_temperature_daemon, "wind_speed_daemon": wind_daemon, "water_flow_daemon": water_flow_daemon, "sun_position_daemon": sun_position_daemon})
 
 # CPU time measurement
 CPU_time_generation_of_device = process_time() - CPU_time_generation_of_device  # time taken by the initialization
@@ -297,10 +298,10 @@ subclasses_dictionary["Forecaster"]["BasicForecaster"]("debug_forecaster", aggre
 # this object is in charge of exporting data into files at a given iteration frequency
 # world.catalog.print_debug()  # displays the content of the catalog
 
-export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
-
-test_contract_datalogger = Datalogger("test_contract_datalogger", "StorageData", graph_options=export_graph_options_1)
-test_contract_datalogger.add("physical_time", graph_status="X")
+# export_graph_options_1 = GraphOptions("test_graph_options", "LaTeX")
+#
+# test_contract_datalogger = Datalogger("test_contract_datalogger", "StorageData", graph_options=export_graph_options_1)
+# test_contract_datalogger.add("physical_time", graph_status="X")
 
 # datalogger for balances
 # these dataloggers record the balances for each agent, contract, nature and  aggregator
