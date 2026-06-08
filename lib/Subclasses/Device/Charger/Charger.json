@@ -1,7 +1,7 @@
 {
   "technical_data": {
     "laptop_charger": {
-      "usage_profile": {"LVE": 1},
+      "usage_profile": {"LVE": 2},
       "consumption_variation": 0,
 
       "min_power": {"LVE": 0},
@@ -12,7 +12,7 @@
 
   "user_profile":{
     "default": {
-      "profile": [[12, 1]],
+      "profile": [[12, 0.5], [16, 0.5]],
 
       "period": 24,
       "offset": 0,

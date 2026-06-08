@@ -585,8 +585,10 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         for i in range(len(data_user["profile"])):
             self._user_profile.append([])
-            for hour in data_user["profile"][i]:
-                self._user_profile[-1].append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+            hour = data_user["profile"][i][0]
+            self._user_profile[-1].append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+            ratio = data_user["profile"][i][1]
+            self._user_profile[-1].append(ratio)
 
         # min and max power allowed
         # these power are converted into energy quantities according to the time step
@@ -639,12 +641,10 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                     self._remaining_time = remaining_time  # the time kept is the shortest
                     for nature in self._technical_profile:
                         self._demand[nature] = usage[1] * self._technical_profile[nature]  # and the quantity associated is kept
-        print(self._remaining_time)
 
         if self._remaining_time:  # if the device is active
             for nature in energy_wanted:
                 average_energy = self._demand[nature] / self._remaining_time
-                print(average_energy)
                 if average_energy >= self._max_power[nature]:  # it is urgent !
                     energy_wanted[nature]["energy_minimum"] = self._max_power[nature]
                     energy_wanted[nature]["energy_nominal"] = self._max_power[nature]
