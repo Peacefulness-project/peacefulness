@@ -163,6 +163,12 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
         intermediate_dict.pop('energy_nominal')
         intermediate_dict.pop('energy_maximum')
         intermediate_dict.pop('price')
+        if "priority" in intermediate_dict:
+            if f"{device.name}.DHN_EMG_priority" in catalog.keys:
+                catalog.set(f"{device.name}.DHN_EMG_priority", intermediate_dict['priority'])
+            else:
+                catalog.add(f"{device.name}.DHN_EMG_priority", intermediate_dict['priority'])
+            intermediate_dict.pop('priority')
         # intermediate_dict.pop('CO2')  # todo voir après comment traiter les other data related to operational objectives
 
         if specific_message["type"] == "standard":  # if the device/energy system is either for consumption/production

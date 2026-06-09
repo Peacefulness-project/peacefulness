@@ -17,11 +17,13 @@ def define_my_Rt(beta_0: float):
         key_list = []
         for metric in metrics:
             # if "energy" in metric:
-            if "erased" in metric or "money" in metric or "bought" in metric:
+            if "flexible" in metric:
                 key_list.append(metric)
 
         # We then retrieve the correct value from the iteration dict
         reward = 0.0
+        energy_price = 0.0
+        energy_erased = 0.0
         # for key in key_list:
         #     if "residential" in key and agent_ID == "agent_1":
         #         reward += - beta_0 * abs(iteration_result[key])
@@ -30,16 +32,16 @@ def define_my_Rt(beta_0: float):
         #         reward += - beta_0 * abs(iteration_result[key])
         #         break
         for key in key_list:
-            if agent_ID == "agent_1":
-                if "flexible_loads" in key and "erased" in key:
-                    energy_erased = iteration_result[key] / 1500.0
-                # elif "residential" in key and "money" in key:
-                #     money_spent = iteration_result[key]
+            # if agent_ID == "agent_1":
+            if "flexible_loads" in key and "erased" in key:
+                energy_erased = iteration_result[key]
+            elif "flexible_loads" in key and "money" in key:
+                energy_price = iteration_result[key]
                 # elif "residential" in key and "energy" in key:
                 #     energy_bought = iteration_result[key]
-            elif agent_ID == "agent_2":
-                if "industrial" in key and "erased" in key:
-                    energy_erased = iteration_result[key]
+            # elif agent_ID == "agent_2":
+            #     if "industrial" in key and "erased" in key:
+            #         energy_erased = iteration_result[key]
                 # elif "industrial" in key and "money" in key:
                 #     money_spent = iteration_result[key]
                 # elif "industrial" in key and "energy" in key:
@@ -47,9 +49,13 @@ def define_my_Rt(beta_0: float):
 
         # Finally we compute the reward
         # energy_price = money_spent / energy_bought if energy_bought != 0 else 0.0
-        # erased_price = energy_price * energy_erased
+        # if energy_price != 0.0:
+        #     # erased_price = energy_price * energy_erased / (1500.0 * energy_price)
+        #     erased_price = energy_price * energy_erased
+        # else:
+        #     erased_price = 0.0
         # reward += - beta_0 * abs(erased_price)
-        reward += - beta_0 * abs(energy_erased)
+        reward += - beta_0 * abs(energy_erased) / 1500.0
 
         return reward
 

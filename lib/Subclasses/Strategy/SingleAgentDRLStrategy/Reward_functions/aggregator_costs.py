@@ -29,7 +29,7 @@ def define_my_Rt(beta_0: float):
         list_of_keys = []
         for agg in managed_aggregators:
             for metric in metrics:
-                if agg in metric and "energy" in metric:
+                if agg in metric and "energy" in metric and "outside" in metric:
                 # if agg in metric and "money" in metric:
                     list_of_keys.append(metric)
 
@@ -38,15 +38,17 @@ def define_my_Rt(beta_0: float):
         for metric in list_of_keys:
             if metric in iteration_result:
                 reward += (
-                    beta_0 * iteration_result[metric] / 18000.0
-                    if "sold" in metric
-                    else -beta_0 * iteration_result[metric] / 11000.0
-                )
-                # reward += (
-                #     beta_0 * iteration_result[metric]
+                #     beta_0 * iteration_result[metric] / (22000.0 * 0.285125)
                 #     if "earned" in metric
-                #     else -beta_0 * iteration_result[metric]
+                #     else -beta_0 * iteration_result[metric] / (7200.0 * 0.57025)
                 # )
+                # reward += (
+                    beta_0 * iteration_result[metric] / 22000.0
+                    if "sold" in metric
+                    else - beta_0 * iteration_result[metric] / 7200.0
+                )
+        # if reward > 1 or reward < - 1:  # TODO patchwork solution
+        #     reward = 0.0
 
         return reward
 

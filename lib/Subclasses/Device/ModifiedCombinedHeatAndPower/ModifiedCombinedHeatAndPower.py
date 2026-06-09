@@ -18,7 +18,10 @@ class ModifiedCombinedHeatAndPower(Converter):
                                   "LTH": parameters["max_power"] * self._ratio_correction(1) * self._heat_power_ratio * self._relative_efficiency(1) * self._nominal_efficiency}
         self._max_efficiency = {"LVE": self._relative_efficiency(1) * self._nominal_efficiency,
                                 "LTH": self._ratio_correction(1) * self._heat_power_ratio * self._relative_efficiency(1) * self._nominal_efficiency}
-
+        self._catalog.add(f"{self.name}.heat_by_pass", None)
+        self._efficiency = {"LPG": 1,
+                            "LVE": 1,
+                            "LTH": 1,}
         # contracts = {contract.nature.name: contract for contract in contracts}
         # self._upstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in upstream_aggregators_list]  # list of aggregators involved in the production of energy. The order is not important.
         # self._downstream_aggregators_list = [{"name": aggregator.name, "nature": aggregator.nature.name, "contract": contracts[aggregator.nature.name]} for aggregator in downstream_aggregators_list]  # list of aggregators involved in the consumption of energy. The order is important: the first aggregator defines the final quantity of energy
@@ -58,7 +61,7 @@ class ModifiedCombinedHeatAndPower(Converter):
                  + 4.22)
         return ratio
 
-    def _efficiency(self, nature, energy):
+    def compute_efficiency(self, nature, energy):
         if nature =='LPG':
             if energy < 0:
                 energy = energy * -1
@@ -98,19 +101,22 @@ class ModifiedCombinedHeatAndPower(Converter):
         # downstream side
         for aggregator in self ._downstream_aggregators_list:
             nature_name = aggregator["nature"]
-            energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self._efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self._efficiency(nature_name, self._energy_physical_limits["maximum_energy"] )  # the physical maximum of energy this converter can consume
-            energy_wanted[nature_name]["efficiency"] = self._efficiency(nature_name, self._energy_physical_limits["maximum_energy"] )
+            energy_wanted[nature_name]["energy_minimum"] = - self._energy_physical_limits["minimum_energy"] * self.compute_efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = - self._energy_physical_limits["minimum_energy"] * self.compute_efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = - self._energy_physical_limits["maximum_energy"] * self.compute_efficiency(nature_name, self._energy_physical_limits["maximum_energy"] )  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["efficiency"] = self.compute_efficiency(nature_name, self._energy_physical_limits["maximum_energy"])
+            self._efficiency[nature_name] = energy_wanted[nature_name]["efficiency"]
 
         # upstream side
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
-            energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self._efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self._efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self._efficiency(nature_name, self._energy_physical_limits["maximum_energy"])  # the physical maximum of energy this converter can consume
-            energy_wanted[nature_name]["efficiency"] = self._efficiency(nature_name, self._energy_physical_limits["maximum_energy"])
+            energy_wanted[nature_name]["energy_minimum"] = self._energy_physical_limits["minimum_energy"] / self.compute_efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = self._energy_physical_limits["minimum_energy"] / self.compute_efficiency(nature_name, self._energy_physical_limits["minimum_energy"])  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = self._energy_physical_limits["maximum_energy"] / self.compute_efficiency(nature_name, self._energy_physical_limits["maximum_energy"])  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["efficiency"] = self.compute_efficiency(nature_name, self._energy_physical_limits["maximum_energy"])
+            self._efficiency[nature_name] = energy_wanted[nature_name]["efficiency"]
 
+        self._catalog.set(f"{self.name}.heat_by_pass", 0.0)
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
     def second_update(self):  # todo special case for RL since we can't ask a different action during the same state (step)
@@ -127,58 +133,86 @@ class ModifiedCombinedHeatAndPower(Converter):
             nature_name = aggregator["nature"]
             energy_available_upstream[nature_name] = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")["quantity"] / self._nominal_efficiency  # the energy accorded by the upstream aggregator
 
+        aggregators = self.device_aggregators
+        srl_signal = False
+        for aggregator in aggregators:
+            strategy = aggregator.strategy
+            strategy_name = strategy.name
+            if strategy_name == "gym_Strategy":
+                srl_signal = True
+                break
+
         tau, switch_signal = self.identify_priority()
         if tau is None:
-            limit_energy_upstream = min(energy_available_upstream.values())
-            limit_energy_downstream = min(energy_wanted_downstream.values())
-            raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+            if not srl_signal:
+                limit_energy_upstream = min(energy_available_upstream.values())
+                # limit_energy_downstream = min(energy_wanted_downstream.values())
+                limit_energy_downstream = energy_wanted_downstream['LVE']  # todo patchwork solution for RBS
+                raw_energy_transformed = energy_wanted_downstream['LVE']
+                # raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+            else:  # todo specific to single RL controller for both the EMG & DHN
+                limit_energy_upstream = min(energy_available_upstream.values())
+                limit_energy_downstream = energy_wanted_downstream['LVE']  # electricity drives the CHP, excess heat can be dissipated
+                raw_energy_transformed = energy_wanted_downstream['LVE']
         else:
-            if tau < switch_signal:  # priority to the DHN
-                raw_energy_transformed = energy_wanted_downstream["LTH"]
-            else:  # priority to the EMG
+            if tau > switch_signal:  # priority to the EMG
                 raw_energy_transformed = energy_wanted_downstream["LVE"]
+            elif tau == switch_signal:  # min bidder
+                limit_energy_upstream = min(energy_available_upstream.values())
+                limit_energy_downstream = min(energy_wanted_downstream.values())
+                raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+            else:  # priority to the DHN
+                raw_energy_transformed = energy_wanted_downstream["LTH"]
+
+        # todo to comment this for DRL ?
+        if abs(raw_energy_transformed - limit_energy_upstream) > 1e-6 or abs(raw_energy_transformed - limit_energy_downstream) > 1e-6:
+            self._catalog.set("incompatibility", True)
 
         # downstream side
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
 
             # resetting the demand
-            energy_wanted[nature_name]["energy_minimum"] = - raw_energy_transformed * self._efficiency(nature_name,  raw_energy_transformed)  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_nominal"] = - raw_energy_transformed * self._efficiency(nature_name,  raw_energy_transformed)  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = - raw_energy_transformed * self._efficiency(nature_name,  raw_energy_transformed)  # the physical maximum of energy this converter can consume
+            # TODO patchwork solution for RBS
+            if nature_name == "LTH":
+                energy_wanted[nature_name]["energy_minimum"] = 0  # the physical minimum of energy this converter has to consume (give CHP flexibility - electricity driven)
+            else:
+                energy_wanted[nature_name]["energy_minimum"] = - raw_energy_transformed * self.compute_efficiency(nature_name,  raw_energy_transformed)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = - raw_energy_transformed * self.compute_efficiency(nature_name,  raw_energy_transformed)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = - raw_energy_transformed * self.compute_efficiency(nature_name,  raw_energy_transformed)  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
-            energy_wanted[nature_name]["efficiency"] = self._efficiency(nature_name, raw_energy_transformed )
+            energy_wanted[nature_name]["efficiency"] = self.compute_efficiency(nature_name, raw_energy_transformed)
+            self._efficiency[nature_name] = energy_wanted[nature_name]["efficiency"]
 
             # forcing the energy accorded
-            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
-            energy_accorded["quantity"] = - raw_energy_transformed * self._efficiency(nature_name,  raw_energy_transformed)
-            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
+            # energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            # energy_accorded["quantity"] = - raw_energy_transformed * self.compute_efficiency(nature_name, raw_energy_transformed)
+            # self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
 
         # upstream side
         for aggregator in self._upstream_aggregators_list:
             nature_name = aggregator["nature"]
 
             # resetting the demand
-            energy_wanted[nature_name]["energy_minimum"] = raw_energy_transformed / self._efficiency(nature_name, raw_energy_transformed)  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_nominal"] = raw_energy_transformed / self._efficiency(nature_name, raw_energy_transformed)  # the physical minimum of energy this converter has to consume
-            energy_wanted[nature_name]["energy_maximum"] = raw_energy_transformed / self._efficiency(nature_name, raw_energy_transformed)  # the physical maximum of energy this converter can consume
+            energy_wanted[nature_name]["energy_minimum"] = raw_energy_transformed / self.compute_efficiency(nature_name, raw_energy_transformed)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_nominal"] = raw_energy_transformed / self.compute_efficiency(nature_name, raw_energy_transformed)  # the physical minimum of energy this converter has to consume
+            energy_wanted[nature_name]["energy_maximum"] = raw_energy_transformed / self.compute_efficiency(nature_name, raw_energy_transformed)  # the physical maximum of energy this converter can consume
             energy_wanted[nature_name]["price"] = self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["price"]
             self._catalog.set(f"{self.name}.{nature_name}.energy_wanted", energy_wanted[nature_name])  # publication of the message
-            energy_wanted[nature_name]["efficiency"] = self._efficiency (nature_name, raw_energy_transformed)
+            energy_wanted[nature_name]["efficiency"] = self.compute_efficiency (nature_name, raw_energy_transformed)
+            self._efficiency[nature_name] = energy_wanted[nature_name]["efficiency"]
 
             # forcing the energy accorded
-            energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
-            energy_accorded["quantity"] = raw_energy_transformed / self._efficiency(nature_name, raw_energy_transformed)
-            self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
+            # energy_accorded = self._catalog.get(f"{self.name}.{nature_name}.energy_accorded")
+            # energy_accorded["quantity"] = raw_energy_transformed / self.compute_efficiency(nature_name, raw_energy_transformed)
+            # self._catalog.set(f"{self.name}.{nature_name}.energy_accorded", energy_accorded)
 
     def react(self):
         for nature in self.natures:
             energy_wanted = self.get_energy_wanted(nature)
             energy_accorded = self.get_energy_accorded(nature)
-            [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent] = \
-            self.natures[nature]["contract"].billing(energy_wanted, energy_accorded,
-                                                     self.name)  # the contract may adjust things
+            [energy_accorded, energy_erased, energy_bought, energy_sold, money_earned, money_spent] = self.natures[nature]["contract"].billing(energy_wanted, energy_accorded, self.name)  # the contract may adjust things
             self.set_energy_accorded(nature, energy_accorded)
             # print(self.name, energy_accorded)
 
@@ -194,8 +228,11 @@ class ModifiedCombinedHeatAndPower(Converter):
 
         for aggregator in self._downstream_aggregators_list:
             nature_name = aggregator["nature"]
-            self._catalog.set(f"{self.name}.{nature_name}.efficiency", self._efficiency(nature_name, -self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"]))
+            self._catalog.set(f"{self.name}.{nature_name}.efficiency", self.compute_efficiency(nature_name, -self._catalog.get(f"{self.name}.{aggregator['nature']}.energy_accorded")["quantity"]))
             # print(self._catalog.get(f"{self.name}.{nature_name}.efficiency"))
 
-
+        # TODO patchwork solution for RBS
+        heat_wanted_max = self._catalog.get(f"{self.name}.LTH.energy_wanted")['energy_maximum']
+        heat_accorded = self._catalog.get(f"{self.name}.LTH.energy_accorded")['quantity']
+        self._catalog.set(f"{self.name}.heat_by_pass", max(abs(heat_accorded - heat_wanted_max), 0.0))
 

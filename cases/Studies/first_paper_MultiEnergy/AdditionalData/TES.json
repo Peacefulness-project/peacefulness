@@ -1,11 +1,11 @@
 {
   "technical_data": {
     "district_heating_network_TES": {
-      "charge": {"nature": "LTH", "power": 5000, "efficiency": 0.95},
-      "discharge": {"nature": "LTH", "power": 5000, "efficiency": 0.95},
+      "charge": {"nature": "LTH", "power": 6910.33163265306, "efficiency": 0.95},
+      "discharge": {"nature": "LTH", "power": 6910.33163265306, "efficiency": 0.95},
 
-      "minimum_temperature": 50,
-      "maximum_temperature": 80,
+      "minimum_temperature": 65,
+      "maximum_temperature": 95,
 
       "thermal_conductivity": 0.00006,
       "thickness": 1.2,

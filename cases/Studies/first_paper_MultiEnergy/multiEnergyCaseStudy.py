@@ -71,14 +71,14 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
 
     # Price Managers
     ################
-    price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("EDN_prices", {"buying_coefficient": 1.1, "selling_coefficient": 0.9, "location": "France"})  # sets prices for EDN
+    price_manager_grid = subclasses_dictionary["Daemon"]["PriceManagerRTPDaemon"]("EDN_prices", {"buying_coefficient": 2.5, "selling_coefficient": 1.25, "location": "France"})  # sets prices for EDN
     price_manager_elec = subclasses_dictionary["Daemon"]["PriceManagerTOUDaemon"]("MG_prices", {"nature": LVE.name, "buying_price": [0.2, 0.18], "selling_price": [0.06, 0.04], "on-peak_hours": [[5, 9], [17, 21]]})
     price_manager_heat = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("DHN_prices", {"buying_price": 0.08, "selling_price": 0.05})  # sets prices for DHN
     price_manager_gas = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("GDN_prices", {"buying_price": 0.16, "selling_price": 0.0})  # sets prices for GDN
     price_manager_waste = subclasses_dictionary["Daemon"]["PriceManagerDaemon"]("waste_prices", {"buying_price": 0.0, "selling_price": 0.04})  # sets prices for waste-to-heat
     # limit prices
     # the following daemons fix the maximum and minimum price at which energy can be exchanged
-    limit_prices_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.25, "limit_selling_price": 0.04})  # sets limit price accepted for elecricity
+    limit_prices_elec = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LVE.name, "limit_buying_price": 0.6, "limit_selling_price": 0.04})  # sets limit price accepted for elecricity
     limit_prices_heat = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LTH.name, "limit_buying_price": 0.08, "limit_selling_price": 0.04})  # sets limit price accepted for heat
     limit_prices_gas = subclasses_dictionary["Daemon"]["LimitPricesDaemon"]({"nature": LPG.name, "limit_buying_price": 0.16, "limit_selling_price": 0.0})  # sets limit price accepted for gas
 
@@ -94,9 +94,14 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     # ##############################################################################################
     # Creation of strategies
 
-    # the training strategy
-    strategy_1 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_1", red_dof_flag=red_dof_flag)
-    strategy_2 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("agent_2", red_dof_flag=red_dof_flag)
+    # the training strategy - todo for multi-agent case (DHN + EMG)
+    strategy_1 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("EMG", red_dof_flag=red_dof_flag)
+    strategy_2 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("DHN", red_dof_flag=red_dof_flag)
+    strategy_3 = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"]("Intermediary", red_dof_flag=red_dof_flag)
+
+
+    # todo for mono-agent case
+    # strategy = subclasses_dictionary["Strategy"]["SingleAgentDRLStrategy"](red_dof_flag=red_dof_flag)
 
     # the strategy grid, which always proposes an infinite quantity to sell and to buy
     grid_strategy = subclasses_dictionary["Strategy"]["Grid"]()
@@ -105,11 +110,12 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     # Manual creation of agents
     grid_electricity = Agent("Enedis")  # representative of the electricity distribution network
     grid_gas = Agent("GDF")  # representative of the gas distribution network
-    chp_owner = Agent("CHP")  # representative of the owner of the CHP facility
-    hp_owner = Agent("HP")  # representative of the owner of the HP
-    dhn_proxy = Agent("proxyDHN")
-    microgrid_manager = Agent("MG")  # representative of the electricity microgrid manager
-    heat_network_manager = Agent("DHN")  # representative of the district heating network manager
+    # chp_owner = Agent("CHP")  # representative of the owner of the CHP facility
+    # hp_owner = Agent("HP")  # representative of the owner of the HP
+    converters_intermediary = Agent("CvsInt")
+    # dhn_proxy = Agent("proxyDHN")
+    microgrid_manager = Agent("MicroGrid")  # representative of the electricity microgrid manager
+    heat_network_manager = Agent("DistrictHeatingNetwork")  # representative of the district heating network manager
 
     # ##############################################################################################
     # Manual creation of contracts
@@ -131,10 +137,18 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     aggregator_gas = Aggregator(aggregator_name, LPG, grid_strategy, grid_gas)
 
     aggregator_name = "electric_microgrid"  # electric microgrid
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 11000, "selling": 18000})
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 10000, "selling": 22000})
+    # aggregator_elec = Aggregator(aggregator_name, LVE, strategy, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 7200, "selling": 22000})
 
     aggregator_name = "district_heating_network"  # district heating network
     aggregator_heat = Aggregator(aggregator_name, LTH, strategy_2, heat_network_manager, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 0, "selling": 0})
+    # aggregator_heat = Aggregator(aggregator_name, LTH, strategy, heat_network_manager, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 0, "selling": 0})
+
+    aggregator_name = "Intermediary_HP"  # Manager of energy conversion systems (heat pump)
+    aggregator_hp = Aggregator(aggregator_name, LVE, strategy_3, converters_intermediary, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 1500, "selling": 0})
+
+    aggregator_name = "Intermediary_CHP"  # Manager of energy conversion systems (combined heat & power)
+    aggregator_chp = Aggregator(aggregator_name, LPG, strategy_3, converters_intermediary, aggregator_gas, gas_contract, efficiency=1, capacity={"buying": 16000, "selling": 0})
 
     # ##############################################################################################
     # Manual creation of devices
@@ -148,18 +162,23 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
             return consumption
 
     # Energy conversion systems
-    subclasses_dictionary["Device"]["ModifiedHeatPump"]("heat_pump", [COOP_elec, COOP_heat], hp_owner, aggregator_elec, aggregator_heat, {"device": "dual_source_heat_pump_air_mode"},
+    # subclasses_dictionary["Device"]["ModifiedHeatPump"]("heat_pump", [COOP_elec, COOP_heat], hp_owner, aggregator_elec, aggregator_heat, {"device": "dual_source_heat_pump_air_mode"},
+    #                                                     parameters={"max_power": 1500, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name})
+    # subclasses_dictionary["Device"]["ModifiedCombinedHeatAndPower"]("combined_heat_power", [gas_contract, COOP_elec, COOP_heat], chp_owner, aggregator_gas, [aggregator_elec, aggregator_heat],
+    #                                                                 {"device": "test_system"}, parameters={"max_power": 16000})
+
+    subclasses_dictionary["Device"]["ModifiedHeatPump"]("heat_pump", [COOP_elec, COOP_heat], converters_intermediary, aggregator_hp, aggregator_heat, {"device": "dual_source_heat_pump_air_mode"},
                                                         parameters={"max_power": 1500, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "ground_temperature_daemon": ground_temperature_daemon.name})
-    subclasses_dictionary["Device"]["ModifiedCombinedHeatAndPower"]("combined_heat_power", [gas_contract, COOP_elec, COOP_heat], chp_owner, aggregator_gas, [aggregator_elec, aggregator_heat],
+    subclasses_dictionary["Device"]["ModifiedCombinedHeatAndPower"]("combined_heat_power", [gas_contract, COOP_elec, COOP_heat], converters_intermediary, aggregator_chp, [aggregator_elec, aggregator_heat],
                                                                     {"device": "test_system"}, parameters={"max_power": 16000})
 
     # Electricity microgrid devices
     subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "flexible_chargers"},
                                                filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flexibleLoads.json")
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field_1", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"},
-                                                             parameters={"panels": 25000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
+                                                             parameters={"panels": 50000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field_2", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"},
-                                                             parameters={"panels": 25000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
+                                                             parameters={"panels": 50000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
     subclasses_dictionary["Device"]["WindTurbineAdvanced"]("WT_field_1", BAU_elec, microgrid_manager, aggregator_elec, {"device": "ECOS_high"},
                                                            parameters={"wind_speed_daemon": wind_speed_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "rugosity": "flat"})
     subclasses_dictionary["Device"]["WindTurbineAdvanced"]("WT_field_2", BAU_elec, microgrid_manager, aggregator_elec, {"device": "ECOS_high"},
@@ -169,17 +188,17 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
                                                            parameters={"number": 8000, "rng_generator": rng_generator})
 
     # District heating network devices
-    subclasses_dictionary["Device"]["DummyProducer"]("Waste_to_heat", COOP_waste, heat_network_manager, aggregator_heat, {"device": "heat"}, {"max_power": 12000})
+    subclasses_dictionary["Device"]["DummyHeatProducer"]("Waste_to_heat", COOP_waste, heat_network_manager, aggregator_heat, {"device": "heat"}, {"max_power": 12000})
     subclasses_dictionary["Device"]["SensibleHeatStorage"]("Heat_storage", COOP_heat, heat_network_manager, aggregator_heat, {"device": "district_heating_network_TES"},
-                                                           parameters={"capacity": 0, "initial_SOC": 0, "initial_temperature": 60, "outdoor_temperature_daemon": outdoor_temperature_daemon.name},
+                                                           parameters={"capacity": 0, "initial_SOC": 0, "initial_temperature": 75, "outdoor_temperature_daemon": outdoor_temperature_daemon.name},
                                                            filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/TES.json")
     subclasses_dictionary["Device"]["Background"]("space_heating", BAU_heat, heat_network_manager, aggregator_heat, {"user": "space_heating", "device": "space_heating"},
                                                   parameters={"rng_generator": rng_generator},
                                                   filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/SpaceHeating.json")
 
-    # Proxy model of the DHN
-    subclasses_dictionary["Device"]["DummyHeatNetwork"]("artificial_DHN", COOP_elec, dhn_proxy,aggregator_elec, {"device": "artificial_network"},
-                                                        parameters={"pipe_diameter": 0.6, "network_length": 10000, "switch": 2, "nominal_power": 30465.39088, "rng_generator": rng_generator})
+    # Proxy model of the DHN - todo PICM for multi-agent RL case
+    # subclasses_dictionary["Device"]["DummyHeatNetwork"]("artificial_DHN", COOP_heat, dhn_proxy,aggregator_heat, {"device": "artificial_network"},
+    #                                                     parameters={"pipe_diameter": 0.6, "network_length": 10000, "tau_init": 4, "switch": 3, "nominal_power": 30465.39088, "flex_power": 6948.971918, "rng_generator": rng_generator})
 
     # ##############################################################################################
     # Creation of dataloggers
@@ -189,6 +208,7 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     list_of_devices = ["flexible_loads", "rigid_electricity_consumption",
                        "PV_field_1", "WT_field_1", "PV_field_2", "WT_field_2",
                        "heat_pump", "combined_heat_power",
+                       # "artificial_DHN",
                        "Waste_to_heat", "Heat_storage", "space_heating"
                        ]
     subclasses_dictionary["Datalogger"]["DeviceQuantityDatalogger"]("device_quantity_frequency_1", "DeviceQuantity_frequency_1", list_of_devices)

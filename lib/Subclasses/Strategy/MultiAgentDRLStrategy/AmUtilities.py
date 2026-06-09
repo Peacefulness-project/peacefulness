@@ -23,7 +23,7 @@ def feasibility_relevant_state(catalog: "Catalog", norm_parameters: Dict, agent_
     return np.array(return_list, dtype=np.float32)
 
 
-def load_states(path_to_data: str, concerned_agent):
+def load_states(path_to_data: str, concerned_agent=None):
     """
     This method is used to load states from the csv file.
     It is used during the pre-training of the action mapping model.

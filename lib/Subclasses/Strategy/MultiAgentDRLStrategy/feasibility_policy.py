@@ -100,7 +100,7 @@ class FeasibilityPolicyTrainer:
                 # 8.- Estimation of the target probability distribution
                 p_hat = rj / (z_hat + 1e-5)  # tensor of shape [N]
 
-                # 9.- Computing the divergence between the current nad target probability distributions using JS loss
+                # 9.- Computing the divergence between the current and target probability distributions using JS loss
                 iw = q_hat / (q_hat_prime + 1e-5)  # importance sampling
                 total_iw_mean += iw.mean().item()  # for logging purposes
                 js_score = torch.log(2 * q_hat / (q_hat + p_hat + 1e-5) + 1e-5)

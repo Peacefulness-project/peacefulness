@@ -1,0 +1,8 @@
+{
+  "technical_data": {
+    "heat": {
+      "usage_profile": {"nature": "LTH"},
+      "efficiency_variation": 0
+    }
+  }
+}

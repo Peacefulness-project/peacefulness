@@ -629,7 +629,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                 energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
                 energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
                 # but it needs to be between the min and the max value
-                energy_wanted[nature]["energy_maximum"] = self._max_power[nature]
+                energy_wanted[nature]["energy_maximum"] = min(self._max_power[nature], self._demand[nature])
                 energy_wanted[nature]["flexibility"] = [1 - self._min_power[nature]/self._max_power[nature] for _ in range(ceil(self._demand[nature]/self._max_power[nature]))]
                 energy_wanted[nature]["interruptibility"] = 1 - int(self._min_power[nature] is True)
                 energy_wanted[nature]["coming_volume"] = self._demand[nature]  # kWh, the energy consumed on the whole cycle
@@ -736,14 +736,18 @@ class Converter(Device):
             limit_energy_downstream = min(energy_wanted_downstream)
             raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
         else:
-            if tau < switch_signal:  # priority to the DHN
-                limit_energy_upstream = min(energy_available_upstream)
-                limit_energy_downstream = min(energy_wanted_downstream)
-                raw_energy_transformed = limit_energy_downstream
-            else:  # priority to the EMG
+            if tau > switch_signal:  # priority to the EMG
                 limit_energy_upstream = min(energy_available_upstream)
                 limit_energy_downstream = min(energy_wanted_downstream)
                 raw_energy_transformed = limit_energy_upstream
+            elif tau == switch_signal:  # min bidder
+                limit_energy_upstream = min(energy_available_upstream)
+                limit_energy_downstream = min(energy_wanted_downstream)
+                raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
+            else:  # priority to the DHN
+                limit_energy_upstream = min(energy_available_upstream)
+                limit_energy_downstream = min(energy_wanted_downstream)
+                raw_energy_transformed = limit_energy_downstream
 
         if raw_energy_transformed != limit_energy_upstream or raw_energy_transformed != limit_energy_downstream:
             self._catalog.set("incompatibility", True)

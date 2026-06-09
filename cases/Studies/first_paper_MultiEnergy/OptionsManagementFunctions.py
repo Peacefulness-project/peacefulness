@@ -73,7 +73,7 @@ def exchanges_sell_heat_pump(strategy: "Strategy", aggregator: "Aggregator", qua
 def distribution_sell_heat_pump(strategy: "Strategy", aggregator: "Aggregator", max_price: float, sorted_demands: List[Dict], energy_available_consumption: float, money_earned_inside: float, energy_sold_inside: float):
     i = 0
     name = "heat_pump"
-    while not name in sorted_demands[i]["name"]:  # as long as the storage is not found
+    while not name in sorted_demands[i]["name"] and i < len(sorted_demands) - 1:  # as long as the storage is not found
         i += 1
 
     if name in sorted_demands[i]["name"]:
@@ -95,6 +95,9 @@ def distribution_sell_heat_pump(strategy: "Strategy", aggregator: "Aggregator", 
             idx = message['aggregator'].index(aggregator.name)
             message['quantity'][idx] = Emin + energy
             message['price'][idx] = price
+        else:
+            message['quantity'] = Emin + energy
+            message['price'] = price
 
         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -272,7 +275,7 @@ def exchanges_buy_heat_pump(strategy: "Strategy", aggregator: "Aggregator", quan
 def distribution_buy_heat_pump(strategy: "Strategy", aggregator: "Aggregator", min_price: float, sorted_offers: List[Dict], energy_available_production: float, money_spent_inside: float, energy_bought_inside: float):
     i = 0
     name = "heat_pump"
-    while not name in sorted_offers[i]["name"]:  # as long as the storage is not found
+    while not name in sorted_offers[i]["name"] and i < len(sorted_offers) - 1:  # as long as the storage is not found
         i += 1
 
     if name in sorted_offers[i]["name"]:
@@ -293,6 +296,9 @@ def distribution_buy_heat_pump(strategy: "Strategy", aggregator: "Aggregator", m
             idx = message['aggregator'].index(aggregator.name)
             message['quantity'][idx] = energy
             message['price'][idx] = price
+        else:
+            message['quantity'] = energy
+            message['price'] = price
 
         if name in [subaggregator.name for subaggregator in aggregator.subaggregators]:  # if it is a subaggregator
             quantities_given = strategy._catalog.get(f"{name}.{aggregator.nature.name}.energy_accorded")
@@ -329,7 +335,7 @@ def distribution_CHP(strategy: "Strategy", aggregator: "Aggregator", min_price: 
     i = 0
     name = "combined_heat_power"
     if len(sorted_offers) > 0:
-        while sorted_offers[i]["name"] != name:  # as long as the storage is not found
+        while sorted_offers[i]["name"] != name and i < len(sorted_offers) - 1:  # as long as the storage is not found
             i += 1
 
         if sorted_offers[i]["name"] == name:

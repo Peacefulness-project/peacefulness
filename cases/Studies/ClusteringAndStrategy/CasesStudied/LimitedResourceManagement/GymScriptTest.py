@@ -14,7 +14,6 @@ from src.common.Aggregator import Aggregator
 from src.common.Datalogger import Datalogger
 # all the subclasses are imported in the following dictionary
 from src.tools.SubclassesDictionary import get_subclasses
-from datetime import datetime
 
 
 def create_simulation(world_name: str, start_date: datetime, hours_simulated: int, path_name: str, metrics: list = [], random_seed: int = 0, standard_deviation: float = 0.25):

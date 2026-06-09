@@ -35,9 +35,9 @@ def get_action(module, observation):
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
 ENV_PARAMS["export_path"] ="cases/Studies/first_paper_MultiEnergy/Results/Inference"  # path to save the results
-ENV_PARAMS["start_time"] = datetime(2020, 9, 22, 0, 0, 0)
-ENV_PARAMS["hours_to_simulate"] = 5304
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_92d27a5cc7794626ab1b1b2d10a415b2/PPO_MEG_caseStudy_14e9c_00000_0_2026-03-30_16-31-04/checkpoint_000000"
+# ENV_PARAMS["start_time"] = datetime(2021, 1, 1, 0, 0, 0)
+# ENV_PARAMS["hours_to_simulate"] = 24
+path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_23d2ac8c152349e981acb06123f7cef7/PPO_MEG_caseStudy_44d74_00000_0_2026-05-05_16-46-58/checkpoint_000000"
 
 max_nb_exchanges = 1
 max_nb_conversions = 2

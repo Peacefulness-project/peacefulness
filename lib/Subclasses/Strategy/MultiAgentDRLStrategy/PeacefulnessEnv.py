@@ -156,8 +156,9 @@ class PeacefulnessEnv(ParallelEnv):
             # the method is recursive
 
         # Constructing the observation (St vector)
-        obs_keys = ["iteration", "interior", "forecast", "prices", "interconnection", "conversion"]
+        obs_keys = ["iteration", "interior", "forecast", "prices", "interconnection", "conversion", "priority"]
         observations = {}
+        # centralized_critic = []  # todo specific idea of sharing the full observation between the two agents
         for agent in self.agents:
             state_dict = dict(zip(obs_keys, group_components(self.grid._catalog, agent)))
             if f"{agent}.raw_state" not in self.grid._catalog.keys:
@@ -165,11 +166,22 @@ class PeacefulnessEnv(ParallelEnv):
             else:
                 self.grid._catalog.set(f"{agent}.raw_state", state_dict)
             norm_obs = construct_state(state_dict, return_correct_dict(self.normalization_parameters, agent))
+
             observations[agent] = np.asarray(norm_obs, dtype=np.float32)
             if f"{agent}.observation" not in self.grid._catalog.keys:
                 self.grid._catalog.add(f"{agent}.observation", observations[agent])
             else:
                 self.grid._catalog.set(f"{agent}.observation", observations[agent])
+
+            # todo specific idea of sharing the full observation between the two agents
+        #     centralized_critic.extend(norm_obs)
+        #     if f"{agent}.observation" not in self.grid._catalog.keys:
+        #         self.grid._catalog.add(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
+        #     else:
+        #         self.grid._catalog.set(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
+        # for agent in self.agents:
+        #     observations[agent] = np.asarray(centralized_critic, dtype=np.float32)
+
 
         return observations
 

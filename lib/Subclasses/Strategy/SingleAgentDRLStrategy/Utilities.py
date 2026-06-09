@@ -1,7 +1,7 @@
 # In this file, utilities and helper functions are defined for the Peacefulness to gym env.
 # Imports
 from math import cos, sin
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from copy import deepcopy
 from collections import deque
 import csv
@@ -55,6 +55,7 @@ def group_components(catalog: "Catalog", agent_ID=None):
     prices = {}  # here we retrieve the values of energy prices
     conversions = {}  # here we retrieve the energy exchanges through energy conversion systems
     direct_exchanges = {}  # here we retrieve the energy exchanges without energy conversion systems
+    priority_dict = {}  # todo specific to ME-MARL case study
 
     # Distinction between single agent RL and multi-agent configuration
     if not agent_ID:
@@ -102,13 +103,18 @@ def group_components(catalog: "Catalog", agent_ID=None):
             if aggregator.superior and aggregator.superior.nature == aggregator.nature:
                 direct_exchanges[aggregator.superior.name] = {aggregator.name: exchanges[aggregator.name]}
 
+        if "artificial_DHN.DHN_EMG_priority" in catalog.keys:  # todo specific to ME-MARL case study
+            priority_dict[aggregator.name] = catalog.get("artificial_DHN.DHN_EMG_priority")
+        else:
+            priority_dict = None
+
     # Normalization based on the length simulated OR cyclical time with cos/sin
     # relevant_time = catalog.get("simulation_time")
     current_time = catalog.get("simulation_time")
     last_time = catalog.get("time_limit")
     relevant_time = [last_time, current_time]
 
-    return relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions
+    return relevant_time, formalism_message, prediction_message, prices, direct_exchanges, conversions, priority_dict
 
 
 def return_correct_dict(normalization_parameters: Dict, agent_ID: str):
@@ -145,8 +151,6 @@ def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
         return_list.extend([sin(observation_dict["iteration"]), cos(observation_dict["iteration"])])
 
     # The other features
-    internal_features = []
-    external_features = []
     direct_exchanges = deepcopy(observation_dict["interconnection"])
     copy_of_conversions = process_conversions(observation_dict["conversion"])
     for aggregator in observation_dict["interior"]:
@@ -155,6 +159,8 @@ def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
         forecast = []
         prices = []
         interconnection = []
+        internal_features = []
+        external_features = []
         # Formalism variables related to consumers, producers and storage
         for typology in observation_dict["interior"][aggregator]:
             formalism.extend(observation_dict["interior"][aggregator][typology].values())
@@ -203,7 +209,7 @@ def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
                     interconnection.append(direct_exchanges[superior][aggregator]["energy_minimum"])
                     interconnection.append(direct_exchanges[superior][aggregator]["energy_maximum"])
                     interconnection.append(direct_exchanges[superior][aggregator]["efficiency"])
-                direct_exchanges[superior].pop(aggregator)
+                    direct_exchanges[superior].pop(aggregator)
         if normalization_parameters != {}:
             interconnection = normal_interconnection(interconnection, normalization_parameters["energy_minimum"], normalization_parameters["energy_maximum"])
         external_features.extend(interconnection)
@@ -213,18 +219,34 @@ def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
         for exchange in copy_of_conversions:  # list of tuples = [(exchanging_aggs, Emin, Emax, efficiency), ...]
             conversions = []
             if aggregator in exchange[0]:
-                conversions.append(*exchange[1])
-                conversions.append(*exchange[2])
+                if len(exchange[1]) == 1:
+                    conversions.append(*exchange[1])
+                    conversions.append(*exchange[2])
+                    conversions.append(*exchange[3])
+                else:
+                    idx = exchange[0].index(aggregator)
+                    conversions.append(exchange[1][idx])
+                    conversions.append(exchange[2][idx])
+                    conversions.append(exchange[3][idx])
                 if normalization_parameters != {}:
-                    for index in range(len(conversions)):
+                    for index in range(len(conversions) - 1):
                         conversions[index] = normalize_features(conversions[index], normalization_parameters["energy_minimum"], normalization_parameters["energy_maximum"])
-                conversions.append(*exchange[3])
+                    # if 'heat_pump' in exchange[0]:
+                    #     conversions[-1] = normalize_features(conversions[-1], normalization_parameters["efficiency_minimum"], normalization_parameters["efficiency_maximum"])
                 to_be_removed.append(copy_of_conversions.index(exchange))
             external_features.extend(conversions)
-        copy_of_conversions = [tup for index, tup in enumerate(copy_of_conversions) if index not in to_be_removed]
+        if len(exchange[1]) == 1:
+            copy_of_conversions = [tup for index, tup in enumerate(copy_of_conversions) if index not in to_be_removed]
 
         return_list.extend(internal_features)
         return_list.extend(external_features)
+
+        # todo specific to ME-MARL
+        # if isinstance(observation_dict["priority"], dict):
+        #     if observation_dict["priority"][aggregator] == aggregator or observation_dict["priority"][aggregator] == "any":
+        #         return_list.append(1)
+        #     else:
+        #         return_list.append(0)
 
     return return_list
 
@@ -363,7 +385,7 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
     nb_exchange_actions = action_info["exchanges"] - direct_exterior_dofr - conversion_exterior_dofr  # we remove the number of "removed" exterior actions from original length
 
     # internal actions
-    internal_actions = action[:-nb_exchange_actions]  if nb_exchange_actions != 0 else action[:]  # corresponding to the length of "removed" internal actions
+    internal_actions = action[:-nb_exchange_actions] if nb_exchange_actions != 0 else action[:]  # corresponding to the length of "removed" internal actions
     interior_dict = {}
     index = 0
     for agg, nb_interior in action_info["interior"].items():
@@ -385,17 +407,16 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
     external_dict = {agg.name: 0 for agg in managed_aggregators}
     for agg in external_dict:
         # First interconnections (direct energy exchange without use of energy conversion systems)
-        if agg in raw_state["interconnection"]:
+        if agg in raw_state["interconnection"]:  # with subaggregators
             external_dict[agg] += len(raw_state["interconnection"][agg])
             raw_state["interconnection"].pop(agg)
-        else:
-            key_to_remove = []
-            for sup in raw_state["interconnection"]:
-                if agg in raw_state["interconnection"][sup]:
-                    external_dict[agg] += 1
-                    key_to_remove.append(sup)
-            for sup in key_to_remove:
-                raw_state["interconnection"][sup].pop(agg)
+        key_to_remove = []  # with superior aggregators
+        for sup in raw_state["interconnection"]:
+            if agg in raw_state["interconnection"][sup]:
+                external_dict[agg] += 1
+                key_to_remove.append(sup)
+        for sup in key_to_remove:
+            raw_state["interconnection"][sup].pop(agg)
 
         if f"{agg}.net_number_of_direct_energy_exchanges" not in catalog.keys:  # useful to get the downstream action for converters
             catalog.add(f"{agg}.net_number_of_direct_energy_exchanges", external_dict[agg] - direct_exterior_dofr)
@@ -405,6 +426,9 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
         # Then energy exchanges using energy conversion systems
         if agg in raw_state["conversion"]:
             external_dict[agg] += len(raw_state["conversion"][agg]["Energy_Conversion"])
+        if agent_ID == "Intermediary":
+            external_dict[agg] -= 1
+
     index = 0
     for agg, nb_exchanges in external_dict.items():
         if agg in direct_exterior_dofr_dict or agg in conversion_exterior_dofr_dict:  # we check if for this aggregator the "removed" action is external (exchange)
@@ -413,6 +437,8 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
             to_remove = 0
         chunk = external_actions[index: index + nb_exchanges - to_remove]
         exchanges_dict[agg] = chunk
+        if len(exchanges_dict[agg]) == 0:  # todo patchwork solution here for the MEG case study (single-RL)
+            exchanges_dict[agg] = external_actions[-(nb_exchanges - to_remove):]
         index += nb_exchanges
     if f"{ref_name}.exterior_decision" not in catalog.keys:  # {"aggregator_name": [Eexch_1-norm, Eexch_2-norm, ...], ...}
         catalog.add(f"{ref_name}.exterior_decision", exchanges_dict)  # normalized actions (exterior)
@@ -434,7 +460,10 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
     # In case, we remove one action per aggregator
     idx_removed = None
     if red_dof_flag:  # Otherwise we get a catalog Exception error
-        reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+        if f"Action removed for {aggregator.name}" in catalog.keys:
+            reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+        else:
+            reduced_action = None
     else:
         reduced_action = None
     if reduced_action is not None and reduced_action in typologies:
@@ -445,18 +474,23 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
     norm_decision = deque(interior_decision[aggregator.name])
 
     # Then, we scale them up.
-    for typ in typologies:
-        if len(raw_state["interior"][aggregator.name][typ]) > 0:
-            returned_list.append(scale_up_feature(norm_decision.popleft(), raw_state["interior"][aggregator.name][typ]["energy_minimum"], raw_state["interior"][aggregator.name][typ]["energy_maximum"]))
+    if "Intermediary" not in aggregator.name:
+        for typ in typologies:
+            if len(raw_state["interior"][aggregator.name][typ]) > 0:
+                returned_list.append(scale_up_feature(norm_decision.popleft(),
+                                                      raw_state["interior"][aggregator.name][typ]["energy_minimum"],
+                                                      raw_state["interior"][aggregator.name][typ]["energy_maximum"]))
 
-    # Final check
-    if len(returned_list) < 3:
-        if idx_removed is not None:
-            returned_list.insert(idx_removed, 0.0)
-        else:
-            returned_list.append(0.0)
-    if len(returned_list) > 3:
-        raise Exception("Error in defining the interior actions !")
+        # Final check
+        if len(returned_list) < 3:
+            if idx_removed is not None:
+                returned_list.insert(idx_removed, 0.0)
+            else:
+                returned_list.append(0.0)
+        if len(returned_list) > 3:
+            raise Exception("Error in defining the interior actions !")
+    else:
+        returned_list = [0, 0, 0]
 
     return returned_list
 
@@ -475,11 +509,14 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     exchange_to_remove = 0
     conversion_to_remove = 0
     if red_dof_flag:  # Otherwise we get a catalog Exception error
-        reduced_action = catalog.get(f"Action removed for {aggregator.name}")
-        if "Exchange" in reduced_action:
-            exchange_to_remove = 1
-        elif "Conversion" in reduced_action:
-            conversion_to_remove = 1
+        if f"Action removed for {aggregator.name}" in catalog.keys:
+            reduced_action = catalog.get(f"Action removed for {aggregator.name}")
+            if "Exchange" in reduced_action:
+                exchange_to_remove = 1
+            elif "Conversion" in reduced_action:
+                conversion_to_remove = 1
+        else:
+            reduced_action = None
     else:
         reduced_action = None
 
@@ -505,6 +542,9 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
         if nb_conversion_actions != 0:  # in case where agents/aggregators decide on both ends of energy conversion systems
             direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
             conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
+            if "Intermediary" in aggregator.name:  # todo patchwork solution
+                conversions.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
+                direct_exchanges = [-element for element in direct_exchanges]
             # if len(exchange_decision[aggregator.name]) == nb_direct_exchanges + nb_conversion_actions:  # the aggregator is upstream w.r.t energy converters
             #     direct_exchanges.extend(exchange_decision[aggregator.name][:nb_direct_exchanges])
             #     conversions.extend(exchange_decision[aggregator.name][nb_direct_exchanges:])
@@ -518,6 +558,21 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
 
     # Then, we scale-up 'at'.
     idx_exch = 1
+    for superior in raw_state["interconnection"]:
+        if aggregator.name in raw_state["interconnection"][superior]:
+            if reduced_action is not None:
+                if exchange_to_remove > 0 and str(idx_exch) in reduced_action:
+                    scaled_up_action = 0.0
+                else:
+                    scaled_up_action = scale_up_feature(direct_exchanges.popleft(),
+                                                        raw_state["interconnection"][superior][aggregator.name]["energy_minimum"],
+                                                        raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+                idx_exch += 1
+            else:
+                scaled_up_action = scale_up_feature(direct_exchanges.popleft(),
+                                                    raw_state["interconnection"][superior][aggregator.name]["energy_minimum"],
+                                                    raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+            exchange_dict = {**exchange_dict, **{tuple([superior, aggregator.name]): scaled_up_action}}
     if aggregator.name in raw_state["interconnection"]:
         for sub in raw_state["interconnection"][aggregator.name]:
             if reduced_action is not None:
@@ -529,18 +584,6 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
             else:
                 scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
             exchange_dict = {**exchange_dict, **{tuple([aggregator.name, sub]): scaled_up_action}}
-    else:
-        for superior in raw_state["interconnection"]:
-            if aggregator.name in raw_state["interconnection"][superior]:
-                if reduced_action is not None:
-                    if exchange_to_remove > 0 and str(idx_exch) in reduced_action:
-                        scaled_up_action = 0.0
-                    else:
-                        scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
-                    idx_exch += 1
-                else:
-                    scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][superior][aggregator.name]["energy_minimum"], raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
-                exchange_dict = {**exchange_dict, **{tuple([superior, aggregator.name]): scaled_up_action}}
 
     conversion_list = process_conversions(raw_state["conversion"])
     idx_cv = 1 + len(exchange_dict)
@@ -551,10 +594,16 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
                 if conversion_to_remove > 0 and str(idx_cv) in reduced_action:
                     scaled_up_action = 0.0
                 else:
-                    scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                    if 'combined_heat_power' not in exchange[0]:  # for CHP, NN predict the gas ratio used instead of energy flow
+                        scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                    else:
+                        scaled_up_action = CHP_decision(conversions.popleft(), exchange, my_index, catalog)
                 idx_cv += 1
             else:
-                scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                if 'combined_heat_power' not in exchange[0]:  # for CHP, NN predict the gas ratio used instead of energy flow
+                    scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                else:
+                    scaled_up_action = CHP_decision(conversions.popleft(), exchange, my_index, catalog)
             exchange_dict = {**exchange_dict, **{tuple(exchange[0]): scaled_up_action}}
 
     return exchange_dict
@@ -609,7 +658,15 @@ def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict,
     """
     # Initialization
     reduced_action = catalog.get(f"Action removed for {aggregator.name}")
-    energy_exchanges = list(Eexch.values())
+
+    # correcting the case of subaggregators
+    Eexch_copy = deepcopy(Eexch)
+    subaggregators = aggregator.subaggregators
+    for exchange in Eexch_copy:
+        for sub in subaggregators:
+            if sub.name in exchange:
+                Eexch_copy[exchange] = - Eexch_copy[exchange]
+    energy_exchanges = list(Eexch_copy.values())
 
     # Internal decision
     if reduced_action == "Energy_Consumption":
@@ -625,6 +682,10 @@ def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict,
     else:
         raise Exception("The dict of action removal is not correctly defined !")
     Eexch = dict(zip(Eexch.keys(), energy_exchanges))  # rebuilding the Eexch dict
+    for exchange in Eexch:  # correcting back the subaggregators (for correct energy balance counting)
+        for sub in subaggregators:
+            if sub.name in exchange:
+                Eexch[exchange] = - Eexch[exchange]
 
     return Econ, Eprod, Esto, Eexch
 
@@ -695,17 +756,16 @@ def recapitulate_state(catalog: "Catalog", agent_ID=None) -> Dict:
     for agg in return_dict:
         og_key = truncate_right(agg, '.energy_flow_values_intervals')
         idx = 1
+        for sup in raw_state["interconnection"]:
+            if og_key in raw_state["interconnection"][sup]:
+                return_dict[agg].update({f"Energy_Exchange_{idx}": [raw_state["interconnection"][sup][og_key]["energy_minimum"],
+                                                                    raw_state["interconnection"][sup][og_key]["energy_maximum"]]})
+                idx += 1
         if og_key in raw_state["interconnection"]:
             for sub in raw_state["interconnection"][og_key]:
                 return_dict[agg].update({f"Energy_Exchange_{idx}": [raw_state["interconnection"][og_key][sub]['energy_minimum'],
                                                                     raw_state["interconnection"][og_key][sub]['energy_maximum']]})
                 idx += 1
-        else:
-            for sup in raw_state["interconnection"]:
-                if og_key in raw_state["interconnection"][sup]:
-                    return_dict[agg].update({f"Energy_Exchange_{idx}": [raw_state["interconnection"][sup][og_key]["energy_minimum"],
-                                                                        raw_state["interconnection"][sup][og_key]["energy_maximum"]]})
-                    idx += 1
         if len(raw_state["conversion"][og_key]["Energy_Conversion"]) > 0:
             for conv_sys in raw_state["conversion"][og_key]["Energy_Conversion"]:
                 return_dict[agg].update({f"Energy_Conversion_{idx}": [raw_state["conversion"][og_key]["Energy_Conversion"][conv_sys]["energy_minimum"],
@@ -719,10 +779,17 @@ def converters_recap(catalog: "Catalog", agent_ID=None) -> Dict:
     """
     This helper function is used to return a dict of converters offsets.
     """
-    return_dict = {f"{agent_ID}.converters_offset": []}  # todo patchwork solution
+    if agent_ID is not None:
+        ref_name = agent_ID
+    else:
+        ref_name = "gym_Strategy"
+
+    return_dict = {f"{ref_name}.converters_offset": [], f"{ref_name}.conversion_error": float}  # todo patchwork solution
     for key in catalog.keys:
-        if agent_ID in key and "converters_offset" in key:
-            return_dict[f"{agent_ID}.converters_offset"].extend(catalog.get(key))
+        if ref_name in key and "converters_offset" in key:
+            return_dict[f"{ref_name}.converters_offset"].extend(catalog.get(key))
+        elif ref_name in key and "conversion_error" in key:
+            return_dict[f"{ref_name}.conversion_error"] = catalog.get(key)
 
     return return_dict
 
@@ -882,3 +949,111 @@ def plot_my_results(minmax_dict: Dict, real_dict: Dict, path_to_export: str):
             plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust for suptitle
             # plt.show()
             plt.savefig(path_to_export + f"{common_key}.pdf", format='pdf', bbox_inches='tight', pad_inches=0.05)
+
+
+
+def who_decided(first_arr, second_arr, tol):
+    mask_nonzeros = (first_arr != 0) | (second_arr != 0)
+    return ((np.abs(first_arr - second_arr) < tol) & mask_nonzeros).astype(int)
+
+
+def group_metrics(iteration_results: Dict, cum_dict: Dict, time_limit: int):  # todo patchwork solution for the MEG case study
+    # Constraints related metrics
+    #############################
+    # energy conservation error for the Electric Microgrid.
+    Exch_value = iteration_results["electric_microgrid.gym_Strategy.scaled_up_actions"][3]
+    EMG_error = (
+        Exch_value - 22000 if Exch_value > 22000
+        else abs(Exch_value + 7200) if Exch_value < -7200
+        else 0
+    )
+    cum_dict["sum_error_EMG"] += EMG_error
+    cum_dict["max_error_EMG"] = max(EMG_error, cum_dict["max_error_EMG"])
+    # energy conservation error for the District Heating Network
+    # e_conservation_error = abs(sum(iteration_results["district_heating_network.gym_Strategy.scaled_up_actions"]))
+    Esto_value = iteration_results["district_heating_network.gym_Strategy.scaled_up_actions"][2]
+    Esto_intervals = iteration_results["district_heating_network.energy_flow_values_intervals"]["Energy_Storage"]
+    e_conservation_error = (
+        Esto_value - Esto_intervals[1] if Esto_value > Esto_intervals[1]
+        else abs(Esto_value - Esto_intervals[0]) if Esto_value < Esto_intervals[1]
+        else 0
+    )
+    cum_dict["sum_error_DHN"] += e_conservation_error
+    cum_dict["max_error_DHN"] = max(e_conservation_error, cum_dict["max_error_DHN"])
+    if iteration_results["simulation_time"] > 0:
+        cum_dict["avg_error_EMG"] = cum_dict["sum_error_EMG"] / iteration_results["simulation_time"]
+        cum_dict["avg_error_DHN"] = cum_dict["sum_error_DHN"] / iteration_results["simulation_time"]
+    else:
+        cum_dict["avg_error_EMG"] = cum_dict["sum_error_EMG"]
+        cum_dict["avg_error_DHN"] = cum_dict["sum_error_DHN"]
+    cum_dict["total_electricity_consumption"] += iteration_results["electric_microgrid.energy_sold_inside"] + iteration_results["electric_microgrid.energy_sold_outside"]
+    cum_dict["total_heat_consumption"] += iteration_results["district_heating_network.energy_sold_inside"] + iteration_results["district_heating_network.energy_sold_outside"]
+
+    # Objectives related metrics
+    ############################
+    # Score / Operational costs
+    earned_out = iteration_results["electric_microgrid.money_earned_outside"]
+    spent_out = iteration_results["electric_microgrid.money_spent_outside"]
+    balance_cost = earned_out - spent_out  # cost of electricity exchange with the main grid
+    cum_dict["exchange_cost"] += balance_cost
+
+    electricity_erased = iteration_results["flexible_loads.LVE.energy_erased"]
+    flexible_money = iteration_results["flexible_loads.LVE.money"]
+    social_cost = electricity_erased * flexible_money  # cost of not serving flexible loads
+    cum_dict["social_cost"] += social_cost
+
+    gas_cost = iteration_results["combined_heat_power.LPG.money_spent"]  # cost of gas used by the CHP
+    cum_dict["gas_cost"] += gas_cost
+
+    heat_ununsed = iteration_results["Waste_to_heat.heat_dissipated"]
+    W2h_money = iteration_results["Waste_to_heat.LTH.money"]
+    W2h_unused_heat = heat_ununsed * W2h_money  # cost of not using free heat from the incinerator
+    cum_dict["W2h_dissipated_heat"] += W2h_unused_heat
+
+    heat_by_pass = iteration_results["combined_heat_power.heat_by_pass"]
+    CHP_heat_money = iteration_results["combined_heat_power.LTH.money"]
+    CHP_heat_by_pass_cost = heat_by_pass * CHP_heat_money  # cost of heat surplus from the CHP
+    cum_dict["CHP_heat_by_pass"] += CHP_heat_by_pass_cost
+
+    # Green heat supply
+    EnR_electricity = iteration_results["PV_field_1.LVE.energy_sold"] + iteration_results["PV_field_2.LVE.energy_sold"] + iteration_results["WT_field_1.LVE.energy_sold"] + iteration_results["WT_field_2.LVE.energy_sold"]
+    electricity_total_supply = iteration_results["electric_microgrid.energy_bought_inside"] + iteration_results["electric_microgrid.energy_bought_outside"]
+    if electricity_total_supply == 0:
+        EnR_ratio = 0.0
+    else:
+        EnR_ratio = EnR_electricity / electricity_total_supply
+    cum_dict["green_HP_elec"] += EnR_ratio * iteration_results["heat_pump.LVE.energy_bought"]
+    cum_dict["total_HP_elec"] += iteration_results["heat_pump.LVE.energy_bought"]
+    cum_dict["total_HP_heat"] += iteration_results["heat_pump.LTH.energy_sold"]
+    cum_dict["incinerator_heat"] += iteration_results["Waste_to_heat.LTH.energy_sold"]
+    cum_dict["total_heat_supply"] += iteration_results["district_heating_network.energy_bought_inside"]
+
+    if iteration_results['simulation_time'] == time_limit:
+        cum_dict["HP_green_ratio"] = cum_dict["green_HP_elec"] / cum_dict["total_HP_elec"]
+        cum_dict["total_HP_green_injection"] = cum_dict["HP_green_ratio"] * cum_dict["total_HP_heat"]
+        cum_dict["total_green_supply"] = (cum_dict["total_HP_green_injection"] + cum_dict["incinerator_heat"]) / cum_dict["total_heat_supply"]
+        cum_dict["OPEX"] = cum_dict["exchange_cost"] - cum_dict["social_cost"] - cum_dict["gas_cost"] - cum_dict["W2h_dissipated_heat"] - cum_dict["CHP_heat_by_pass"]
+        cum_dict["relative_electricity_error"] = cum_dict["sum_error_EMG"] / cum_dict["total_electricity_consumption"]
+        cum_dict["relative_heat_error"] = cum_dict["sum_error_DHN"] / cum_dict["total_heat_consumption"]
+
+    return {"episode_metrics": cum_dict}
+
+
+def CHP_decision(predicted_gas_ratio: float, exchange: Tuple, my_idx: int, catalog: "Catalog"):
+    """
+    This utility function is used to compute the CHP energy flow, based on the predicted as ratio.
+    """
+    real_gas_ratio = (predicted_gas_ratio + 1) / 2  # action from [-1,1] -> [0,1]
+    gas_burnt = real_gas_ratio * catalog.devices['combined_heat_power'].CHP_nominal_power['LPG']
+    agg_name = exchange[0][my_idx]
+    if 'electric' in agg_name:
+        nature_name = 'LVE'
+        CHP_flow = - gas_burnt * catalog.devices['combined_heat_power'].compute_efficiency(nature_name, gas_burnt)
+    elif 'heat' in agg_name:
+        nature_name = 'LTH'
+        CHP_flow = - gas_burnt * catalog.devices['combined_heat_power'].compute_efficiency(nature_name, gas_burnt)
+    else:
+        nature_name = 'LPG'
+        CHP_flow = gas_burnt * catalog.devices['combined_heat_power'].compute_efficiency(nature_name, gas_burnt)
+
+    return CHP_flow

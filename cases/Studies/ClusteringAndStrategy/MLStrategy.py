@@ -114,11 +114,11 @@ class MLStrategy(TrainingStrategy):
 
         for priority in priorities_consumption:
             [sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside] = self._options_consumption.loc[priority]["distribute"](self, aggregator, min_price, sorted_demands, energy_available_consumption, money_earned_inside, energy_sold_inside)
-            if priority == "nothing":
+            if priority == "nothing" or len(sorted_demands) == 0:
                 break
         for priority in priorities_production:
             [sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside] = self._options_production.loc[priority]["distribute"](self, aggregator, max_price, sorted_offers, energy_available_production, money_spent_inside, energy_bought_inside)
-            if priority == "nothing":
+            if priority == "nothing" or len(sorted_offers) == 0:
                 break
 
         return energy_bought_inside, energy_sold_inside, money_spent_inside, money_earned_inside

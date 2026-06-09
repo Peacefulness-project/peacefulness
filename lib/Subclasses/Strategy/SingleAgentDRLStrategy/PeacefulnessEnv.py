@@ -7,22 +7,25 @@ from random import setstate
 from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
 from datetime import datetime
 import uuid
+from Reward_functions.delayed_reward_SRL import SRL_PBRS_final_Rt
 
 
 class PeacefulnessEnv(gym.Env):
+    metadata = {'render.modes': ['human']}
 
-    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
         """
-        path_to_case: the path to the case study
-        hours_to_simulate: defines the length of each episode of training
-        export_path: where to find the logs of the dataloggers
-        observation_size: size of the observation vector
-        action_dict: dict composed of : "total_size" ; "nb_exchanges" ; "nb_interior_actions_per_aggregator"
-        normalization_dict: used to normalize states
-        objective_dict: used to identify which reward function to apply (and for which agent)
-        metrics: list of metrics used to compute the reward
-        std_dev: by default it is set to 25% of noise to validation data
-        verbose:
+        :param path_to_case: the path to the case study
+        :param hours_to_simulate: defines the length of each episode of training
+        :param export_path: where to find the logs of the dataloggers
+        :param observation_size: size of the observation vector
+        :param action_dict: dict composed of : "total_size" ; "nb_exchanges" ; "nb_interior_actions_per_aggregator"
+        :param normalization_dict: used to normalize states
+        :param objective_dict: used to identify which reward function to apply (and for which agent)
+        :param metrics: list of metrics used to compute the reward
+        :param std_dev: by default it is set to 25% of noise to validation data
+        :param verbose:
+        :param red_dof_dict: if we apply 1-degree less of freedom per agent, a dict should be defined.
         """
         # Observation space - TODO on peut aussi avoir -inf et +inf comme low/high pour Box en normalisant avec NormalizeEnv de SB3 (à tester plus tard)
         # high_obs = np.ones(observation_size)
@@ -30,9 +33,9 @@ class PeacefulnessEnv(gym.Env):
         # self.observation_space = spaces.Box(low=low_obs, high=high_obs, dtype=np.float32)
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(observation_size, ), dtype=np.float32)
 
-        # Action space - TODO the SB3 models use tanh by default
+        # Action space
         # self.action_space = spaces.Box(low=0.0, high=1.0, shape=(action_size, ), dtype=np.float32)
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(action_dict["total_size"], ), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(self.get_my_action_size(action_dict, red_dof_dict), ), dtype=np.float32)
 
         # Defining the reward function to use
         self._identify_reward(objective_dict)
@@ -47,6 +50,7 @@ class PeacefulnessEnv(gym.Env):
         # Needed for the step method
         self.action_info = deepcopy(action_dict)
         self.action_info.pop("total_size")  # contains only nb_exchanges, nb_internal_typologies_per_agg
+        self.red_dof_dict = red_dof_dict  # None if no degree of freedom is reduced
 
         # Used to retrieve the correct case study
         path_to_case = correct_path(path_to_case)
@@ -61,6 +65,21 @@ class PeacefulnessEnv(gym.Env):
         self.grid = None
         self.ended_episode = False
         self.env_id = uuid.uuid4().hex
+
+        self.stats = {}
+
+
+    def get_my_action_size(self, action_info: Dict, red_dof_dict=None):
+        """
+        This method is used to retrieve the size of actions for the RL agent in the environment.
+        :param action_info: A dict as follows {"total_size": , "exchanges": , "interior": {"aggregator_1": , "aggregator_2":...}}.
+        :param red_dof_dict: A dict as follows {"aggregator": "demand"/"supply"/"storage"/"exchange"/"conversion", ...}.
+        """
+        if not red_dof_dict:
+            action_size = action_info["total_size"]
+        else:
+            action_size = action_info["total_size"] - len(red_dof_dict)
+        return action_size
 
 
     def _identify_reward(self, objective_dict: Dict):
@@ -127,6 +146,10 @@ class PeacefulnessEnv(gym.Env):
 
         for aggregator in self.grid._catalog.aggregators.values():
             aggregator.reinitialize()
+            if not f"{aggregator.name}.incompatibility" in self.grid._catalog.keys:  # the flag indicating if a second round of decision is needed due to multi-energy devices
+                self.grid._catalog.add(f"{aggregator.name}.incompatibility", False)
+            else:
+                self.grid._catalog.set(f"{aggregator.name}.incompatibility", False)
 
         for device in self.grid._catalog.devices.values():
             device.reinitialize()
@@ -152,6 +175,11 @@ class PeacefulnessEnv(gym.Env):
             self.grid._catalog.set(f"gym_Strategy.raw_state", state_dict)
         norm_obs = construct_state(state_dict, self.normalization_parameters)
 
+        if f"gym_Strategy.observation" not in self.grid._catalog.keys:  # useful for the PBRS wrapper
+            self.grid._catalog.add(f"gym_Strategy.observation", np.asarray(norm_obs, dtype=np.float32))
+        else:
+            self.grid._catalog.set(f"gym_Strategy.observation", np.asarray(norm_obs, dtype=np.float32))
+
         return np.asarray(norm_obs, dtype=np.float32)
 
 
@@ -160,7 +188,7 @@ class PeacefulnessEnv(gym.Env):
         # if self.ended_episode:
         #     info["is_success"] = True
 
-        return info  # TODO voir de quoi remplir
+        return info
 
 
     def reset(self, *, seed=None, options=None):
@@ -168,20 +196,26 @@ class PeacefulnessEnv(gym.Env):
         We re-initialize the environment with this method.
         """
         super().reset(seed=seed)
-        sim_seed = seed
-        if sim_seed is None:
-            sim_seed = int(self.np_random.integers(0, 2 ** 32 - 1))
 
         if self.ended_episode:
             self.final_grid_operation()
             self.ended_episode = False
 
-        self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{sim_seed}"
-        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, sim_seed, self.std_dev)  # the Peacefulness World
+        self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, self.red_dof_dict)  # the Peacefulness World
         self.initial_grid_operation()
+
+        if self.red_dof_dict is not None:
+            for agg in self.red_dof_dict:
+                if f"Action removed for {agg}" not in self.grid._catalog.keys:  # Energy_Consumption, Energy_Production, Energy_Storage, Energy_Exchange, Energy_Conversion
+                    self.grid._catalog.add(f"Action removed for {agg}", self.red_dof_dict[agg])
+                else:
+                    self.grid._catalog.set(f"Action removed for {agg}", self.red_dof_dict[agg])
 
         observation = self._get_obs()
         info = self._get_info()
+        # Needed for logging metrics
+        self.initialize_cumulative_dict()
 
         return observation, info
 
@@ -190,7 +224,7 @@ class PeacefulnessEnv(gym.Env):
         """
         We perform the instructions the same way in original Peacefulness "World.start" method, except we don't loop.
         """
-        distribute_my_action(action.tolist(), self.grid._catalog, self.action_info)  # writes in the catalog the dicts of actions/aggregator
+        distribute_my_action(action.tolist(), self.grid._catalog, self.action_info, red_dof_dict=self.red_dof_dict)  # writes in the catalog the dicts of actions/aggregator
 
         # descendant phase: balances with remote energy
         for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
@@ -207,11 +241,11 @@ class PeacefulnessEnv(gym.Env):
             aggregator.check()
             # the method is recursive
 
-        if self.grid._catalog.get("incompatibility"):  # if a second round is needed
-           for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
-               aggregator.ask()  # aggregators make local balances and then publish their needs (both in demand and in offer)
-           for aggregator in self.independent_aggregators_list:  # aggregators are called according to the predefined order
-               aggregator.distribute()  # aggregators make local balances and then publish their needs (both in demand and in offer)
+        incompatible_aggregators = self.find_incompatibility_aggregators()
+        for aggregator in incompatible_aggregators:  # aggregators are called according to the predefined order
+            second_ask(aggregator)  # aggregators make local balances and then publish their needs (both in demand and in offer)
+        for aggregator in incompatible_aggregators:  # aggregators are called according to the predefined order
+            second_distribute(aggregator)  # aggregators make local balances and then publish their needs (both in demand and in offer)
 
         # ###########################
         # End of the turn
@@ -249,6 +283,8 @@ class PeacefulnessEnv(gym.Env):
         if self.grid._catalog.get('simulation_time') == self.grid._catalog.get("time_limit"):
             truncated = True
             self.ended_episode = True
+            self._cum_dict["HP_money"] = self.grid._catalog.get('heat_pump.LTH.money')
+            self._cum_dict["W2h_money"] = self.grid._catalog.get('Waste_to_heat.LTH.money')
         else:
             truncated = False
 
@@ -257,7 +293,10 @@ class PeacefulnessEnv(gym.Env):
 
         # Computing the immediate reward
         # Getting the scaled-up decision made by the RL agent as understood by the environment
-        results = recapitulate_decision(self.grid._catalog)
+        results = {}
+        results.update(recapitulate_state(self.grid._catalog))
+        results.update(recapitulate_decision(self.grid._catalog))
+        results.update(converters_recap(self.grid._catalog))
         # Getting the list of the dataloggers defined for the study_case with respect of operational objectives.
         for datalogger in self.grid._catalog.dataloggers.values():
             datalogger_keys = datalogger.get_keys  # retrieving the keys to be exported by the datalogger
@@ -265,9 +304,26 @@ class PeacefulnessEnv(gym.Env):
         # Calculating each reward function - and then we sum them to get the overall immediate reward
         reward = 0.0
         for reward_function in self.reward_function_list:  # todo maybe a distinct penalty term for P3O ?
-            reward += reward_function(results, self.metrics)
+            func_reward = 0.0
+            func_reward += reward_function(results, self.metrics, action_reduction_dict=self.red_dof_dict)
+
+            if str(reward_function) in self.stats.keys():
+                self.stats[str(reward_function)].append(func_reward)
+            else:
+                self.stats[str(reward_function)] = [func_reward]
+
+            reward += func_reward
 
         info = self._get_info()
+        info.update(group_metrics(results, self._cum_dict, self.episode_length))  # for the (episodic) metrics callback
+        if terminated or truncated:
+            info.update(recapitulate_decision(self.grid._catalog))  # for the last iteration during inference
+
+            dict_to_csv(self.stats, "D:/dossier_y23hallo/Thèse/multi-energy/final_results/rt_components.csv")
+
+
+        # if truncated:
+        #     reward = SRL_PBRS_final_Rt(reward, self._cum_dict)  # todo patchwork solution delayed reward (PBRS)
 
         next_obs = self._get_obs()
 
@@ -293,3 +349,73 @@ class PeacefulnessEnv(gym.Env):
 
         # reinitialize random state
         setstate(self.grid._random_state)
+
+
+    def find_incompatibility_aggregators(self):
+        concerned_aggregators = []
+        managed_aggregators = self.grid._catalog.get(f"gym_Strategy.strategy_scope")
+        all_aggregators = self.grid._catalog.aggregators.values()
+        for agg in all_aggregators:
+            if self.grid._catalog.get(f"{agg.name}.incompatibility"):
+                concerned_aggregators.append(agg)
+            if not agg in managed_aggregators and self.grid._catalog.get("incompatibility"):
+                device_list = agg.devices
+                for device in device_list:
+                    if device == "combined_heat_power":  # TODO patchwork solution for the MEG case study
+                        concerned_aggregators.append(agg)
+
+        return concerned_aggregators
+
+
+    def initialize_cumulative_dict(self):  # todo patchwork solution for the MEG case study
+        self._cum_dict = {
+            "sum_error_EMG": 0,
+            "max_error_EMG": 0,
+            "avg_error_EMG": 0,
+            "sum_error_DHN": 0,
+            "max_error_DHN": 0,
+            "avg_error_DHN": 0,
+            "total_electricity_consumption": 0,
+            "total_heat_consumption": 0,
+            "relative_electricity_error": 0,
+            "relative_heat_error": 0,
+            "exchange_cost": 0,
+            "social_cost": 0,
+            "gas_cost": 0,
+            "W2h_dissipated_heat": 0,
+            "CHP_heat_by_pass": 0,
+            "green_HP_elec": 0,
+            "total_HP_elec": 0,
+            "total_HP_heat": 0,
+            "incinerator_heat": 0,
+            "total_heat_supply": 0,
+            "HP_green_ratio": 0,
+            "total_HP_green_injection": 0,
+            "total_green_supply": 0,
+            "OPEX": 0
+        }
+
+
+def dict_to_csv(data: dict, filename="output.csv"):
+    # Get column names
+    columns = list(data.keys())
+
+    # Determine the maximum number of rows
+    max_len = max(len(values) for values in data.values())
+
+    # Open CSV file for writing
+    with open(filename, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+
+        # Write header
+        writer.writerow(columns)
+
+        # Write rows
+        for i in range(max_len):
+            row = []
+            for col in columns:
+                # Get value if exists, else empty string
+                values = data[col]
+                row.append(values[i] if i < len(values) else "")
+            writer.writerow(row)
+

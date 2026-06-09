@@ -18,14 +18,14 @@ from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 # todo Imports for action mapping
-from ray.rllib.models import ModelCatalog
-from ray.rllib.models.torch.torch_action_dist import TorchSquashedGaussian
-from Wrappers import ActionMappingWrapper
-from feasibility_policy import FeasibilityPolicy, feasibility_relevant_state
+# from ray.rllib.models import ModelCatalog
+# from ray.rllib.models.torch.torch_action_dist import TorchSquashedGaussian
+# from Wrappers import ActionMappingWrapper
+# from feasibility_policy import FeasibilityPolicy, feasibility_relevant_state
 
 # todo for Potential-based Rewards Shaping
-from Wrappers import PotentialBasedShapingWrapper
-from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_test import MARL_MECS_Rt
+# from Wrappers import PotentialBasedShapingWrapper
+# from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_MARL import MARL_MECS_Rt
 
 # For printing results
 import uuid
@@ -38,23 +38,24 @@ from pprint import pprint
 # Parameters
 path_to_case = "cases/Studies/first_paper_MultiEnergy/multiEnergyCaseStudy.py"
 world_name = "MEG"
-start_time = datetime(2020, 1, 1, 0, 0, 0)
-simulation_length = 8760
+start_time = datetime(2020, 9, 22, 0, 0, 0)
+simulation_length = 5304
 path_to_export = "cases/Studies/first_paper_MultiEnergy/Results"
 agents_dict = {
-    "agent_1": {"electric_microgrid": (22, 2), "exchanges": 3},
-    "agent_2": {"district_heating_network": (25, 3), "exchanges": 2}
+    "agent_1": {"electric_microgrid": (23, 2), "exchanges": 3},
+    "agent_2": {"district_heating_network": (26, 3), "exchanges": 2}
 }
 reward_dict = {
     "agent_1": [
-        ("conservation_penalty", 1),
-        # ("social_cost", 1), ("green_injection", 2),
-        # ("aggregator_costs", 0.5), ("gas_cost", 0.1)
+        ("conservation_penalty", 10),
+        ("green_injection", 1.5), ("social_cost", 0.5),
+        ("aggregator_costs", 0.7), ("gas_cost", 0.3)
                 ],
     "agent_2": [
-        ("conservation_penalty", 1),
-        # ("green_injection", 2),
-        # ("gas_cost", 0.1), ("waste_cost", 0.1)
+        ("conservation_penalty", 10),
+        ("green_injection", 1.5),
+        ("waste_cost", 0.7),
+        ("gas_cost", 0.3), ("heatSink_cost", 0.7)
                 ]
 }
 normalization_dict = {
@@ -63,37 +64,38 @@ normalization_dict = {
     # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
 metrics = [
-    "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",
-    "flexible_loads.LVE.energy_erased",
-    # "Waste_to_heat.LTH.energy_sold",
-    "combined_heat_power.LPG.energy_bought",
-    # "combined_heat_power.LVE.energy_sold", "combined_heat_power.LTH.energy_sold",
-    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold"
+    "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",  # external economic balance
+    "flexible_loads.LVE.energy_erased", "flexible_loads.LVE.money",  # social cost
+    "combined_heat_power.LPG.money_spent", "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "electric_microgrid.LVE.energy_wanted",  # gas cost
+    "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
+    "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",  # wasted heat from the CHP
+    "PV_field_1.LVE.energy_sold", "PV_field_2.LVE.energy_sold", "WT_field_1.LVE.energy_sold", "WT_field_2.LVE.energy_sold",  # EnR
+    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "electric_microgrid.energy_bought_outside", "district_heating_network.energy_sold_inside"  # HP
 ]
 act_red_dict = {
     "agent_1": {"electric_microgrid": "Energy_Exchange_1"},
     "agent_2": {"district_heating_network": "Energy_Storage"}
 }
 
-# Specific to action mapping
+# todo Specific to action mapping
 # my_pi_f = FeasibilityPolicy(state_dim=22, latent_dim=11)
 # path_to_weights = "cases/Studies/MultiAgent_RL/Results/action_mapper/feasibility_policy.pt"
 # state_sampler = feasibility_relevant_state
 
-# Parameters for the PBRS wrapper.
-gamma = 0.99
-expn = True
-exp_base = 32
-pot_shift = - 0.1
-bias_reset = False
-bias_reset_val = 0
-worst_pot = {"agent_1": 33566.5519, "agent_2": 35465.3909}
-ref_rt = {"agent_1": 20352833.315, "agent_2": 6953289.515}
-needed_for_goal = metrics + ['flexible_loads.LVE.money', 'combined_heat_power.LPG.money',
-                             'rigid_electricity_consumption.LVE.energy',
-                             'PV_field_1.LVE.energy', 'PV_field_2.LVE.energy',
-                             'WT_field_1.LVE.energy', 'WT_field_2.LVE.energy',
-                             'heat_pump.LVE.money', 'heat_pump.LTH.money']
+# todo Parameters for the PBRS wrapper.
+# gamma = 0.95
+# expn = True
+# exp_base = 32
+# pot_shift = - 0.2
+# bias_reset = False
+# bias_reset_val = 0
+# worst_pot = {"agent_1": 25000, "agent_2": 30000}
+# ref_rt = {"agent_1": 1e5, "agent_2": 1e5}
+# needed_for_goal = metrics + ['flexible_loads.LVE.money', 'combined_heat_power.LPG.money', 'combined_heat_power.LTH.money',
+#                              'rigid_electricity_consumption.LVE.energy', 'artificial_DHN.LTH.energy', 'artificial_DHN.LTH.money',
+#                              'PV_field_1.LVE.energy', 'PV_field_2.LVE.energy',
+#                              'WT_field_1.LVE.energy', 'WT_field_2.LVE.energy',
+#                              'heat_pump.LVE.money', 'heat_pump.LTH.money']
 
 
 ENV_PARAMS = dict(
@@ -108,24 +110,25 @@ ENV_PARAMS = dict(
     metrics = metrics,
     red_dof_dict = act_red_dict,
 
-    # Specific to action mapping
+    # todo Specific to action mapping
     # feasibility_policy = my_pi_f,
     # pi_f_path = path_to_weights,
     # relevant_state = state_sampler
 
-    # Specific to PBRS wrapper
-    gamma = gamma,
-    expn = expn,
-    exp_base = exp_base,
-    pot_shift = pot_shift,
-    bias_reset = bias_reset,
-    bias_reset_val = bias_reset_val,
-    worst_pot = worst_pot,
-    ref_rt = ref_rt,
-    needed_mets = needed_for_goal,
-    goal_func = MARL_MECS_Rt
+    # todo Specific to PBRS wrapper
+    # gamma = gamma,
+    # expn = expn,
+    # exp_base = exp_base,
+    # pot_shift = pot_shift,
+    # bias_reset = bias_reset,
+    # bias_reset_val = bias_reset_val,
+    # worst_pot = worst_pot,
+    # ref_rt = ref_rt,
+    # needed_mets = needed_for_goal,
+    # goal_func = MARL_MECS_Rt
 )
 
+# todo Testing the PettingZoo envrionment
 # Env creation
 # myEnv = PeacefulnessEnv(path_to_case, world_name, start_time, simulation_length, path_to_export, agents_dict, reward_dict, normalization_dict, metrics)
 
@@ -144,7 +147,7 @@ ENV_PARAMS = dict(
 #     return PeacefulnessEnv(path_to_case, world_name, start_time, simulation_length, path_to_export, agents_dict, reward_dict, normalization_dict, metrics)
 # parallel_seed_test(create_my_env, num_cycles=8760)
 
-# Testing the environment for RLlib
+# todo Testing the environment for RL_lib
 # libEnv = ParallelPettingZooEnv(myEnv)
 # obs, info = libEnv.reset()
 # print("Reset OK:", obs.keys())
@@ -186,9 +189,9 @@ def build_env(env_config):
     # wrapped_env = ScaleRewardsWrapper(env, gamma=0.99)  # todo Reward normalization wrapper
     # env = ActionMappingWrapper(env, env_config['feasibility_policy'], env_config['pi_f_path'], env_config['relevant_state'])  # todo Action Mapping wrapper
     # todo PBRS wrapper
-    env = PotentialBasedShapingWrapper(env, env_config["gamma"], env_config["expn"], env_config["exp_base"],
-                                       env_config["pot_shift"], env_config["bias_reset"], env_config["bias_reset_val"],
-                                       env_config["worst_pot"], env_config["ref_rt"], env_config["needed_mets"], env_config["goal_func"])
+    # env = PotentialBasedShapingWrapper(env, env_config["gamma"], env_config["expn"], env_config["exp_base"],
+    #                                    env_config["pot_shift"], env_config["bias_reset"], env_config["bias_reset_val"],
+    #                                    env_config["worst_pot"], env_config["ref_rt"], env_config["needed_mets"], env_config["goal_func"])
 
     return ParallelPettingZooEnv(env)
 
@@ -213,7 +216,7 @@ if __name__ == "__main__":
     ray.init()
 
     # Resuming training from a previously trained model
-    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/MultiAgent_RL/Models/run_0be381d40f6f42fbb0ae5a57a26d78b9/PPO_mini_case_93f69_00000_0_2026-03-01_20-41-01/checkpoint_000000"
+    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_0aeb6f27a52a4be8969d5f707e05d501/PPO_MEG_caseStudy_38894_00000_0_2026-05-07_10-46-21/checkpoint_000000"
 
     env_name = "MEG_caseStudy"
     register_env(env_name, build_env)
@@ -254,8 +257,8 @@ if __name__ == "__main__":
         #             evaluation_config={"env_config": {"std_dev": 0}})
         .env_runners(num_env_runners=4,
                      num_cpus_per_env_runner=1,
-                     rollout_fragment_length="auto",
-                     batch_mode="truncate_episodes")
+                     rollout_fragment_length=5304,
+                     batch_mode="complete_episodes")
         .learners(num_learners=0,
                   # num_cpus_per_learner=1,
                   # num_aggregator_actors_per_learner=1
@@ -264,7 +267,7 @@ if __name__ == "__main__":
                      policy_mapping_fn=policy_mapping_fn,
                      policy_states_are_swappable=False  # todo set this to true if agents share the same obs/act sizes
                      )
-        # .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
+        .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
         .framework("torch")
         .debugging(log_level="ERROR")
     )
@@ -295,7 +298,7 @@ if __name__ == "__main__":
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
             storage_path=Path("cases/Studies/first_paper_MultiEnergy/Models").resolve(),
-            stop={"training_iteration": 100
+            stop={"training_iteration": 200
                 # , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training

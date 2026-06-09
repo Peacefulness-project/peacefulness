@@ -236,7 +236,7 @@ class PotentialBasedShapingWrapper(BaseParallelWrapper):
         obs = self.obs_in_step()
         next_obs, rewards, terminated, truncated, infos = self.env.step(actions)
         self.update_goal_metrics(infos["agent_1"])
-
+        # print(f"initial results -> {rewards}")
         for agent_id in obs:
             obs[agent_id] = np.insert(obs[agent_id], len(obs[agent_id]), rewards[agent_id])
             next_obs[agent_id] = np.insert(next_obs[agent_id], len(next_obs[agent_id]), 0)
@@ -252,15 +252,16 @@ class PotentialBasedShapingWrapper(BaseParallelWrapper):
         cur_pot, prev_pot = self.rescale_potential(cur_pot), self.rescale_potential(prev_pot)
         if self.exponential:
             cur_pot, prev_pot = self.exponential_potential(cur_pot), self.exponential_potential(prev_pot)
-        # cur_pot = self.is_terminal(self.shift_potential(cur_pot), done)
-        # prev_pot = self.is_terminal(self.shift_potential(prev_pot), False)
+        cur_pot = self.is_terminal(self.shift_potential(cur_pot), done)
+        prev_pot = self.is_terminal(self.shift_potential(prev_pot), False)
         rewards = {agent: 0.0 for agent in obs}
         if done:
             cur_pot = {agent: 0.0 for agent in obs}
             rewards = self.goal(rewards, self.delayed_reward_metrics, self.norm_reward)
+            # print(f"final reward {rewards}")
 
         rewards = self.shaped_rewards(rewards, prev_pot, cur_pot)
-
+        # print(f"shaped rewards -> {rewards}")
         for agent in obs:
             next_obs[agent][-1] = obs[agent][-1]
 

@@ -1,7 +1,7 @@
 {
   "technical_data": {
     "flexible_chargers": {
-      "usage_profile": {"LVE": 1},
+      "usage_profile": {"LVE": 5000},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0},

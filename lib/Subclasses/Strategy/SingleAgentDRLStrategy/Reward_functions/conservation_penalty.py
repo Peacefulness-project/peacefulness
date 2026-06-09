@@ -41,6 +41,7 @@ def define_my_Rt(beta_0: float):
                 sold_outside = 0.0
                 bought_inside = 0.0
                 bought_outside = 0.0
+                converters_error = 0.0
                 if agg + f".energy_sold_inside" in iteration_result:
                     sold_inside = iteration_result[agg + f".energy_sold_inside"]
                 if agg + f".energy_sold_outside" in iteration_result:
@@ -49,12 +50,16 @@ def define_my_Rt(beta_0: float):
                     bought_inside = iteration_result[agg + f".energy_bought_inside"]
                 if agg + f".energy_bought_outside" in iteration_result:
                     bought_outside = iteration_result[agg + f".energy_bought_outside"]
-                from_datalogger[agg] = - beta_0 * abs((bought_inside + bought_outside) - (sold_inside + sold_outside))
+                if f"{agent_ID}.conversion_error" in iteration_result:
+                    converters_error = iteration_result[f"{agent_ID}.conversion_error"]
+                from_datalogger[agg] = - beta_0 * abs((bought_inside + bought_outside) - (sold_inside + sold_outside)) - beta_0 * abs(converters_error)
 
             # Finally the reward is calculated and returned
             reward = 0.0
             for agg in managed_aggregators:
-                reward += min(scaled_actions[agg], from_datalogger[agg])
+                reward += min(scaled_actions[agg], from_datalogger[agg]) / 3000.0
+                # reward += from_datalogger[agg]
+            # print(f"{agent_ID} -> penalty : {reward}")
         else:
             # We get the scaled-up actions/decisions & energy flow values intervals per aggregator
             reward = 0.0
@@ -68,6 +73,15 @@ def define_my_Rt(beta_0: float):
                 # We identify the masked action
                 if agg in action_reduction_dict:
                     masked_action = action_reduction_dict[agg]
+                else:
+                    if dynamic_intervals["Energy_Consumption"][1] == 0:
+                        # offset = abs(sum(scaled_actions)) / abs(dynamic_intervals["Energy_Production"][1])
+                        offset = abs(sum(scaled_actions))
+                    else:
+                        # offset = abs(sum(scaled_actions)) / dynamic_intervals["Energy_Consumption"][1]
+                        offset = abs(sum(scaled_actions))
+                    reward += - beta_0 * offset
+                    continue
 
                 # We then compute the offset per aggregator
                 if masked_action == "Energy_Consumption":
@@ -85,16 +99,27 @@ def define_my_Rt(beta_0: float):
                     else:
                         offset = 0.0
                 elif masked_action == "Energy_Storage":
-                    ref = max(abs(dynamic_intervals["Energy_Storage"][0]), abs(dynamic_intervals["Energy_Storage"][1]))
-                    if ref != 0:
-                        if scaled_actions[2] > dynamic_intervals["Energy_Storage"][1]:
-                            offset = abs(scaled_actions[2] - dynamic_intervals["Energy_Storage"][1]) / ref
-                        elif scaled_actions[2] < dynamic_intervals["Energy_Storage"][0]:
-                            offset = abs(dynamic_intervals["Energy_Storage"][0] - scaled_actions[2]) / ref
-                        else:
-                            offset = 0.0
+                    ref = (dynamic_intervals["Energy_Storage"][1] + abs(dynamic_intervals["Energy_Storage"][0])) / 2
+                    if scaled_actions[2] > dynamic_intervals["Energy_Storage"][1]:
+                        offset = abs(scaled_actions[2] - dynamic_intervals["Energy_Storage"][1])
+                    elif scaled_actions[2] < dynamic_intervals["Energy_Storage"][0]:
+                        offset = abs(dynamic_intervals["Energy_Storage"][0] - scaled_actions[2])
                     else:
-                        offset = abs(scaled_actions[2]) / 5000.0  # todo patchwork solution for multi-energy MARL case study
+                        offset = 0.0
+                    if ref == 0:
+                        offset /= (6910.33163265306 / 2)
+                    else:
+                        offset /= ref
+                    # ref = max(abs(dynamic_intervals["Energy_Storage"][0]), abs(dynamic_intervals["Energy_Storage"][1]))
+                    # if ref != 0:
+                    #     if scaled_actions[2] > dynamic_intervals["Energy_Storage"][1]:
+                    #         offset = abs(scaled_actions[2] - dynamic_intervals["Energy_Storage"][1]) / ref
+                    #     elif scaled_actions[2] < dynamic_intervals["Energy_Storage"][0]:
+                    #         offset = abs(dynamic_intervals["Energy_Storage"][0] - scaled_actions[2]) / ref
+                    #     else:
+                    #         offset = 0.0
+                    # else:
+                    #     offset = abs(scaled_actions[2]) / 5000.0  # todo patchwork solution for multi-energy MARL case study
                 else:
                     for idx in range(1, len(scaled_actions) - 2):
                         if str(idx) in masked_action:
@@ -103,18 +128,26 @@ def define_my_Rt(beta_0: float):
                                     interval_key = dynamic_intervals[key]
                             if interval_key[1] >= 0:  # upstream converters and grid selling only
                                 if scaled_actions[idx + 2] > interval_key[1]:
-                                    offset = abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[0]) + abs(interval_key[1]))
+                                    # offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                    offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
                                 elif scaled_actions[idx + 2] < interval_key[0]:
-                                    offset = abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[0]) + abs(interval_key[1]))
+                                    # offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                    offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
                                 else:
                                     offset = 0.0
                             else:  # downstream converters and grid buying only
                                 if scaled_actions[idx + 2] < interval_key[1]:
-                                    offset = abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[0]) + abs(interval_key[1]))
+                                    # offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                    offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
                                 elif scaled_actions[idx + 2] > interval_key[0]:
-                                    offset = abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[0]) + abs(interval_key[1]))
+                                    # offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                    offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
                                 else:
                                     offset = 0.0
+
+                # We add the error in case CHP has a heat sink higher than its heat produced - todo patchwork solution for MEG case study
+                # offset += iteration_result[f"{agent_ID}.conversion_error"]  # for MARL
+                # offset += iteration_result[f"{ref_name}.conversion_error"] / len(managed_aggregators)  # for SRL
 
                 # Finally the reward is computed based on the offset
                 # reward -= beta_0 * (offset ** 2)
