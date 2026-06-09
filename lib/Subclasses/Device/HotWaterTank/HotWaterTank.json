@@ -1,7 +1,7 @@
 {
   "technical_data": {
     "family": {
-      "usage_profile": {"LVE": 6},
+      "usage_profile": {"LVE": 60},
       "consumption_variation": 0.1,
 
       "min_power": {"LVE": 0.5},
@@ -9,7 +9,7 @@
     },
 
     "family_heat": {
-      "usage_profile": {"LTH": 6},
+      "usage_profile": {"LTH": 60},
       "consumption_variation": 0.1,
 
       "min_power": {"LTH": 0.5},
@@ -17,7 +17,7 @@
     },
 
     "family_gas": {
-      "usage_profile": {"LPG": 6},
+      "usage_profile": {"LPG": 60},
       "consumption_variation": 0.1,
 
       "min_power": {"LPG": 0.5},

@@ -8,6 +8,8 @@ from src.common.Messages import MessagesManager
 from src.tools.ReadingFunctions import reading_functions
 from typing import Dict
 from lib.Subclasses.Device.DummyHeatNetwork.DummyHeatNetwork import DummyHeatNetwork
+from copy import deepcopy
+
 from math import ceil
 
 
@@ -584,8 +586,10 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         for i in range(len(data_user["profile"])):
             self._user_profile.append([])
-            for hour in data_user["profile"][i]:
-                self._user_profile[-1].append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+            hour = data_user["profile"][i][0]
+            self._user_profile[-1].append((hour // time_step) * time_step)  # changing the hour fo fit the time step
+            ratio = data_user["profile"][i][1]
+            self._user_profile[-1].append(ratio)
 
         # min and max power allowed
         # these power are converted into energy quantities according to the time step
@@ -594,7 +598,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
 
         # usage_profile
         self._technical_profile = data_device["usage_profile"]  # creation of an empty usage_profile with all cases ready
-        self._demand = self._technical_profile  # if the simulation begins during an usage, the demand has to be initialized
+        self._demand = deepcopy(self._technical_profile)  # if the simulation begins during an usage, the demand has to be initialized
 
         self._unused_nature_removal()  # remove unused natures
 
@@ -618,21 +622,43 @@ class ChargerDevice(Device):  # a consumption which is adjustable
         # message = {element: self._messages["bottom-up"][element] for element in self._messages["bottom-up"]}
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
 
-        if self._remaining_time == 0:  # checking if the device has to start
+        # if self._remaining_time == 0:  # checking if the device has to start
+        #     for usage in self._user_profile:
+        #         if usage[0] == self._moment:  # if the current hour matches with the start of an usage
+        #             self._remaining_time = usage[1] - usage[0]  # incrementing usage duration
+        #             self._demand = self._technical_profile  # the demand for each nature of energy
+
+        if self._remaining_time:  # if we know when will be the next need
+            self._remaining_time -= 1
+        else:  # if we don't know when it will happen
+            self._remaining_time = self._period  # we reinitialize the remaining_time
             for usage in self._user_profile:
-                if usage[0] == self._moment:  # if the current hour matches with the start of an usage
-                    self._remaining_time = usage[1] - usage[0]  # incrementing usage duration
-                    self._demand = self._technical_profile  # the demand for each nature of energy
+                if usage[0] - self._moment > 0:  # if the need occurs during the ongoing period
+                    remaining_time = usage[0] - self._moment
+                else:  # if the need occurs during the next period
+                    remaining_time = usage[0] - self._moment + self._period  # a period is added to know the real time remaining
+
+                if remaining_time < self._remaining_time:
+                    self._remaining_time = remaining_time  # the time kept is the shortest
+                    for nature in self._technical_profile:
+                        self._demand[nature] = usage[1] * self._technical_profile[nature]  # and the quantity associated is kept
 
         if self._remaining_time:  # if the device is active
             for nature in energy_wanted:
-                energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
-                energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], self._demand[nature] / self._remaining_time))  # the nominal energy demand is the total demand divided by the number of turns left
-                # but it needs to be between the min and the max value
-                energy_wanted[nature]["energy_maximum"] = min(self._max_power[nature], self._demand[nature])
-                energy_wanted[nature]["flexibility"] = [1 - self._min_power[nature]/self._max_power[nature] for _ in range(ceil(self._demand[nature]/self._max_power[nature]))]
-                energy_wanted[nature]["interruptibility"] = 1 - int(self._min_power[nature] is True)
-                energy_wanted[nature]["coming_volume"] = self._demand[nature]  # kWh, the energy consumed on the whole cycle
+                average_energy = self._demand[nature] / self._remaining_time
+                if average_energy >= self._max_power[nature]:  # it is urgent !
+                    energy_wanted[nature]["energy_minimum"] = self._max_power[nature]
+                    energy_wanted[nature]["energy_nominal"] = self._max_power[nature]
+                    energy_wanted[nature]["energy_maximum"] = self._max_power[nature]
+                else:  # it is not urgent
+                    energy_wanted[nature]["energy_minimum"] = self._min_power[nature]
+                    energy_wanted[nature]["energy_nominal"] = max(self._min_power[nature], min(self._max_power[nature], average_energy))  # the nominal energy demand is the total demand divided by the number of turns left
+                    # but it needs to be between the min and the max value
+                    energy_wanted[nature]["energy_maximum"] = min(self._max_power[nature], self._demand[nature])
+            energy_wanted[nature]["flexibility"] = [1 - self._min_power[nature]/self._max_power[nature] for _ in range(ceil(self._demand[nature]/self._max_power[nature]))]
+            energy_wanted[nature]["interruptibility"] = 1 - int(self._min_power[nature] is True)
+            energy_wanted[nature]["coming_volume"] = self._demand[nature]  # kWh, the energy consumed on the whole cycle
+        print(energy_wanted)
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -651,10 +677,10 @@ class ChargerDevice(Device):  # a consumption which is adjustable
                 # /!\ if there is a minimum power, remember to change the line above to take into account the start-up costs
                 # otherwise, there is a risk that the total quantity of energy required is inferior to the minimum power necessary for the device to work
 
-        activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean: it is the sum of the nominal quantities of energy asked
-        if activity:  # if the device is active
-            if self._remaining_time:  # decrementing the remaining time of use
-                self._remaining_time -= 1
+        # activity = sum([self.get_energy_wanted_nom(nature) for nature in self.natures])  # activity is used as a boolean: it is the sum of the nominal quantities of energy asked
+        # if activity:  # if the device is active
+        #     if self._remaining_time:  # decrementing the remaining time of use
+        #         self._remaining_time -= 1
 
 
 # ##############################################################################################

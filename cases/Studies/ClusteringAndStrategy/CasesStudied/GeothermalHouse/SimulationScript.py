@@ -134,6 +134,7 @@ def create_simulation(hours_simulated: int, priorities_conso: Callable, prioriti
     contract_grid = subclasses_dictionary["Contract"]["EgoistContract"]("grid_prices_manager", LVE, price_manager_elec_RTP)  # this contract is the one between the local electrical grid and the national one
 
     heat_contract = subclasses_dictionary["Contract"]["CooperativeContract"]("contract_heat", LTH, price_manager_heat)  # a contract
+    BAU_heat = subclasses_dictionary["Contract"]["EgoistContract"]("BAU_heat", LTH, price_manager_heat)
 
     # ##############################################################################################
     # Creation of aggregators
