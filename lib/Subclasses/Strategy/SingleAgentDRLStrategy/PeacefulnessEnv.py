@@ -13,7 +13,7 @@ from Reward_functions.delayed_reward_SRL import SRL_PBRS_final_Rt
 class PeacefulnessEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, observation_size: int, action_dict: Dict, aggregators_actions: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
         """
         :param path_to_case: the path to the case study
         :param hours_to_simulate: defines the length of each episode of training
@@ -50,6 +50,7 @@ class PeacefulnessEnv(gym.Env):
         # Needed for the step method
         self.action_info = deepcopy(action_dict)
         self.action_info.pop("total_size")  # contains only nb_exchanges, nb_internal_typologies_per_agg
+        self.agg_actions = deepcopy(aggregators_actions)
         self.red_dof_dict = red_dof_dict  # None if no degree of freedom is reduced
 
         # Used to retrieve the correct case study
@@ -66,7 +67,7 @@ class PeacefulnessEnv(gym.Env):
         self.ended_episode = False
         self.env_id = uuid.uuid4().hex
 
-        self.stats = {}
+        # self.stats = {}
 
 
     def get_my_action_size(self, action_info: Dict, red_dof_dict=None):
@@ -117,6 +118,12 @@ class PeacefulnessEnv(gym.Env):
             self.grid._catalog.add(f"gym_Strategy.strategy_scope", gym_scope)
         else:
             self.grid._catalog.set(f"gym_Strategy.strategy_scope", gym_scope)
+
+        for agg in gym_scope:
+            if f"{agg.name}.expected_RL_actions" not in self.grid._catalog.keys:
+                self.grid._catalog.add(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
+            else:
+                self.grid._catalog.set(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
 
 
     def _get_obs(self):
@@ -201,8 +208,9 @@ class PeacefulnessEnv(gym.Env):
             self.final_grid_operation()
             self.ended_episode = False
 
-        self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
-        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, self.red_dof_dict)  # the Peacefulness World
+        myPath = deepcopy(self.dataloggers_path)
+        myPath += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, myPath, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, self.red_dof_dict)  # the Peacefulness World
         self.initial_grid_operation()
 
         if self.red_dof_dict is not None:
@@ -305,25 +313,23 @@ class PeacefulnessEnv(gym.Env):
         reward = 0.0
         for reward_function in self.reward_function_list:  # todo maybe a distinct penalty term for P3O ?
             func_reward = 0.0
-            func_reward += reward_function(results, self.metrics, action_reduction_dict=self.red_dof_dict)
+            func_reward += reward_function(results, metrics=self.metrics, cumul_dict=self._cum_dict, action_reduction_dict=self.red_dof_dict)
 
-            if str(reward_function) in self.stats.keys():
-                self.stats[str(reward_function)].append(func_reward)
-            else:
-                self.stats[str(reward_function)] = [func_reward]
+            # if str(reward_function) in self.stats.keys():
+            #     self.stats[str(reward_function)].append(func_reward)
+            # else:
+            #     self.stats[str(reward_function)] = [func_reward]
 
             reward += func_reward
 
         info = self._get_info()
-        info.update(group_metrics(results, self._cum_dict, self.episode_length))  # for the (episodic) metrics callback
+        info.update(group_metrics(results, self._cum_dict))  # for the (episodic) metrics callback
         if terminated or truncated:
             info.update(recapitulate_decision(self.grid._catalog))  # for the last iteration during inference
 
-            dict_to_csv(self.stats, "D:/dossier_y23hallo/Thèse/multi-energy/final_results/rt_components.csv")
+            # dict_to_csv(self.stats, "D:/dossier_y23hallo/Thèse/multi-energy/final_results/rt_components.csv")
 
-
-        # if truncated:
-        #     reward = SRL_PBRS_final_Rt(reward, self._cum_dict)  # todo patchwork solution delayed reward (PBRS)
+            reward = SRL_PBRS_final_Rt(reward, self._cum_dict)  # todo patchwork solution delayed reward (PBRS)
 
         next_obs = self._get_obs()
 
@@ -369,6 +375,7 @@ class PeacefulnessEnv(gym.Env):
 
     def initialize_cumulative_dict(self):  # todo patchwork solution for the MEG case study
         self._cum_dict = {
+            'time_limit': self.grid._catalog.get('time_limit'),
             "sum_error_EMG": 0,
             "max_error_EMG": 0,
             "avg_error_EMG": 0,
@@ -380,6 +387,8 @@ class PeacefulnessEnv(gym.Env):
             "relative_electricity_error": 0,
             "relative_heat_error": 0,
             "exchange_cost": 0,
+            "flex_given": 0,
+            "flex_max": 0,
             "social_cost": 0,
             "gas_cost": 0,
             "W2h_dissipated_heat": 0,

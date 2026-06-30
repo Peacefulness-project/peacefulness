@@ -1,7 +1,7 @@
 from PeacefulnessEnv import PeacefulnessEnv, datetime
-from pettingzoo.test import parallel_api_test, parallel_seed_test
-from Wrappers import PotentialBasedShapingWrapper
-from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_test import MARL_MECS_Rt
+# from pettingzoo.test import parallel_api_test, parallel_seed_test
+# from Wrappers import PotentialBasedShapingWrapper
+# from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_test import MARL_MECS_Rt
 from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 
 # Parameters for the base Env.
@@ -9,18 +9,22 @@ path_to_case = "cases/Studies/first_paper_MultiEnergy/multiEnergyCaseStudy.py"
 world_name = "MEG"
 start_time = datetime(2021, 9, 22, 0, 0, 0)
 simulation_length = 5304
-path_to_export = "cases/Studies/first_paper_MultiEnergy/Results"
+path_to_export = "cases/Studies/first_paper_MultiEnergy/Results/Two_Agents/testing"
 agents_dict = {
-    "agent_1": {"electric_microgrid": (23, 2), "exchanges": 3},
-    "agent_2": {"district_heating_network": (26, 3), "exchanges": 2}
+    "EMG": {"electric_microgrid": (49, 2), "exchanges": 3},
+    "DHN": {"district_heating_network": (49, 3), "exchanges": 2}
+}
+agg_acts = {
+    "electric_microgrid": ('Energy_Consumption', 'Energy_Conversion_2', 'Energy_Conversion_3'),
+    "district_heating_network": ('Energy_Consumption', "Energy_Production", "Energy_Conversion_2", "Energy_Conversion_3"),
 }
 reward_dict = {
-    "agent_1": [
+    "EMG": [
         ("conservation_penalty", 10),
         ("green_injection", 1.5), ("social_cost", 0.5),
         ("aggregator_costs", 0.7), ("gas_cost", 0.3)
                 ],
-    "agent_2": [
+    "DHN": [
         ("conservation_penalty", 10),
         ("green_injection", 1.5),
         ("waste_cost", 0.7),
@@ -28,28 +32,28 @@ reward_dict = {
                 ]
 }
 normalization_dict = {
-    "energy_minimum": -19000.0, "energy_maximum": 31000.0, "price_minimum": 0.0, "price_maximum": 0.26,
-    "efficiency_minimum": 2.44496538514395, "efficiency_maximum": 4.60688775510204
+    "energy_minimum": -25000.0, "energy_maximum": 35000.0, "price_minimum": 0.0, "price_maximum": 0.6,
+    # "efficiency_minimum": 2.44496538514395, "efficiency_maximum": 4.60688775510204
     # "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
     # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
-metrics = [
-    "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",
-    "flexible_loads.LVE.energy_erased", "flexible_loads.LVE.money",
-    "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.money",
-    "combined_heat_power.LPG.energy_bought", "combined_heat_power.LPG.money",
-    # "combined_heat_power.LVE.energy_sold", "combined_heat_power.LTH.energy_sold",
-    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold",
-    "heat_pump.LVE.money", "heat_pump.LTH.money",
-    "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",
-    "artificial_DHN.priority_tau", "electric_microgrid.LVE.energy_wanted",
-    "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted"
-]
 act_red_dict = {
-    "agent_1": {"electric_microgrid": "Energy_Exchange_1"},
-    "agent_2": {"district_heating_network": "Energy_Storage"}
+    "EMG": {"electric_microgrid": "Energy_Exchange_1"},
+    "DHN": {"district_heating_network": "Energy_Storage"}
 }
 
+metrics = [
+    "electric_microgrid.energy_bought_outside", "electric_microgrid.energy_sold_outside",  # external economic balance
+    "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",  # external economic balance
+    "flexible_loads.LVE.energy_wanted", "flexible_loads.LVE.energy_accorded", "flexible_loads.LVE.money",  # social cost
+    "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "combined_heat_power.LPG.money_spent",  # gas cost
+    "electric_microgrid.LVE.energy_wanted", "combined_heat_power.LTH.energy_wanted", "district_heating_network.LVE.energy_wanted",
+    "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.energy_sold", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
+    "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",  # wasted heat from the CHP
+    "PV_field_1.LVE.energy_sold", "PV_field_2.LVE.energy_sold", "WT_field_1.LVE.energy_sold", "WT_field_2.LVE.energy_sold",  # EnR
+    "artificial_DHN.flexibility_offset",
+    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "district_heating_network.energy_sold_inside", "heat_pump.LTH.energy_wanted"  # HP
+]
 
 # Parameters for the PBRS wrapper.
 # gamma = 0.95
@@ -67,8 +71,8 @@ act_red_dict = {
 #                              'heat_pump.LVE.money', 'heat_pump.LTH.money']
 
 # Instantiating the PettingZoo environment
-myEnv = PeacefulnessEnv(path_to_case, world_name, start_time, simulation_length, path_to_export, agents_dict, reward_dict, normalization_dict, metrics, 0, False
-                        , act_red_dict
+myEnv = PeacefulnessEnv(path_to_case, world_name, start_time, simulation_length, path_to_export, agents_dict, agg_acts,
+                        reward_dict, normalization_dict, metrics, 0, False, act_red_dict
                         )
 
 # myEnv = PotentialBasedShapingWrapper(myEnv, gamma, expn, exp_base, pot_shift, bias_reset, bias_reset_val, worst_pot, ref_rt, needed_for_goal, MARL_MECS_Rt)

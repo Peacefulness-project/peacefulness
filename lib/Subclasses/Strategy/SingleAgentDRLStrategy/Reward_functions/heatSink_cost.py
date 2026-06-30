@@ -6,7 +6,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t penalty for not totally serving loads.
     """
-    def heatSink_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):  # todo patchwork solution
+    def heatSink_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):  # todo patchwork solution
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
@@ -31,9 +31,6 @@ def define_my_Rt(beta_0: float):
                 heatByPass_energy = iteration_result[key]
 
         # Finally we compute the reward
-        # if heatByPass_price != 0.0:
-        #     reward += - beta_0 * abs((heatByPass_price * heatByPass_energy) / (heatByPass_price * 9900.8))
-        #     # reward += - beta_0 * abs(heatByPass_price * heatByPass_energy)
         reward += - beta_0 * abs(heatByPass_energy) / 9900.8
 
         return reward

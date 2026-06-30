@@ -6,9 +6,9 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t penalty for not totally serving loads.
     """
-    def waste_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):  # todo patchwork solution
+    def waste_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):  # todo patchwork solution
         """
-        :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
+        :param iteration_result: the dataloggers signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
         :param agent_ID: the ID of the RL agent for which the reward is computed.
         :param action_reduction_dict: the dict in case of action reduction (1 action less per aggregator).
@@ -26,15 +26,15 @@ def define_my_Rt(beta_0: float):
         waste_price = 0.0
         for key in key_list:
             if "dissipated" in key:
+            # if "sold" in key:
+                # print(key)
                 energy_erased = iteration_result[key]
             elif "money" in key:
                 waste_price = iteration_result[key]
 
         # Finally we compute the reward
-        # if waste_price != 0.0:
-        #     reward += - beta_0 * abs(energy_erased * waste_price) / (12000 * waste_price)
-            # reward += - beta_0 * abs(energy_erased * waste_price)
-        reward += - beta_0 * abs(energy_erased) / 12000
+        reward -= beta_0 * abs(energy_erased) / 12000
+        # print(reward)
 
         return reward
 

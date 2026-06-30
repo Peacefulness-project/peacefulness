@@ -5,8 +5,9 @@
 from src.common.Device import Device
 from src.common.Messages import MessagesManager
 import numpy as np
-from math import floor
+from math import floor, pi
 from copy import deepcopy
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import round_custom
 
 
 class DummyHeatNetwork(Device):
@@ -28,12 +29,16 @@ class DummyHeatNetwork(Device):
         self.loads_log = []
         self._tau_1 = parameters["tau_init"]
         self._switch = parameters["switch"]
-        self.flexibility_until = max(self._tau_1 - self._switch, 0)
-        self._nominal_power = parameters["rng_generator"](parameters["nominal_power"])  # max heat supply power/energy
-        self._backpower = parameters["rng_generator"](parameters["flex_power"])  # necessary power to get DHN back to Tset if heat supply is null
-        self._necessary_power = deepcopy(self._backpower)
-        # temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
-        # self._location = temperature_daemon.location
+        self.T_set = parameters["set_T°"]
+        temperature_daemon = self._catalog.daemons[parameters["outdoor_temperature_daemon"]]
+        self._location = temperature_daemon.location
+        self._water_volume = pi * (parameters["pipe_diameter"] ** 2) * parameters["network_length"] / 4
+        self._cp = 1.1628  # chaleur specifique kWh/°k.m^3
+        self._nominal_power = parameters["rng_generator"](self._water_volume * self._cp * parameters["delta_T"])
+        self._flexible_energy = 0.0
+        self._energy_to_restitute = 0.0
+        self.t0 = None
+        self._catalog.add(f"{self.name}.flexibility_offset", 0.0)
 
     # ##########################################################################################
     # Initialization
@@ -58,46 +63,56 @@ class DummyHeatNetwork(Device):
         energy_wanted = self._create_message()  # demand or proposal of energy which will be asked eventually
         current_time = self._catalog.get("simulation_time")
         for nature_name in energy_wanted:
-            if current_time < self.flexibility_until:  # if the DHN offers flexibility
+            if self.t0 and self._flexible_energy < self._nominal_power:  # going from T°_set -> T°_min (priority to EMG)
                 energy_wanted[nature_name]["energy_minimum"] = 0.0  # energy needed for all natures used by the device
                 energy_wanted[nature_name]["energy_nominal"] = 0.0  # energy needed for all natures used by the device
-                energy_wanted[nature_name]["energy_maximum"] = self._necessary_power * current_time / self.flexibility_until # energy needed for all natures used by the device
+                energy_wanted[nature_name]["energy_maximum"] = self._water_volume * self._cp * (self.T_set - self._catalog.get(f"{self._location}.current_outdoor_temperature"))
                 energy_wanted[nature_name]["flexibility"] = [1]
                 energy_wanted[nature_name]["interruptibility"] = 1
-                energy_wanted[nature_name]["coming_volume"] = self._necessary_power
+                energy_wanted[nature_name]["coming_volume"] = self._nominal_power - self._flexible_energy
+                # print(f"during descent flexibility -> {current_time}")
 
-            # elif current_time == self.flexibility_until:
-            #     energy_wanted[nature_name]["energy_minimum"] = 0.0  # energy needed for all natures used by the device
-            #     energy_wanted[nature_name]["energy_nominal"] = self._necessary_power * 0.5  # energy needed for all natures used by the device
-            #     energy_wanted[nature_name]["energy_maximum"] = self._necessary_power  # energy needed for all natures used by the device
-            #     energy_wanted[nature_name]["flexibility"] = [1]
-            #     energy_wanted[nature_name]["interruptibility"] = 1
-            #     energy_wanted[nature_name]["coming_volume"] = self._necessary_power * 0.5
-
-            else:
-                energy_wanted[nature_name]["energy_minimum"] = self._necessary_power * (current_time - self.flexibility_until) / self.delta_t  # energy needed for all natures used by the device
-                energy_wanted[nature_name]["energy_nominal"] = self._necessary_power * (current_time - self.flexibility_until) / self.delta_t  # energy needed for all natures used by the device
-                energy_wanted[nature_name]["energy_maximum"] = self._necessary_power * (current_time - self.flexibility_until) / self.delta_t  # energy needed for all natures used by the device
-                energy_wanted[nature_name]["flexibility"] = [0]
-                energy_wanted[nature_name]["interruptibility"] = 0
-                energy_wanted[nature_name]["coming_volume"] = self._necessary_power
-
-
-            if self._tau_1 < self._switch:
-                energy_wanted[nature_name]["priority"] = self.device_aggregators[0].name
-            elif self._tau_1 > self._switch:
                 energy_wanted[nature_name]["priority"] = self.device_aggregators[0].superior.name
-            else:
-                energy_wanted[nature_name]["priority"] = "any"
 
+            elif self.t0 and self._flexible_energy >= self._nominal_power:  # going back from T°_min -> T°_set (priority to DHN)
+                energy_wanted[nature_name]["energy_minimum"] = self._water_volume * self._cp * (self.T_set - self._catalog.get(f"{self._location}.current_outdoor_temperature"))
+                energy_wanted[nature_name]["energy_nominal"] = self._water_volume * self._cp * (self.T_set - self._catalog.get(f"{self._location}.current_outdoor_temperature"))
+                energy_wanted[nature_name]["energy_maximum"] = self._water_volume * self._cp * (self.T_set - self._catalog.get(f"{self._location}.current_outdoor_temperature"))
+                energy_wanted[nature_name]["flexibility"] = [1]
+                energy_wanted[nature_name]["interruptibility"] = 1
+                energy_wanted[nature_name]["coming_volume"] = self._nominal_power - self._energy_to_restitute
+                # print(f"during ascent -> {current_time}")
 
-        if f"{self.name}.priority_tau" in self._catalog.keys:
-            self._catalog.set(f"{self.name}.priority_tau", self._tau_1 - self._switch)
-        else:
-            self._catalog.add(f"{self.name}.priority_tau", self._tau_1 - self._switch)
+                energy_wanted[nature_name]["priority"] = self.device_aggregators[0].name
+
+            elif not self.t0:
+                energy_wanted[nature_name]["energy_minimum"] = 0.0  # energy needed for all natures used by the device
+                energy_wanted[nature_name]["energy_nominal"] = 0.0  # energy needed for all natures used by the device
+                energy_wanted[nature_name]["energy_maximum"] = 0.0
+                energy_wanted[nature_name]["flexibility"] = [1]
+                energy_wanted[nature_name]["interruptibility"] = 1
+                energy_wanted[nature_name]["coming_volume"] = 0.0
+                # print(f"nominal state -> {current_time}")
+
+                energy_wanted[nature_name]["priority"] = self.device_aggregators[0].superior.name
+            # print(energy_wanted)
+            # TODO maybe à enlever et laisser juste la priorité en fonction de l'Energy_flexible ?
+            # if not self.t0:
+            #     energy_wanted[nature_name]["priority"] = self.device_aggregators[0].superior.name
+            # elif current_time <= self.t0 + self._tau_1:
+            #     energy_wanted[nature_name]["priority"] = self.device_aggregators[0].superior.name
+            # else:
+            #     energy_wanted[nature_name]["priority"] = self.device_aggregators[0].name
+            # print(f"who is prior at {current_time} : {energy_wanted[nature_name]["priority"]}")
+
+        # if f"{self.name}.priority_tau" in self._catalog.keys:
+        #     self._catalog.set(f"{self.name}.priority_tau", self._tau_1 - self._switch)
+        # else:
+        #     self._catalog.add(f"{self.name}.priority_tau", self._tau_1 - self._switch)
 
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
+        # print(energy_wanted['LTH']["priority"])
 
 
     def react(self):
@@ -107,36 +122,41 @@ class DummyHeatNetwork(Device):
         current_time = self._catalog.get("simulation_time")
         aggregators = self.device_aggregators
         for aggregator in aggregators:
-            # energy needed to get the heat network back to its nominal state
-            energy_given_to_DHN = self.get_energy_accorded_quantity(aggregator.nature)  # energy accorded to the network
-            energy_wanted_by_DHN = self.get_energy_wanted_max(aggregator.nature)
-
-            if current_time < self.flexibility_until:
-                self._necessary_power = max(0.0, energy_wanted_by_DHN - energy_given_to_DHN)
-            else:
-                self._necessary_power = self._backpower
-
             # evaluating the flexibility of the heat network (parametrized by tau_1)
-            energy_sold = self._catalog.get(f"{aggregator.name}.energy_bought")
-            self.loads_log.append(energy_sold["inside"] / self._nominal_power)  # partial supplied load
+            energy_supply = self._catalog.get(f"{aggregator.name}.energy_bought")
+            self.loads_log.append(energy_supply["inside"] / self._nominal_power)  # partial supplied load
             self._tau_1 = min(
                 np.interp(self.loads_log[-1], self._diameter["partial_loads"], self._diameter["tau_1"]),
                 np.interp(self.loads_log[-1], self._length["partial_loads"], self._length["tau_1"])
             )
-            self._tau_1 = floor(self._tau_1 / 3600)
+            self._tau_1 = round_custom(self._tau_1 / 3600)
 
-            # todo old way
-            # if self._tau_1 > self._switch:  # thermal inertia of the DHN is enough to retain Tset
-            #     new_until = current_time + (self._tau_1 - self._switch)
-            #     self.flexibility_until = max(self.flexibility_until, new_until)
+            if self._tau_1 <= self._switch and not self.t0:  # signal of DHN flexibility use
+                self.t0 = current_time
+                # print(f"T_set not maintained -> {self._tau_1, self._switch} at time {self.t0}")
 
-            # todo new way
-            if self._tau_1 < self._switch:
-                self.delta_t = self._tau_1
-                self.flexibility_until = current_time + self._tau_1
-            else:
-                self._necessary_power = 0.0
-                
+            # todo final way
+            if self.t0:
+                energy_given = self.get_energy_accorded_quantity(aggregator.nature)
+                # print(f"previously given -> {energy_given}")
+                energy_wanted_by_DHN = self.get_energy_wanted_max(aggregator.nature)
+                # print(f"energy asked -> {energy_wanted_by_DHN}")
+                # print(f"nom power -> {self._nominal_power}")
+                if self._flexible_energy < self._nominal_power:
+                    self._flexible_energy += energy_wanted_by_DHN - energy_given
+                    # print(f"flex E -> {self._flexible_energy}")
+                else:  # if T°_min is reached
+                    # print(f"flexibility finished at {current_time}")
+                    self._energy_to_restitute += energy_wanted_by_DHN
+                    # print(f"rest E -> {self._energy_to_restitute}")
+                # DHN got back to its nominal set T°
+                if self._flexible_energy >= self._nominal_power and self._energy_to_restitute >= self._nominal_power:
+                    # print(f"DHN got back to nominal -> {current_time}")
+                    self.t0 = None
+                    self._flexible_energy = 0.0
+                    self._energy_to_restitute = 0.0
+                    flex_offset = max(self._flexible_energy - self._energy_to_restitute, 0.0)
+                    self._catalog.set(f"{self.name}.flexibility_offset", flex_offset / self._nominal_power)
 
 
     @property
@@ -146,3 +166,6 @@ class DummyHeatNetwork(Device):
     @property
     def get_switch(self):
         return self._switch
+
+
+

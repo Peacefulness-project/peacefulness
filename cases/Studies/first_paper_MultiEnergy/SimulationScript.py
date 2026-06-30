@@ -56,7 +56,7 @@ def create_simulation(hours_simulated: int,
     # Time parameters
     # it needs a start date, the value of an iteration in hours and the total number of iterations
     # a start date in the datetime format
-    start_time = datetime(year=2021, month=9, day=22, hour=0, minute=0, second=0) + timedelta(hours=delay_days)
+    start_time = datetime(year=2020, month=9, day=22, hour=0, minute=0, second=0) + timedelta(hours=delay_days)
     world.set_time(start_time,  # time management: start date
                    1,  # value of a time step (in hours)
                    hours_simulated)  # number of time steps simulated
@@ -144,7 +144,7 @@ def create_simulation(hours_simulated: int,
     aggregator_gas = Aggregator(aggregator_name, LPG, grid_strategy, grid_gas)
 
     aggregator_name = "electric_microgrid"  # electric microgrid
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 10000, "selling": 22000})
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 13500, "selling": 25000})
 
     aggregator_name = "district_heating_network"  # district heating network
     aggregator_heat = Aggregator(aggregator_name, LTH, strategy_2, heat_network_manager, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 0, "selling": 0})
@@ -169,7 +169,7 @@ def create_simulation(hours_simulated: int,
                                                                     {"device": "test_system"}, parameters={"max_power": 16000})
 
     # Electricity microgrid devices
-    subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "flexible_chargers"},
+    subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "default", "device": "laptop_charger"},
                                                filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flexibleLoads.json")
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"},
                                                              parameters={"panels": 100000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})

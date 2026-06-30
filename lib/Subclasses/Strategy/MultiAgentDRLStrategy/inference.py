@@ -34,13 +34,16 @@ def get_action(module, observation):
 
 # I - Re-creating the environment & registering it in RLlib Ray
 ENV_PARAMS["std_dev"] = 0  # making sure the environment is de-noised
-ENV_PARAMS["export_path"] ="cases/Studies/first_paper_MultiEnergy/Results/Inference"  # path to save the results
+ENV_PARAMS["export_path"] ="cases/Studies/first_paper_MultiEnergy/Results/Two_Agents/Inference"  # path to save the results
 # ENV_PARAMS["start_time"] = datetime(2021, 1, 1, 0, 0, 0)
 # ENV_PARAMS["hours_to_simulate"] = 24
-path_to_trained_model = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_23d2ac8c152349e981acb06123f7cef7/PPO_MEG_caseStudy_44d74_00000_0_2026-05-05_16-46-58/checkpoint_000000"
+ENV_PARAMS["metrics"] += ['artificial_DHN.DHN_EMG_priority']
+path_to_trained_model = "D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/MARL_2A/final_2-E/model/PPO_MEG_caseStudy_18d24_00000_0_2026-06-22_13-11-20/checkpoint_000000"
 
 max_nb_exchanges = 1
 max_nb_conversions = 2
+state_dict = {}
+decision_dict = {}
 
 if __name__ == "__main__":
     ray.init()
@@ -57,8 +60,6 @@ if __name__ == "__main__":
     done = {"__all__": False}
 
     # Global dicts for export
-    state_dict = {}
-    decision_dict = {}
 
     while not done["__all__"]:
         actions = {}

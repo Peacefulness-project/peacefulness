@@ -6,7 +6,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: penalty coefficient w.r.t energy conservation constraint.
     """
-    def energy_conservation(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):
+    def energy_conservation(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
@@ -57,13 +57,14 @@ def define_my_Rt(beta_0: float):
             # Finally the reward is calculated and returned
             reward = 0.0
             for agg in managed_aggregators:
-                reward += min(scaled_actions[agg], from_datalogger[agg]) / 3000.0
+                reward += min(scaled_actions[agg], from_datalogger[agg]) / 2000.0
                 # reward += from_datalogger[agg]
             # print(f"{agent_ID} -> penalty : {reward}")
         else:
             # We get the scaled-up actions/decisions & energy flow values intervals per aggregator
             reward = 0.0
             for agg in managed_aggregators:
+                break_signal = False
                 key1 = agg + f".{ref_name}.scaled_up_actions"
                 key2 = agg + ".energy_flow_values_intervals"
                 if key1 in iteration_result:
@@ -126,24 +127,30 @@ def define_my_Rt(beta_0: float):
                             for key in dynamic_intervals:
                                 if str(idx) in key:
                                     interval_key = dynamic_intervals[key]
-                            if interval_key[1] >= 0:  # upstream converters and grid selling only
-                                if scaled_actions[idx + 2] > interval_key[1]:
-                                    # offset = abs(scaled_actions[idx + 2] - interval_key[1])
-                                    offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
-                                elif scaled_actions[idx + 2] < interval_key[0]:
-                                    # offset = abs(interval_key[0] - scaled_actions[idx + 2])
-                                    offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
-                                else:
-                                    offset = 0.0
-                            else:  # downstream converters and grid buying only
-                                if scaled_actions[idx + 2] < interval_key[1]:
-                                    # offset = abs(scaled_actions[idx + 2] - interval_key[1])
-                                    offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
-                                elif scaled_actions[idx + 2] > interval_key[0]:
-                                    # offset = abs(interval_key[0] - scaled_actions[idx + 2])
-                                    offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
-                                else:
-                                    offset = 0.0
+                                    if interval_key[1] >= 0:  # upstream converters and grid selling only
+                                        if scaled_actions[idx + 2] > interval_key[1]:
+                                            # offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                            offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
+                                        elif scaled_actions[idx + 2] < interval_key[0]:
+                                            # offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                            offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
+                                        else:
+                                            offset = 0.0
+                                    else:  # downstream converters and grid buying only
+                                        if scaled_actions[idx + 2] < interval_key[1]:
+                                            # offset = abs(scaled_actions[idx + 2] - interval_key[1])
+                                            offset = 2 * abs(scaled_actions[idx + 2] - interval_key[1]) / (abs(interval_key[1]) + abs(interval_key[0]))
+                                        elif scaled_actions[idx + 2] > interval_key[0]:
+                                            # offset = abs(interval_key[0] - scaled_actions[idx + 2])
+                                            offset = 2 * abs(interval_key[0] - scaled_actions[idx + 2]) / (abs(interval_key[1]) + abs(interval_key[0]))
+                                        else:
+                                            offset = 0.0
+                                    break_signal = True
+                                    break
+                            if break_signal:
+                                break
+                # if agg == "district_heating_network":  # todo patchwork solution for MARL (2 agents)
+                #     offset += iteration_result['artificial_DHN.flexibility_offset']
 
                 # We add the error in case CHP has a heat sink higher than its heat produced - todo patchwork solution for MEG case study
                 # offset += iteration_result[f"{agent_ID}.conversion_error"]  # for MARL
@@ -152,7 +159,7 @@ def define_my_Rt(beta_0: float):
                 # Finally the reward is computed based on the offset
                 # reward -= beta_0 * (offset ** 2)
                 reward -= beta_0 * offset
-
+                # print(f"{agg} penalty -> {offset}")
         return reward
 
     return energy_conservation

@@ -1,8 +1,8 @@
 {
   "technical_data": {
-    "flexible_chargers": {
+    "laptop_charger": {
       "usage_profile": {"LVE": 5000},
-      "consumption_variation": 0.1,
+      "consumption_variation": 0,
 
       "min_power": {"LVE": 0},
       "max_power": {"LVE": 1500}
@@ -11,13 +11,13 @@
   },
 
   "user_profile":{
-    "family": {
-      "profile": [[11, 19]],
+    "default": {
+      "profile": [[12, 0.5], [16, 0.5]],
 
       "period": 24,
-      "offset": 12,
+      "offset": 0,
 
-      "start_time_variation": 1
+      "start_time_variation": 0
     }
   }
 

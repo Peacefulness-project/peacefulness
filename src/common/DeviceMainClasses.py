@@ -658,7 +658,7 @@ class ChargerDevice(Device):  # a consumption which is adjustable
             energy_wanted[nature]["flexibility"] = [1 - self._min_power[nature]/self._max_power[nature] for _ in range(ceil(self._demand[nature]/self._max_power[nature]))]
             energy_wanted[nature]["interruptibility"] = 1 - int(self._min_power[nature] is True)
             energy_wanted[nature]["coming_volume"] = self._demand[nature]  # kWh, the energy consumed on the whole cycle
-        print(energy_wanted)
+        # print(energy_wanted)
 
         self.publish_wanted_energy(energy_wanted)  # apply the contract to the energy wanted and then publish it in the catalog
 
@@ -766,10 +766,6 @@ class Converter(Device):
                 limit_energy_upstream = min(energy_available_upstream)
                 limit_energy_downstream = min(energy_wanted_downstream)
                 raw_energy_transformed = limit_energy_upstream
-            elif tau == switch_signal:  # min bidder
-                limit_energy_upstream = min(energy_available_upstream)
-                limit_energy_downstream = min(energy_wanted_downstream)
-                raw_energy_transformed = min(limit_energy_upstream, limit_energy_downstream)
             else:  # priority to the DHN
                 limit_energy_upstream = min(energy_available_upstream)
                 limit_energy_downstream = min(energy_wanted_downstream)

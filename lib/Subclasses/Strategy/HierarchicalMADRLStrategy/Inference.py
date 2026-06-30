@@ -36,8 +36,7 @@ ENV_PARAMS['std_dev'] = 0  # de-noising consumption data
 ENV_PARAMS['export_path'] = "cases/Studies/first_paper_MultiEnergy/Results/Three_Agents/Inference"
 
 # Trained model path
-path_to_trained_model = "D:/dossier_y23hallo/Thèse/multi-energy/final_results/3-agents/without-1dol/C-10/model_4/PPO_MEG_caseStudy_4cbbb_00000_0_2026-06-08_08-43-03/checkpoint_000000"
-
+path_to_trained_model = "D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/MARL_3A/last_4/model/PPO_MEG_caseStudy_64c6f_00000_0_2026-06-23_10-49-06/checkpoint_000000"
 # Global dicts for export
 max_nb_exchanges = 1
 max_nb_conversions = 2

@@ -137,8 +137,8 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
     aggregator_gas = Aggregator(aggregator_name, LPG, grid_strategy, grid_gas)
 
     aggregator_name = "electric_microgrid"  # electric microgrid
-    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 10000, "selling": 22000})
-    # aggregator_elec = Aggregator(aggregator_name, LVE, strategy, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 7200, "selling": 22000})
+    aggregator_elec = Aggregator(aggregator_name, LVE, strategy_1, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 13500, "selling": 25000})
+    # aggregator_elec = Aggregator(aggregator_name, LVE, strategy, microgrid_manager, aggregator_grid, grid_contract, efficiency=1, capacity={"buying": 13500, "selling": 25000})
 
     aggregator_name = "district_heating_network"  # district heating network
     aggregator_heat = Aggregator(aggregator_name, LTH, strategy_2, heat_network_manager, aggregator_elec, grid_contract, efficiency=1, capacity={"buying": 0, "selling": 0})
@@ -173,7 +173,7 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
                                                                     {"device": "test_system"}, parameters={"max_power": 16000})
 
     # Electricity microgrid devices
-    subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "family", "device": "flexible_chargers"},
+    subclasses_dictionary["Device"]["Charger"]("flexible_loads", COOP_elec, microgrid_manager, aggregator_elec, {"user": "default", "device": "laptop_charger"},
                                                filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/flexibleLoads.json")
     subclasses_dictionary["Device"]["PhotovoltaicsAdvanced"]("PV_field_1", BAU_elec, microgrid_manager, aggregator_elec, {"device": "standard"},
                                                              parameters={"panels": 50000, "irradiation_daemon": irradiation_daemon.name, "outdoor_temperature_daemon": outdoor_temperature_daemon.name})
@@ -196,9 +196,9 @@ def create_simulation(world_name: str, start_date: datetime, hours_simulated: in
                                                   parameters={"rng_generator": rng_generator},
                                                   filename="cases/Studies/first_paper_MultiEnergy/AdditionalData/SpaceHeating.json")
 
-    # Proxy model of the DHN - todo PICM for multi-agent RL case
+    # Proxy model of the DHN - todo PICM for multi-agent RL case (2A)
     # subclasses_dictionary["Device"]["DummyHeatNetwork"]("artificial_DHN", COOP_heat, dhn_proxy,aggregator_heat, {"device": "artificial_network"},
-    #                                                     parameters={"pipe_diameter": 0.6, "network_length": 10000, "tau_init": 4, "switch": 3, "nominal_power": 30465.39088, "flex_power": 6948.971918, "rng_generator": rng_generator})
+    #                                                     parameters={"pipe_diameter": 0.5, "network_length": 5000, "tau_init": 4, "switch": 2, "outdoor_temperature_daemon": outdoor_temperature_daemon.name, "set_T°": 35, "delta_T": 30, "rng_generator": rng_generator})
 
     # ##############################################################################################
     # Creation of dataloggers

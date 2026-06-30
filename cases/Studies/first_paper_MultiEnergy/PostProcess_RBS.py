@@ -15,7 +15,7 @@ from scipy.fft import fft, fftfreq
 
 # I - We read the data from PEACEFULNESS '.csv' outputs into dicts #
 ####################################################################
-path_to_csv = "D:/dossier_y23hallo/Thèse/multi-energy/final_results/RBS/FINAL"  # path to inference results folder
+path_to_csv = "D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/RBS/real_final-min-CHP"  # path to inference results folder
 
 # 1. energy flow values for the devices of the case study
 devices_file = "DeviceQuantity_frequency_1"
@@ -85,15 +85,16 @@ relative_heat_error = np.divide(total_heat_error, np.array(aggregators_data['dis
 
 # 3. Score KPIs - operational objectives.
 outside_balance_elec = np.array(metrics_data['electric_microgrid.money_earned_outside']) - np.array(metrics_data['electric_microgrid.money_spent_outside'])
-social_cost = np.array(metrics_data['flexible_loads.LVE.money_spent'])
+# social_cost = np.array(metrics_data['flexible_loads.LVE.money_spent'])
 gas_cost = np.array(metrics_data['combined_heat_power.LPG.money_spent'])
-heat_dissipated = np.array(metrics_data["Waste_to_heat.heat_dissipated"]) * np.array(metrics_data["Waste_to_heat.LTH.money"])
+# heat_dissipated = np.array(metrics_data["Waste_to_heat.heat_dissipated"]) * np.array(metrics_data["Waste_to_heat.LTH.money"])
+heat_wasted = np.array(metrics_data['combined_heat_power.heat_by_pass']) * np.array(metrics_data['combined_heat_power.LTH.money'])
 green_elec_supply = - np.array(devices_data['PV_field.LVE.energy']) - np.array(devices_data['WT_field_1.LVE.energy']) - np.array(devices_data['WT_field_2.LVE.energy'])
 tot_elec_supply = np.array(aggregators_data['electric_microgrid.energy_bought_outside']) + np.array(aggregators_data['electric_microgrid.energy_bought_inside'])
 HP_injected = np.array(devices_data['heat_pump.LVE.energy'])
 ratio_EnR = HP_injected * np.divide(green_elec_supply, tot_elec_supply, out=np.zeros_like(green_elec_supply, dtype=float), where=tot_elec_supply!=0)
 green_HP_injected = np.sum(ratio_EnR) / np.sum(HP_injected)
-DHN_heat_consumption = np.array(devices_data['space_heating.LTH.energy']) + TES_charging
+DHN_heat_consumption = np.array(devices_data['space_heating.LTH.energy'])
 green_heat_injected = np.abs(np.array(devices_data['heat_pump.LTH.energy'])) * green_HP_injected + np.abs(np.array(devices_data['Waste_to_heat.LTH.energy']))
 total_green_heat_ratio = np.sum(green_heat_injected) / np.sum(DHN_heat_consumption)
 
@@ -107,11 +108,12 @@ with open(path_to_csv + results_file, "a") as myFile:
     myFile.write(f"The total heat imbalance error is : {np.sum(total_heat_error)} [kWh]\n")
     myFile.write(f"averaging : {np.average(total_heat_error)} [kWh], with a peak of {np.max(total_heat_error)} [kWh]\n")
     myFile.write(f"representing on average {np.average(relative_heat_error) * 100}% relative to heat consumption in the DHN.\n")
-    myFile.write(f"The score obtained is : {np.sum(outside_balance_elec) - np.sum(social_cost) - np.sum(gas_cost) - np.sum(heat_dissipated)} €\n")
+    myFile.write(f"The score obtained is : {np.sum(outside_balance_elec) - np.sum(gas_cost) - np.sum(heat_wasted)} €\n")
     myFile.write(f"of which, {np.sum(outside_balance_elec)} [€] is the external balance of the EMG\n")
-    myFile.write(f"{np.sum(social_cost)} [€] represents the cost of unserved electricity loads amounting to {np.sum(np.array(metrics_data['flexible_loads.LVE.energy_erased']))} [kWh]\n")
+    # myFile.write(f"{np.sum(social_cost)} [€] represents the cost of unserved electricity loads amounting to {np.sum(np.array(metrics_data['flexible_loads.LVE.energy_erased']))} [kWh]\n")
     myFile.write(f"{np.sum(gas_cost)} [€] represents the gas/fuel cost of the combined heat and power\n")
-    myFile.write(f"and {np.sum(heat_dissipated)} [€] represents the cost related to the dissipated heat from the incinerator which amounts to {np.sum(metrics_data["Waste_to_heat.heat_dissipated"])} [kWh]\n")
+    myFile.write(f"{np.sum(heat_wasted)} [€] represents the heat wasted by the CHP in the DHN which amounts to {np.sum(np.array(metrics_data['combined_heat_power.heat_by_pass']))} [kWh].\n")
+    # myFile.write(f"and {np.sum(heat_dissipated)} [€] represents the cost related to the dissipated heat from the incinerator which amounts to {np.sum(metrics_data["Waste_to_heat.heat_dissipated"])} [kWh]\n")
     myFile.write(f"Finally, the renewable electricity ratio usage by the HP is : {green_HP_injected * 100} %, corresponding to {np.sum(ratio_EnR)} [kWh].\n")
     myFile.write(f"and the total renewable heat supplied represents {total_green_heat_ratio * 100} % from total heat consumption, corresponding to {np.sum(green_heat_injected)} [kWh].")
 

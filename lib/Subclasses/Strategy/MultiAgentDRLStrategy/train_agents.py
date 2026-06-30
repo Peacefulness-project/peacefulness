@@ -31,6 +31,9 @@ from ray.rllib.algorithms.callbacks import DefaultCallbacks
 import uuid
 from pprint import pprint
 
+from lib.Subclasses.Strategy.HierarchicalMADRLStrategy.CallBacks import make_episodic_metrics_callback
+
+
 # #################################################################
 # Creating an instance of the PettingZoo multi-agent RL environment
 ###################################################################
@@ -40,41 +43,48 @@ path_to_case = "cases/Studies/first_paper_MultiEnergy/multiEnergyCaseStudy.py"
 world_name = "MEG"
 start_time = datetime(2020, 9, 22, 0, 0, 0)
 simulation_length = 5304
-path_to_export = "cases/Studies/first_paper_MultiEnergy/Results"
+path_to_export = "cases/Studies/first_paper_MultiEnergy/Results/Two_Agents"
 agents_dict = {
-    "agent_1": {"electric_microgrid": (23, 2), "exchanges": 3},
-    "agent_2": {"district_heating_network": (26, 3), "exchanges": 2}
+    "EMG": {"electric_microgrid": (49, 2), "exchanges": 3},
+    "DHN": {"district_heating_network": (49, 3), "exchanges": 2}
+}
+agg_acts = {
+    "electric_microgrid": ('Energy_Consumption', 'Energy_Conversion_2', 'Energy_Conversion_3'),
+    "district_heating_network": ('Energy_Consumption', "Energy_Production", "Energy_Conversion_2", "Energy_Conversion_3"),
 }
 reward_dict = {
-    "agent_1": [
+    "EMG": [
         ("conservation_penalty", 10),
-        ("green_injection", 1.5), ("social_cost", 0.5),
-        ("aggregator_costs", 0.7), ("gas_cost", 0.3)
+        ("green_injection", 1), ("social_cost", 1),
+        ("aggregator_costs", 1), ("gas_cost", 1)
                 ],
-    "agent_2": [
-        ("conservation_penalty", 10),
-        ("green_injection", 1.5),
-        ("waste_cost", 0.7),
-        ("gas_cost", 0.3), ("heatSink_cost", 0.7)
+    "DHN": [
+        ("conservation_penalty", 1),
+        ("green_injection", 1),
+        ("waste_cost", 1),
+        ("gas_cost", 1), ("heatSink_cost", 1)
                 ]
 }
 normalization_dict = {
-    "energy_minimum": -19000.0, "energy_maximum": 31000.0, "price_minimum": 0.0, "price_maximum": 0.26
+    "energy_minimum": -25000.0, "energy_maximum": 35000.0, "price_minimum": 0.0, "price_maximum": 0.6
     # "agent_1": {"energy_minimum": -4000.0, "energy_maximum": 2600.0, "price_minimum": 0.05, "price_maximum": 0.25},
     # "agent_2": {"energy_minimum": -12000.0, "energy_maximum": 8100.0, "price_minimum": 0.05, "price_maximum": 0.25}
 }
 metrics = [
+    "electric_microgrid.energy_bought_outside", "electric_microgrid.energy_sold_outside",  # external economic balance
     "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",  # external economic balance
-    "flexible_loads.LVE.energy_erased", "flexible_loads.LVE.money",  # social cost
-    "combined_heat_power.LPG.money_spent", "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "electric_microgrid.LVE.energy_wanted",  # gas cost
-    "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
+    "flexible_loads.LVE.energy_wanted", "flexible_loads.LVE.energy_accorded",  "flexible_loads.LVE.money",  # social cost
+    "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "combined_heat_power.LPG.money_spent",  # gas cost
+    "electric_microgrid.LVE.energy_wanted", "combined_heat_power.LTH.energy_wanted", "district_heating_network.LVE.energy_wanted",
+    "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.energy_sold", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
     "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",  # wasted heat from the CHP
     "PV_field_1.LVE.energy_sold", "PV_field_2.LVE.energy_sold", "WT_field_1.LVE.energy_sold", "WT_field_2.LVE.energy_sold",  # EnR
-    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "electric_microgrid.energy_bought_outside", "district_heating_network.energy_sold_inside"  # HP
+    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "district_heating_network.energy_sold_inside", "heat_pump.LTH.energy_wanted",  # HP
+    "artificial_DHN.flexibility_offset"  # artificial DHN energy flexibility offset
 ]
 act_red_dict = {
-    "agent_1": {"electric_microgrid": "Energy_Exchange_1"},
-    "agent_2": {"district_heating_network": "Energy_Storage"}
+    "EMG": {"electric_microgrid": "Energy_Exchange_1"},
+    "DHN": {"district_heating_network": "Energy_Storage"}
 }
 
 # todo Specific to action mapping
@@ -105,6 +115,7 @@ ENV_PARAMS = dict(
     hours_to_simulate = simulation_length,
     export_path = path_to_export,
     agent_dict = agents_dict,
+    aggregators_actions=agg_acts,
     objective_dict = reward_dict,
     normalization_dict = normalization_dict,
     metrics = metrics,
@@ -181,7 +192,7 @@ def build_env(env_config):
 
     env = PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
                           env_config["start_time"], env_config["hours_to_simulate"],
-                          env_config["export_path"], env_config["agent_dict"], env_config["objective_dict"],
+                          env_config["export_path"], env_config["agent_dict"], env_config["aggregators_actions"], env_config["objective_dict"],
                           env_config["normalization_dict"], env_config["metrics"], std_dev, False,
                           env_config["red_dof_dict"]
                           )  # for reducing one degree of freedom per aggregator
@@ -213,10 +224,10 @@ policies = set(agents_dict.keys())
 
 if __name__ == "__main__":
     # Create a config instance for the PPO algorithm and build it.
-    ray.init()
+    ray.init(ignore_reinit_error=True)
 
     # Resuming training from a previously trained model
-    checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_0aeb6f27a52a4be8969d5f707e05d501/PPO_MEG_caseStudy_38894_00000_0_2026-05-07_10-46-21/checkpoint_000000"
+    # checkpoint_path = "D:/dossier_y23hallo/PycharmProjects/peacefulness/cases/Studies/first_paper_MultiEnergy/Models/run_0aeb6f27a52a4be8969d5f707e05d501/PPO_MEG_caseStudy_38894_00000_0_2026-05-07_10-46-21/checkpoint_000000"
 
     env_name = "MEG_caseStudy"
     register_env(env_name, build_env)
@@ -241,33 +252,39 @@ if __name__ == "__main__":
                   clip_param=0.2,
                   gamma=0.99,
                   lr=3e-4,
-                  train_batch_size=5304,
-                  train_batch_size_per_learner=5304,
+                  train_batch_size=21216,
+                  # train_batch_size_per_learner=5304,
                   num_epochs=5,
-                  minibatch_size=52,
+                  minibatch_size=208,
                   shuffle_batch_per_epoch=True,
+                  use_kl_loss=True,
+                  kl_target=0.01,
+                  kl_coeff=0.2
                   # model={
                   #     "custom_action_dist": "squashed_gaussian",  # todo for action mapping
                   # }
                   )
-        # .evaluation(evaluation_interval=50,
-        #             evaluation_num_env_runners=1,
-        #             evaluation_duration_unit="episodes",
-        #             evaluation_duration=1,
-        #             evaluation_config={"env_config": {"std_dev": 0}})
+        .evaluation(evaluation_interval=25,
+                    evaluation_num_env_runners=1,
+                    evaluation_duration=1,
+                    evaluation_duration_unit="episodes",
+                    evaluation_config={"env_config": {"std_dev": 0, "explore": False}})
         .env_runners(num_env_runners=4,
                      num_cpus_per_env_runner=1,
                      rollout_fragment_length=5304,
-                     batch_mode="complete_episodes")
+                     batch_mode="complete_episodes",
+                     sample_timeout_s=300)
         .learners(num_learners=0,
                   # num_cpus_per_learner=1,
                   # num_aggregator_actors_per_learner=1
                   )
         .multi_agent(policies=policies,
                      policy_mapping_fn=policy_mapping_fn,
-                     policy_states_are_swappable=False  # todo set this to true if agents share the same obs/act sizes
+                     policy_states_are_swappable=False,  # todo set this to true if agents share the same obs/act sizes
+                     count_steps_by="env_steps"
                      )
-        .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
+        .callbacks(make_episodic_metrics_callback(agent_id="EMG"))
+        # .callbacks(lambda: RestoreCallback(checkpoint_path))  # TODO this for resuming training from a trained model
         .framework("torch")
         .debugging(log_level="ERROR")
     )
@@ -297,12 +314,12 @@ if __name__ == "__main__":
         param_space=config.to_dict(),
         run_config=tune.RunConfig(
             name=f"run_{uuid.uuid4().hex}",
-            storage_path=Path("cases/Studies/first_paper_MultiEnergy/Models").resolve(),
-            stop={"training_iteration": 200
+            storage_path=Path("cases/Studies/first_paper_MultiEnergy/Results/Two_Agents/Models").resolve(),
+            stop={"training_iteration": 100
                 # , "episode_return_mean": 0.0
                   },  # number of training episodes (stopping criteria)
             checkpoint_config=tune.CheckpointConfig(  # to save the model which has the best rewards during training
-                checkpoint_score_attribute="episode_return_mean",
+                checkpoint_score_attribute="evaluation/env_runners/episode_return_mean",
                 checkpoint_score_order="max",
             )
         ),

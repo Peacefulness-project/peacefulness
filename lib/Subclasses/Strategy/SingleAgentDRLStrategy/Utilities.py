@@ -1,6 +1,6 @@
 # In this file, utilities and helper functions are defined for the Peacefulness to gym env.
 # Imports
-from math import cos, sin
+from math import cos, sin, floor
 from typing import Dict, List, Tuple
 from copy import deepcopy
 from collections import deque
@@ -242,11 +242,12 @@ def construct_state(observation_dict: Dict, normalization_parameters: Dict={}):
         return_list.extend(external_features)
 
         # todo specific to ME-MARL
+        if "priority" in observation_dict.keys():
         # if isinstance(observation_dict["priority"], dict):
-        #     if observation_dict["priority"][aggregator] == aggregator or observation_dict["priority"][aggregator] == "any":
-        #         return_list.append(1)
-        #     else:
-        #         return_list.append(0)
+            if observation_dict["priority"][aggregator] == aggregator:
+                return_list.append(1)
+            else:
+                return_list.append(0)
 
     return return_list
 
@@ -400,6 +401,7 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
         catalog.add(f"{ref_name}.interior_decision", interior_dict)  # normalized actions (interior)
     else:  # the length corresponds correctly to the case where we remove one degree of freedom w.r.t internal actions
         catalog.set(f"{ref_name}.interior_decision", interior_dict)
+    # print(f"interior decision -> {interior_dict}")
 
     # external actions
     external_actions = action[-nb_exchange_actions:] if nb_exchange_actions != 0 else []
@@ -444,6 +446,7 @@ def distribute_my_action(action: List, catalog: "Catalog", action_info: Dict, ag
         catalog.add(f"{ref_name}.exterior_decision", exchanges_dict)  # normalized actions (exterior)
     else:  # the length corresponds correctly to the case where we remove one degree of freedom w.r.t external actions
         catalog.set(f"{ref_name}.exterior_decision", exchanges_dict)
+    # print(f"exterior decision -> {exchanges_dict}")
 
 
 def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator: "Aggregator", red_dof_flag=False):
@@ -470,16 +473,32 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
         idx_removed = typologies.index(reduced_action)
         typologies.remove(reduced_action)
 
+    # The expected actions from RL controller for the current aggregator
+    expected_actions = catalog.get(f"{aggregator.name}.expected_RL_actions")
+
     # We retrieve the normalized actions.
     norm_decision = deque(interior_decision[aggregator.name])
+
+    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+    # real_load = raw_state["interior"][aggregator.name]["Energy_Consumption"]["energy_minimum"]
 
     # Then, we scale them up.
     if "Intermediary" not in aggregator.name:
         for typ in typologies:
-            if len(raw_state["interior"][aggregator.name][typ]) > 0:
+            if typ in expected_actions:  # actions that may provide flexibility
                 returned_list.append(scale_up_feature(norm_decision.popleft(),
                                                       raw_state["interior"][aggregator.name][typ]["energy_minimum"],
                                                       raw_state["interior"][aggregator.name][typ]["energy_maximum"]))
+                # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                # real_action = ((norm_decision.popleft() + 1) / 2) * real_load
+                # if typ == "Energy_Consumption":
+                #     real_action += real_load
+                # real_action = max(min(real_action, raw_state["interior"][aggregator.name][typ]["energy_maximum"]),
+                #                   raw_state["interior"][aggregator.name][typ]["energy_minimum"])
+                # returned_list.append(real_action)
+            else:  # rigid actions for all the time
+                if len(raw_state["interior"][aggregator.name][typ]) > 0:
+                    returned_list.append(raw_state["interior"][aggregator.name][typ]["energy_maximum"])
 
         # Final check
         if len(returned_list) < 3:
@@ -491,7 +510,7 @@ def implement_my_interior_decision(agentID: str, catalog: "Catalog", aggregator:
             raise Exception("Error in defining the interior actions !")
     else:
         returned_list = [0, 0, 0]
-
+    # print(f"{aggregator.name} interior flows -> {returned_list}")
     return returned_list
 
 
@@ -505,6 +524,15 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
     raw_state = catalog.get(f"{agentID}.raw_state")
     exchange_decision = catalog.get(f"{agentID}.exterior_decision")  # normalized actions with length reduced if action reduction
 
+    # TODO patchwork solution for 2-agent MARL MEG case study
+    if 'priority' in raw_state:
+        two_agents_signal = True
+    else:
+        two_agents_signal = False
+
+    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+    # real_load = raw_state["interior"][aggregator.name]["Energy_Consumption"]["energy_minimum"]
+
     # In case, we remove one action per aggregator
     exchange_to_remove = 0
     conversion_to_remove = 0
@@ -512,9 +540,9 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
         if f"Action removed for {aggregator.name}" in catalog.keys:
             reduced_action = catalog.get(f"Action removed for {aggregator.name}")
             if "Exchange" in reduced_action:
-                exchange_to_remove = 1
+                exchange_to_remove += 1
             elif "Conversion" in reduced_action:
-                conversion_to_remove = 1
+                conversion_to_remove += 1
         else:
             reduced_action = None
     else:
@@ -567,11 +595,19 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
                     scaled_up_action = scale_up_feature(direct_exchanges.popleft(),
                                                         raw_state["interconnection"][superior][aggregator.name]["energy_minimum"],
                                                         raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+                    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                    # scaled_up_action = max(min(((direct_exchanges.popleft() + 1) / 2) * real_load, raw_state["interconnection"][superior][aggregator.name]["energy_maximum"]),
+                    #                        raw_state["interconnection"][superior][aggregator.name]["energy_minimum"])
+
                 idx_exch += 1
             else:
                 scaled_up_action = scale_up_feature(direct_exchanges.popleft(),
                                                     raw_state["interconnection"][superior][aggregator.name]["energy_minimum"],
                                                     raw_state["interconnection"][superior][aggregator.name]["energy_maximum"])
+                # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                # scaled_up_action = max(min(((direct_exchanges.popleft() + 1) / 2) * real_load, raw_state["interconnection"][superior][aggregator.name]["energy_maximum"]),
+                #                        raw_state["interconnection"][superior][aggregator.name]["energy_minimum"])
+
             exchange_dict = {**exchange_dict, **{tuple([superior, aggregator.name]): scaled_up_action}}
     if aggregator.name in raw_state["interconnection"]:
         for sub in raw_state["interconnection"][aggregator.name]:
@@ -580,9 +616,16 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
                     scaled_up_action = 0.0
                 else:
                     scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
+                    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                    # scaled_up_action = max(min(((direct_exchanges.popleft() + 1) / 2) * real_load, raw_state["interconnection"][aggregator.name][sub]["energy_maximum"]),
+                    #                        raw_state["interconnection"][aggregator.name][sub]["energy_minimum"])
                 idx_exch += 1
             else:
                 scaled_up_action = scale_up_feature(direct_exchanges.popleft(), raw_state["interconnection"][aggregator.name][sub]["energy_minimum"], raw_state["interconnection"][aggregator.name][sub]["energy_maximum"])
+                # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                # scaled_up_action = max(min(((direct_exchanges.popleft() + 1) / 2) * real_load, raw_state["interconnection"][aggregator.name][sub]["energy_maximum"]),
+                #                            raw_state["interconnection"][aggregator.name][sub]["energy_minimum"])
+
             exchange_dict = {**exchange_dict, **{tuple([aggregator.name, sub]): scaled_up_action}}
 
     conversion_list = process_conversions(raw_state["conversion"])
@@ -594,18 +637,27 @@ def implement_my_exchange_decision(agentID: str, catalog: "Catalog", aggregator:
                 if conversion_to_remove > 0 and str(idx_cv) in reduced_action:
                     scaled_up_action = 0.0
                 else:
-                    if 'combined_heat_power' not in exchange[0]:  # for CHP, NN predict the gas ratio used instead of energy flow
+                    if 'combined_heat_power' not in exchange[0] or two_agents_signal:  # for CHP, NN predict the gas ratio used instead of energy flow
                         scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                        # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                        # scaled_up_action =  max(min(((conversions.popleft() + 1) / 2) * real_load, exchange[2][my_index]), exchange[1][my_index])
                     else:
                         scaled_up_action = CHP_decision(conversions.popleft(), exchange, my_index, catalog)
+                        # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                        # scaled_up_action = max(min(((conversions.popleft() + 1) / 2) * real_load, exchange[2][my_index]), exchange[1][my_index])
                 idx_cv += 1
             else:
-                if 'combined_heat_power' not in exchange[0]:  # for CHP, NN predict the gas ratio used instead of energy flow
+                if 'combined_heat_power' not in exchange[0] or two_agents_signal:  # for CHP, NN predict the gas ratio used instead of energy flow
                     scaled_up_action = scale_up_feature(conversions.popleft(), exchange[1][my_index], exchange[2][my_index])
+                    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                    # scaled_up_action = max(min(((conversions.popleft() + 1) / 2) * real_load, exchange[2][my_index]), exchange[1][my_index])
                 else:
                     scaled_up_action = CHP_decision(conversions.popleft(), exchange, my_index, catalog)
-            exchange_dict = {**exchange_dict, **{tuple(exchange[0]): scaled_up_action}}
+                    # TODO shri's idea about NN predictions being fractions of Rigid Loads
+                    # scaled_up_action = max(min(((conversions.popleft() + 1) / 2) * real_load, exchange[2][my_index]), exchange[1][my_index])
 
+            exchange_dict = {**exchange_dict, **{tuple(exchange[0]): scaled_up_action}}
+    # print(f"{aggregator.name} exchange flows -> {exchange_dict}")
     return exchange_dict
 
 
@@ -664,7 +716,7 @@ def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict,
     subaggregators = aggregator.subaggregators
     for exchange in Eexch_copy:
         for sub in subaggregators:
-            if sub.name in exchange:
+            if sub.name in exchange and len(exchange) < 3:  # only direct exchange and not through a conversion system
                 Eexch_copy[exchange] = - Eexch_copy[exchange]
     energy_exchanges = list(Eexch_copy.values())
 
@@ -684,9 +736,9 @@ def complete_reduced_action(Econ: float, Eprod: float, Esto: float, Eexch: Dict,
     Eexch = dict(zip(Eexch.keys(), energy_exchanges))  # rebuilding the Eexch dict
     for exchange in Eexch:  # correcting back the subaggregators (for correct energy balance counting)
         for sub in subaggregators:
-            if sub.name in exchange:
+            if sub.name in exchange and len(exchange) < 3:
                 Eexch[exchange] = - Eexch[exchange]
-
+    # print(f"{aggregator.name} final complete flows decision -> {Econ, Eprod, Esto, Eexch}")
     return Econ, Eprod, Esto, Eexch
 
 
@@ -723,6 +775,7 @@ def recapitulate_decision(catalog: "Catalog", agent_ID=None) -> Dict:
     for agg in managed_aggregators:
         return_dict[scope_key].append(agg.name)
         interior_decision = catalog.get(f"{agg.name}.{ref_name}.internal_decision")  # list (scaled-up actions)
+        # print(interior_decision)
         external_decision = catalog.get(f"{agg.name}.{ref_name}.exchange_decision")  # dict (scaled-up actions)
         key = agg.name + f".{ref_name}.scaled_up_actions"
         return_dict[key] = [*interior_decision, *list(external_decision.values())]
@@ -790,6 +843,11 @@ def converters_recap(catalog: "Catalog", agent_ID=None) -> Dict:
             return_dict[f"{ref_name}.converters_offset"].extend(catalog.get(key))
         elif ref_name in key and "conversion_error" in key:
             return_dict[f"{ref_name}.conversion_error"] = catalog.get(key)
+
+    # TODO patchwork solution for 2-agents MEG
+    if "artificial_DHN.DHN_EMG_priority" in catalog.keys:
+        agg_name = catalog.get("artificial_DHN.DHN_EMG_priority")
+        return_dict["converters_priority"] = catalog.aggregators[agg_name].strategy.name
 
     return return_dict
 
@@ -957,14 +1015,14 @@ def who_decided(first_arr, second_arr, tol):
     return ((np.abs(first_arr - second_arr) < tol) & mask_nonzeros).astype(int)
 
 
-def group_metrics(iteration_results: Dict, cum_dict: Dict, time_limit: int):  # todo patchwork solution for the MEG case study
+def group_metrics(iteration_results: Dict, cum_dict: Dict):  # todo patchwork solution for the MEG case study
     # Constraints related metrics
     #############################
     # energy conservation error for the Electric Microgrid.
     Exch_value = iteration_results["electric_microgrid.gym_Strategy.scaled_up_actions"][3]
     EMG_error = (
-        Exch_value - 22000 if Exch_value > 22000
-        else abs(Exch_value + 7200) if Exch_value < -7200
+        Exch_value - 25000 if Exch_value > 25000
+        else abs(Exch_value + 13500) if Exch_value < -13500
         else 0
     )
     cum_dict["sum_error_EMG"] += EMG_error
@@ -997,10 +1055,12 @@ def group_metrics(iteration_results: Dict, cum_dict: Dict, time_limit: int):  # 
     balance_cost = earned_out - spent_out  # cost of electricity exchange with the main grid
     cum_dict["exchange_cost"] += balance_cost
 
-    electricity_erased = iteration_results["flexible_loads.LVE.energy_erased"]
+    electricity_erased = iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum'] - iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
     flexible_money = iteration_results["flexible_loads.LVE.money"]
     social_cost = electricity_erased * flexible_money  # cost of not serving flexible loads
     cum_dict["social_cost"] += social_cost
+    cum_dict["flex_given"] += iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
+    cum_dict["flex_max"] += iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum']
 
     gas_cost = iteration_results["combined_heat_power.LPG.money_spent"]  # cost of gas used by the CHP
     cum_dict["gas_cost"] += gas_cost
@@ -1028,7 +1088,7 @@ def group_metrics(iteration_results: Dict, cum_dict: Dict, time_limit: int):  # 
     cum_dict["incinerator_heat"] += iteration_results["Waste_to_heat.LTH.energy_sold"]
     cum_dict["total_heat_supply"] += iteration_results["district_heating_network.energy_bought_inside"]
 
-    if iteration_results['simulation_time'] == time_limit:
+    if iteration_results['simulation_time'] == cum_dict['time_limit']:
         cum_dict["HP_green_ratio"] = cum_dict["green_HP_elec"] / cum_dict["total_HP_elec"]
         cum_dict["total_HP_green_injection"] = cum_dict["HP_green_ratio"] * cum_dict["total_HP_heat"]
         cum_dict["total_green_supply"] = (cum_dict["total_HP_green_injection"] + cum_dict["incinerator_heat"]) / cum_dict["total_heat_supply"]
@@ -1057,3 +1117,28 @@ def CHP_decision(predicted_gas_ratio: float, exchange: Tuple, my_idx: int, catal
         CHP_flow = gas_burnt * catalog.devices['combined_heat_power'].compute_efficiency(nature_name, gas_burnt)
 
     return CHP_flow
+
+
+def round_custom(x, threshold=0.5):
+    frac = x - floor(x)      # decimal part
+    base = floor(x)          # integer part
+    return base + 1 if frac > threshold else base
+
+
+def scale_up_inputs(norm_input: np.ndarray, norm_dict: Dict, time_limit: int):
+    return_list = []
+    return_list.append(norm_input[0] * time_limit)
+    for index in range(1, len(norm_input)):
+        if index != 11 and index != 12 and index != 15 and index != 18 and index != 21 and index != 34 and index != 36 and index != 37 and index != 38 and index != 39 and index != 42 and index != 45:
+            return_list.append(((norm_dict["energy_maximum"] - norm_dict["energy_minimum"]) / 2) * (norm_input[index] + 1) + norm_dict["energy_minimum"])
+        elif index == 11 or index == 12 or index == 38 or index == 39:
+            return_list.append(((norm_dict["price_maximum"] - norm_dict["price_minimum"]) / 2) * (norm_input[index] + 1) + norm_dict["price_minimum"])
+        else:
+            return_list.append(norm_input[index])
+    clean_list = [float(x) for x in return_list]
+    with open("states.csv", "a", newline="") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(clean_list)
+
+
+

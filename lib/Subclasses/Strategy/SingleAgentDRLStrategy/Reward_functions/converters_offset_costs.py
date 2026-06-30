@@ -7,7 +7,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t costs for aggregators.
     """
-    def converter_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):
+    def converter_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.

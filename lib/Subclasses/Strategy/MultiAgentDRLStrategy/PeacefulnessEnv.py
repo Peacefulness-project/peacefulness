@@ -5,6 +5,8 @@ from gymnasium.spaces import Box
 from gymnasium.utils import seeding
 import numpy as np
 from importlib import import_module
+
+from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_reward_SRL import SRL_PBRS_final_Rt
 from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Utilities import *
 from random import setstate
 from datetime import datetime
@@ -14,7 +16,7 @@ import uuid
 class PeacefulnessEnv(ParallelEnv):
     metadata = {"name": "custom_env_v0", }
 
-    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, aggregators_actions: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
         """
         :param path_to_case: the path to the case study
         :param hours_to_simulate: defines the length of each episode of training
@@ -41,7 +43,9 @@ class PeacefulnessEnv(ParallelEnv):
         self.independent_aggregators_list = []
         self.independent_agents_list = []
         self.action_dict_per_agent = get_correct_action_dict(agent_dict)  # useful to correctly distribute the actions to their corresponding RL agent (original length without reduction)
+        self.agg_actions = deepcopy(aggregators_actions)
         self.red_dof_dict = red_dof_dict  # None if no degree of freedom is reduced
+        self._cum_dict = {}  # for callback
 
         # Used to retrieve the correct case study
         path_to_case = correct_path(path_to_case)
@@ -78,8 +82,9 @@ class PeacefulnessEnv(ParallelEnv):
 
         # Retrieving the Peacefulness world
         red_dof_flag = False if self.red_dof_dict is None else True
-        self.dataloggers_path += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
-        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, self.dataloggers_path, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, red_dof_flag)  # the Peacefulness World
+        myPath = deepcopy(self.dataloggers_path)
+        myPath += "/" + f"run_{self.env_id}_seed_{self.np_random_seed}"
+        self.grid = self.case_study.create_simulation(self.world_name, self.world_start, self.episode_length, myPath, self.metrics, [self.np_random_seed, self.np_random], self.std_dev, red_dof_flag)  # the Peacefulness World
         self.initial_grid_operation()  # Initial operation at the start of each episode
 
         # In case we remove 1-degree of freedom per aggregator
@@ -96,6 +101,9 @@ class PeacefulnessEnv(ParallelEnv):
             self.grid._catalog.add(f"existing_RL_agents", self.agents)
         else:
             self.grid._catalog.set(f"existing_RL_agents", self.agents)
+
+        # Needed for logging metrics
+        self.initialize_cumulative_dict()
 
         observations = self._get_obs()  # The observation of each RL agent
         infos = self._get_infos()
@@ -158,7 +166,7 @@ class PeacefulnessEnv(ParallelEnv):
         # Constructing the observation (St vector)
         obs_keys = ["iteration", "interior", "forecast", "prices", "interconnection", "conversion", "priority"]
         observations = {}
-        # centralized_critic = []  # todo specific idea of sharing the full observation between the two agents
+        centralized_critic = []  # todo specific idea of sharing the full observation between the two agents
         for agent in self.agents:
             state_dict = dict(zip(obs_keys, group_components(self.grid._catalog, agent)))
             if f"{agent}.raw_state" not in self.grid._catalog.keys:
@@ -167,20 +175,21 @@ class PeacefulnessEnv(ParallelEnv):
                 self.grid._catalog.set(f"{agent}.raw_state", state_dict)
             norm_obs = construct_state(state_dict, return_correct_dict(self.normalization_parameters, agent))
 
-            observations[agent] = np.asarray(norm_obs, dtype=np.float32)
-            if f"{agent}.observation" not in self.grid._catalog.keys:
-                self.grid._catalog.add(f"{agent}.observation", observations[agent])
-            else:
-                self.grid._catalog.set(f"{agent}.observation", observations[agent])
+            # observations[agent] = np.asarray(norm_obs, dtype=np.float32)
+            # # print(f"{agent} obs shape -> {observations[agent].shape}")
+            # if f"{agent}.observation" not in self.grid._catalog.keys:
+            #     self.grid._catalog.add(f"{agent}.observation", observations[agent])
+            # else:
+            #     self.grid._catalog.set(f"{agent}.observation", observations[agent])
 
             # todo specific idea of sharing the full observation between the two agents
-        #     centralized_critic.extend(norm_obs)
-        #     if f"{agent}.observation" not in self.grid._catalog.keys:
-        #         self.grid._catalog.add(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
-        #     else:
-        #         self.grid._catalog.set(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
-        # for agent in self.agents:
-        #     observations[agent] = np.asarray(centralized_critic, dtype=np.float32)
+            centralized_critic.extend(norm_obs)
+            if f"{agent}.observation" not in self.grid._catalog.keys:
+                self.grid._catalog.add(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
+            else:
+                self.grid._catalog.set(f"{agent}.observation", np.asarray(norm_obs, dtype=np.float32))
+        for agent in self.agents:
+            observations[agent] = np.asarray(centralized_critic, dtype=np.float32)
 
 
         return observations
@@ -250,16 +259,6 @@ class PeacefulnessEnv(ParallelEnv):
         if self.verbose:
            print(f"End of the iteration {self.grid._catalog.get('simulation_time')}")
 
-        # Termination condition
-        terminations = {agent: False for agent in self.agents}
-
-        # Truncation condition
-        if self.grid._catalog.get('simulation_time') == self.grid._catalog.get("time_limit"):
-            truncations = {agent: True for agent in self.agents}
-            self.ended_episode = True
-        else:
-            truncations = {agent: False for agent in self.agents}
-
         # Computing immediate rewards
         # Getting the scaled-up decision made by the RL agent as understood by the environment
         results = {}
@@ -272,26 +271,51 @@ class PeacefulnessEnv(ParallelEnv):
             datalogger_keys = datalogger.get_keys  # retrieving the keys to be exported by the datalogger
             results = {**results, **datalogger.request_keys(datalogger_keys)}  # getting the values of these keys
         # Calculating each reward function - and then we sum them to get the overall immediate reward
+        # print(f"{self.grid._catalog.get("artificial_DHN.LTH.energy_wanted")}")
+        # print(f"{self.grid._catalog.get("artificial_DHN.LTH.energy_accorded")}")
         rewards = {agent: 0.0 for agent in self.agents}  # todo maybe a distinct penalty term for P3O ?
+        penalty = {agent: 0.0 for agent in self.agents}
         for agent in self.agents:
             for reward_function in self.reward_function_list[agent]:
                 if self.red_dof_dict is not None:
-                    rewards[agent] += reward_function(results, self.metrics, agent, self.red_dof_dict[agent])
+                    val = reward_function(results, self.metrics, agent, self._cum_dict, self.red_dof_dict[agent])
+                    rewards[agent] += val
                 else:
-                    rewards[agent] += reward_function(results, self.metrics, agent)
+                    val = reward_function(results, self.metrics, agent, self._cum_dict)
+                    rewards[agent] += val
+                if reward_function.__name__ == "energy_conservation":
+                    penalty[agent] = deepcopy(val)
+
+        for agent in self.agents:
+            if results['converters_priority'] == agent:
+                penalty.pop(agent)
+                rewards[agent] += sum(penalty.values()) * 0.5
+                break
+
             # Normalizing the immediate rewards with Emin and Emax - did not achieve better learning
             # rewards[agent] = normalize_my_rewards(rewards[agent], return_correct_dict(self.normalization_parameters, agent))
 
+        # stats for callback
+        self.group_metrics(results)
+
         # Getting the information dict - todo special for potential based rewards shaping
-        infos = self._get_infos(info=results)
+        # infos = self._get_infos(info=results)
+        infos = self._get_infos()
+
+        # Termination condition
+        terminations = {agent: False for agent in self.agents}
+
+        # Truncation condition
+        if self.grid._catalog.get('simulation_time') >= self.grid._catalog.get("time_limit"):
+            infos['EMG'].update({'episode_metrics': self._cum_dict})
+            rewards = SRL_PBRS_final_Rt(rewards, self._cum_dict)
+            truncations = {agent: True for agent in self.agents}
+            self.ended_episode = True
+        else:
+            truncations = {agent: False for agent in self.agents}
 
         # Getting the next observation dict
         observations = self._get_obs()
-
-        # assert observations["agent_2"].shape == (25,), f"CRASH! At time step {self.grid._catalog.get("simulation_time")} Agents return {observations} and {self.grid._catalog.get("agent_2.raw_state")}"
-
-        # Getting the information dict
-        # infos = self._get_infos()
 
         if any(terminations.values()) or all(truncations.values()):
             self.agents = []
@@ -330,6 +354,10 @@ class PeacefulnessEnv(ParallelEnv):
             act_dict[agent] = nb_actions
             if red_dof_dict is not None:
                 act_dict[agent] -= len(red_dof_dict[agent])
+
+        # TODO patchwork solution for the multi-energy case study
+        act_dict["EMG"] = 3
+        act_dict["DHN"] = 4
 
         return obs_dict, act_dict
 
@@ -371,6 +399,12 @@ class PeacefulnessEnv(ParallelEnv):
             else:
                 self.grid._catalog.set(f"{RL_agent}.strategy_scope", RL_agent_scope)
 
+            for agg in RL_agent_scope:
+                if f"{agg.name}.expected_RL_actions" not in self.grid._catalog.keys:
+                    self.grid._catalog.add(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
+                else:
+                    self.grid._catalog.set(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
+
     def final_grid_operation(self):
         # end of the run
         if self.verbose:
@@ -400,3 +434,132 @@ class PeacefulnessEnv(ParallelEnv):
                     concerned_aggregators.append(agg)
 
         return concerned_aggregators
+
+    def initialize_cumulative_dict(self):  # todo patchwork solution for the MEG case study (CallBack)
+        self._cum_dict = {
+            "time_limit": self.grid._catalog.get('time_limit'),
+            "sum_error_EMG": 0,
+            "max_error_EMG": 0,
+            "avg_error_EMG": 0,
+            "sum_error_DHN": 0,
+            "max_error_DHN": 0,
+            "avg_error_DHN": 0,
+            "priority_hours": {"EMG": 0, "DHN": 0},  # todo patchwork solution
+            "total_electricity_consumption": 0,
+            "total_heat_consumption": 0,
+            "relative_electricity_error": 0,
+            "relative_heat_error": 0,
+            "exchange_cost": 0,
+            "flex_given": 0,
+            "flex_max": 0,
+            "social_cost": 0,
+            "gas_cost": 0,
+            "W2h_dissipated_heat": 0,
+            "CHP_heat_by_pass": 0,
+            "green_HP_elec": 0,
+            "total_HP_elec": 0,
+            "total_HP_heat": 0,
+            "incinerator_heat": 0,
+            "total_heat_supply": 0,
+            "HP_green_ratio": 0,
+            "total_HP_green_injection": 0,
+            "total_green_supply": 0,
+            "OPEX": 0
+        }
+
+    def group_metrics(self, iteration_results: Dict):
+        # Constraints related metrics
+        #############################
+        # energy conservation error for the Electric Microgrid.
+        # TODO With removing 1-dol
+        # Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"][3]
+        # EMG_error = (
+        # Exch_value - 22000 if Exch_value > 22000
+        # else abs(Exch_value + 7200) if Exch_value < -7200
+        # else 0
+        # )
+        # TODO Without removing 1-dol
+        Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"]
+        EMG_error = abs(sum(Exch_value))
+        self._cum_dict["sum_error_EMG"] += EMG_error
+        self._cum_dict["max_error_EMG"] = max(EMG_error, self._cum_dict["max_error_EMG"])
+        # energy conservation error for the District Heating Network
+        # TODO Without removing 1-dol
+        e_conservation_error = abs(sum(iteration_results["district_heating_network.DHN.scaled_up_actions"]))
+        # TODO With removing 1-dol
+        # Esto_value = iteration_results["district_heating_network.DHN.scaled_up_actions"][2]
+        # Esto_intervals = iteration_results["district_heating_network.energy_flow_values_intervals"]["Energy_Storage"]
+        # e_conservation_error = (
+        # Esto_value - Esto_intervals[1] if Esto_value > Esto_intervals[1]
+        # else abs(Esto_value - Esto_intervals[0]) if Esto_value < Esto_intervals[1]
+        # else 0
+        # )
+        self._cum_dict["sum_error_DHN"] += e_conservation_error
+        self._cum_dict["max_error_DHN"] = max(e_conservation_error, self._cum_dict["max_error_DHN"])
+        if iteration_results["simulation_time"] > 0:
+            self._cum_dict["avg_error_EMG"] = self._cum_dict["sum_error_EMG"] / iteration_results["simulation_time"]
+            self._cum_dict["avg_error_DHN"] = self._cum_dict["sum_error_DHN"] / iteration_results["simulation_time"]
+        else:
+            self._cum_dict["avg_error_EMG"] = self._cum_dict["sum_error_EMG"]
+            self._cum_dict["avg_error_DHN"] = self._cum_dict["sum_error_DHN"]
+
+        self._cum_dict["total_electricity_consumption"] += iteration_results["electric_microgrid.energy_sold_inside"] + iteration_results["electric_microgrid.energy_sold_outside"]
+        self._cum_dict["total_heat_consumption"] += iteration_results["district_heating_network.energy_sold_inside"] + iteration_results["district_heating_network.energy_sold_outside"]
+
+        # Coordination mechanism related
+        ################################
+        for agent in self._cum_dict["priority_hours"]:
+            if agent == iteration_results['converters_priority']:
+                self._cum_dict["priority_hours"][agent] += 1
+                break
+        # print(f"priority hours -> {self._cum_dict["priority_hours"]}")
+
+        # Objectives related metrics
+        ############################
+        # Score / Operational costs
+        earned_out = iteration_results["electric_microgrid.money_earned_outside"]
+        spent_out = iteration_results["electric_microgrid.money_spent_outside"]
+        balance_cost = earned_out - spent_out  # cost of electricity exchange with the main grid
+        self._cum_dict["exchange_cost"] += balance_cost
+
+        electricity_erased = iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum'] - iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
+        flexible_money = iteration_results["flexible_loads.LVE.money"]
+        social_cost = electricity_erased * flexible_money  # cost of not serving flexible loads
+        self._cum_dict["social_cost"] += social_cost
+        self._cum_dict["flex_given"] += iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
+        self._cum_dict["flex_max"] += iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum']
+
+        gas_cost = iteration_results["combined_heat_power.LPG.money_spent"]  # cost of gas used by the CHP
+        self._cum_dict["gas_cost"] += gas_cost
+
+        heat_ununsed = iteration_results["Waste_to_heat.heat_dissipated"]
+        W2h_money = iteration_results["Waste_to_heat.LTH.money"]
+        W2h_unused_heat = heat_ununsed * W2h_money  # cost of not using free heat from the incinerator
+        self._cum_dict["W2h_dissipated_heat"] += W2h_unused_heat
+
+        heat_by_pass = iteration_results["combined_heat_power.heat_by_pass"]
+        CHP_heat_money = iteration_results["combined_heat_power.LTH.money"]
+        CHP_heat_by_pass_cost = heat_by_pass * CHP_heat_money  # cost of heat surplus from the CHP
+        self._cum_dict["CHP_heat_by_pass"] += CHP_heat_by_pass_cost
+
+        # Green heat supply
+        EnR_electricity = iteration_results["PV_field_1.LVE.energy_sold"] + iteration_results["PV_field_2.LVE.energy_sold"] + iteration_results["WT_field_1.LVE.energy_sold"] + iteration_results["WT_field_2.LVE.energy_sold"]
+        electricity_total_supply = iteration_results["electric_microgrid.energy_bought_inside"] + iteration_results["electric_microgrid.energy_bought_outside"]
+        if electricity_total_supply == 0:
+            EnR_ratio = 0.0
+        else:
+            EnR_ratio = EnR_electricity / electricity_total_supply
+        self._cum_dict["green_HP_elec"] += EnR_ratio * iteration_results["heat_pump.LVE.energy_bought"]
+        self._cum_dict["total_HP_elec"] += iteration_results["heat_pump.LVE.energy_bought"]
+        self._cum_dict["total_HP_heat"] += iteration_results["heat_pump.LTH.energy_sold"]
+        self._cum_dict["incinerator_heat"] += iteration_results["Waste_to_heat.LTH.energy_sold"]
+        self._cum_dict["total_heat_supply"] += iteration_results["district_heating_network.energy_bought_inside"]
+
+        if iteration_results['simulation_time'] == self._cum_dict["time_limit"]:
+            self._cum_dict["HP_green_ratio"] = self._cum_dict["green_HP_elec"] / self._cum_dict["total_HP_elec"]
+            self._cum_dict["total_HP_green_injection"] = self._cum_dict["HP_green_ratio"] * self._cum_dict["total_HP_heat"]
+            self._cum_dict["total_green_supply"] = (self._cum_dict["total_HP_green_injection"] + self._cum_dict["incinerator_heat"]) / self._cum_dict["total_heat_supply"]
+            self._cum_dict["OPEX"] = self._cum_dict["exchange_cost"] - self._cum_dict["social_cost"] - self._cum_dict["gas_cost"] - self._cum_dict["W2h_dissipated_heat"] - self._cum_dict["CHP_heat_by_pass"]
+            self._cum_dict["relative_electricity_error"] = self._cum_dict["sum_error_EMG"] / self._cum_dict["total_electricity_consumption"]
+            self._cum_dict["relative_heat_error"] = self._cum_dict["sum_error_DHN"] / self._cum_dict["total_heat_consumption"]
+

@@ -6,7 +6,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t penalty for not totally serving loads.
     """
-    def gas_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):  # todo patchwork solution
+    def gas_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):  # todo patchwork solution
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
@@ -17,7 +17,7 @@ def define_my_Rt(beta_0: float):
         key_list = []
         for metric in metrics:
             # if "energy" in metric:
-            if "LPG" in metric or "priority" in metric or "combined_heat_power" in metric or "wanted" in metric:
+            if "electric_microgrid" in metric or "district_heating_network" in metric or "combined_heat_power" in metric:
                 key_list.append(metric)
 
         # We then retrieve the correct value from the iteration dict
@@ -50,9 +50,9 @@ def define_my_Rt(beta_0: float):
                 wanted_elec = iteration_result[key]
             elif "LTH" in key and "wanted" in key:
                 wanted_heat = iteration_result[key]
-            elif "microgrid" in key:
+            elif "microgrid" in key and "wanted" in key:
                 wanted_agg = iteration_result[key]
-            elif "district" in key:
+            elif "district" in key and "wanted" in key:
                 wanted_h_agg = iteration_result[key]
             elif "heat_by_pass" in key:
                 dissipated_heat = iteration_result[key]
@@ -60,27 +60,16 @@ def define_my_Rt(beta_0: float):
         # Finally we compute the reward
         gas_energy = wanted_gas["energy_nominal"]
         if gas_energy != 0.0:
+            # print(f"wanted elec price, efficiency -> {wanted_elec['price'], wanted_elec['efficiency']}")
+            # print(f"wanted heat Emax, price, efficiency -> {wanted_heat['energy_maximum'], wanted_heat['price'], wanted_heat['efficiency']}")
+            # print(f"dissipated heat -> {dissipated_heat}")
             elec_CHP_price = wanted_gas["price"] / wanted_elec["efficiency"]
-            heat_CHP_price = (wanted_gas["price"] / wanted_heat["efficiency"]) * abs(dissipated_heat / wanted_heat["energy_nominal"])
+            heat_CHP_price = (wanted_gas["price"] / wanted_heat["efficiency"]) * abs(dissipated_heat / wanted_heat["energy_maximum"])
             reward += beta_0 * abs(gas_energy) / 16000.0
         else:
             elec_CHP_price = 0.0
             heat_CHP_price = 0.0
             reward = 0.0
-
-
-        # if gas_price != 0.0:
-        #     if not srl_signal:
-        #         if to_assign == agent_ID:
-        #             reward += - beta_0 * abs((gas_price * gas_energy) / (gas_price * 16000.0))
-        #         elif to_assign == "any":
-        #             reward += - 0.5 * beta_0 * abs((gas_price * gas_energy) / (gas_price * 16000.0))
-        #         else:
-        #             reward = 0.0
-        #     else:
-        #         reward = beta_0 * abs(gas_price) / (0.16 * 16000)
-                # reward = beta_0 * abs(gas_price)
-            # reward += - beta_0 * abs((gas_price * gas_energy) / (gas_price * 16000.0))
 
         if elec_CHP_price < wanted_agg[0]['price'] and heat_CHP_price < wanted_h_agg[0]['price']:  # price for gas is advantageous % main grid
             # reward -= 0.5 * reward
@@ -88,6 +77,9 @@ def define_my_Rt(beta_0: float):
         else:
             # reward += 0.5 * reward
             reward = reward * (-1)
+
+        # if agent_ID != iteration_result['converters_priority']:
+        #     reward = 0.0
 
         return reward
 

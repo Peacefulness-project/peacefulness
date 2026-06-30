@@ -21,7 +21,7 @@ from lib.Subclasses.Strategy.SingleAgentDRLStrategy.Reward_functions.delayed_rew
 class PeacefulnessEnv(AECEnv):
     metadata = {"name": "hierarchical_env_v0", }
 
-    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
+    def __init__(self, path_to_case: str, world_name: str, start_time: datetime, hours_to_simulate: int, export_path: str, agent_dict: Dict, aggregators_actions: Dict, objective_dict: Dict, normalization_dict: Dict={}, metrics: List=[], std_dev:float=0.25, verbose=False, red_dof_dict=None):
         super().__init__()
         # Defining the possible agents
         self.possible_agents = list(agent_dict.keys())
@@ -41,6 +41,7 @@ class PeacefulnessEnv(AECEnv):
 
         # Needed for the top_down phase to distribute the decisions
         self.action_dict_per_agent = get_correct_action_dict(agent_dict)
+        self.agg_actions = deepcopy(aggregators_actions)
         self.red_dof_dict = red_dof_dict  # None if no degree of freedom is reduced
 
         # Used to retrieve the correct case study
@@ -355,14 +356,21 @@ class PeacefulnessEnv(AECEnv):
             results = {**results, **datalogger.request_keys(datalogger_keys)}  # getting the values of these keys
         # Calculating each reward function - and then we sum them to get the overall immediate reward
         self._clear_rewards()
+        penalty_for_int = 0.0
         for agent in self.agents:
             for reward_function in self.reward_function_list[agent]:
                 if self.red_dof_dict is not None and agent in self.red_dof_dict:
-                    self.rewards[agent] += reward_function(results, self.metrics, agent, self.red_dof_dict[agent])
+                    rt = reward_function(results, metrics=self.metrics, agent_ID=agent, cumul_dict=self._cum_dict, action_reduction_dict=self.red_dof_dict[agent])
+                    self.rewards[agent] += rt
                 else:
-                    self.rewards[agent] += reward_function(results, self.metrics, agent)
+                    rt = reward_function(results, metrics=self.metrics, agent_ID=agent, cumul_dict=self._cum_dict)
+                    self.rewards[agent] += rt
+        # TODO patchwork solution
+                if agent != 'Intermediary':
+                    penalty_for_int += rt
+        self.rewards["Intermediary"] += penalty_for_int
         # print(self.rewards)
-        self.group_metrics(results, self.grid._catalog.get("time_limit"))
+        self.group_metrics(results)
 
         # Infos
         self.infos = {a: {} for a in self.agents}
@@ -435,6 +443,12 @@ class PeacefulnessEnv(AECEnv):
             else:
                 self.grid._catalog.set(f"{RL_agent}.strategy_scope", RL_agent_scope)
 
+            for agg in RL_agent_scope:
+                if f"{agg.name}.expected_RL_actions" not in self.grid._catalog.keys:
+                    self.grid._catalog.add(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
+                else:
+                    self.grid._catalog.set(f"{agg.name}.expected_RL_actions", self.agg_actions[agg.name])
+
 
     def final_grid_operation(self):
         # end of the run
@@ -502,10 +516,15 @@ class PeacefulnessEnv(AECEnv):
         obs_dict["EMG"] = 15
         obs_dict["DHN"] = 21
 
+        act_dict['Intermediary'] = 2
+        act_dict["EMG"] = 1
+        act_dict["DHN"] = 1
+
         return obs_dict, act_dict
 
     def initialize_cumulative_dict(self):  # todo patchwork solution for the MEG case study
         self._cum_dict = {
+            "time_limit": self.grid._catalog.get('time_limit'),
             "sum_error_EMG": 0,
             "max_error_EMG": 0,
             "avg_error_EMG": 0,
@@ -516,6 +535,8 @@ class PeacefulnessEnv(AECEnv):
             "total_heat_consumption": 0,
             "relative_electricity_error": 0,
             "relative_heat_error": 0,
+            "flex_given": 0,
+            "flex_max": 0,
             "exchange_cost": 0,
             "social_cost": 0,
             "gas_cost": 0,
@@ -532,33 +553,33 @@ class PeacefulnessEnv(AECEnv):
             "OPEX": 0
         }
 
-    def group_metrics(self, iteration_results: Dict, time_limit: int):
+    def group_metrics(self, iteration_results: Dict):
         # Constraints related metrics
         #############################
         # energy conservation error for the Electric Microgrid.
         # TODO With removing 1-dol
-        # Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"][3]
-        # EMG_error = (
-        # Exch_value - 22000 if Exch_value > 22000
-        # else abs(Exch_value + 7200) if Exch_value < -7200
-        # else 0
-        # )
+        Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"][3]
+        EMG_error = (
+        Exch_value - 25000 if Exch_value > 25000
+        else abs(Exch_value + 13500) if Exch_value < -13500
+        else 0
+        )
         # TODO Without removing 1-dol
-        Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"]
-        EMG_error = abs(sum(Exch_value))
+        # Exch_value = iteration_results["electric_microgrid.EMG.scaled_up_actions"]
+        # EMG_error = abs(sum(Exch_value))
         self._cum_dict["sum_error_EMG"] += EMG_error
         self._cum_dict["max_error_EMG"] = max(EMG_error, self._cum_dict["max_error_EMG"])
         # energy conservation error for the District Heating Network
         # TODO Without removing 1-dol
-        e_conservation_error = abs(sum(iteration_results["district_heating_network.DHN.scaled_up_actions"]))
+        # e_conservation_error = abs(sum(iteration_results["district_heating_network.DHN.scaled_up_actions"]))
         # TODO With removing 1-dol
-        # Esto_value = iteration_results["district_heating_network.DHN.scaled_up_actions"][2]
-        # Esto_intervals = iteration_results["district_heating_network.energy_flow_values_intervals"]["Energy_Storage"]
-        # e_conservation_error = (
-        # Esto_value - Esto_intervals[1] if Esto_value > Esto_intervals[1]
-        # else abs(Esto_value - Esto_intervals[0]) if Esto_value < Esto_intervals[1]
-        # else 0
-        # )
+        Esto_value = iteration_results["district_heating_network.DHN.scaled_up_actions"][2]
+        Esto_intervals = iteration_results["district_heating_network.energy_flow_values_intervals"]["Energy_Storage"]
+        e_conservation_error = (
+        Esto_value - Esto_intervals[1] if Esto_value > Esto_intervals[1]
+        else abs(Esto_value - Esto_intervals[0]) if Esto_value < Esto_intervals[1]
+        else 0
+        )
         self._cum_dict["sum_error_DHN"] += e_conservation_error
         self._cum_dict["max_error_DHN"] = max(e_conservation_error, self._cum_dict["max_error_DHN"])
         if iteration_results["simulation_time"] > 0:
@@ -579,10 +600,12 @@ class PeacefulnessEnv(AECEnv):
         balance_cost = earned_out - spent_out  # cost of electricity exchange with the main grid
         self._cum_dict["exchange_cost"] += balance_cost
 
-        electricity_erased = iteration_results["flexible_loads.LVE.energy_erased"]
+        electricity_erased = iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum'] - iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
         flexible_money = iteration_results["flexible_loads.LVE.money"]
         social_cost = electricity_erased * flexible_money  # cost of not serving flexible loads
         self._cum_dict["social_cost"] += social_cost
+        self._cum_dict["flex_given"] += iteration_results["flexible_loads.LVE.energy_accorded"]['quantity']
+        self._cum_dict["flex_max"] += iteration_results["flexible_loads.LVE.energy_wanted"]['energy_maximum']
 
         gas_cost = iteration_results["combined_heat_power.LPG.money_spent"]  # cost of gas used by the CHP
         self._cum_dict["gas_cost"] += gas_cost
@@ -610,7 +633,7 @@ class PeacefulnessEnv(AECEnv):
         self._cum_dict["incinerator_heat"] += iteration_results["Waste_to_heat.LTH.energy_sold"]
         self._cum_dict["total_heat_supply"] += iteration_results["district_heating_network.energy_bought_inside"]
 
-        if iteration_results['simulation_time'] == time_limit:
+        if iteration_results['simulation_time'] == self._cum_dict["time_limit"]:
             self._cum_dict["HP_green_ratio"] = self._cum_dict["green_HP_elec"] / self._cum_dict["total_HP_elec"]
             self._cum_dict["total_HP_green_injection"] = self._cum_dict["HP_green_ratio"] * self._cum_dict["total_HP_heat"]
             self._cum_dict["total_green_supply"] = (self._cum_dict["total_HP_green_injection"] + self._cum_dict["incinerator_heat"]) / self._cum_dict["total_heat_supply"]

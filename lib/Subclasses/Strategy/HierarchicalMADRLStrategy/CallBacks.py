@@ -2,6 +2,10 @@ from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 
 class EpisodicMetricsCallback(DefaultCallbacks):
+    def __init__(self, agent_ID: str):
+        super().__init__()
+        self._agentID = agent_ID
+
     def on_episode_end(
         self,
         *,
@@ -17,9 +21,9 @@ class EpisodicMetricsCallback(DefaultCallbacks):
         policies= None,
         **kwargs,
     ):
-        infos = episode.get_infos(agent_ids="Intermediary")
+        infos = episode.get_infos(agent_ids=self._agentID)
         # last element = last step's info for manager
-        last_info = infos['Intermediary'][-1] if infos else {}
+        last_info = infos[self._agentID][-1] if infos else {}
         if last_info and "episode_metrics" in last_info:
             metrics = last_info['episode_metrics']
 
@@ -39,4 +43,11 @@ class EpisodicMetricsCallback(DefaultCallbacks):
             metrics_logger.log_value("custom/CHP_unused_heat", metrics["CHP_heat_by_pass"])
             metrics_logger.log_value("custom/incinerator_heat_supply", metrics["incinerator_heat"])
             metrics_logger.log_value("custom/incinerator_unused_heat", metrics["W2h_dissipated_heat"])
+
+
+def make_episodic_metrics_callback(agent_id: str):
+    class _Wrapped(EpisodicMetricsCallback):
+        def __init__(self):
+            super().__init__(agent_ID=agent_id)
+    return _Wrapped
 

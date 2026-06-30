@@ -220,13 +220,13 @@ class SingleAgentDRLStrategy(Strategy):
                     # correcting the exchange with the conversion offset values
                     old_energy_accorded_from_superior[0]['quantity'] -= sum(offset_dict.values()) / aggregator.efficiency
                     #
-                    # # todo modified decision to get true reward - while removing 1 dol
-                    # Eexch = self._catalog.get(f"{aggregator.name}.{self._name}.exchange_decision")
-                    # for exchange in Eexch:
-                    #     if f"{aggregator.superior.name}" in exchange:
-                    #         Eexch[exchange] = - old_energy_accorded_from_superior[0]['quantity']
-                    #         break
-                    # self._catalog.set(f"{aggregator.name}.{self._name}.exchange_decision", Eexch)
+                    # todo modified decision to get true reward - while removing 1 dol
+                    Eexch = self._catalog.get(f"{aggregator.name}.{self._name}.exchange_decision")
+                    for exchange in Eexch:
+                        if f"{aggregator.superior.name}" in exchange:
+                            Eexch[exchange] = - old_energy_accorded_from_superior[0]['quantity']
+                            break
+                    self._catalog.set(f"{aggregator.name}.{self._name}.exchange_decision", Eexch)
                     # todo Eexch error - without removing 1 dol
                     # if - aggregator.capacity["buying"] <= old_energy_accorded_from_superior[0]['quantity'] <= aggregator.capacity["selling"]:
                     #     self._catalog.set(f"{self.name}.conversion_error", 0.0)
@@ -236,15 +236,15 @@ class SingleAgentDRLStrategy(Strategy):
                     #     self._catalog.set(f"{self.name}.conversion_error", abs(old_energy_accorded_from_superior[0]['quantity']) - aggregator.capacity["buying"])
 
                 else:  # if the aggregator has to make the balance inside by itself
-                    heat_surplus = energy_bought_inside - energy_sold_inside  # TODO for 3-agent, we still need to compute the heat_by_pass for the CHP (unless we remove 1 dol) !
-                    if heat_surplus <= 0:  # if the heta supply is not enough to satisfy the demand
-                        self._catalog.set("combined_heat_power.heat_by_pass", 0.0)
-                    else:
-                        CHP_heat_supply = self._catalog.get("combined_heat_power.LTH.energy_accorded")
-                        if heat_surplus > abs(CHP_heat_supply["quantity"]):
-                            self._catalog.set("combined_heat_power.heat_by_pass", abs(CHP_heat_supply["quantity"]))
-                        else:
-                            self._catalog.set("combined_heat_power.heat_by_pass", heat_surplus)
+                    # heat_surplus = energy_bought_inside - energy_sold_inside  # TODO for 3-agent, we still need to compute the heat_by_pass for the CHP (unless we remove 1 dol) !
+                    # if heat_surplus <= 0:  # if the heta supply is not enough to satisfy the demand
+                    #     self._catalog.set("combined_heat_power.heat_by_pass", 0.0)
+                    # else:
+                    #     CHP_heat_supply = self._catalog.get("combined_heat_power.LTH.energy_accorded")
+                    #     if heat_surplus > abs(CHP_heat_supply["quantity"]):
+                    #         self._catalog.set("combined_heat_power.heat_by_pass", abs(CHP_heat_supply["quantity"]))
+                    #     else:
+                    #         self._catalog.set("combined_heat_power.heat_by_pass", heat_surplus)
 
                     # todo patchwork solution in case of single agent RL for the MEG case study (no 1dol removal)
                     # Computing the heat_by_pass
@@ -265,43 +265,49 @@ class SingleAgentDRLStrategy(Strategy):
                     # self._catalog.set(f"{aggregator.name}.{self._name}.exchange_decision", Eexch)
 
                     # todo patchwork solution for the MEG MARL case study - the heat storage absorbs the offset
-                    # heat_stored = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")[2]
-                    # old_heat_accorded = self._catalog.get(f"Heat_storage.LTH.energy_accorded")
-                    # heat_wanted = self._catalog.get(f"Heat_storage.LTH.energy_wanted")
-                    # # correcting original energy balance
-                    # if old_heat_accorded['quantity'] < 0:  # discharging the TES
-                    #     energy_bought_inside -= abs(old_heat_accorded["quantity"])
-                    #     money_spent_inside -= abs(old_heat_accorded["quantity"]) * old_heat_accorded["price"]
-                    # else:  # charging the TES
-                    #     energy_sold_inside -= old_heat_accorded["quantity"]
-                    #     money_earned_inside -= old_heat_accorded["quantity"] * old_heat_accorded["price"]
-                    # # correcting the energy storage with the conversion offset values
-                    # heat_stored += sum(offset_dict.values())  # adding the offset due to energy conversion systems
-                    # old_heat_accorded['quantity'] = max(heat_stored, heat_wanted["energy_minimum"]) if heat_stored < 0 else min(heat_stored, heat_wanted["energy_maximum"])
-                    # self._catalog.set("Heat_storage.LTH.energy_accorded", old_heat_accorded)
-                    # # correcting the energy balance with the Esto absorbed exchange offset
-                    # if heat_stored < 0:
-                    #     energy_bought_inside += abs(old_heat_accorded['quantity'])
-                    #     money_spent_inside += abs(old_heat_accorded['quantity']) * old_heat_accorded["price"]
-                    # else:
-                    #     energy_sold_inside += old_heat_accorded['quantity']
-                    #     money_earned_inside += old_heat_accorded['quantity'] * old_heat_accorded["price"]
+                    heat_stored = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")[2]
+                    old_heat_accorded = self._catalog.get(f"Heat_storage.LTH.energy_accorded")
+                    heat_wanted = self._catalog.get(f"Heat_storage.LTH.energy_wanted")
+                    # correcting original energy balance
+                    if old_heat_accorded['quantity'] < 0:  # discharging the TES
+                        energy_bought_inside -= abs(old_heat_accorded["quantity"])
+                        money_spent_inside -= abs(old_heat_accorded["quantity"]) * old_heat_accorded["price"]
+                    else:  # charging the TES
+                        energy_sold_inside -= old_heat_accorded["quantity"]
+                        money_earned_inside -= old_heat_accorded["quantity"] * old_heat_accorded["price"]
+                    # correcting the energy storage with the conversion offset values
+                    heat_stored += sum(offset_dict.values())  # adding the offset due to energy conversion systems
+                    old_heat_accorded['quantity'] = max(heat_stored, heat_wanted["energy_minimum"]) if heat_stored < 0 else min(heat_stored, heat_wanted["energy_maximum"])
+                    self._catalog.set("Heat_storage.LTH.energy_accorded", old_heat_accorded)
+                    # correcting the energy balance with the Esto absorbed exchange offset
+                    if heat_stored < 0:
+                        energy_bought_inside += abs(old_heat_accorded['quantity'])
+                        money_spent_inside += abs(old_heat_accorded['quantity']) * old_heat_accorded["price"]
+                    else:
+                        energy_sold_inside += old_heat_accorded['quantity']
+                        money_earned_inside += old_heat_accorded['quantity'] * old_heat_accorded["price"]
 
                     # todo modified decision to get true reward - while removing 1 dol
-                    # C, P, S = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")
-                    # S = heat_stored
-                    # self._catalog.set(f"{aggregator.name}.{self._name}.internal_decision", [C, P, S])
+                    C, P, S = self._catalog.get(f"{aggregator.name}.{self._name}.internal_decision")
+                    S = heat_stored
+                    self._catalog.set(f"{aggregator.name}.{self._name}.internal_decision", [C, P, S])
 
                     # todo additional flexibility provided by CHP
-                    # heat_surplus = energy_bought_inside - energy_sold_inside
-                    # if heat_surplus <= 0:  # if the heta supply is not enough to satisfy the demand
-                    #     self._catalog.set("combined_heat_power.heat_by_pass", 0.0)
-                    # else:
-                    #     CHP_heat_supply = self._catalog.get("combined_heat_power.LTH.energy_accorded")
-                    #     if heat_surplus > abs(CHP_heat_supply["quantity"]):
-                    #         self._catalog.set("combined_heat_power.heat_by_pass", abs(CHP_heat_supply["quantity"]))
-                    #     else:
-                    #         self._catalog.set("combined_heat_power.heat_by_pass", heat_surplus)
+                    heat_surplus = energy_bought_inside - energy_sold_inside
+                    if heat_surplus <= 0:  # if the heat supply is not enough to satisfy the demand
+                        self._catalog.set("combined_heat_power.heat_by_pass", 0.0)
+                    else:
+                        CHP_heat_supply = self._catalog.get("combined_heat_power.LTH.energy_accorded")
+                        if heat_surplus > abs(CHP_heat_supply["quantity"]):
+                            self._catalog.set("combined_heat_power.heat_by_pass", abs(CHP_heat_supply["quantity"]))
+                            energy_bought_inside -= abs(CHP_heat_supply['quantity'])
+                            money_spent_inside -= abs(CHP_heat_supply['quantity']) * CHP_heat_supply["price"]
+                            # print(f"heat by bass -> {abs(CHP_heat_supply["quantity"])}")
+                        else:
+                            self._catalog.set("combined_heat_power.heat_by_pass", heat_surplus)
+                            energy_bought_inside -= heat_surplus
+                            money_spent_inside -= heat_surplus * CHP_heat_supply["price"]
+                            # print(f"heat by bass -> {heat_surplus}")
                     # heat_sink = heat_stored - heat_wanted["energy_maximum"] if heat_stored > heat_wanted["energy_maximum"] else 0
                     # chp_energy = self._catalog.get("combined_heat_power.LTH.energy_accorded")
                     # if heat_sink > abs(chp_energy['quantity']):
@@ -984,7 +990,7 @@ class SingleAgentDRLStrategy(Strategy):
             energy_wanted = self._catalog.get(f"{sub.name}.{aggregator.nature.name}.energy_wanted")
             message['price'] = energy_wanted[0]["price"]
             for exchange in exchanges:
-                if sub.name in exchange:
+                if sub.name in exchange and len(exchange) < 3:
                     message['quantity'] = - exchanges[exchange]
                     quantities_and_prices.append(message)
                     self._catalog.set(f"{sub.name}.{aggregator.nature.name}.energy_accorded", quantities_and_prices)

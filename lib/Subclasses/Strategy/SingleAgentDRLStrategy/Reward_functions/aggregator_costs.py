@@ -6,7 +6,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t costs for aggregators.
     """
-    def outside_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):
+    def outside_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
@@ -38,14 +38,9 @@ def define_my_Rt(beta_0: float):
         for metric in list_of_keys:
             if metric in iteration_result:
                 reward += (
-                #     beta_0 * iteration_result[metric] / (22000.0 * 0.285125)
-                #     if "earned" in metric
-                #     else -beta_0 * iteration_result[metric] / (7200.0 * 0.57025)
-                # )
-                # reward += (
-                    beta_0 * iteration_result[metric] / 22000.0
+                    beta_0 * iteration_result[metric] / 25000.0
                     if "sold" in metric
-                    else - beta_0 * iteration_result[metric] / 7200.0
+                    else - beta_0 * iteration_result[metric] / 13500.0
                 )
         # if reward > 1 or reward < - 1:  # TODO patchwork solution
         #     reward = 0.0

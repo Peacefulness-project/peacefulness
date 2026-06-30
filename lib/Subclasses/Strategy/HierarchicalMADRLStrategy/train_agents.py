@@ -13,7 +13,7 @@ from ray.rllib.env.wrappers.pettingzoo_env import PettingZooEnv
 from ray.rllib.algorithms.ppo import PPOConfig
 # from ray.rllib.policy.policy import PolicySpec
 # from ray.rllib.algorithms.callbacks import DefaultCallbacks
-from CallBacks import EpisodicMetricsCallback
+from CallBacks import make_episodic_metrics_callback
 
 # For printing results
 import uuid
@@ -34,6 +34,12 @@ agents_dict = {
     "EMG": {"electric_microgrid": (18, 2), "exchanges": 1},
     "DHN": {"district_heating_network": (21, 3), "exchanges": 0}
 }
+agg_acts = {
+    "electric_microgrid": ('Energy_Consumption', 'Energy_Conversion_2', 'Energy_Conversion_3'),
+    "district_heating_network": ("Energy_Production", "Energy_Conversion_2", "Energy_Conversion_3"),
+    "Intermediary_HP": ('Energy_Conversion_2'),
+    "Intermediary_CHP": ('Energy_Conversion_3')
+}
 reward_dict = {
     "Intermediary": [
         ("green_injection", 1),
@@ -52,22 +58,22 @@ reward_dict = {
 }
 normalization_dict = {
     "energy_minimum": -25000.0, "energy_maximum": 35000.0,
-                          "price_minimum": 0.0, "price_maximum": 0.57,
+                          "price_minimum": 0.0, "price_maximum": 0.6,
                       }
 metrics = [
     "electric_microgrid.energy_bought_outside", "electric_microgrid.energy_sold_outside",  # external economic balance
     "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",  # external economic balance
-    "flexible_loads.LVE.energy_erased", "flexible_loads.LVE.money",  # social cost
+    "flexible_loads.LVE.energy_wanted", "flexible_loads.LVE.energy_accorded", "flexible_loads.LVE.money",  # social cost
     "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "combined_heat_power.LPG.money_spent",  # gas cost
     "electric_microgrid.LVE.energy_wanted", "combined_heat_power.LTH.energy_wanted", "district_heating_network.LVE.energy_wanted",
     "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.energy_sold", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
     "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",  # wasted heat from the CHP
     "PV_field_1.LVE.energy_sold", "PV_field_2.LVE.energy_sold", "WT_field_1.LVE.energy_sold", "WT_field_2.LVE.energy_sold",  # EnR
-    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "district_heating_network.energy_sold_inside"  # HP
+    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "district_heating_network.energy_sold_inside", "heat_pump.LTH.energy_wanted"  # HP
 ]
 act_red_dict = {
-    # "EMG": {"electric_microgrid": "Energy_Exchange_1"},
-    # "DHN": {"district_heating_network": "Energy_Storage"}
+    "EMG": {"electric_microgrid": "Energy_Exchange_1"},
+    "DHN": {"district_heating_network": "Energy_Storage"}
 }
 
 ENV_PARAMS = dict(
@@ -77,6 +83,7 @@ ENV_PARAMS = dict(
     hours_to_simulate=simulation_length,
     export_path=path_to_export,
     agent_dict=agents_dict,
+    aggregators_actions=agg_acts,
     objective_dict=reward_dict,
     normalization_dict=normalization_dict,
     metrics=metrics,
@@ -89,7 +96,7 @@ ENV_PARAMS = dict(
 # First, the PettingZoo parallel environment is wrapped and registered as a multi-agent environment in RLlib
 def build_env(env_config):
     required = ["path_to_case", "world_name", "start_time", "hours_to_simulate", "export_path",
-                "agent_dict", "objective_dict", "normalization_dict", "metrics", "red_dof_dict"]
+                "agent_dict", "aggregators_actions", "objective_dict", "normalization_dict", "metrics", "red_dof_dict"]
     for key in required:
         if key not in env_config:
             raise ValueError(f"Value missing for {key} in env_config !")
@@ -102,7 +109,7 @@ def build_env(env_config):
 
     env = PeacefulnessEnv(env_config["path_to_case"], env_config["world_name"],
                           env_config["start_time"], env_config["hours_to_simulate"],
-                          env_config["export_path"], env_config["agent_dict"], env_config["objective_dict"],
+                          env_config["export_path"], env_config["agent_dict"], env_config["aggregators_actions"], env_config["objective_dict"],
                           env_config["normalization_dict"], env_config["metrics"], std_dev, False,
                           env_config["red_dof_dict"]
                           )
@@ -170,7 +177,7 @@ if __name__ == "__main__":
                     evaluation_duration_unit="episodes",
                     evaluation_config={"env_config": {"std_dev": 0}, "explore": False})
         .framework('torch')
-        .callbacks(EpisodicMetricsCallback)
+        .callbacks(make_episodic_metrics_callback(agent_id="Intermediary"))
         .debugging(log_level='ERROR')
     )
 

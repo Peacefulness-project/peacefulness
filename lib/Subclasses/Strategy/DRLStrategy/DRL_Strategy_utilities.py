@@ -192,7 +192,10 @@ def my_devices(catalog: "Catalog", aggregator: "Aggregator") -> Tuple[Dict, Dict
             # Calculating the current ESS capacity in kWh
             if my_time > 0:
                 intermediate_dict["state_of_charge"] += 0.2
-            intermediate_dict["capacity"] *= intermediate_dict["state_of_charge"]
+            # TODO patchwork solution
+            intermediate_dict["state_of_charge"] = (catalog.get(f"{device.name}.energy_stored") - 438434.335305774) / 38911.163594225
+            intermediate_dict["capacity"] = 38911.163594225
+            # intermediate_dict["capacity"] *= intermediate_dict["state_of_charge"]
             formalism_message[aggregator.name]["Energy_Storage"] = {**formalism_message[aggregator.name]["Energy_Storage"], **{device.name: {**{"energy_minimum": Emin, "energy_maximum": Emax}, **intermediate_dict}}}
             specific_message.clear()
         elif specific_message["type"] == "converter":  # if the device/energy system is for conversion

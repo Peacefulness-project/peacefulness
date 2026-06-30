@@ -14,7 +14,7 @@ from scipy.fft import fft, fftfreq
 
 # I - We read the data from PEACEFULNESS '.csv' outputs into dicts #
 ####################################################################
-path_to_csv = "D:/dossier_y23hallo/Thèse/multi-energy/final_results/single_agent/2_dol"  # path to inference results folder
+path_to_csv = "D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/SRL/FINAL/"  # path to inference results folder
 
 # 1. energy flow values for the devices of the case study
 devices_file = "DeviceQuantity_frequency_1"
@@ -48,31 +48,108 @@ logs_data = df.to_dict(orient='list')  # transforming it into dicts.
 # 5. the decisions of the RL agents
 decisions_file = "Inference_RL_decisions"
 df = pd.read_csv(path_to_csv + "/" + decisions_file + ".csv", sep=",")
-df_1 = df.iloc[:5304]  # electric microgrid (agent 1)
-df_2 = df.iloc[5304:]  # district heating network (agent 2)
-df_1 = df_1.drop("Energy_Storage", axis=1)  # the EMG doesn't dispose of energy storage systems
-df_1.columns = ['aggregator', 'Energy_Consumption', 'Energy_Production', 'mainGrid', 'heat_pump', 'combined_heat_power']  # renaming columns for clarity
-df_2 = df_2.drop("Energy_Conversion_3", axis=1)  # the DHN doesn't exchange heat directly with the superior aggregator
-df_2.columns = ['aggregator', 'Energy_Consumption', 'Energy_Production', 'Energy_Storage', 'heat_pump', 'combined_heat_power']  # renaming columns for clarity
-agent1_decisions = df_1.to_dict(orient="list")  # transforming it into dicts.
-agent2_decisions = df_2.to_dict(orient="list")  # transforming it into dicts.
+# df_1 = df.iloc[:5304]  # electric microgrid (agent 1)
+# df_2 = df.iloc[5304:]  # district heating network (agent 2)
+# df_1 = df_1.drop("Energy_Storage", axis=1)  # the EMG doesn't dispose of energy storage systems
+# df_1.columns = ['aggregator', 'Energy_Consumption', 'Energy_Production', 'mainGrid', 'heat_pump', 'combined_heat_power']  # renaming columns for clarity
+# df_2 = df_2.drop("Energy_Conversion_3", axis=1)  # the DHN doesn't exchange heat directly with the superior aggregator
+# df_2.columns = ['aggregator', 'Energy_Consumption', 'Energy_Production', 'Energy_Storage', 'heat_pump', 'combined_heat_power']  # renaming columns for clarity
+# agent1_decisions = df_1.to_dict(orient="list")  # transforming it into dicts.
+# agent2_decisions = df_2.to_dict(orient="list")  # transforming it into dicts.
+# TODO for 3 RL agents
+df_1 = df.iloc[:5304]  # intermediary HP
+df_2 = df.iloc[5304:10608]  # intermediary CHP
+df_3 = df.iloc[10608:15912]  # electric microgrid
+df_4 = df.iloc[15912:]  # district heating network
+
+df_1 = df_1.drop('Energy_Consumption', axis=1)
+df_1 = df_1.drop('Energy_Production', axis=1)
+df_1 = df_1.drop('Energy_Storage', axis=1)
+df_1 = df_1.drop('Energy_Exchange_1', axis=1)
+df_1 = df_1.drop('Energy_Conversion_3', axis=1)
+df_1.columns = ['aggregator', 'HP_elec']  # intermediary HP
+df_2 = df_2.drop('Energy_Consumption', axis=1)
+df_2 = df_2.drop('Energy_Production', axis=1)
+df_2 = df_2.drop('Energy_Storage', axis=1)
+df_2 = df_2.drop('Energy_Exchange_1', axis=1)
+df_2 = df_2.drop('Energy_Conversion_3', axis=1)
+df_2.columns = ['aggregator', 'CHP_gas']  # intermediary CHP (gas)
+intermediaryHP_elec_decisions = df_1.to_dict(orient="list")  # transforming it into dicts.
+intermediaryCHP_gas_decisions = df_2.to_dict(orient="list")  # transforming it into dicts.
+df_3 = df_3.drop('Energy_Storage', axis=1)
+df_3 = df_3.drop('Energy_Conversion_2', axis=1)
+df_3.columns = ['aggregator', 'electricity_loads', 'EnR', 'mainGrid', 'CHP_elec']  # electric microgrid
+df_4 = df_4.drop('Energy_Conversion_3', axis=1)
+df_4.columns = ['aggregator', 'heat_loads', 'W2h', 'TES', 'HP_heat', 'CHP_heat']  # district heating network
+EMG_decisions = df_3.to_dict(orient="list")  # transforming it into dicts.
+DHN_decisions = df_4.to_dict(orient="list")  # transforming it into dicts.
 
 # 6. energy intervals corresponding to each decision
 intervals_file = "Inference_energy_intervals"
 df = pd.read_csv(path_to_csv + "/" + intervals_file + ".csv", sep=",")
-df_1 = df.iloc[:5304]  # electric microgrid (agent 1)
-df_2 = df.iloc[5304:]  # district heating network (agent 2)
+# df_1 = df.iloc[:5304]  # electric microgrid (agent 1)
+# df_2 = df.iloc[5304:]  # district heating network (agent 2)
+# df_1 = df_1.reset_index()
+# df_1 = df_1.drop("level_5", axis=1)
+# df_1 = df_1.drop("aggregator", axis=1)
+# df_1.columns = ['aggregator', 'C_min', 'C_max', 'P_min', 'P_max', 'Exch_min', 'Exch_max', 'HP_min', 'HP_max', 'CHP_min', 'CHP_max']
+# agent1_intervals = df_1.to_dict(orient="list")  # transforming it into dicts.
+# df_2 = df_2.reset_index()
+# df_2 = df_2.iloc[:,:-2]
+# df_2.columns = ['aggregator', 'C_min', 'C_max', 'P_min', 'P_max', 'S_min', 'S_max', 'HP_min', 'HP_max', 'CHP_min', 'CHP_max']
+# df_2["HP_min"] = 0.0  # correcting the values for the HP
+# df_2["HP_max"] = -6910.331633  # correcting the values for the HP
+# agent2_intervals = df_2.to_dict(orient="list")  # transforming it into dicts.
+
+# TODO for 3-agents RL
+df_1 = df.iloc[:5304]  # intermediary HP
+df_2 = df.iloc[5304:10608]  # intermediary CHP
+df_3 = df.iloc[10608:15912]  # electric microgrid
+df_4 = df.iloc[15912:]  # district heating network
+
 df_1 = df_1.reset_index()
+df_1 = df_1.drop("level_1", axis=1)
+df_1 = df_1.drop("level_2", axis=1)
+df_1 = df_1.drop("level_3", axis=1)
+df_1 = df_1.drop("level_4", axis=1)
 df_1 = df_1.drop("level_5", axis=1)
 df_1 = df_1.drop("aggregator", axis=1)
-df_1.columns = ['aggregator', 'C_min', 'C_max', 'P_min', 'P_max', 'Exch_min', 'Exch_max', 'HP_min', 'HP_max', 'CHP_min', 'CHP_max']
-agent1_intervals = df_1.to_dict(orient="list")  # transforming it into dicts.
+df_1 = df_1.drop("Energy_Consumption", axis=1)
+df_1 = df_1.drop("Energy_Production", axis=1)
+df_1 = df_1.drop("Energy_Conversion_2", axis=1)
+df_1 = df_1.drop("Energy_Conversion_3", axis=1)
+df_1.columns = ['aggregator', 'HP_elec_min', 'HP_elec_max']
+intermediaryHP_elec_intervals = df_1.to_dict(orient="list")  # transforming it into dicts.
 df_2 = df_2.reset_index()
-df_2 = df_2.iloc[:,:-2]
-df_2.columns = ['aggregator', 'C_min', 'C_max', 'P_min', 'P_max', 'S_min', 'S_max', 'HP_min', 'HP_max', 'CHP_min', 'CHP_max']
-df_2["HP_min"] = 0.0  # correcting the values for the HP
-df_2["HP_max"] = -6910.331633  # correcting the values for the HP
-agent2_intervals = df_2.to_dict(orient="list")  # transforming it into dicts.
+df_2 = df_2.drop("level_1", axis=1)
+df_2 = df_2.drop("level_2", axis=1)
+df_2 = df_2.drop("level_3", axis=1)
+df_2 = df_2.drop("level_4", axis=1)
+df_2 = df_2.drop("level_5", axis=1)
+df_2 = df_2.drop("aggregator", axis=1)
+df_2 = df_2.drop("Energy_Consumption", axis=1)
+df_2 = df_2.drop("Energy_Production", axis=1)
+df_2 = df_2.drop("Energy_Conversion_2", axis=1)
+df_2 = df_2.drop("Energy_Conversion_3", axis=1)
+# df_2 = df_2.iloc[:,:-2]
+df_2.columns = ['aggregator', 'CHP_gas_min', 'CHP_gas_max']
+intermediaryCHP_gas_intervals = df_2.to_dict(orient="list")  # transforming it into dicts.
+df_3 = df_3.reset_index()
+df_3 = df_3.drop("level_5", axis=1)
+df_3 = df_3.drop("aggregator", axis=1)
+df_3 = df_3.drop("Energy_Storage", axis=1)
+df_3 = df_3.drop("Energy_Exchange_1", axis=1)
+df_3.columns = ['aggregator', 'Cmin', 'Cmax', 'Pmin', 'Pmax', 'Eexch_min', 'Eexch_max', 'CHP_elec_min', 'CHP_elec_max']
+EMG_intervals = df_3.to_dict(orient="list")  # transforming it into dicts.
+df_4 = df_4.reset_index()
+df_4 = df_4.drop("Energy_Consumption", axis=1)
+df_4 = df_4.drop("Energy_Production", axis=1)
+df_4 = df_4.drop("Energy_Conversion_2", axis=1)
+df_4 = df_4.drop("Energy_Conversion_3", axis=1)
+df_4.columns = ['aggregator', 'Cmin', 'Cmax', 'Pmin', 'Pmax', 'Smin', 'Smax', 'CHP_heat_min', 'CHP_heat_max']
+df_4["HP_min"] = 0.0  # correcting the values for the HP
+df_4["HP_max"] = -6910.331633  # correcting the values for the HP
+DHN_intervals = df_4.to_dict(orient="list")  # transforming it into dicts.
 
 
 # II - Processing the results #
@@ -95,8 +172,8 @@ elec_balance = (np.array(aggregators_data['electric_microgrid.energy_sold_inside
                 np.array(aggregators_data['electric_microgrid.energy_bought_outside']))
 diff_buy = np.array(aggregators_data['electric_microgrid.energy_bought_outside']) - buy_need
 diff_sell = np.array(aggregators_data['electric_microgrid.energy_sold_outside']) - sell_need
-offset_buy = np.where(np.array(aggregators_data['electric_microgrid.energy_bought_outside']) > 7200, np.array(aggregators_data['electric_microgrid.energy_bought_outside']) - 7200, 0)
-offset_sell = np.where(np.array(aggregators_data['electric_microgrid.energy_sold_outside']) > 22000, np.array(aggregators_data['electric_microgrid.energy_sold_outside']) - 22000, 0)
+offset_buy = np.where(np.array(aggregators_data['electric_microgrid.energy_bought_outside']) > 13500, np.array(aggregators_data['electric_microgrid.energy_bought_outside']) - 13500, 0)
+offset_sell = np.where(np.array(aggregators_data['electric_microgrid.energy_sold_outside']) > 25000, np.array(aggregators_data['electric_microgrid.energy_sold_outside']) - 25000, 0)
 total_elec_error = np.abs(diff_buy) + np.abs(diff_sell) + np.abs(offset_buy) + np.abs(offset_sell)
 relative_elec_error = np.divide(total_elec_error, np.array(aggregators_data['electric_microgrid.energy_sold_inside']), out=np.zeros_like(total_elec_error, dtype=float), where=np.array(aggregators_data['electric_microgrid.energy_sold_inside'])!=0)
 
@@ -116,12 +193,17 @@ heat_balance = np.abs(np.array(aggregators_data['district_heating_network.energy
                 np.array(aggregators_data['district_heating_network.energy_sold_outside']) -
                 np.array(aggregators_data['district_heating_network.energy_bought_inside']) -
                 np.array(aggregators_data['district_heating_network.energy_bought_outside']))
-total_heat_error = np.maximum(heat_balance, heat_imbalance)
+# dis_TES_offset = np.where(np.array(agent2_decisions['Energy_Storage']) < np.array(agent2_intervals['S_min']), abs(np.array(agent2_decisions['Energy_Storage']) - np.array(agent2_intervals['S_min'])), 0)
+# ch_TES_offset = np.where(np.array(agent2_decisions['Energy_Storage']) > np.array(agent2_intervals['S_max']), abs(np.array(agent2_decisions['Energy_Storage']) - np.array(agent2_intervals['S_max'])), 0)
+# TODO for 3-agents RL
+dis_TES_offset = np.where(np.array(DHN_decisions['TES']) < np.array(DHN_intervals['Smin']), abs(np.array(DHN_decisions['TES']) - np.array(DHN_intervals['Smin'])), 0)
+ch_TES_offset = np.where(np.array(DHN_decisions['TES']) > np.array(DHN_intervals['Smax']), abs(np.array(DHN_decisions['TES']) - np.array(DHN_intervals['Smax'])), 0)
+total_heat_error = np.maximum(heat_balance, heat_imbalance) + ch_TES_offset + dis_TES_offset
 relative_heat_error = np.divide(total_heat_error, np.array(aggregators_data['district_heating_network.energy_sold_inside']), out=np.zeros_like(total_heat_error, dtype=float), where=np.array(aggregators_data['district_heating_network.energy_sold_inside'])!=0)
 
 # 3. Score KPIs - operational objectives.
 outside_balance_elec = np.array(metrics_data['electric_microgrid.money_earned_outside']) - np.array(metrics_data['electric_microgrid.money_spent_outside'])
-social_cost = np.array(metrics_data['flexible_loads.LVE.energy_erased']) * np.array(metrics_data['flexible_loads.LVE.money'])
+# social_cost = np.array(metrics_data['flexible_loads.LVE.energy_erased']) * np.array(metrics_data['flexible_loads.LVE.money'])
 gas_cost = np.array(metrics_data['combined_heat_power.LPG.money_spent'])
 heat_wasted = np.array(metrics_data['combined_heat_power.heat_by_pass']) * np.array(metrics_data['combined_heat_power.LTH.money'])
 green_elec_supply = - np.array(devices_data['PV_field_1.LVE.energy']) - np.array(devices_data['PV_field_2.LVE.energy']) - np.array(devices_data['WT_field_1.LVE.energy']) - np.array(devices_data['WT_field_2.LVE.energy'])
@@ -129,30 +211,30 @@ tot_elec_supply = np.array(aggregators_data['electric_microgrid.energy_bought_ou
 HP_injected = np.array(devices_data['heat_pump.LVE.energy'])
 ratio_EnR = HP_injected * np.divide(green_elec_supply, tot_elec_supply, out=np.zeros_like(green_elec_supply, dtype=float), where=tot_elec_supply!=0)
 green_HP_injected = np.sum(ratio_EnR) / np.sum(HP_injected)
-DHN_heat_consumption = np.array(devices_data['space_heating.LTH.energy']) + TES_charging
+DHN_heat_consumption = np.array(devices_data['space_heating.LTH.energy'])
 green_heat_injected = np.abs(np.array(devices_data['heat_pump.LTH.energy'])) * green_HP_injected + np.abs(np.array(devices_data['Waste_to_heat.LTH.energy']))
 total_green_heat_ratio = np.sum(green_heat_injected) / np.sum(DHN_heat_consumption)
 
-# 4. Coordination mechanism. todo specific to MARL
-# initial_EMG_controlled_signal = np.where(np.array(metrics_data['artificial_DHN.priority_tau']) > 0, 1, 0)
-# initial_DHN_controlled_signal = np.where(np.array(metrics_data['artificial_DHN.priority_tau']) < 0, 1, 0)
-# min_control_signal = np.where(np.array(metrics_data['artificial_DHN.priority_tau']) == 0, 1, 0)
-# min_HP_elec = np.array(devices_data['heat_pump.LVE.energy']) * min_control_signal
-# min_CHP_elec = np.array(devices_data['combined_heat_power.LVE.energy']) * min_control_signal
-# min_HP_heat = np.array(devices_data['heat_pump.LTH.energy']) * min_control_signal
-# min_CHP_heat = np.array(devices_data['combined_heat_power.LTH.energy']) * min_control_signal
-# agent1_HP = np.array(agent1_decisions['heat_pump']) * min_control_signal
-# agent1_CHP = np.array(agent1_decisions['combined_heat_power']) * min_control_signal
-# agent2_HP = np.array(agent2_decisions['heat_pump']) * min_control_signal
-# agent2_CHP = np.array(agent2_decisions['combined_heat_power']) * min_control_signal
-# agent1_HP_decided_indices = who_decided(agent1_HP, min_HP_elec, 0.5)
-# agent1_CHP_decided_indices = who_decided(agent1_CHP, min_CHP_elec, 0.5)
-# agent2_HP_decided_indices = who_decided(agent2_HP, min_HP_heat, 0.5)
-# agent2_CHP_decided_indices = who_decided(agent2_CHP, min_CHP_heat, 0.5)
-# EMG_controlled_signal = initial_EMG_controlled_signal + agent1_HP_decided_indices + agent1_CHP_decided_indices
-# EMG_controlled_signal = (EMG_controlled_signal != 0).astype(int)
-# DHN_controlled_signal = initial_DHN_controlled_signal + agent2_HP_decided_indices + agent2_CHP_decided_indices
-# DHN_controlled_signal = (DHN_controlled_signal != 0).astype(int)
+# 4. Coordination mechanism. todo specific to MARL (2 agents)
+# initial_EMG_controlled_signal = np.where(np.array(metrics_data['artificial_DHN.DHN_EMG_priority']) == 'electric_microgrid', 1, 0)
+# initial_DHN_controlled_signal = np.where(np.array(metrics_data['artificial_DHN.DHN_EMG_priority']) == 'district_heating_network', 1, 0)
+# # min_control_signal = np.where(np.array(metrics_data['artificial_DHN.priority_tau']) == 0, 1, 0)
+# # min_HP_elec = np.array(devices_data['heat_pump.LVE.energy']) * min_control_signal
+# # min_CHP_elec = np.array(devices_data['combined_heat_power.LVE.energy']) * min_control_signal
+# # min_HP_heat = np.array(devices_data['heat_pump.LTH.energy']) * min_control_signal
+# # min_CHP_heat = np.array(devices_data['combined_heat_power.LTH.energy']) * min_control_signal
+# agent1_HP = np.array(agent1_decisions['heat_pump']) * initial_EMG_controlled_signal
+# agent1_CHP = np.array(agent1_decisions['combined_heat_power']) * initial_EMG_controlled_signal
+# agent2_HP = np.array(agent2_decisions['heat_pump']) * initial_DHN_controlled_signal
+# agent2_CHP = np.array(agent2_decisions['combined_heat_power']) * initial_DHN_controlled_signal
+# # agent1_HP_decided_indices = who_decided(agent1_HP, min_HP_elec, 0.5)
+# # agent1_CHP_decided_indices = who_decided(agent1_CHP, min_CHP_elec, 0.5)
+# # agent2_HP_decided_indices = who_decided(agent2_HP, min_HP_heat, 0.5)
+# # agent2_CHP_decided_indices = who_decided(agent2_CHP, min_CHP_heat, 0.5)
+# # EMG_controlled_signal = initial_EMG_controlled_signal + agent1_HP_decided_indices + agent1_CHP_decided_indices
+# # EMG_controlled_signal = (EMG_controlled_signal != 0).astype(int)
+# # DHN_controlled_signal = initial_DHN_controlled_signal + agent2_HP_decided_indices + agent2_CHP_decided_indices
+# # DHN_controlled_signal = (DHN_controlled_signal != 0).astype(int)
 
 # 5. Export of brut results (errors, score, etc...)
 results_file = "/recap.txt"
@@ -164,12 +246,12 @@ with open(path_to_csv + results_file, "a") as myFile:
     myFile.write(f"The total heat imbalance error is : {np.sum(total_heat_error)} [kWh]\n")
     myFile.write(f"averaging : {np.average(total_heat_error)} [kWh], with a peak of {np.max(total_heat_error)} [kWh]\n")
     myFile.write(f"representing on average {np.average(relative_heat_error) * 100}% relative to heat consumption in the DHN.\n")
-    myFile.write(f"The score obtained is : {np.sum(outside_balance_elec) - np.sum(social_cost) - np.sum(gas_cost) - np.sum(heat_wasted)} €\n")
+    myFile.write(f"The score obtained is : {np.sum(outside_balance_elec) - np.sum(gas_cost) - np.sum(heat_wasted)} €\n")
     myFile.write(f"of which, {np.sum(outside_balance_elec)} [€] is the external balance of the EMG\n")
-    myFile.write(f"{np.sum(social_cost)} [€] represents the cost of unserved electricity loads amounting to {np.sum(np.array(metrics_data['flexible_loads.LVE.energy_erased']))} [kWh]\n")
+    # myFile.write(f"{np.sum(social_cost)} [€] represents the cost of unserved electricity loads amounting to {np.sum(np.array(metrics_data['flexible_loads.LVE.energy_erased']))} [kWh]\n")
     myFile.write(f"{np.sum(gas_cost)} [€] represents the gas/fuel cost of the combined heat and power\n")
     myFile.write(f"{np.sum(heat_wasted)} [€] represents the heat wasted by the CHP in the DHN which amounts to {np.sum(np.array(metrics_data['combined_heat_power.heat_by_pass']))} [kWh].\n")
-    myFile.write(f"Finally, the renewable electricity ratio usage by the HP is : {total_green_heat_ratio * 100} %, corresponding to {sum(green_heat_injected)} [kWh].\n")
+    myFile.write(f"Finally, the renewable electricity ratio usage by the HP is : {green_HP_injected * 100} %, corresponding to {np.sum(ratio_EnR)} [kWh].\n")
     myFile.write(f"and the total renewable heat supplied represents {total_green_heat_ratio * 100} % from total heat consumption, corresponding to {np.sum(green_heat_injected)} [kWh].")
     # myFile.write(f"Initially, the DHN controlled the CHP and HP for {np.sum(initial_DHN_controlled_signal)} hours.\n")
     # myFile.write(f"While, the EMG controlled them during {np.sum(initial_EMG_controlled_signal)} hours.\n")
@@ -177,7 +259,7 @@ with open(path_to_csv + results_file, "a") as myFile:
 
 # III - Analyzing correlations and exporting graphs #
 #####################################################
-# 1. Coordination mechanism signal against energy imbalance
+# # 1. Coordination mechanism signal against energy imbalance
 # fileName = "/CorrelationErrorControl.pdf"
 # # a) Electricity MicroGrid
 # sum_elec_error = np.sum(total_elec_error)
@@ -240,15 +322,18 @@ with open(path_to_csv + results_file, "a") as myFile:
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # # plt.show()
 # plt.close()
-#
-# # 2. HP.LVE against LVE.EnR
+# #
+# # # 2. HP.LVE against LVE.EnR
 # fileName = "/CorrelationHeatPumpEnR.pdf"
-# EMG_HP_controlled_signal = agent1_HP_decided_indices + initial_EMG_controlled_signal
-# EMG_HP_controlled_signal = (EMG_HP_controlled_signal != 0).astype(int)
-# EMG_HP_elec = EMG_HP_controlled_signal * np.array(devices_data['heat_pump.LVE.energy'])
-# DHN_HP_controlled_signal = agent2_HP_decided_indices + initial_DHN_controlled_signal
-# DHN_HP_controlled_signal = (DHN_HP_controlled_signal != 0).astype(int)
-# DHN_HP_elec = DHN_HP_controlled_signal * np.array(devices_data['heat_pump.LVE.energy'])
+# # EMG_HP_controlled_signal = agent1_HP_decided_indices + initial_EMG_controlled_signal
+# EMG_HP_controlled_signal = initial_EMG_controlled_signal
+# # EMG_HP_controlled_signal = (EMG_HP_controlled_signal != 0).astype(int)
+# EMG_HP_elec = EMG_HP_controlled_signal * np.array(devices_data['heat_pump.LVE.energy']) / 1500
+# # DHN_HP_controlled_signal = agent2_HP_decided_indices + initial_DHN_controlled_signal
+# DHN_HP_controlled_signal = initial_DHN_controlled_signal
+# # DHN_HP_controlled_signal = (DHN_HP_controlled_signal != 0).astype(int)
+# DHN_HP_elec = DHN_HP_controlled_signal * np.array(devices_data['heat_pump.LVE.energy']) / 1500
+# green_elec_supply = (green_elec_supply - np.min(green_elec_supply)) / (np.max(green_elec_supply) - np.min(green_elec_supply))
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -262,17 +347,23 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 3. HP.LTH against CHP.LTH
+# #
+# # # 3. HP.LTH against CHP.LTH
 # fileName = "/CorrelationHP_CHP_heat.pdf"
-# EMG_CHP_controlled_signal = agent1_CHP_decided_indices + initial_EMG_controlled_signal
-# EMG_CHP_controlled_signal = (EMG_CHP_controlled_signal != 0).astype(int)
+# # EMG_CHP_controlled_signal = agent1_CHP_decided_indices + initial_EMG_controlled_signal
+# EMG_CHP_controlled_signal = initial_EMG_controlled_signal
+# # EMG_CHP_controlled_signal = (EMG_CHP_controlled_signal != 0).astype(int)
 # EMG_CHP_heat = EMG_CHP_controlled_signal * np.array(devices_data['combined_heat_power.LTH.energy'])
-# DHN_CHP_controlled_signal = agent2_CHP_decided_indices + initial_DHN_controlled_signal
-# DHN_CHP_controlled_signal = (DHN_CHP_controlled_signal != 0).astype(int)
+# # DHN_CHP_controlled_signal = agent2_CHP_decided_indices + initial_DHN_controlled_signal
+# DHN_CHP_controlled_signal = initial_DHN_controlled_signal
+# # DHN_CHP_controlled_signal = (DHN_CHP_controlled_signal != 0).astype(int)
 # DHN_CHP_heat = DHN_CHP_controlled_signal * np.array(devices_data['combined_heat_power.LTH.energy'])
+# EMG_CHP_heat /= (-9900.8)
+# DHN_CHP_heat /= (-9900.8)
 # EMG_HP_heat = EMG_HP_controlled_signal * np.array(devices_data['heat_pump.LTH.energy'])
 # DHN_HP_heat = DHN_HP_controlled_signal * np.array(devices_data['heat_pump.LTH.energy'])
+# EMG_HP_heat /= (-6910.34)
+# DHN_HP_heat /= (-6910.34)
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -286,10 +377,11 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 4. HP.LTH against W2H.LTH
+# #
+# # # 4. HP.LTH against W2H.LTH
 # fileName = "/CorrelationHP_Incinerator.pdf"
 # W2h_axis = np.array(devices_data['Waste_to_heat.LTH.energy'])
+# W2h_axis /= (-12000)
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -303,10 +395,11 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 5. HP.LTH against TES
+# #
+# # # 5. HP.LTH against TES
 # fileName = "/CorrelationHP_TES.pdf"
 # TES_axis = np.array(devices_data['Heat_storage.LTH.energy'])
+# TES_axis = (TES_axis + 6910.34) / (6910.34 + 6910.34)
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -320,8 +413,8 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 6. CHP.LTH against W2H.LTH
+# #
+# # # 6. CHP.LTH against W2H.LTH
 # fileName = "/CorrelationCHP_Incinerator.pdf"
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
@@ -336,10 +429,11 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 7. W2H.LTH against heat loads
+# #
+# # # 7. W2H.LTH against heat loads
 # fileName = "/CorrelationIncinerator_HeatLoads.pdf"
 # heat_loads = np.array(devices_data['space_heating.LTH.energy'])
+# heat_loads /= np.max(heat_loads)
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -352,8 +446,8 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 8. CHP against heat loads
+# #
+# # # 8. CHP against heat loads
 # fileName = "/CorrelationCHP_HeatLoads.pdf"
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
@@ -368,11 +462,13 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 9. CHP.LVE against delta(gas_price, elec_price)
+# #
+# # # 9. CHP.LVE against delta(gas_price, elec_price)
 # fileName = "/CorrelationCHPPrice_ElectricityPrice.pdf"
 # EMG_CHP_elec = EMG_CHP_controlled_signal * np.array(devices_data['combined_heat_power.LVE.energy'])
+# EMG_CHP_elec /= (-5440)
 # DHN_CHP_elec = DHN_CHP_controlled_signal * np.array(devices_data['combined_heat_power.LVE.energy'])
+# DHN_CHP_elec /= (-5440)
 # CHP_efficiencies = []
 # CHP_prices_gas = []
 # mainGrid_prices = []
@@ -387,6 +483,7 @@ with open(path_to_csv + results_file, "a") as myFile:
 #     mainGrid_prices.append(d[0]['price'])
 # CHP_elec_prices = np.divide(np.array(CHP_prices_gas), np.array(CHP_efficiencies), out=np.zeros_like(np.array(CHP_prices_gas), dtype=float), where=np.array(CHP_efficiencies)!=0)
 # delta_prices = CHP_elec_prices - np.array(mainGrid_prices)
+# delta_prices = (delta_prices - np.min(delta_prices)) / (np.max(delta_prices) - np.min(delta_prices))
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -400,9 +497,11 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
-#
-# # 10. TES energy flow values through the simulation
+# #
+# # # 10. TES energy flow values through the simulation
 # fileName = "/TES_charging_discharging.pdf"
+# TES_charging /= 6910.34
+# TES_discharging /= (-6910.34)
 # plt.figure()
 # plt.rcParams["font.family"] = "Times New Roman"
 # plt.rcParams["font.size"] = 12
@@ -416,3 +515,365 @@ with open(path_to_csv + results_file, "a") as myFile:
 # # plt.show()
 # plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
 # plt.close()
+
+# 1. HP.LVE against excess LVE.EnR
+fileName = "/CorrelationHeatPumpEnR.pdf"
+norm_HP_injected = HP_injected / np.max(HP_injected)
+norm_EnR = green_elec_supply - np.array(devices_data['rigid_electricity_consumption.LVE.energy'])
+norm_EnR = (norm_EnR - np.min(norm_EnR)) / (np.max(norm_EnR) - np.min(norm_EnR)) * 2 - 1
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(norm_EnR, norm_HP_injected, 'b*')
+plt.xlabel("Renewable Electricity Supply Excess [kWh]")
+plt.ylabel("HP Electricity Consumption [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# # 2. HP.LTH against CHP.LTH
+fileName = "/CorrelationHP_CHP_heat.pdf"
+HP_heat_supply = np.array(devices_data['heat_pump.LTH.energy'])
+HP_heat_supply = np.abs(HP_heat_supply)
+HP_heat_supply /= np.max(HP_heat_supply)
+CHP_heat_supply = np.array(devices_data['combined_heat_power.LTH.energy'])
+CHP_heat_supply = np.abs(CHP_heat_supply)
+CHP_heat_supply /= np.max(CHP_heat_supply)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(CHP_heat_supply, HP_heat_supply, 'r*')
+plt.xlabel("CHP Heat Supply [kWh]")
+plt.ylabel("HP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# # 3. HP.LTH against W2H.LTH
+fileName = "/CorrelationHP_Incinerator.pdf"
+W2h_axis = np.array(devices_data['Waste_to_heat.LTH.energy'])
+W2h_axis = np.abs(W2h_axis)
+W2h_axis /= np.max(W2h_axis)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(W2h_axis, HP_heat_supply, 'r*')
+plt.xlabel("Incinerator Heat Supply [kWh]")
+plt.ylabel("HP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# # 4. HP.LTH against heat loads
+fileName = "/CorrelationHP_HeatLoads.pdf"
+heat_loads = np.array(devices_data['space_heating.LTH.energy'])
+heat_loads /= np.max(heat_loads)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(heat_loads, HP_heat_supply, 'r*')
+plt.xlabel("Space Heating Loads [kWh]")
+plt.ylabel("HP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# # 5. HP.LTH against TES
+fileName = "/CorrelationHP_TES.pdf"
+TES_axis = np.array(devices_data['Heat_storage.LTH.energy'])
+# print(min(TES_axis))
+# print(max(TES_axis))
+TES_axis = TES_axis / 6910.33163265305
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(TES_axis, HP_heat_supply, 'r*')
+plt.xlabel("Thermal Energy Storage Energy Flow [kWh]")
+plt.ylabel("HP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 6. CHP.LTH against W2H.LTH
+fileName = "/CorrelationCHP_Incinerator.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(W2h_axis, CHP_heat_supply, 'r*')
+plt.xlabel("Incinerator Heat Supply [kWh]")
+plt.ylabel("CHP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 8. CHP against heat loads
+fileName = "/CorrelationCHP_HeatLoads.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(heat_loads, CHP_heat_supply, 'r*')
+plt.xlabel("Space Heating Loads [kWh]")
+plt.ylabel("CHP Heat Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 9. CHP against electricity loads
+fileName = "/CorrelationCHP_ElecLoads.pdf"
+elec_loads = np.array(devices_data['rigid_electricity_consumption.LVE.energy'])
+elec_loads /= np.max(elec_loads)
+CHP_elec_supply = np.array(devices_data['combined_heat_power.LVE.energy'])
+CHP_elec_supply = np.abs(CHP_elec_supply)
+CHP_elec_supply /= np.max(CHP_elec_supply)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(elec_loads, CHP_elec_supply, 'b*')
+plt.xlabel("Electricity Rigid Loads [kWh]")
+plt.ylabel("CHP Electricity Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 10. CHP.LVE against delta(gas_price, elec_price)
+fileName = "/CorrelationCHPPrice_ElectricityPrice.pdf"
+CHP_efficiencies = []
+CHP_prices_gas = []
+mainGrid_prices = []
+for element in metrics_data["combined_heat_power.LVE.energy_wanted"]:
+    d = ast.literal_eval(element)  # convert string → dict safely
+    CHP_efficiencies.append(d['efficiency'])
+for element in metrics_data["combined_heat_power.LPG.energy_wanted"]:
+    d = ast.literal_eval(element)  # convert string → dict safely
+    CHP_prices_gas.append(d['price'])
+for element in metrics_data["electric_microgrid.LVE.energy_wanted"]:
+    cleaned = re.sub(r'np\.float64\(([^)]+)\)', r'\1', element)
+    d = ast.literal_eval(cleaned)  # convert string → dict safely
+    if len(d) > 0:
+        mainGrid_prices.append(d[0]['price'])
+    else:
+        mainGrid_prices.append(0.0)
+CHP_elec_prices = np.divide(np.array(CHP_prices_gas), np.array(CHP_efficiencies), out=np.zeros_like(np.array(CHP_prices_gas), dtype=float), where=np.array(CHP_efficiencies)!=0)
+delta_prices = CHP_elec_prices - np.array(mainGrid_prices)
+delta_prices = (2 / (np.max(delta_prices) - np.min(delta_prices))) * (delta_prices - np.min(delta_prices)) - 1
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(delta_prices, CHP_elec_supply, 'b*')
+plt.xlabel("Delta Prices Gas-Electricity [€/kWh]")
+plt.ylabel("CHP Electricity Supply [kWh]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+
+# # 7. W2H.LTH against heat loads
+fileName = "/CorrelationIncinerator_HeatLoads.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(heat_loads, W2h_axis, 'r*', label="Incinerator vs heat loads")
+plt.xlabel("Space Heating Loads [kWh]")
+plt.ylabel("Incinerator Heat Supply [kWh]")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 11. TES energy flow values through the simulation
+fileName = "/TES_charging_discharging.pdf"
+number_of_hours = np.arange(len(relative_heat_error))
+TES_charging = np.sort(TES_charging)[::-1]
+TES_charging /= np.max(TES_charging)
+TES_discharging = np.sort(TES_discharging)[::-1]
+TES_discharging /= np.max(TES_discharging)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(number_of_hours, TES_charging, 'b--', label="Charging")
+plt.plot(number_of_hours, TES_discharging, 'r--', label="Discharging")
+plt.xlabel("Simulation Steps [Hours]")
+plt.ylabel("TES Heat Flow [kWh]")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 13. TES state of charge against Heat Loads
+fileName = "/socTES_HeatLoads.pdf"
+SoC = np.array(logs_data["Heat_storage.energy_stored"])
+SoC = (SoC - 438434.335305774) / (477345.498899999 - 438434.335305774)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(heat_loads, SoC, 'rx')
+plt.xlabel("Heat Loads [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 14. TES state of charge against TES heat flows
+fileName = "/socTES_TESflows.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(TES_axis, SoC, 'r*')
+plt.xlabel("TES Heat Flows [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 15. TES state of charge against EnR
+fileName = "/socTES_EnR.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(norm_EnR, SoC, 'r*')
+plt.xlabel("Renewable Electricity Supply Excess [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 16. TES state of charge against Incinerator heat supply
+fileName = "/socTES_Incinerator.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(W2h_axis, SoC, 'r*')
+plt.xlabel("Incinerator Heat Supply [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 17. TES state of charge against HP heat supply
+fileName = "/socTES_HP.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(HP_heat_supply, SoC, 'r*')
+plt.xlabel("HP Heat Supply [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 18. TES state of charge against CHP heat supply
+fileName = "/socTES_CHP.pdf"
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(CHP_heat_supply, SoC, 'r*')
+plt.xlabel("CHP Heat Supply [kWh]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 19. TES state of charge over time
+fileName = "/socTES_time.pdf"
+# SoC = np.sort(SoC)[::-1]
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(number_of_hours, SoC, 'k.')
+plt.xlabel("Number of Hours [Hours]")
+plt.ylabel("TES State of Charge [%]")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+#
+# # 20. FFT analysis cycle of the TES charging/discharging
+fileName = "/TES_charging_discharging_fft.pdf"
+# SoC -= np.average(SoC)
+ySoC = fft(SoC)
+xtime = fftfreq(len(number_of_hours), 1)[: len(number_of_hours) // 2]
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(xtime, 2 / len(number_of_hours) * np.abs(ySoC[0 : len(number_of_hours) // 2]))
+plt.xlabel("Frequency [Cycle per Hour]")
+plt.ylabel("Magnitude")
+# plt.legend()
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+
+# 12. Exchange with main grid against electric flexible loads
+fileName = "/MainGrid_shift.pdf"
+shift_loads = np.array(devices_data["flexible_loads.LVE.energy"])
+shift_loads /= np.max(shift_loads)
+elec_bought_out = np.array(aggregators_data["electric_microgrid.energy_bought_outside"])
+elec_bought_out /= np.max(elec_bought_out)
+plt.figure()
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 12
+plt.plot(shift_loads, elec_bought_out, 'bx', label="Supplied by main grid")
+plt.plot(shift_loads, norm_EnR, 'y.', label="Supplied by EnR")
+plt.plot(shift_loads, CHP_elec_supply, 'r*', label="Supplied by CHP")
+plt.xlabel("Flexible Loads [kWh]")
+plt.ylabel("Electricity Supply [kWh]")
+plt.legend(loc="upper right")
+plt.grid(True)
+plt.tight_layout()
+# plt.show()
+plt.savefig(path_to_csv + fileName, format="pdf", bbox_inches="tight")
+plt.close()
+

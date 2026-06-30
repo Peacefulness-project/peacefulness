@@ -6,7 +6,7 @@ def define_my_Rt(beta_0: float):
     """
     :param beta_0: coefficient w.r.t penalty for not totally serving loads.
     """
-    def social_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, action_reduction_dict:Dict=None):  # todo patchwork solution
+    def social_cost(iteration_result: Dict, metrics:List=None, agent_ID:str=None, cumul_dict:Dict=None, action_reduction_dict:Dict=None):  # todo patchwork solution
         """
         :param iteration_result: the dataloggers' signal for each iteration used to compute the immediate reward.
         :param metrics: the metrics needed to compute the defined immediate reward.
@@ -24,38 +24,25 @@ def define_my_Rt(beta_0: float):
         reward = 0.0
         energy_price = 0.0
         energy_erased = 0.0
-        # for key in key_list:
-        #     if "residential" in key and agent_ID == "agent_1":
-        #         reward += - beta_0 * abs(iteration_result[key])
-        #         break
-        #     if "industrial" in key and agent_ID == "agent_2":
-        #         reward += - beta_0 * abs(iteration_result[key])
-        #         break
         for key in key_list:
             # if agent_ID == "agent_1":
-            if "flexible_loads" in key and "erased" in key:
-                energy_erased = iteration_result[key]
+            if "flexible_loads" in key and "wanted" in key:
+                energy_wanted = iteration_result[key]
+            elif "flexible_loads" in key and "accorded" in key:
+                energy_accorded = iteration_result[key]
             elif "flexible_loads" in key and "money" in key:
                 energy_price = iteration_result[key]
-                # elif "residential" in key and "energy" in key:
-                #     energy_bought = iteration_result[key]
-            # elif agent_ID == "agent_2":
-            #     if "industrial" in key and "erased" in key:
-            #         energy_erased = iteration_result[key]
-                # elif "industrial" in key and "money" in key:
-                #     money_spent = iteration_result[key]
-                # elif "industrial" in key and "energy" in key:
-                #     energy_bought = iteration_result[key]
 
         # Finally we compute the reward
-        # energy_price = money_spent / energy_bought if energy_bought != 0 else 0.0
-        # if energy_price != 0.0:
-        #     # erased_price = energy_price * energy_erased / (1500.0 * energy_price)
-        #     erased_price = energy_price * energy_erased
-        # else:
-        #     erased_price = 0.0
-        # reward += - beta_0 * abs(erased_price)
-        reward += - beta_0 * abs(energy_erased) / 1500.0
+        if iteration_result['simulation_time'] != cumul_dict['time_limit']:  # end of simulation haven't been reached yet
+            if energy_wanted['energy_maximum'] != 0:
+                energy_erased = energy_accorded['quantity'] / energy_wanted['energy_maximum']
+            else:
+                energy_erased = 0.0
+        else:
+            energy_erased = (cumul_dict['flex_given'] - cumul_dict['flex_max'])/ cumul_dict['flex_max']
+
+        reward += beta_0 * energy_erased
 
         return reward
 

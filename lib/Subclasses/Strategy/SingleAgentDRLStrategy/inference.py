@@ -1,6 +1,7 @@
 # In this file, the trained model are run for inference
 # Imports
 from stable_baselines3 import PPO
+from Utilities import scale_up_inputs
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
 from lib.Subclasses.Strategy.SingleAgentDRLStrategy.PeacefulnessEnv import PeacefulnessEnv, datetime
@@ -13,22 +14,26 @@ start_time = datetime(2020, 9, 22, 0, 0, 0)
 simulation_length = 5304
 export_path = "cases/Studies/first_paper_MultiEnergy/Results/Mono_agent/Inference"
 obs_size = 46
-action_info = {"total_size": 8, "exchanges": 3, "interior": {"electric_microgrid": 2, "district_heating_network": 3}}
+action_info = {"total_size": 6, "exchanges": 3, "interior": {"electric_microgrid": 1, "district_heating_network": 2}}
+agg_acts = {"electric_microgrid": ("Energy_Consumption", "Energy_Conversion_2", "Energy_Conversion_3"),
+            "district_heating_network": ("Energy_Production", "Energy_Conversion_2", "Energy_Conversion_3")}
 obj = {"conservation_penalty": 5, "aggregator_costs": 1, "social_cost": 1, "gas_cost": 1,
        "waste_cost": 1, "heatSink_cost": 1,
        "green_injection": 1}
 normalizing_parameters = {
-                          # "energy_minimum": -25000.0, "energy_maximum": 35000.0,
-                          # "price_minimum": 0.0, "price_maximum": 0.57,
+                          "energy_minimum": -25000.0, "energy_maximum": 35000.0,
+                          "price_minimum": 0.0, "price_maximum": 0.6,
                           }
 performance_metrics = [
+    "electric_microgrid.energy_bought_outside", "electric_microgrid.energy_sold_outside",  # external economic balance
     "electric_microgrid.money_spent_outside", "electric_microgrid.money_earned_outside",  # external economic balance
-    "flexible_loads.LVE.energy_erased", "flexible_loads.LVE.money",  # social cost
-    "combined_heat_power.LPG.money_spent", "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "electric_microgrid.LVE.energy_wanted",  # gas cost
+    "flexible_loads.LVE.energy_wanted", "flexible_loads.LVE.energy_accorded", "flexible_loads.LVE.money",  # social cost
+    "combined_heat_power.LPG.energy_wanted", "combined_heat_power.LVE.energy_wanted", "combined_heat_power.LPG.money_spent",  # gas cost
+    "electric_microgrid.LVE.energy_wanted", "combined_heat_power.LTH.energy_wanted", "district_heating_network.LVE.energy_wanted",
     "Waste_to_heat.heat_dissipated", "Waste_to_heat.LTH.energy_sold", "Waste_to_heat.LTH.money",  # cost of the wasted heat from the incinerator
     "combined_heat_power.heat_by_pass", "combined_heat_power.LTH.money",  # wasted heat from the CHP
     "PV_field_1.LVE.energy_sold", "PV_field_2.LVE.energy_sold", "WT_field_1.LVE.energy_sold", "WT_field_2.LVE.energy_sold",  # EnR
-    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "electric_microgrid.energy_bought_outside", "district_heating_network.energy_sold_inside"  # HP
+    "heat_pump.LVE.energy_bought", "heat_pump.LTH.energy_sold", "electric_microgrid.energy_bought_inside", "district_heating_network.energy_sold_inside", "heat_pump.LTH.energy_wanted"  # HP
 ]
 act_red_dict = {
     "electric_microgrid": "Energy_Exchange_1",
@@ -39,15 +44,15 @@ act_red_dict = {
 MEG_caseStudy_env = make_vec_env(PeacefulnessEnv, n_envs=1, env_kwargs={"path_to_case": my_path, "world_name": world_name,
                                                      "start_time": start_time, "hours_to_simulate": simulation_length,
                                                      "export_path": export_path, "observation_size": obs_size,
-                                                     "action_dict": action_info, "objective_dict": obj,
+                                                     "action_dict": action_info, "aggregators_actions": agg_acts, "objective_dict": obj,
                                                      "normalization_dict": normalizing_parameters, "metrics": performance_metrics,
                                                      "red_dof_dict": act_red_dict, "std_dev": 0})
 
 # Loading the trained model
-# MEG_caseStudy_env = VecNormalize.load("cases/Studies/first_paper_MultiEnergy/Results/Mono_agent/Models/vecnormalize.pkl", MEG_caseStudy_env)
-# MEG_caseStudy_env.training = False
+MEG_caseStudy_env = VecNormalize.load("D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/SRL/vecnormalize.pkl", MEG_caseStudy_env)
+MEG_caseStudy_env.training = False
 # MEG_caseStudy_env.norm_reward = True
-EMG_DHN_controller = PPO.load("cases/Studies/first_paper_MultiEnergy/Results/Mono_agent/Models/best_model/best_model.zip",
+EMG_DHN_controller = PPO.load("D:/dossier_y23hallo/Thèse/multi-energy/FINAL-RESULTS/SRL/best_model.zip",
                               env=MEG_caseStudy_env)
 
 # Global dicts for export
@@ -64,6 +69,7 @@ while not done[0]:
     for k, v in recapitulate_state(MEG_caseStudy_env.envs[0].unwrapped.grid._catalog).items():
         for key, value in v.items():
             state_dict.setdefault(k, {}).setdefault(key, []).append(value)
+    scale_up_inputs(obs[0], normalizing_parameters, simulation_length)
     action, _states = EMG_DHN_controller.predict(
         obs,
         deterministic=True
